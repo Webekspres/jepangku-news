@@ -49,15 +49,15 @@ def create_slug(title: str) -> str:
 # Helper function to check article ownership
 async def check_article_ownership(article_id: str, user_id: str) -> dict:
     try:
-        article = await db.articles.find_one({"_id": ObjectId(article_id)})
+        article = await db.articles.find_one({"id": article_id})
         if not article:
             raise HTTPException(status_code=404, detail="Article not found")
         if str(article.get("author_id")) != user_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this article")
         return article
+    except HTTPException:
+        raise
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=400, detail=str(e))
 
 # Helper function to award points
@@ -524,7 +524,11 @@ async def create_article(request: Request, data: ArticleCreate):
     if article_doc["category_id"]:
         article_doc["category_id"] = str(article_doc["category_id"])
     
-    return article_doc
+    # Return clean response
+    response_doc = {k: v for k, v in article_doc.items() if k != "_id"}
+    response_doc["created_at"] = article_doc["created_at"].isoformat()
+    response_doc["updated_at"] = article_doc["updated_at"].isoformat()
+    return response_doc
 
 @api_router.put("/articles/{article_id}")
 async def update_article(article_id: str, request: Request, data: ArticleUpdate):
@@ -551,7 +555,7 @@ async def update_article(article_id: str, request: Request, data: ArticleUpdate)
     
     update_data["updated_at"] = datetime.now(timezone.utc)
     
-    await db.articles.update_one({"_id": ObjectId(article["_id"])}, {"$set": update_data})
+    await db.articles.update_one({"id": article_id}, {"$set": update_data})
     
     if data.tags is not None:
         await db.article_tags.delete_many({"article_id": article_id})
@@ -589,7 +593,7 @@ async def delete_article(article_id: str, request: Request):
     if article["status"] == ArticleStatus.PUBLISHED.value:
         raise HTTPException(status_code=400, detail="Cannot delete published articles")
     
-    await db.articles.delete_one({"_id": ObjectId(article["_id"])})
+    await db.articles.delete_one({"id": article_id})
     await db.article_tags.delete_many({"article_id": article_id})
     
     return {"message": "Article deleted successfully"}
