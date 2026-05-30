@@ -1,0 +1,12 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { seedDatabase } from '@/lib/seed';
+
+export async function GET() {
+  await seedDatabase();
+  const categories = await db.category.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+  });
+  return NextResponse.json(categories);
+}

@@ -1,0 +1,371 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ArticleStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  ARCHIVED
+}
+
+enum QuizStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum PollType {
+  POLLING
+  VOTING
+}
+
+enum PollStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  username         String            @unique
+  passwordHash     String            @map("password_hash")
+  name             String
+  role             Role              @default(USER)
+  avatarUrl        String?           @map("avatar_url")
+  status           String            @default("active") // "active", "inactive", "banned"
+  totalPoints      Int               @default(0) @map("total_points")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  lastLoginAt      DateTime?         @map("last_login_at")
+  
+  profile          UserProfile?
+  articles         Article[]
+  bookmarks        Bookmark[]
+  quizAttempts     QuizAttempt[]
+  pollVotes        PollVote[]
+  pointTransactions PointTransaction[]
+  dailyLoginRewards DailyLoginReward[]
+  files            File[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  displayName String   @map("display_name")
+  bio         String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  iconUrl     String?   @map("icon_url")
+  color       String?
+  isActive    Boolean   @default(true) @map("is_active")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  articles    Article[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String       @id @default(uuid())
+  sourceApp String       @default("news") @map("source_app")
+  name      String
+  slug      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  
+  articles  ArticleTag[]
+
+  @@map("tags")
+}
+
+model Article {
+  id               String          @id @default(uuid())
+  sourceApp        String          @default("news") @map("source_app")
+  authorId         String          @map("author_id")
+  categoryId       String?         @map("category_id")
+  title            String
+  slug             String          @unique
+  excerpt          String?
+  content          String
+  coverImageUrl    String?         @map("cover_image_url")
+  status           ArticleStatus   @default(DRAFT)
+  visibility       String          @default("public")
+  isFeatured       Boolean         @default(false) @map("is_featured")
+  isHot            Boolean         @default(false) @map("is_hot")
+  publishedAt      DateTime?       @map("published_at")
+  viewCount        Int             @default(0) @map("view_count")
+  weeklyViewCount  Int             @default(0) @map("weekly_view_count")
+  bookmarkCount    Int             @default(0) @map("bookmark_count")
+  shareCount       Int             @default(0) @map("share_count")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  author           User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags             ArticleTag[]
+  reviews          ArticleReview[]
+  bookmarks        Bookmark[]
+
+  @@map("articles")
+}
+
+model ArticleTag {
+  id        String   @id @default(uuid())
+  articleId String   @map("article_id")
+  tagId     String   @map("tag_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, tagId])
+  @@map("article_tags")
+}
+
+model ArticleReview {
+  id             String        @id @default(uuid())
+  articleId      String        @map("article_id")
+  reviewerId     String        @map("reviewer_id")
+  previousStatus ArticleStatus @map("previous_status")
+  newStatus      ArticleStatus @map("new_status")
+  note           String?
+  reviewedAt     DateTime      @default(now()) @map("reviewed_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  article        Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_reviews")
+}
+
+model Bookmark {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  articleId         String    @map("article_id")
+  firstBookmarkedAt DateTime  @default(now()) @map("first_bookmarked_at")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article           Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("bookmarks")
+}
+
+model Quiz {
+  id                    String         @id @default(uuid())
+  sourceApp             String         @default("news") @map("source_app")
+  createdBy             String         @map("created_by")
+  title                 String
+  slug                  String         @unique
+  description           String?
+  thumbnailUrl          String?        @map("thumbnail_url")
+  quizType              String         @default("trivia") @map("quiz_type")
+  status                QuizStatus     @default(DRAFT)
+  pointsReward          Int            @default(10) @map("points_reward")
+  correctAnswerPoints   Int            @default(5) @map("correct_answer_points")
+  allowRetry            Boolean        @default(false) @map("allow_retry")
+  showResultImmediately Boolean        @default(true) @map("show_result_immediately")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  questions             QuizQuestion[]
+  attempts              QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id           String             @id @default(uuid())
+  quizId       String             @map("quiz_id")
+  questionText String             @map("question_text")
+  imageUrl     String?            @map("image_url")
+  sortOrder    Int                @default(0) @map("sort_order")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  quiz         Quiz               @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options      QuizOption[]
+  answers      QuizAttemptAnswer[]
+
+  @@map("quiz_questions")
+}
+
+model QuizOption {
+  id           String              @id @default(uuid())
+  questionId   String              @map("question_id")
+  optionText   String              @map("option_text")
+  imageUrl     String?             @map("image_url")
+  isCorrect    Boolean             @default(false) @map("is_correct")
+  sortOrder    Int                 @default(0) @map("sort_order")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  question     QuizQuestion        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers      QuizAttemptAnswer[]
+
+  @@map("quiz_options")
+}
+
+model QuizAttempt {
+  id             String              @id @default(uuid())
+  quizId         String              @map("quiz_id")
+  userId         String              @map("user_id")
+  score          Float
+  totalQuestions Int                 @map("total_questions")
+  correctAnswers Int                 @map("correct_answers")
+  pointsAwarded  Int                 @map("points_awarded")
+  isPointAwarded Boolean             @default(true) @map("is_point_awarded")
+  startedAt      DateTime            @default(now()) @map("started_at")
+  submittedAt    DateTime            @default(now()) @map("submitted_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  quiz           Quiz                @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers        QuizAttemptAnswer[]
+
+  @@map("quiz_attempts")
+}
+
+model QuizAttemptAnswer {
+  id               String       @id @default(uuid())
+  attemptId        String       @map("attempt_id")
+  questionId       String       @map("question_id")
+  selectedOptionId String       @map("selected_option_id")
+  isCorrect        Boolean      @map("is_correct")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  attempt          QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question         QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption   QuizOption   @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempt_answers")
+}
+
+model Poll {
+  id                    String       @id @default(uuid())
+  sourceApp             String       @default("news") @map("source_app")
+  createdBy             String       @map("created_by")
+  title                 String
+  slug                  String       @unique
+  description           String?
+  pollType              PollType     @default(POLLING) @map("poll_type")
+  status                PollStatus   @default(DRAFT)
+  thumbnailUrl          String?      @map("thumbnail_url")
+  pointsReward          Int          @default(5) @map("points_reward")
+  allowGuestVote        Boolean      @default(false) @map("allow_guest_vote")
+  showResultBeforeVote  Boolean      @default(false) @map("show_result_before_vote")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+
+  options               PollOption[]
+  votes                 PollVote[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id         String     @id @default(uuid())
+  pollId     String     @map("poll_id")
+  optionText String     @map("option_text")
+  voteCount  Int        @default(0) @map("vote_count")
+  sortOrder  Int        @default(0) @map("sort_order")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  poll       Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes      PollVote[]
+
+  @@map("poll_options")
+}
+
+model PollVote {
+  id            String     @id @default(uuid())
+  pollId        String     @map("poll_id")
+  optionId      String     @map("option_id")
+  userId        String     @map("user_id")
+  pointsAwarded Int        @map("points_awarded")
+  isPointAwarded Boolean    @default(true) @map("is_point_awarded")
+  votedAt       DateTime   @default(now()) @map("voted_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  poll          Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option        PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("poll_votes")
+}
+
+model PointTransaction {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  sourceApp    String   @default("news") @map("source_app")
+  activityType String   @map("activity_type")
+  sourceType   String   @map("source_type")
+  sourceId     String?  @map("source_id")
+  points       Int
+  description  String?
+  occurredAt   DateTime @default(now()) @map("occurred_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("point_transactions")
+}
+
+model DailyLoginReward {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  sourceApp          String   @default("news") @map("source_app")
+  rewardDate         String   @map("reward_date") // YYYY-MM-DD
+  pointsAwarded      Int      @map("points_awarded")
+  pointTransactionId String   @map("point_transaction_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("daily_login_rewards")
+}
+
+model File {
+  id               String   @id @default(uuid())
+  storagePath      String   @map("storage_path")
+  originalFilename String   @map("original_filename")
+  contentType      String   @map("content_type")
+  size             Int
+  userId           String   @map("user_id")
+  isDeleted        Boolean  @default(false) @map("is_deleted")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}

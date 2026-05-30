@@ -1,26 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
+  --jepang-red: #D90429;
+  --jepang-red-hover: #B3001B;
+  --jepang-black: #0A0A0A;
+  --jepang-off-white: #F4F4F5;
+  --jepang-muted: #52525B;
+  --jepang-border: #E4E4E7;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Cabinet Grotesk", "Inter", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+code {
+  font-family: "IBM Plex Mono", source-code-pro, Menlo, monospace;
+}
+
+/* ===== JEPANGKU DESIGN SYSTEM ===== */
+
+.jepang-card {
+  background: white;
+  border: 1px solid #E4E4E7;
+  border-radius: 0;
+  transition: border-color 0.2s;
+}
+.jepang-card:hover { border-color: #0A0A0A; }
+
+.jepang-btn-primary {
+  background: #D90429;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  border-radius: 0;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-block;
+  text-decoration: none;
+}
+.jepang-btn-primary:hover { background: #B3001B; }
+
+.jepang-btn-black {
+  background: #0A0A0A;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  border-radius: 0;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-block;
+  text-decoration: none;
+}
+.jepang-btn-black:hover { background: #52525B; }
+
+.jepang-btn-outline {
+  background: white;
+  color: #0A0A0A;
+  border: 1px solid #0A0A0A;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+  text-decoration: none;
+}
+.jepang-btn-outline:hover { background: #0A0A0A; color: white; }
+
+.jepang-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0;
+  border: 1px solid #0A0A0A;
+  background: white;
+  color: #0A0A0A;
+}
+
+.jepang-badge-red {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0;
+  background: #D90429;
+  color: white;
+}
+
+.jepang-badge-black {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 0;
+  background: #0A0A0A;
+  color: white;
+}
+
+.jepang-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #E4E4E7;
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 1rem;
+  color: #0A0A0A;
+}
+.jepang-input:focus { border-color: #0A0A0A; }
+
+.small-caps {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+}
+
+.thin-divider { border-top: 1px solid #E4E4E7; }
+
+.hard-shadow { box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1); }
+.hard-shadow-red { box-shadow: 4px 4px 0px 0px #d90429; }
+
+.asanoha-bg {
+  background-image: url('https://static.prod-images.emergentagent.com/jobs/d6b595d8-148b-4a5c-a6ea-ccdfa2ed4b68/images/d6842d3000c6e9b984d312d02f02aa7f612d8dff19ed10d1965c01e59c1ef899.png');
+  background-repeat: repeat;
+  background-size: 200px;
+  opacity: 0.04;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Article content */
+.article-content {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 18px;
+  line-height: 1.75;
+  color: #0a0a0a;
+}
+.article-content h1, .article-content h2, .article-content h3 {
+  font-family: "Cabinet Grotesk", "Inter", sans-serif;
+  font-weight: 800;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+.article-content h1 { font-size: 2rem; }
+.article-content h2 { font-size: 1.5rem; }
+.article-content h3 { font-size: 1.25rem; }
+.article-content p { margin-bottom: 1.5em; }
+.article-content a { color: #d90429; text-decoration: underline; }
+.article-content strong { font-weight: 700; }
+.article-content em { font-style: italic; }
+.article-content ul, .article-content ol { margin-left: 2em; margin-bottom: 1.5em; }
+.article-content ul { list-style: disc; }
+.article-content ol { list-style: decimal; }
+
+/* Color utilities */
+.bg-jepang-red { background-color: #D90429; }
+.bg-jepang-black { background-color: #0A0A0A; }
+.bg-jepang-off-white { background-color: #F4F4F5; }
+.text-jepang-red { color: #D90429; }
+.text-jepang-black { color: #0A0A0A; }
+.text-jepang-muted { color: #52525B; }
+.border-jepang-red { border-color: #D90429; }
+.border-jepang-black { border-color: #0A0A0A; }
+.border-jepang-border { border-color: #E4E4E7; }
+.font-heading { font-family: "Cabinet Grotesk", "Inter", sans-serif; }

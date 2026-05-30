@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { awardPoints } from '@/lib/points';
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
+  const user = await getCurrentUser(request);
+  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+
+  const { articleId } = await params;
+
+  const article = await db.article.findUnique({ where: { id: articleId } });
+  if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+
+  const existing = await db.bookmark.findFirst({
+    where: { userId: user.id, articleId, deletedAt: null },
+  });
+  if (existing) return NextResponse.json({ message: 'Already bookmarked' });
+
+  const old = await db.bookmark.findFirst({ where: { userId: user.id, articleId } });
+
+  if (old) {
+    await db.bookmark.update({ where: { id: old.id }, data: { deletedAt: null } });
+  } else {
+    await db.bookmark.create({
+      data: { userId: user.id, articleId, firstBookmarkedAt: new Date() },
+    });
+  }
+
+  await db.article.update({ where: { id: articleId }, data: { bookmarkCount: { increment: 1 } } });
+
+  const pointsAwarded = await awardPoints(
+    user.id, 'article_bookmarked', 'article', articleId, 1,
+    `Bookmarked article: ${article.title}`
+  );
+
+  return NextResponse.json({ message: 'Bookmarked', pointsAwarded });
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
+  const user = await getCurrentUser(request);
+  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+
+  const { articleId } = await params;
+
+  const bookmark = await db.bookmark.findFirst({
+    where: { userId: user.id, articleId, deletedAt: null },
+  });
+  if (!bookmark) return NextResponse.json({ error: 'Bookmark not found' }, { status: 404 });
+
+  await db.bookmark.update({ where: { id: bookmark.id }, data: { deletedAt: new Date() } });
+  await db.article.update({ where: { id: articleId }, data: { bookmarkCount: { decrement: 1 } } });
+
+  return NextResponse.json({ message: 'Bookmark removed' });
+}
