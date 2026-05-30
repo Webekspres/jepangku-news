@@ -1285,26 +1285,33 @@ async def admin_update_user(user_id: str, request: Request, data: UserUpdateRequ
 async def admin_list_tags(request: Request):
     await get_current_admin(request, db)
     
-    tags = await db.tags.find({}, {"_id": 0}).sort("name", 1).to_list(500)
-    for tag in tags:
-        usage = await db.article_tags.count_documents({"tag_id": tag.get("id", "")})
-        # Also try matching by stored ObjectId-string tag_id
-        if usage == 0:
-            # Maybe stored differently - search broader
-            usage_alt = await db.article_tags.count_documents({"tag_id": tag.get("id")})
-            usage = usage_alt
-        tag["usage_count"] = usage
+    tags_cursor = db.tags.find({}).sort("name", 1)
+    tags = []
+    async for tag in tags_cursor:
+        tag_id = tag.get("id") or str(tag["_id"])
+        usage = await db.article_tags.count_documents({"tag_id": tag_id})
+        
+        clean_tag = {
+            "id": tag_id,
+            "source_app": tag.get("source_app", "news"),
+            "name": tag.get("name"),
+            "slug": tag.get("slug"),
+            "usage_count": usage,
+        }
         if "created_at" in tag and hasattr(tag["created_at"], "isoformat"):
-            tag["created_at"] = tag["created_at"].isoformat()
+            clean_tag["created_at"] = tag["created_at"].isoformat()
+        tags.append(clean_tag)
     return tags
 
 @api_router.post("/admin/tags")
 async def admin_create_tag(request: Request, data: TagCreate):
     await get_current_admin(request, db)
     
-    slug = create_slug(data.name)
-    existing = await db.tags.find_one({"slug": slug})
-    if existing:
+    # Deterministic slug (no random suffix) for admin-created tags
+    slug = re.sub(r'[^a-z0-9]+', '-', data.name.lower()).strip('-')
+    existing_by_slug = await db.tags.find_one({"slug": slug})
+    existing_by_name = await db.tags.find_one({"name": data.name})
+    if existing_by_slug or existing_by_name:
         raise HTTPException(status_code=400, detail="Tag already exists")
     
     tag_id = str(uuid.uuid4())
@@ -1327,7 +1334,13 @@ async def admin_delete_tag(tag_id: str, request: Request):
     if usage > 0:
         raise HTTPException(status_code=400, detail=f"Tag is used by {usage} article(s). Remove tag from articles first.")
     
+    # Try delete by UUID id first, then by ObjectId
     result = await db.tags.delete_one({"id": tag_id})
+    if result.deleted_count == 0:
+        try:
+            result = await db.tags.delete_one({"_id": ObjectId(tag_id)})
+        except Exception:
+            pass
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Tag not found")
     

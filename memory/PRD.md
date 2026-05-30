@@ -125,3 +125,32 @@ Build MVP Jepangku - an interactive Japanese-themed news portal for Indonesian r
 4. Add homepage section management for admin
 5. Add email verification flow
 6. Improve UI animations on engagement (quiz completion, poll vote)
+
+## Update 2026-02 - Admin Pages Added
+
+### New Backend Endpoints
+- GET /api/admin/users (with search & role filter)
+- GET /api/admin/users/{user_id} (detail with articles, transactions, stats)
+- PUT /api/admin/users/{user_id} (update role/status)
+- GET /api/admin/tags (with usage_count)
+- POST /api/admin/tags (deterministic slug + duplicate check)
+- DELETE /api/admin/tags/{tag_id} (only if usage_count=0)
+- GET /api/admin/homepage (featured + hot articles)
+- PUT /api/admin/articles/{id}/featured (toggle)
+- PUT /api/admin/articles/{id}/hot (toggle)
+
+### New Frontend Pages
+- /admin/users - User list with search, role filter, promote/demote, ban/unban
+- /admin/users/:id - User detail (articles, recent transactions, stats)
+- /admin/tags - Create/list/delete tags with usage count
+- /admin/homepage - Manage Featured + Hot article flags
+
+### Seeded Data Additions
+- 10 new users with realistic activity (read articles, take quiz, vote polls, bookmarks, daily logins)
+- Each user has 19-57 weekly points for competitive leaderboard
+- Top 3: Rina Ishikawa (57pts), Kenji Suzuki (52pts), Daichi Sato (51pts)
+- All seeded users password: Jepangku2026!
+
+### Test Results
+- 85/85 tests pass (35 new admin tests + 50 regression)
+- 2 minor issues fixed: duplicate tag prevention + legacy tag usage_count
