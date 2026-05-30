@@ -1,0 +1,70 @@
+{
+  "summary": "Backend-only testing of Jepangku MVP. Created comprehensive pytest suite covering 50 tests: auth (admin+user, daily login points, JWT cookies), categories/tags, articles (list/filter/sort/search/detail/related, read-complete idempotent), bookmarks (first-time point award, soft delete, re-bookmark no-points), article submit flow, admin review approve/reject, quizzes (single attempt, points), polls (single vote, points), points history, weekly leaderboard, admin CRUD (categories, quizzes, polls, stats), file upload+download, role-based access. Result: 47/50 passed. 3 failures all caused by a SINGLE root-cause bug in check_article_ownership() (uses ObjectId lookup instead of UUID 'id' field), which breaks PUT /api/articles/{id} and DELETE /api/articles/{id} for non-published articles.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "PUT /api/articles/{article_id} and DELETE /api/articles/{article_id}",
+        "issue": "check_article_ownership() in /app/backend/server.py uses db.articles.find_one({'_id': ObjectId(article_id)}) but routes pass the UUID 'id' (not Mongo ObjectId). ObjectId(<uuid>) raises InvalidId, caught by the broad except and returned as HTTP 400. This breaks the edit-draft, edit-rejected, and delete-draft/rejected user flows entirely. As a side effect, 'cannot edit pending_review' returns 400 for the wrong reason (it errors before reaching the status check).",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "POST /api/articles (create)",
+        "issue": "Response includes raw '_id' (stringified ObjectId) and 'category_id'. Could be cleaned up to only expose 'id' to clients; currently returns both 'id' and '_id'."
+      },
+      {
+        "endpoint": "Daily login points",
+        "issue": "Daily login transaction is inserted directly via db.point_transactions.insert_one rather than going through award_points() helper - works but bypasses the idempotency dedupe key pattern used elsewhere (idempotency is enforced via daily_login_rewards collection instead, which is fine but inconsistent)."
+      },
+      {
+        "endpoint": "POST /api/quizzes/{id}/attempt",
+        "issue": "Awards QUIZ_CORRECT_ANSWER points using source_id pattern '{quiz_id}-q{i}' where i is the loop index, not the question_id. This means re-running tests could accidentally not award full points if quiz attempt logic was retried (currently single-attempt only so OK), but the source_id should ideally reference the actual question_id for proper auditing."
+      },
+      {
+        "endpoint": "CORS configuration",
+        "issue": "CORS_ORIGINS env var is '*' but server uses FRONTEND_URL (http://localhost:3000) only. allow_credentials=True with a single explicit origin is correct, but CORS_ORIGINS env var is unused - inconsistent."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "FIX (CRITICAL): In /app/backend/server.py, helper check_article_ownership() must lookup by UUID 'id' field (e.g. db.articles.find_one({'id': article_id})) and use article['id'] in subsequent updates/deletes (not ObjectId(article['_id'])). Update PUT/DELETE handlers accordingly so the update/delete operations target {'id': article_id} consistently with the rest of the codebase.",
+    "Add a regression test asserting PUT on a pending_review article returns 400 with the correct error message ('Can only edit draft or rejected articles') rather than the generic ObjectId InvalidId 400.",
+    "Consider stripping '_id' from POST /api/articles response payload for consistency with other endpoints that exclude _id."
+  ],
+  "critical_code_review_comments": [
+    "BUG: check_article_ownership uses wrong lookup ({'_id': ObjectId(article_id)}); breaks user edit/delete on their own articles.",
+    "server.py is 1280+ lines - exceeds 700-line threshold. Recommend splitting into routers (auth_router.py, articles_router.py, admin_router.py, quizzes_router.py, polls_router.py, points_router.py).",
+    "Duplicate tag-creation logic in create_article and update_article (lines ~500-521 and ~559-580) - should be extracted to a helper async function _upsert_tags(article_id, tags).",
+    "Helper award_points uses generic try/except returning False silently on error - DB failures are swallowed; recommend logging.error with traceback and re-raising or returning a richer status.",
+    "Inconsistent ID strategy: articles/quizzes/polls/categories use a UUID 'id' AND a Mongo ObjectId '_id'. Most queries use 'id' (UUID) but check_article_ownership uses '_id'. Standardise on one identifier or document mapping clearly.",
+    "/api/articles/{slug} increments view_count and weekly_view_count on every GET with no rate limiting / per-user dedupe - easily abusable for inflating popular sort.",
+    "JWT access token TTL is 15 minutes but there is no refresh endpoint; users will be silently logged out. Implement /api/auth/refresh using refresh_token cookie.",
+    "CORS allow_origins is a single explicit origin from FRONTEND_URL env (http://localhost:3000), but the production frontend is served from https://nippon-reads-beta.preview.emergentagent.com. With allow_credentials=True the browser will reject cross-origin cookie auth from the deployed frontend.",
+    "secure=False on httponly cookies - acceptable for local dev only; should be True in production (and SameSite=None) to support HTTPS-only.",
+    "No password complexity validation in RegisterRequest (Pydantic model accepts any string). Minimum length / complexity rules recommended.",
+    "Brute-force lockout (5 failed logins) requested in playbook is NOT implemented - login endpoint has no rate limiting."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (new)"
+  ],
+  "success_rate": {
+    "backend": "94%",
+    "frontend": "N/A (not tested)"
+  },
+  "test_credentials": "Admin: admin@jepangku.com / JepangkuAdmin2025! (verified working). Test users created via /api/auth/register with unique TEST_user_<uuid>@example.com emails.",
+  "seed_data_creation": "Tests create transient TEST_-prefixed articles, categories, quizzes, polls. Bookmarks created/deleted within tests. No persistent cleanup performed - test data prefixed for easy identification.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes check_article_ownership(), re-run /app/backend/tests/backend_test.py. Specifically test_create_draft_then_edit, test_delete_draft, and test_admin_reject_flow should pass. Also verify test_cannot_edit_pending_review still passes for the RIGHT reason (status check, not ObjectId error). The pytest suite is idempotent and can be re-run safely (uses uuid-suffixed test data).",
+  "rca of the issue": "Root cause: /app/backend/server.py line ~52 - check_article_ownership() helper does `db.articles.find_one({'_id': ObjectId(article_id)})`. Article documents have BOTH a Mongo `_id` (ObjectId, auto-generated) and an `id` field (UUID4 string set during create_article). All other endpoints (read-complete, bookmark, admin approve/reject, my/list) consistently use `{'id': article_id}` and pass UUID values. The PUT and DELETE routes also receive UUID values from the API, but check_article_ownership tries to convert that UUID into an ObjectId, which raises bson.errors.InvalidId, which gets caught by the broad except and converted into HTTPException 400. Reproduction: POST /api/articles {status:'draft'} → returns id=<uuid>. PUT /api/articles/<uuid> with any payload → 400. Mitigation: change check_article_ownership to `article = await db.articles.find_one({'id': article_id})`, and update the subsequent update_one/delete_one calls in PUT/DELETE to filter by `{'id': article_id}` instead of `{'_id': ObjectId(article['_id'])}`."
+}
