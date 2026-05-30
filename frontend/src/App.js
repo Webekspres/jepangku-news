@@ -31,6 +31,10 @@ import AdminReviewArticles from '@/pages/admin/AdminReviewArticles';
 import AdminArticlesPage from '@/pages/admin/AdminArticlesPage';
 import AdminCreateQuiz from '@/pages/admin/AdminCreateQuiz';
 import AdminCreatePoll from '@/pages/admin/AdminCreatePoll';
+import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminUserDetailPage from '@/pages/admin/AdminUserDetailPage';
+import AdminTagsPage from '@/pages/admin/AdminTagsPage';
+import AdminHomepagePage from '@/pages/admin/AdminHomepagePage';
 
 import '@/App.css';
 
@@ -78,6 +82,10 @@ function App() {
           <Route path="/admin/articles/review" element={<ProtectedRoute requireAdmin><AppLayout><AdminReviewArticles /></AppLayout></ProtectedRoute>} />
           <Route path="/admin/quizzes/create" element={<ProtectedRoute requireAdmin><AppLayout><AdminCreateQuiz /></AppLayout></ProtectedRoute>} />
           <Route path="/admin/polls/create" element={<ProtectedRoute requireAdmin><AppLayout><AdminCreatePoll /></AppLayout></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AppLayout><AdminUsersPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/admin/users/:id" element={<ProtectedRoute requireAdmin><AppLayout><AdminUserDetailPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/admin/tags" element={<ProtectedRoute requireAdmin><AppLayout><AdminTagsPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/admin/homepage" element={<ProtectedRoute requireAdmin><AppLayout><AdminHomepagePage /></AppLayout></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

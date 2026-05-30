@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
-import { FileText, Users, Zap, MessageSquare, Eye, CheckSquare, Trophy } from 'lucide-react';
+import { FileText, Users, Zap, MessageSquare, Eye, CheckSquare, Trophy, Tag, Home, Settings } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -79,6 +79,26 @@ export default function AdminDashboard() {
             <MessageSquare size={28} strokeWidth={1.5} className="mb-3" />
             <p className="font-heading font-bold text-xl">Create Poll</p>
             <p className="text-sm text-jepang-muted mt-1">Add polling or voting</p>
+          </Link>
+        </div>
+
+        {/* Management Quick Links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+          <Link to="/admin/users" className="border border-jepang-border hover:border-jepang-black p-4 transition-colors flex flex-col items-center text-center" data-testid="action-manage-users">
+            <Users size={20} strokeWidth={1.5} className="mb-2" />
+            <p className="text-xs font-bold uppercase tracking-wider">Manage Users</p>
+          </Link>
+          <Link to="/admin/tags" className="border border-jepang-border hover:border-jepang-black p-4 transition-colors flex flex-col items-center text-center" data-testid="action-manage-tags">
+            <Tag size={20} strokeWidth={1.5} className="mb-2" />
+            <p className="text-xs font-bold uppercase tracking-wider">Manage Tags</p>
+          </Link>
+          <Link to="/admin/homepage" className="border border-jepang-border hover:border-jepang-black p-4 transition-colors flex flex-col items-center text-center" data-testid="action-manage-homepage">
+            <Home size={20} strokeWidth={1.5} className="mb-2" />
+            <p className="text-xs font-bold uppercase tracking-wider">Homepage Settings</p>
+          </Link>
+          <Link to="/admin/articles" className="border border-jepang-border hover:border-jepang-black p-4 transition-colors flex flex-col items-center text-center" data-testid="action-manage-articles">
+            <FileText size={20} strokeWidth={1.5} className="mb-2" />
+            <p className="text-xs font-bold uppercase tracking-wider">All Articles</p>
           </Link>
         </div>
 

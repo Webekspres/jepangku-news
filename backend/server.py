@@ -14,6 +14,7 @@ import uuid
 import secrets
 from typing import Optional, List
 import re
+from pydantic import BaseModel
 
 from auth_utils import (
     hash_password, verify_password, create_access_token, create_refresh_token,
@@ -1178,6 +1179,206 @@ async def admin_get_stats(request: Request):
         "total_quizzes": total_quizzes,
         "total_polls": total_polls
     }
+
+# ==================== ADMIN USER MANAGEMENT ====================
+@api_router.get("/admin/users")
+async def admin_list_users(request: Request, search: Optional[str] = None, role: Optional[str] = None):
+    await get_current_admin(request, db)
+    
+    query = {}
+    if role:
+        query["role"] = role
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"username": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+        ]
+    
+    users = await db.users.find(query, {"password_hash": 0}).sort("created_at", -1).to_list(500)
+    result = []
+    for u in users:
+        u["id"] = str(u["_id"])
+        u.pop("_id", None)
+        for key in ["created_at", "updated_at", "last_login_at"]:
+            if key in u and u[key] is not None and hasattr(u[key], "isoformat"):
+                u[key] = u[key].isoformat()
+        # Article count
+        u["article_count"] = await db.articles.count_documents({"author_id": u["id"]})
+        result.append(u)
+    return result
+
+@api_router.get("/admin/users/{user_id}")
+async def admin_get_user(user_id: str, request: Request):
+    await get_current_admin(request, db)
+    
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)}, {"password_hash": 0})
+    except Exception:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user["id"] = str(user["_id"])
+    user.pop("_id", None)
+    for key in ["created_at", "updated_at", "last_login_at"]:
+        if key in user and user[key] is not None and hasattr(user[key], "isoformat"):
+            user[key] = user[key].isoformat()
+    
+    # Get user's articles
+    articles = await db.articles.find({"author_id": user_id}, {"_id": 0}).sort("created_at", -1).limit(20).to_list(20)
+    for a in articles:
+        a.pop("category_id", None)
+    
+    # Get recent point transactions
+    transactions = await db.point_transactions.find({"user_id": user_id}, {"_id": 0}).sort("occurred_at", -1).limit(20).to_list(20)
+    
+    # Get activity counts
+    bookmark_count = await db.bookmarks.count_documents({"user_id": user_id, "deleted_at": None})
+    quiz_attempts = await db.quiz_attempts.count_documents({"user_id": user_id})
+    poll_votes = await db.poll_votes.count_documents({"user_id": user_id})
+    
+    return {
+        "user": user,
+        "articles": articles,
+        "recent_transactions": transactions,
+        "stats": {
+            "bookmark_count": bookmark_count,
+            "quiz_attempts": quiz_attempts,
+            "poll_votes": poll_votes,
+            "article_count": len(articles),
+        }
+    }
+
+class UserUpdateRequest(BaseModel):
+    role: Optional[str] = None
+    status: Optional[str] = None
+
+@api_router.put("/admin/users/{user_id}")
+async def admin_update_user(user_id: str, request: Request, data: UserUpdateRequest):
+    await get_current_admin(request, db)
+    
+    update_data = {}
+    if data.role is not None and data.role in ["user", "admin"]:
+        update_data["role"] = data.role
+    if data.status is not None and data.status in ["active", "inactive", "banned"]:
+        update_data["status"] = data.status
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    try:
+        result = await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+    except Exception:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User updated successfully"}
+
+# ==================== ADMIN TAGS MANAGEMENT ====================
+@api_router.get("/admin/tags")
+async def admin_list_tags(request: Request):
+    await get_current_admin(request, db)
+    
+    tags = await db.tags.find({}, {"_id": 0}).sort("name", 1).to_list(500)
+    for tag in tags:
+        usage = await db.article_tags.count_documents({"tag_id": tag.get("id", "")})
+        # Also try matching by stored ObjectId-string tag_id
+        if usage == 0:
+            # Maybe stored differently - search broader
+            usage_alt = await db.article_tags.count_documents({"tag_id": tag.get("id")})
+            usage = usage_alt
+        tag["usage_count"] = usage
+        if "created_at" in tag and hasattr(tag["created_at"], "isoformat"):
+            tag["created_at"] = tag["created_at"].isoformat()
+    return tags
+
+@api_router.post("/admin/tags")
+async def admin_create_tag(request: Request, data: TagCreate):
+    await get_current_admin(request, db)
+    
+    slug = create_slug(data.name)
+    existing = await db.tags.find_one({"slug": slug})
+    if existing:
+        raise HTTPException(status_code=400, detail="Tag already exists")
+    
+    tag_id = str(uuid.uuid4())
+    tag = {
+        "_id": ObjectId(),
+        "id": tag_id,
+        "source_app": "news",
+        "name": data.name,
+        "slug": slug,
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.tags.insert_one(tag)
+    return {"message": "Tag created", "id": tag_id, "slug": slug}
+
+@api_router.delete("/admin/tags/{tag_id}")
+async def admin_delete_tag(tag_id: str, request: Request):
+    await get_current_admin(request, db)
+    
+    usage = await db.article_tags.count_documents({"tag_id": tag_id})
+    if usage > 0:
+        raise HTTPException(status_code=400, detail=f"Tag is used by {usage} article(s). Remove tag from articles first.")
+    
+    result = await db.tags.delete_one({"id": tag_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    return {"message": "Tag deleted"}
+
+# ==================== ADMIN HOMEPAGE / FEATURED ====================
+@api_router.get("/admin/homepage")
+async def admin_get_homepage(request: Request):
+    await get_current_admin(request, db)
+    
+    featured = await db.articles.find(
+        {"is_featured": True, "status": "published"},
+        {"_id": 0}
+    ).sort("published_at", -1).to_list(50)
+    
+    hot = await db.articles.find(
+        {"is_hot": True, "status": "published"},
+        {"_id": 0}
+    ).sort("published_at", -1).to_list(50)
+    
+    for art in featured + hot:
+        art.pop("category_id", None)
+    
+    return {"featured": featured, "hot": hot}
+
+class ArticleFlagToggle(BaseModel):
+    value: bool
+
+@api_router.put("/admin/articles/{article_id}/featured")
+async def admin_toggle_featured(article_id: str, request: Request, data: ArticleFlagToggle):
+    await get_current_admin(request, db)
+    
+    result = await db.articles.update_one(
+        {"id": article_id},
+        {"$set": {"is_featured": data.value, "updated_at": datetime.now(timezone.utc)}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return {"message": "Featured status updated", "is_featured": data.value}
+
+@api_router.put("/admin/articles/{article_id}/hot")
+async def admin_toggle_hot(article_id: str, request: Request, data: ArticleFlagToggle):
+    await get_current_admin(request, db)
+    
+    result = await db.articles.update_one(
+        {"id": article_id},
+        {"$set": {"is_hot": data.value, "updated_at": datetime.now(timezone.utc)}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return {"message": "Hot status updated", "is_hot": data.value}
 
 # ==================== STARTUP & SEEDING ====================
 @app.on_event("startup")
