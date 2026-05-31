@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import ArticleCard from "@/components/ArticleCard";
+import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import {
   Bookmark,
   Share2,
@@ -26,6 +27,7 @@ export default function ArticleDetailPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [readCompleted, setReadCompleted] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const isLoading = loading && !article;
 
   useEffect(() => {
     loadArticle();
@@ -114,18 +116,7 @@ export default function ArticleDetailPage() {
     }
   };
 
-  if (loading)
-    return (
-      <div
-        className="min-h-[60vh] flex items-center justify-center"
-        data-testid="article-detail-loading"
-      >
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-          Loading article...
-        </p>
-      </div>
-    );
-  if (!article) return null;
+  if (!article && !loading) return null;
 
   return (
     <div className="bg-white" data-testid="article-detail-page">
@@ -140,63 +131,114 @@ export default function ArticleDetailPage() {
           </Link>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            {article.category && (
-              <Link
-                href={`/articles?category=${article.category.slug}`}
-                data-testid="article-category-badge"
-              >
-                <Badge variant="red" className="hover:opacity-80">
-                  {article.category.name}
-                </Badge>
-              </Link>
+            {isLoading ? (
+              <>
+                <div className="h-7 w-24 bg-jepang-red/10 animate-pulse" />
+                <div className="h-7 w-16 bg-jepang-red/10 animate-pulse" />
+              </>
+            ) : (
+              <>
+                {article.category && (
+                  <Link
+                    href={`/articles?category=${article.category.slug}`}
+                    data-testid="article-category-badge"
+                  >
+                    <Badge variant="red" className="hover:opacity-80">
+                      {article.category.name}
+                    </Badge>
+                  </Link>
+                )}
+                {article.isHot && <Badge variant="black">HOT</Badge>}
+              </>
             )}
-            {article.isHot && <Badge variant="black">HOT</Badge>}
           </div>
 
           <h1
             className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6 leading-[1.05]"
             data-testid="article-title"
           >
-            {article.title}
+            {isLoading ? (
+              <div className="h-14 w-full max-w-3xl bg-jepang-red/10 animate-pulse" />
+            ) : (
+              article.title
+            )}
           </h1>
 
-          {article.excerpt && (
-            <p
-              className="text-xl text-jepang-muted leading-relaxed mb-6 font-light"
-              data-testid="article-excerpt"
-            >
-              {article.excerpt}
-            </p>
+          {isLoading ? (
+            <div className="space-y-3 mb-6">
+              <div className="h-5 bg-jepang-red/10 animate-pulse w-full" />
+              <div className="h-5 bg-jepang-red/10 animate-pulse w-5/6" />
+            </div>
+          ) : (
+            article.excerpt && (
+              <p
+                className="text-xl text-jepang-muted leading-relaxed mb-6 font-light"
+                data-testid="article-excerpt"
+              >
+                {article.excerpt}
+              </p>
+            )
           )}
 
           <div className="flex flex-wrap items-center gap-4 py-4 border-y border-jepang-border text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-foreground text-white flex items-center justify-center font-bold text-xs">
-                {article.author?.name?.charAt(0).toUpperCase() || "J"}
-              </div>
+              {isLoading ? (
+                <div className="w-8 h-8 bg-jepang-red/10 animate-pulse" />
+              ) : (
+                <div className="w-8 h-8 bg-foreground text-white flex items-center justify-center font-bold text-xs">
+                  {article.author?.name?.charAt(0).toUpperCase() || "J"}
+                </div>
+              )}
+
               <div>
-                <p className="font-semibold text-sm">
-                  {article.author?.name || "Jepangku"}
-                </p>
-                <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                  AUTHOR
-                </p>
+                {isLoading ? (
+                  <>
+                    <div className="h-4 w-28 bg-jepang-red/10 animate-pulse mb-2" />
+                    <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
+                      AUTHOR
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-sm">
+                      {article.author?.name || "Jepangku"}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
+                      AUTHOR
+                    </p>
+                  </>
+                )}
               </div>
             </div>
+
             <div className="flex items-center gap-1 text-jepang-muted font-mono text-xs uppercase tracking-wider">
-              <Eye size={14} strokeWidth={1.5} /> {article.viewCount} VIEWS
+              <Eye size={14} strokeWidth={1.5} />
+              {isLoading ? (
+                <>
+                  <span className="h-3 w-8 bg-jepang-red/10 animate-pulse inline-block" />
+                  <span>VIEWS</span>
+                </>
+              ) : (
+                `${article.viewCount} VIEWS`
+              )}
             </div>
-            {article.publishedAt && (
-              <div className="flex items-center gap-1 text-jepang-muted font-mono text-xs uppercase tracking-wider">
-                <Calendar size={14} strokeWidth={1.5} />{" "}
-                {new Date(article.publishedAt).toLocaleDateString()}
-              </div>
-            )}
+
+            <div className="flex items-center gap-1 text-jepang-muted font-mono text-xs uppercase tracking-wider">
+              <Calendar size={14} strokeWidth={1.5} />
+              {isLoading ? (
+                <span className="h-3 w-20 bg-jepang-red/10 animate-pulse inline-block" />
+              ) : (
+                article.publishedAt &&
+                new Date(article.publishedAt).toLocaleDateString()
+              )}
+            </div>
+
             <div className="flex gap-2 ml-auto">
               <Button
                 variant={isBookmarked ? "default" : "outline"}
                 size="sm"
                 onClick={handleBookmark}
+                disabled={loading}
                 data-testid="bookmark-btn"
               >
                 <Bookmark
@@ -204,35 +246,56 @@ export default function ArticleDetailPage() {
                   strokeWidth={1.5}
                   fill={isBookmarked ? "currentColor" : "none"}
                 />
-                {isBookmarked ? "Saved" : "Save"}
+                Save
               </Button>
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleShare}
+                disabled={loading}
                 data-testid="share-btn"
               >
-                <Share2 size={14} strokeWidth={1.5} /> Share
+                <Share2 size={14} strokeWidth={1.5} />
+                Share
               </Button>
             </div>
           </div>
 
-          {article.coverImageUrl && (
+          {isLoading ? (
             <div className="my-8 -mx-4 md:mx-0">
-              <img
-                src={article.coverImageUrl}
-                alt={article.title}
-                className="w-full max-h-[600px] object-cover"
-              />
+              <div className="h-72 w-full bg-jepang-red/10 animate-pulse rounded-xl" />
             </div>
+          ) : (
+            article.coverImageUrl && (
+              <div className="my-8 -mx-4 md:mx-0">
+                <img
+                  src={article.coverImageUrl}
+                  alt={article.title}
+                  className="w-full max-h-150 object-cover"
+                />
+              </div>
+            )
           )}
 
-          <div
-            ref={contentRef}
-            className="article-content"
-            data-testid="article-content"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
+          <div className="article-content" data-testid="article-content">
+            {isLoading ? (
+              <div className="space-y-4">
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-full" />
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-full" />
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-5/6" />
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-11/12" />
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-3/4" />
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-4/5" />
+                <div className="h-5 bg-jepang-red/10 animate-pulse w-2/3" />
+              </div>
+            ) : (
+              <div
+                ref={contentRef}
+                dangerouslySetInnerHTML={{ __html: article.content }}
+              />
+            )}
+          </div>
 
           {readCompleted && user && (
             <div
@@ -246,33 +309,43 @@ export default function ArticleDetailPage() {
             </div>
           )}
 
-          {article.tags && article.tags.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-jepang-border">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mb-3">
-                Tags
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {article.tags.map((tag: any) => (
+          <div className="mt-8 pt-6 border-t border-jepang-border">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mb-3">
+              Tags
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {isLoading ? (
+                <>
+                  <div className="h-8 w-20 bg-jepang-red/10 animate-pulse" />
+                  <div className="h-8 w-20 bg-jepang-red/10 animate-pulse" />
+                  <div className="h-8 w-20 bg-jepang-red/10 animate-pulse" />
+                </>
+              ) : (
+                article.tags?.map((tag: any) => (
                   <Badge key={tag.id} data-testid={`tag-${tag.slug}`}>
                     #{tag.name}
                   </Badge>
-                ))}
-              </div>
+                ))
+              )}
             </div>
-          )}
+          </div>
         </div>
       </article>
 
-      {article.relatedArticles && article.relatedArticles.length > 0 && (
+      {(isLoading ||
+        (article.relatedArticles && article.relatedArticles.length > 0)) && (
         <section className="py-12 bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl">
             <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b-2 border-foreground">
               Related Articles
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {article.relatedArticles.map((rel: any) => (
-                <ArticleCard key={rel.id} article={rel} />
-              ))}
+              {isLoading
+                ? [1, 2, 3].map((key) => <ArticleCardSkeleton key={key} />)
+                : article.relatedArticles.map((rel: any) => (
+                    <ArticleCard key={rel.id} article={rel} />
+                  ))}
             </div>
           </div>
         </section>
