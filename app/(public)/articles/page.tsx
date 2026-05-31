@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -8,9 +9,9 @@ import { Search } from 'lucide-react';
 function ArticleListContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const category = searchParams.get('category') || '';
-  const search = searchParams.get('search') || '';
-  const sort = searchParams.get('sort') || 'latest';
+  const category = searchParams?.get('category') || '';
+  const search = searchParams?.get('search') || '';
+  const sort = searchParams?.get('sort') || 'latest';
 
   const [articles, setArticles] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -38,7 +39,7 @@ function ArticleListContent() {
   };
 
   const updateParams = (updates: Record<string, string>) => {
-    const p = new URLSearchParams(searchParams.toString());
+    const p = new URLSearchParams(searchParams?.toString() ?? '');
     Object.entries(updates).forEach(([k, v]) => { if (v) p.set(k, v); else p.delete(k); });
     router.push(`/articles?${p.toString()}`);
   };

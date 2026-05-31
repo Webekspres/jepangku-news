@@ -1,13 +1,12 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { neon } from '@neondatabase/serverless';
+import { PrismaNeonHTTP } from "@prisma/adapter-neon";
 
 function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL!;
-  const sql = neon(connectionString);
-  const adapter = new PrismaNeon(sql);
-  // @ts-expect-error - adapter is supported in Prisma 6 with driverAdapters
-  return new PrismaClient({ adapter });
+  const adapter = new PrismaNeonHTTP(connectionString, {});
+  return new PrismaClient({ adapter } as ConstructorParameters<
+    typeof PrismaClient
+  >[0]);
 }
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { Toaster } from 'sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
+import ClientProviders from '@/components/ClientProviders';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -12,20 +11,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className="h-full">
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
+        <ClientProviders>
           {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: '#0A0A0A',
-                color: '#fff',
-                borderRadius: 0,
-                border: '1px solid #D90429',
-              },
-            }}
-          />
-        </AuthProvider>
+        </ClientProviders>
       </body>
     </html>
   );

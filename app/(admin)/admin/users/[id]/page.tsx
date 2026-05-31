@@ -6,13 +6,25 @@ import { useParams } from 'next/navigation';
 import { ArrowLeft, Award, FileText, Bookmark } from 'lucide-react';
 
 export default function AdminUserDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/admin/users/${id}`).then((r) => r.json()).then((d) => { setData(d); setLoading(false); });
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(`/api/admin/users/${id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        setData(d);
+        setLoading(false);
+      });
   }, [id]);
+
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><p className="small-caps text-jepang-muted">Loading...</p></div>;
   if (!data) return null;

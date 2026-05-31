@@ -9,7 +9,7 @@ import { Bookmark, Share2, Eye, Calendar, ArrowLeft, Award } from 'lucide-react'
 import { toast } from 'sonner';
 
 export default function ArticleDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams<{ slug: string }>()!;
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [article, setArticle] = useState<any>(null);

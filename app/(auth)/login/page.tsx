@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = "force-dynamic";
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -10,7 +11,8 @@ function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') || '/';
+  const from = searchParams?.get('from') || '/';
+
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Save, Send, Upload, Bold, Italic, List as ListIcon } from 'lucide-react';
 
 export default function EditArticlePage() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>()!;
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [article, setArticle] = useState<any>(null);

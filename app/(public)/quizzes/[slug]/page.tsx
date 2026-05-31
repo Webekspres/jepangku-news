@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Award } from 'lucide-react';
 
 export default function QuizDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams<{ slug: string }>()!;
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [quiz, setQuiz] = useState<any>(null);

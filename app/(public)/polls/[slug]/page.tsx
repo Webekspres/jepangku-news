@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, BarChart3, Award } from 'lucide-react';
 
 export default function PollDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams<{ slug: string }>()!;
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [poll, setPoll] = useState<any>(null);
