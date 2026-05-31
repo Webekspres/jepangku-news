@@ -34,8 +34,8 @@ export default function Footer() {
           <div>
             <h4 className="small-caps text-jepang-red mb-3">Account</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/login" className="hover:text-jepang-red transition-colors">Login</Link></li>
-              <li><Link href="/register" className="hover:text-jepang-red transition-colors">Register</Link></li>
+              <li><Link href="/login" className="hover:text-jepang-red transition-colors">Masuk</Link></li>
+              <li><Link href="/register" className="hover:text-jepang-red transition-colors">Daftar</Link></li>
               <li><Link href="/submit-article" className="hover:text-jepang-red transition-colors">Submit Article</Link></li>
             </ul>
           </div>

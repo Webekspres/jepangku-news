@@ -45,7 +45,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
         <div className="absolute top-6 left-6 flex gap-2">
-          <Badge variant="red">FEATURED</Badge>
+          <Badge variant="red">UNGGULAN</Badge>
           {article.category && (
             <Badge className="bg-white text-[#0A0A0A] border-white">{article.category.name}</Badge>
           )}
@@ -58,7 +58,7 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
             <p className="text-zinc-300 text-base md:text-lg max-w-2xl line-clamp-2">{article.excerpt}</p>
           )}
           <div className="flex items-center gap-4 mt-4 text-xs text-zinc-400 font-mono uppercase tracking-wider">
-            {article.author && <span>BY {article.author.name}</span>}
+            {article.author && <span>OLEH {article.author.name}</span>}
             <span className="flex items-center gap-1"><Eye size={14} strokeWidth={1.5} /> {viewCount}</span>
           </div>
         </div>

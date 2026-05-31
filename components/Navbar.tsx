@@ -26,11 +26,11 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/articles', label: 'Articles' },
-    { path: '/quizzes', label: 'Quiz' },
-    { path: '/polls', label: 'Polls' },
-    { path: '/leaderboard', label: 'Leaderboard' },
+    { path: '/', label: 'Beranda' },
+    { path: '/articles', label: 'Artikel' },
+    { path: '/quizzes', label: 'Kuis' },
+    { path: '/polls', label: 'Pool' },
+    { path: '/leaderboard', label: 'Peringkat' },
   ];
 
   const authUser = isAuthUser(user) ? user : null;
@@ -101,22 +101,22 @@ export default function Navbar() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer" data-testid="menu-profile">
-                        <User size={16} strokeWidth={1.5} /> Profile
+                        <User size={16} strokeWidth={1.5} /> P
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/my-articles" className="cursor-pointer" data-testid="menu-my-articles">
-                        <FileText size={16} strokeWidth={1.5} /> My Articles
+                        <FileText size={16} strokeWidth={1.5} /> Artikel Saya
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/bookmarks" className="cursor-pointer" data-testid="menu-bookmarks">
-                        <Bookmark size={16} strokeWidth={1.5} /> Bookmarks
+                        <Bookmark size={16} strokeWidth={1.5} /> Bookmark
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/points" className="cursor-pointer" data-testid="menu-points">
-                        <Award size={16} strokeWidth={1.5} /> Points History
+                        <Award size={16} strokeWidth={1.5} /> Riwayat Poin
                       </Link>
                     </DropdownMenuItem>
                     {authUser.role === 'ADMIN' && (
@@ -135,7 +135,7 @@ export default function Navbar() {
                       className="text-[#D90429] focus:text-[#D90429] cursor-pointer"
                       data-testid="menu-logout"
                     >
-                      <LogOut size={16} strokeWidth={1.5} /> Logout
+                      <LogOut size={16} strokeWidth={1.5} /> Keluar
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -143,10 +143,10 @@ export default function Navbar() {
             ) : user === false ? (
               <div className="hidden md:flex items-center gap-2">
                 <Button variant="ghost" size="sm" asChild data-testid="navbar-login-btn">
-                  <Link href="/login">Login</Link>
+                  <Link href="/login">Masuk</Link>
                 </Button>
                 <Button size="sm" asChild data-testid="navbar-register-btn">
-                  <Link href="/register">Register</Link>
+                  <Link href="/register">Daftar</Link>
                 </Button>
               </div>
             ) : null}
@@ -179,10 +179,10 @@ export default function Navbar() {
             {user === false && (
               <div className="flex gap-2 pt-3 border-t border-[#E4E4E7]">
                 <Button variant="outline" size="sm" asChild className="flex-1" data-testid="mobile-login-btn">
-                  <Link href="/login" onClick={() => setMobileOpen(false)}>Login</Link>
+                  <Link href="/login" onClick={() => setMobileOpen(false)}>Masuk</Link>
                 </Button>
                 <Button size="sm" asChild className="flex-1" data-testid="mobile-register-btn">
-                  <Link href="/register" onClick={() => setMobileOpen(false)}>Register</Link>
+                  <Link href="/register" onClick={() => setMobileOpen(false)}>Daftar</Link>
                 </Button>
               </div>
             )}
