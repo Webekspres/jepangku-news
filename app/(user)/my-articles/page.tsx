@@ -54,7 +54,7 @@ export default function MyArticlesPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="my-articles-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-center justify-between">
             <div>
               <p className="small-caps text-jepang-red mb-2">MY ARTICLES</p>
@@ -67,7 +67,7 @@ export default function MyArticlesPage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8">
+      <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="flex flex-wrap gap-2 mb-6">
           {['all', 'DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED'].map((s) => (
             <button key={s} onClick={() => setFilter(s)} className={`text-xs uppercase tracking-wider font-bold px-3 py-2 border ${filter === s ? 'bg-jepang-black text-white border-jepang-black' : 'border-jepang-border hover:border-jepang-black'}`} data-testid={`filter-${s}`}>

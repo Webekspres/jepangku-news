@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-users-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-8">
+        <div className="px-4 mx-auto max-w-7xl py-8">
           <Link href="/admin" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-4" data-testid="back-to-admin"><ArrowLeft size={14} /> Back to Dashboard</Link>
           <p className="small-caps text-jepang-red mb-2">USER MANAGEMENT</p>
           <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3"><Users size={36} strokeWidth={1.5} /> All Users</h1>
@@ -60,7 +60,7 @@ export default function AdminUsersPage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8">
+      <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="mb-6 space-y-3">
           <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); }} className="flex gap-2">
             <input type="text" placeholder="Search by name, username, email..." className="jepang-input flex-1" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} data-testid="user-search-input" />

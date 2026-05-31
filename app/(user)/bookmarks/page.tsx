@@ -19,13 +19,13 @@ export default function BookmarksPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="bookmarks-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">BOOKMARKS</p>
           <h1 className="font-heading font-black text-4xl tracking-tighter">Saved Articles</h1>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
           <p className="text-center small-caps text-jepang-muted py-12">Loading...</p>
         ) : bookmarks.length > 0 ? (

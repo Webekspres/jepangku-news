@@ -30,13 +30,13 @@ export default function AdminCreatePoll() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-create-poll-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-8">
+        <div className="px-4 mx-auto max-w-7xl py-8">
           <Link href="/admin" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-4"><ArrowLeft size={14} /> Back to Dashboard</Link>
           <h1 className="font-heading font-black text-4xl tracking-tighter">Create Poll / Voting</h1>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8 max-w-3xl mx-auto space-y-6">
+      <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
         <div>
           <label className="small-caps mb-2 block">Type</label>
           <div className="flex gap-2">

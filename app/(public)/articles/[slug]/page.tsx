@@ -78,7 +78,7 @@ export default function ArticleDetailPage() {
 
   return (
     <div className="bg-white" data-testid="article-detail-page">
-      <article className="px-4 md:px-8 lg:px-12 py-12">
+      <article className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-4xl mx-auto">
           <Link href="/articles" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-6" data-testid="back-to-articles">
             <ArrowLeft size={14} /> Back to Articles
@@ -136,8 +136,8 @@ export default function ArticleDetailPage() {
       </article>
 
       {article.relatedArticles && article.relatedArticles.length > 0 && (
-        <section className="px-4 md:px-8 lg:px-12 py-12 bg-jepang-off-white">
-          <div className="max-w-6xl mx-auto">
+        <section className="py-12 bg-jepang-off-white">
+          <div className="px-4 mx-auto max-w-7xl">
             <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b-2 border-jepang-black">Related Articles</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {article.relatedArticles.map((rel: any) => <ArticleCard key={rel.id} article={rel} />)}

@@ -34,7 +34,7 @@ export default function AdminUserDetailPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-user-detail-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-8">
+        <div className="px-4 mx-auto max-w-7xl py-8">
           <Link href="/admin/users" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-4"><ArrowLeft size={14} /> Back to Users</Link>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-jepang-black text-white flex items-center justify-center font-heading font-black text-2xl">{user.name?.charAt(0).toUpperCase()}</div>
@@ -50,7 +50,7 @@ export default function AdminUserDetailPage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8 max-w-5xl mx-auto">
+      <div className="px-4 mx-auto max-w-7xl py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[

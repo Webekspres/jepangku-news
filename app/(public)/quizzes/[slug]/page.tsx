@@ -69,7 +69,7 @@ export default function QuizDetailPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="quiz-detail-page">
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
           <Link href="/quizzes" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-6" data-testid="back-to-quizzes-link"><ArrowLeft size={14} /> Back to Quizzes</Link>
           <div className="mb-8">

@@ -42,16 +42,16 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-dashboard">
+    <div className="bg-white min-h-screen justify-center items-center" data-testid="admin-dashboard">
       <section className="border-b-2 border-jepang-black bg-jepang-black text-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">管理 / ADMIN</p>
           <h1 className="font-heading font-black text-4xl tracking-tighter">Admin Dashboard</h1>
           <p className="text-zinc-300 mt-2">Manage your Jepangku portal</p>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
           {statCards.map((stat, idx) => {

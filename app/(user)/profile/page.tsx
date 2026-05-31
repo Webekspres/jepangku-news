@@ -28,7 +28,7 @@ export default function ProfilePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="profile-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-center gap-6">
             <div className="w-24 h-24 bg-jepang-black text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-jepang-black">
               {(user as any).name?.charAt(0).toUpperCase()}
@@ -42,7 +42,7 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12 max-w-5xl mx-auto">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-jepang-red text-white p-6 border border-jepang-red">
             <Award size={32} strokeWidth={1.5} className="mb-3" />

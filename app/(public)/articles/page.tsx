@@ -52,13 +52,13 @@ function ArticleListContent() {
   return (
     <div className="bg-white min-h-screen" data-testid="article-list-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">記事 / ARTIKEL</p>
           <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6">Semua Artikel</h1>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8">
+      <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="mb-8 space-y-4">
           <form onSubmit={handleSearch} className="flex gap-2">
             <input type="text" placeholder="Cari Artikel" className="jepang-input flex-1" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} data-testid="search-input" />

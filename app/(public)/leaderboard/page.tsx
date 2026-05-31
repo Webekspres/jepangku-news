@@ -15,7 +15,7 @@ export default function LeaderboardPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="leaderboard-page">
       <section className="border-b-2 border-jepang-black bg-jepang-black text-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">ランキング / RANKINGS</p>
           <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-3 flex items-center gap-4">
             <Trophy size={48} strokeWidth={1.5} className="text-jepang-red" /> Weekly Leaderboard
@@ -24,7 +24,7 @@ export default function LeaderboardPage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
           {loading ? (
             <p className="text-center small-caps text-jepang-muted py-12">Loading rankings...</p>

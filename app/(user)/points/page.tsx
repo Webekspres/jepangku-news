@@ -40,7 +40,7 @@ export default function PointsHistoryPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="points-page">
       <section className="border-b-2 border-jepang-black bg-jepang-red text-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps mb-2 opacity-80">POINTS HISTORY</p>
           <div className="flex items-center justify-between">
             <h1 className="font-heading font-black text-4xl tracking-tighter">Your Activity</h1>
@@ -52,7 +52,7 @@ export default function PointsHistoryPage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12 max-w-4xl mx-auto">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
           <p className="text-center small-caps text-jepang-muted py-12">Loading...</p>
         ) : transactions.length > 0 ? (

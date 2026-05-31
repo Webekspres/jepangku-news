@@ -40,7 +40,7 @@ export default function PollDetailPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="poll-detail-page">
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
           <Link href="/polls" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-6" data-testid="back-to-polls"><ArrowLeft size={14} /> Back to Polls</Link>
           <div className="mb-8">

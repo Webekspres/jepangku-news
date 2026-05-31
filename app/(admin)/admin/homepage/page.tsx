@@ -46,7 +46,7 @@ export default function AdminHomepagePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-homepage-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-8">
+        <div className="px-4 mx-auto max-w-7xl py-8">
           <Link href="/admin" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-4"><ArrowLeft size={14} /> Back to Dashboard</Link>
           <p className="small-caps text-jepang-red mb-2">HOMEPAGE SETTINGS</p>
           <h1 className="font-heading font-black text-4xl tracking-tighter">Featured & Hot Articles</h1>
@@ -54,7 +54,7 @@ export default function AdminHomepagePage() {
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8 max-w-6xl mx-auto">
+      <div className="px-4 mx-auto max-w-7xl py-8">
         {loading ? (
           <p className="text-center small-caps text-jepang-muted py-12">Loading...</p>
         ) : (

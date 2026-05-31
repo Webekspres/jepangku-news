@@ -30,7 +30,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-jepang-border" data-testid="main-navbar">
-      <div className="px-4 md:px-8 lg:px-12 mx-auto">
+      <div className="px-4 mx-auto max-w-7xl">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2" data-testid="navbar-logo">
             <span className="font-heading font-black text-2xl tracking-tighter">

@@ -48,14 +48,14 @@ export default function AdminTagsPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-tags-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-8">
+        <div className="px-4 mx-auto max-w-7xl py-8">
           <Link href="/admin" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-4"><ArrowLeft size={14} /> Back to Dashboard</Link>
           <p className="small-caps text-jepang-red mb-2">TAG MANAGEMENT</p>
           <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3"><TagIcon size={36} strokeWidth={1.5} /> Tags</h1>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-8 max-w-4xl mx-auto">
+      <div className="px-4 mx-auto max-w-7xl py-8">
         <form onSubmit={handleCreate} className="bg-white border border-jepang-black p-5 mb-6" data-testid="create-tag-form">
           <h2 className="small-caps mb-3">CREATE NEW TAG</h2>
           <div className="flex gap-2">

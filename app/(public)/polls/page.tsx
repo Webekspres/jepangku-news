@@ -36,14 +36,14 @@ export default function PollListPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="poll-list-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">投票 / POLLS</p>
           <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-3">Polling & Voting</h1>
           <p className="text-jepang-muted max-w-2xl">Suarakan pendapatmu dan ikuti aktivitas voting komunitas Jepangku!</p>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
           <p className="text-center small-caps text-jepang-muted py-12">Loading polls...</p>
         ) : polls.length > 0 ? (

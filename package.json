@@ -83,6 +83,9 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
+  "prisma": {
+    "seed": "bun prisma/seed.js"
+  },
   "ignoreScripts": [
     "sharp",
     "unrs-resolver"

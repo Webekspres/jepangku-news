@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Footer() {
   return (
     <footer className="bg-jepang-black text-white mt-24" data-testid="main-footer">
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <h3 className="font-heading font-black text-2xl tracking-tighter mb-3">
@@ -41,7 +41,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-zinc-500 font-mono">© 2026 JEPANGKU. ALL RIGHTS RESERVED.</p>
+          <p className="text-xs text-zinc-500 font-mono">&copy; 2026 JEPANGKU. ALL RIGHTS RESERVED. DEVELOPED BY <Link href={"https://webekspres.id"} className='font-bold'>WEBEKSPRES</Link></p>
           <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">日本語ポータル | INDONESIA</p>
         </div>
       </div>

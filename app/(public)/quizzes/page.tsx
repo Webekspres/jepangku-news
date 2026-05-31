@@ -16,14 +16,14 @@ export default function QuizListPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="quiz-list-page">
       <section className="border-b-2 border-jepang-black bg-jepang-black text-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">クイズ / QUIZ</p>
           <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-3">Test Your Knowledge</h1>
           <p className="text-zinc-300 max-w-2xl">Ikuti quiz tentang anime, manga, budaya Jepang, dan dapatkan poin!</p>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
           <p className="text-center small-caps text-jepang-muted py-12">Loading quizzes...</p>
         ) : quizzes.length > 0 ? (

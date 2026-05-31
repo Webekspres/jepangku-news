@@ -101,14 +101,14 @@ export default function EditArticlePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="edit-article-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
-        <div className="px-4 md:px-8 lg:px-12 py-12">
+        <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="small-caps text-jepang-red mb-2">EDIT ARTICLE</p>
           <h1 className="font-heading font-black text-4xl tracking-tighter">Edit Your Article</h1>
           <p className="text-jepang-muted mt-2">Artikel akan direview ulang setelah disubmit.</p>
         </div>
       </section>
 
-      <div className="px-4 md:px-8 lg:px-12 py-12 max-w-4xl mx-auto">
+      <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="space-y-6">
           <div>
             <label className="small-caps mb-2 block">Title *</label>
