@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -126,22 +127,34 @@ export default function PollDetailPage() {
                           value={Math.round(pct)}
                           className="absolute inset-0 h-full opacity-15"
                         />
-                        <div className="relative flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="font-mono font-bold text-jepang-muted">
-                              {String.fromCharCode(65 + idx)}
-                            </span>
-                            <span className="font-semibold">
-                              {option.optionText}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs font-mono text-jepang-muted">
-                              {option.voteCount || 0} votes
-                            </span>
-                            <span className="text-xl font-mono font-black text-jepang-red">
-                              {Math.round(pct)}%
-                            </span>
+                        <div className="relative space-y-4">
+                          {option.imageUrl ? (
+                            <div className="relative h-48 overflow-hidden rounded-md bg-jepang-off-white">
+                              <Image
+                                src={option.imageUrl}
+                                alt={option.optionText}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : null}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono font-bold text-jepang-muted">
+                                {String.fromCharCode(65 + idx)}
+                              </span>
+                              <span className="font-semibold">
+                                {option.optionText}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="text-xs font-mono text-jepang-muted">
+                                {option.voteCount || 0} votes
+                              </span>
+                              <span className="text-xl font-mono font-black text-jepang-red">
+                                {Math.round(pct)}%
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>

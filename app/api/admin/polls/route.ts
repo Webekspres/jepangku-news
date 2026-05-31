@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
   const { title, description, poll_type = 'POLLING', thumbnailUrl, status = 'ACTIVE', options = [] } = body;
 
   if (!title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
-  if (options.length < 2) return NextResponse.json({ error: 'At least 2 options required' }, { status: 400 });
+  if (!Array.isArray(options) || options.length < 2)
+    return NextResponse.json({ error: 'At least 2 options required' }, { status: 400 });
 
   const slug = createSlug(title);
 
@@ -29,8 +30,28 @@ export async function POST(request: NextRequest) {
   });
 
   for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    let optionText = "";
+    let imageUrl: string | null = null;
+
+    if (typeof option === "string") {
+      optionText = option;
+    } else if (option && typeof option === "object") {
+      optionText = String(option.optionText || "");
+      imageUrl = option.imageUrl ? String(option.imageUrl) : null;
+    }
+
+    if (!optionText) {
+      return NextResponse.json({ error: 'Each option must include optionText' }, { status: 400 });
+    }
+
     await db.pollOption.create({
-      data: { pollId: poll.id, optionText: options[i], sortOrder: i },
+      data: {
+        pollId: poll.id,
+        optionText,
+        imageUrl,
+        sortOrder: i,
+      },
     });
   }
 

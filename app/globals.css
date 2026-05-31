@@ -1,17 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
-
-@import "tailwindcss";
-
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
 
 @import "tailwindcss";
 
 @theme {
-  --color-jepang-red: #D90429;
-  --color-jepang-red-hover: #B3001B;
-  --color-jepang-black: #0A0A0A;
-  --color-jepang-off-white: #F4F4F5;
-  --color-jepang-muted: #52525B;
-  --color-jepang-border: #E4E4E7;
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-jepang-red: #d90429;
+  --color-jepang-red-hover: #b3001b;
+  --color-jepang-black: #0a0a0a;
+  --color-jepang-off-white: #f4f4f5;
+  --color-jepang-muted: #52525b;
+  --color-jepang-border: #e4e7e7;
 }
 
 :root {
@@ -26,12 +25,21 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "IBM Plex Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Cabinet Grotesk", "Inter", sans-serif;
   letter-spacing: -0.02em;
 }
@@ -44,14 +52,16 @@ code {
 
 .jepang-card {
   background: white;
-  border: 1px solid #E4E4E7;
+  border: 1px solid #e4e4e7;
   border-radius: 0;
   transition: border-color 0.2s;
 }
-.jepang-card:hover { border-color: #0A0A0A; }
+.jepang-card:hover {
+  border-color: #0a0a0a;
+}
 
 .jepang-btn-primary {
-  background: #D90429;
+  background: #d90429;
   color: white;
   padding: 0.75rem 1.5rem;
   font-weight: 600;
@@ -65,10 +75,12 @@ code {
   display: inline-block;
   text-decoration: none;
 }
-.jepang-btn-primary:hover { background: #B3001B; }
+.jepang-btn-primary:hover {
+  background: #b3001b;
+}
 
 .jepang-btn-black {
-  background: #0A0A0A;
+  background: #0a0a0a;
   color: white;
   padding: 0.75rem 1.5rem;
   font-weight: 600;
@@ -82,12 +94,14 @@ code {
   display: inline-block;
   text-decoration: none;
 }
-.jepang-btn-black:hover { background: #52525B; }
+.jepang-btn-black:hover {
+  background: #52525b;
+}
 
 .jepang-btn-outline {
   background: white;
-  color: #0A0A0A;
-  border: 1px solid #0A0A0A;
+  color: #0a0a0a;
+  border: 1px solid #0a0a0a;
   padding: 0.75rem 1.5rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -99,7 +113,10 @@ code {
   display: inline-block;
   text-decoration: none;
 }
-.jepang-btn-outline:hover { background: #0A0A0A; color: white; }
+.jepang-btn-outline:hover {
+  background: #0a0a0a;
+  color: white;
+}
 
 .jepang-badge {
   display: inline-block;
@@ -109,9 +126,9 @@ code {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-radius: 0;
-  border: 1px solid #0A0A0A;
+  border: 1px solid #0a0a0a;
   background: white;
-  color: #0A0A0A;
+  color: #0a0a0a;
 }
 
 .jepang-badge-red {
@@ -122,7 +139,7 @@ code {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-radius: 0;
-  background: #D90429;
+  background: #d90429;
   color: white;
 }
 
@@ -134,7 +151,7 @@ code {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-radius: 0;
-  background: #0A0A0A;
+  background: #0a0a0a;
   color: white;
 }
 
@@ -142,15 +159,17 @@ code {
   width: 100%;
   padding: 0.75rem 1rem;
   background: white;
-  border: 1px solid #E4E4E7;
+  border: 1px solid #e4e4e7;
   border-radius: 0;
   outline: none;
   transition: border-color 0.2s;
   font-family: "IBM Plex Sans", sans-serif;
   font-size: 1rem;
-  color: #0A0A0A;
+  color: #0a0a0a;
 }
-.jepang-input:focus { border-color: #0A0A0A; }
+.jepang-input:focus {
+  border-color: #0a0a0a;
+}
 
 .small-caps {
   font-size: 0.75rem;
@@ -159,13 +178,19 @@ code {
   font-weight: 600;
 }
 
-.thin-divider { border-top: 1px solid #E4E4E7; }
+.thin-divider {
+  border-top: 1px solid #e4e4e7;
+}
 
-.hard-shadow { box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1); }
-.hard-shadow-red { box-shadow: 4px 4px 0px 0px #d90429; }
+.hard-shadow {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+}
+.hard-shadow-red {
+  box-shadow: 4px 4px 0px 0px #d90429;
+}
 
 .asanoha-bg {
-  background-image: url('https://static.prod-images.emergentagent.com/jobs/d6b595d8-148b-4a5c-a6ea-ccdfa2ed4b68/images/d6842d3000c6e9b984d312d02f02aa7f612d8dff19ed10d1965c01e59c1ef899.png');
+  background-image: url("https://static.prod-images.emergentagent.com/jobs/d6b595d8-148b-4a5c-a6ea-ccdfa2ed4b68/images/d6842d3000c6e9b984d312d02f02aa7f612d8dff19ed10d1965c01e59c1ef899.png");
   background-repeat: repeat;
   background-size: 200px;
   opacity: 0.04;
@@ -181,19 +206,44 @@ code {
   line-height: 1.75;
   color: #0a0a0a;
 }
-.article-content h1, .article-content h2, .article-content h3 {
+.article-content h1,
+.article-content h2,
+.article-content h3 {
   font-family: "Cabinet Grotesk", "Inter", sans-serif;
   font-weight: 800;
   margin-top: 2em;
   margin-bottom: 0.5em;
 }
-.article-content h1 { font-size: 2rem; }
-.article-content h2 { font-size: 1.5rem; }
-.article-content h3 { font-size: 1.25rem; }
-.article-content p { margin-bottom: 1.5em; }
-.article-content a { color: #d90429; text-decoration: underline; }
-.article-content strong { font-weight: 700; }
-.article-content em { font-style: italic; }
-.article-content ul, .article-content ol { margin-left: 2em; margin-bottom: 1.5em; }
-.article-content ul { list-style: disc; }
-.article-content ol { list-style: decimal; }
+.article-content h1 {
+  font-size: 2rem;
+}
+.article-content h2 {
+  font-size: 1.5rem;
+}
+.article-content h3 {
+  font-size: 1.25rem;
+}
+.article-content p {
+  margin-bottom: 1.5em;
+}
+.article-content a {
+  color: #d90429;
+  text-decoration: underline;
+}
+.article-content strong {
+  font-weight: 700;
+}
+.article-content em {
+  font-style: italic;
+}
+.article-content ul,
+.article-content ol {
+  margin-left: 2em;
+  margin-bottom: 1.5em;
+}
+.article-content ul {
+  list-style: disc;
+}
+.article-content ol {
+  list-style: decimal;
+}

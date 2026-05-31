@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Trophy, Award, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import SectionHeader from "@/components/SectionHeader";
+import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -20,27 +22,37 @@ export default function LeaderboardPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="leaderboard-page">
-      <section className="border-b-2 border-foreground bg-foreground text-white">
-        <div className="px-4 mx-auto max-w-7xl py-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            ランキング / RANKINGS
-          </p>
-          <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-3 flex items-center gap-4">
-            <Trophy size={48} strokeWidth={1.5} className="text-jepang-red" />{" "}
-            Weekly Leaderboard
-          </h1>
-          <p className="text-zinc-300">
-            Top performers minggu ini berdasarkan poin aktivitas.
-          </p>
-        </div>
-      </section>
+      <SectionHeader
+        label="ランキング / Peringkat"
+        title="Leaderboard Mingguan"
+        subtitle="Top performer minggu ini berdasarkan poin aktivitas."
+      />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
           {loading ? (
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted py-12">
-              Loading rankings...
-            </p>
+            <div className="max-w-5xl mx-auto space-y-8">
+              <div className="grid grid-cols-3 gap-2 md:gap-4">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="flex flex-col items-center animate-pulse">
+                    <div className="mb-2 h-10 w-10 rounded-full bg-jepang-red/10" />
+                    <div className="w-full h-16 rounded-lg bg-jepang-red/10" />
+                    <div className="mt-3 h-3 w-24 rounded bg-jepang-red/10" />
+                    <div className="mt-1 h-3 w-16 rounded bg-jepang-red/10" />
+                  </div>
+                ))}
+              </div>
+              <Card className="border border-foreground">
+                <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
+                  <div className="h-4 w-32 rounded bg-jepang-red/10 animate-pulse" />
+                </CardHeader>
+                <CardContent className="p-0">
+                  {[...Array(6)].map((_, idx) => (
+                    <LeaderboardRowSkeleton key={idx} />
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
           ) : leaderboard.length > 0 ? (
             <>
               {leaderboard.length >= 3 && (
@@ -152,9 +164,9 @@ export default function LeaderboardPage() {
                 className="mx-auto mb-4 text-jepang-muted"
               />
               <p className="font-heading font-bold text-2xl mb-2">
-                No rankings yet
+                Belum ada peringkat
               </p>
-              <p className="text-jepang-muted">Be the first to earn points!</p>
+              <p className="text-jepang-muted">Jadilah yang pertama mengumpulkan poin!</p>
             </div>
           )}
         </div>

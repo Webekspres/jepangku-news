@@ -8,6 +8,7 @@ import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import { Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SectionHeader from "@/components/SectionHeader";
 
 function ArticleListContent() {
   const searchParams = useSearchParams();
@@ -105,16 +106,11 @@ function ArticleListContent() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="article-list-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            記事 / ARTIKEL
-          </p>
-          <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6">
-            Semua Artikel
-          </h1>
-        </div>
-      </section>
+      <SectionHeader
+        label="記事 / Artikel"
+        title="Baca berita terbaru seputar Jepang"
+        subtitle="Dapatkan informasi terkini tentang anime, manga, budaya Jepang, dan banyak lagi!"
+      />
 
       <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="mb-8 space-y-4">
