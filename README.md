@@ -1,335 +1,220 @@
 # Jepangku News
 
-**Jepangku** adalah portal media interaktif bertema Jepang untuk pembaca Indonesia. Platform ini menyediakan berita, artikel, quiz, polling, voting, leaderboard, dan sistem poin untuk meningkatkan interaksi pengguna.
+**Jepangku** adalah portal berita interaktif bertema Jepang untuk pembaca Indonesia. Proyek ini menggabungkan konten artikel, quiz, polling, leaderboard, dan sistem poin untuk meningkatkan engagement pengguna.
 
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14%2B-black)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## 📋 Table of Contents
+## 📌 Ringkasan
 
-- [Visi & Misi](#visi--misi)
-- [Fitur Utama](#fitur-utama)
-- [Tech Stack](#tech-stack)
-- [Prasyarat](#prasyarat)
-- [Instalasi](#instalasi)
-- [Konfigurasi Lingkungan](#konfigurasi-lingkungan)
-- [Menjalankan Aplikasi](#menjalankan-aplikasi)
-- [Struktur Proyek](#struktur-proyek)
-- [API Documentation](#api-documentation)
-- [Kontribusi](#kontribusi)
+Jepangku News adalah MVP single-app yang dibangun dengan **Next.js + TypeScript** dan siap dikembangkan menjadi ekosistem multi-app di masa depan. Saat ini deployment utama menggunakan **Vercel**, dan rencana selanjutnya adalah fork repository ke organisasi GitHub lalu deploy ke **self-hosted VPS**.
 
-## 🎯 Visi & Misi
+## 🎯 Fokus Prioritas
 
-### Visi
-Jepangku bertujuan menjadi platform digital bertema Jepang untuk pengguna Indonesia yang ingin membaca konten seputar budaya Jepang, anime, manga, lifestyle, event, edukasi, dan hiburan, sekaligus berinteraksi melalui fitur quiz, polling, voting, dan leaderboard.
+1. **User experience dan fitur user** terlebih dahulu
+2. Baru setelah itu, fokus ke **admin dashboard dan management tools**
+3. Saat ini, **shared auth service** tidak diimplementasikan, tetapi arsitektur sudah disiapkan agar dapat terintegrasi kelak
+4. Database sudah tersedia di **Neon PostgreSQL** dan sudah memiliki seed data
 
-### Misi
-- Menyediakan portal berita bertema Jepang yang dapat diakses oleh publik
-- Menyediakan sistem akun untuk pengguna
-- Memungkinkan user submit artikel dengan proses review admin
-- Menyediakan fitur interaktif (quiz, polling, voting)
-- Memberikan poin dari aktivitas tertentu
-- Menampilkan weekly leaderboard berdasarkan poin
-- Menyiapkan struktur yang scalable untuk ekosistem multi-app di masa depan
+## ✨ Fitur Utama Saat Ini
 
-## ✨ Fitur Utama
+### Untuk Publik (guest)
+- Membaca daftar artikel dan detail
+- Melihat kategori artikel
+- Melihat leaderboard mingguan
+- Mengikuti quiz dan polling
 
-### Untuk Publik (Guest)
-- ✅ Membaca artikel dan kategori
-- ✅ Melihat detail artikel
-- ✅ Melihat leaderboard dan search result
-- ✅ Mengikuti quiz dan polling (tanpa poin)
-
-### Untuk Pengguna (User)
-- ✅ Register & Login
-- ✅ Bookmark artikel
-- ✅ Submit artikel untuk review
-- ✅ Mengikuti quiz & polling dengan tracking hasil
-- ✅ Mengumpulkan poin dari aktivitas
-- ✅ Melihat riwayat aktivitas & poin
-- ✅ Melihat profil personal
-- ✅ Masuk ke weekly leaderboard
+### Untuk Pengguna Terdaftar
+- Register & login
+- Mengelola bookmark artikel
+- Submit artikel untuk review admin
+- Mengikuti quiz dan polling dengan tracking hasil
+- Mengumpulkan poin dari aktivitas
+- Melihat riwayat poin dan aktivitas
+- Melihat profil personal
+- Terdaftar dalam weekly leaderboard
 
 ### Untuk Admin
-- ✅ Dashboard admin
-- ✅ Mengelola artikel & kategori
-- ✅ Review artikel yang disubmit user
-- ✅ Mengelola quiz & polling
-- ✅ Mengelola user
-- ✅ Mengelola homepage & banner
+- Akses admin dashboard
+- Manage artikel dan review user-submitted article
+- Manage kategori dan tags
+- Manage quiz dan polling
+- Manage user dan homepage banner
 
 ## 🛠️ Tech Stack
 
-### Frontend & Backend
-- **Framework**: [Next.js 14+](https://nextjs.org/) - Full-stack React framework dengan SSR/SSG dan API Routes
-- **Language**: [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/) - Unstyled, accessible components
+- **Next.js** 16.x
+- **React** 19.x
+- **TypeScript** 5.x
+- **Tailwind CSS** 4.x
+- **Prisma** 6.x
+- **PostgreSQL** (Neon)
+- **Cloudflare R2** untuk storage asset
+- **JWT + session cookie** untuk auth
+- **Vercel** untuk deployment awal
 
-### Backend Services
-- **Database**: PostgreSQL - Relational database
-- **ORM**: [Prisma](https://www.prisma.io/) - Type-safe database client
-- **Authentication**: JWT + Session management
+## ✅ Status Implementasi
 
-### Infrastructure & Storage
-- **File Storage**: [Cloudflare R2](https://www.cloudflare.com/products/r2/) - S3-compatible object storage
-- **Runtime**: Node.js 18+
-- **Deployment**: Vercel / Self-hosted
+### Sudah tersedia
+- Authentication: register, login, logout, `auth/me`
+- Artikel: listing, detail, submit artikel, review workflow
+- Bookmark untuk user
+- Quiz: list, detail, submit jawaban
+- Polling: list, detail, vote
+- Leaderboard mingguan
+- User profile dasar
+- API routes untuk auth, articles, quizzes, polls, users, leaderboard
+- Upload utility Cloudflare R2 di `lib/r2.ts`
+
+### Belum selesai / sedang ditingkatkan
+- Email verification
+- Forgot password / password reset
+- Share tracking + points reward
+- Full-text search dan trending algorithm lengkap
+- Avatar upload terintegrasi profile
+- Advanced admin management untuk quiz/poll
+- Monthly / all-time leaderboard
+- Comments dan notification system
+- Rate limiting, sanitasi input, monitoring
 
 ## 📦 Prasyarat
 
-Sebelum memulai, pastikan Anda sudah menginstall:
+- Node.js 18+
+- npm / pnpm
+- Git
+- Neon PostgreSQL database
+- Cloudflare R2 credentials
 
-- **Node.js**: v18.17.0 atau lebih baru ([Download](https://nodejs.org/))
-- **npm** atau **yarn** atau **pnpm** (included with Node.js)
-- **Git**: Untuk version control
-- **PostgreSQL**: Database (optional - bisa local atau cloud)
-- **Cloudflare Account**: Untuk R2 storage
+## 🧩 Setup Lokal
 
-## 🚀 Instalasi
-
-### 1. Clone Repository
 ```bash
 git clone https://github.com/yourusername/jepangku-news-app.git
 cd jepangku-news-app
-```
-
-### 2. Install Dependencies
-```bash
 npm install
-# atau jika menggunakan yarn
-yarn install
-# atau jika menggunakan pnpm
-pnpm install
 ```
 
-### 3. Setup Database
-```bash
-# Generate Prisma client
-npx prisma generate
+## 🔧 Konfigurasi Environment
 
-# Run migrations
-npx prisma migrate dev --name init
-
-# (Optional) Seed data
-npx prisma db seed
-```
-
-## 🔧 Konfigurasi Lingkungan
-
-Buat file `.env.local` di root project dan konfigurasi variabel lingkungan:
+Salin `.env.example` ke `.env.local` lalu isi nilai berikut:
 
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/jepangku"
-
-# JWT Secret (generate dengan: openssl rand -base64 32)
-JWT_SECRET="your-secret-key-here"
-
-# Cloudflare R2 Configuration
+DATABASE_URL="postgresql://user:password@host:port/database"
+JWT_SECRET="your-secret-key"
 R2_ACCOUNT_ID="your-account-id"
 R2_ACCESS_KEY_ID="your-access-key-id"
 R2_ACCESS_KEY_SECRET="your-access-key-secret"
 R2_BUCKET_NAME="jepangku-storage"
 R2_PUBLIC_URL="https://your-bucket-id.r2.cloudflarestorage.com"
-
-# Application
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_API_URL="http://localhost:3000/api"
-
-# Optional: Analytics, Email, etc
-# NEXT_PUBLIC_ANALYTICS_ID="..."
 ```
 
-### Mendapatkan Cloudflare R2 Credentials
+> Catatan: database sudah di-seed di Neon. Jalankan `npx prisma db seed` hanya jika Anda membuat instance database baru.
 
-1. Login ke [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Pilih **R2** di sidebar
-3. Buat bucket baru atau gunakan yang sudah ada
-4. Buat **API Token** di halaman **Settings**
-   - Pilih "Create API token"
-   - Pilih "Edit R2" scope
-   - Copy credentials ke `.env.local`
+## ⚙️ Installasi dan Run
 
-## ▶️ Menjalankan Aplikasi
-
-### Development Mode
 ```bash
+npx prisma generate
 npm run dev
-# Aplikasi akan berjalan di http://localhost:3000
 ```
 
-### Production Build
+### Build & production
+
 ```bash
 npm run build
 npm run start
 ```
 
-### Lint & Format
+### Lint
+
 ```bash
-# Check linting
 npm run lint
-
-# Format code
-npm run format
 ```
 
-### Database Commands
-```bash
-# Open Prisma Studio (GUI untuk database)
-npx prisma studio
+## ☁️ Deployment
 
-# Generate migration
-npx prisma migrate dev --name migration_name
+### Saat ini
+- Deploy di **Vercel**
+- Pastikan environment variables terpasang di dashboard Vercel
+- Pastikan build `npm run build` sukses sebelum deploy
 
-# Reset database (⚠️ akan menghapus semua data)
-npx prisma migrate reset
+### Rencana migrasi
+1. Fork repo ke organisasi GitHub
+2. Pindahkan repo ke organisasi tersebut
+3. Setup self-hosted VPS untuk staging/production
+4. Implement CI/CD untuk build dan deploy
+
+## 🗂️ Struktur Proyek
+
+```
+app/
+components/
+lib/
+prisma/
+public/
+docs/
+.agents/
+README.md
+package.json
+tsconfig.json
+next.config.ts
 ```
 
-## 📁 Struktur Proyek
+## 🌐 API Endpoint Ringkas
 
-```
-jepangku-news-app/
-├── app/
-│   ├── layout.tsx              # Root layout
-│   ├── page.tsx                # Home page
-│   ├── globals.css             # Global styles
-│   ├── (auth)/                 # Auth pages
-│   │   ├── login/
-│   │   ├── register/
-│   │   └── logout/
-│   ├── (public)/               # Public pages
-│   │   ├── articles/
-│   │   ├── quiz/
-│   │   ├── polls/
-│   │   └── leaderboard/
-│   ├── (user)/                 # Protected user pages
-│   │   ├── dashboard/
-│   │   ├── bookmarks/
-│   │   ├── submit-article/
-│   │   ├── profile/
-│   │   └── history/
-│   ├── (admin)/                # Admin pages
-│   │   ├── dashboard/
-│   │   ├── articles/
-│   │   ├── quiz/
-│   │   ├── users/
-│   │   └── settings/
-│   └── api/                    # API routes
-│       ├── auth/
-│       ├── articles/
-│       ├── quiz/
-│       ├── polls/
-│       ├── users/
-│       └── upload/
-├── components/
-│   ├── ui/                     # Reusable UI components
-│   ├── navbar/
-│   ├── sidebar/
-│   ├── cards/
-│   └── forms/
-├── lib/
-│   ├── prisma.ts               # Prisma client
-│   ├── auth.ts                 # Authentication utils
-│   ├── r2.ts                   # R2 storage client
-│   ├── api.ts                  # API client
-│   └── utils.ts                # Utility functions
-├── styles/
-│   └── globals.css
-├── public/
-│   ├── images/
-│   └── icons/
-├── prisma/
-│   └── schema.prisma           # Database schema
-├── .env.local                  # Environment variables (git ignored)
-├── .env.example                # Environment variables template
-├── next.config.ts              # Next.js configuration
-├── tsconfig.json               # TypeScript configuration
-├── tailwind.config.js          # Tailwind CSS configuration
-├── postcss.config.mjs          # PostCSS configuration
-├── eslint.config.mjs           # ESLint configuration
-├── package.json
-└── README.md
-```
-
-## 📚 API Documentation
-
-API endpoints tersedia di `/api/`. Dokumentasi lengkap:
-
-### Authentication
-- `POST /api/auth/register` - Register user baru
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/logout` - Logout user
-- `GET /api/auth/me` - Get current user
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
 
 ### Articles
-- `GET /api/articles` - Get semua artikel
-- `GET /api/articles/:id` - Get detail artikel
-- `POST /api/articles` - Create artikel (user)
-- `PUT /api/articles/:id` - Update artikel (admin/owner)
-- `DELETE /api/articles/:id` - Delete artikel (admin/owner)
+- `GET /api/articles`
+- `GET /api/articles/[slug]`
+- `POST /api/articles`
+- `PUT /api/articles/[id]`
+- `DELETE /api/articles/[id]`
 
 ### Quiz
-- `GET /api/quiz` - Get semua quiz
-- `GET /api/quiz/:id` - Get detail quiz
-- `POST /api/quiz/:id/submit` - Submit jawaban quiz
+- `GET /api/quiz`
+- `GET /api/quiz/[slug]`
+- `POST /api/quiz/[slug]/submit`
 
-### Polls & Voting
-- `GET /api/polls` - Get semua polling
-- `POST /api/polls/:id/vote` - Vote di polling
+### Polls
+- `GET /api/polls`
+- `GET /api/polls/[slug]`
+- `POST /api/polls/[slug]/vote`
 
 ### Leaderboard
-- `GET /api/leaderboard` - Get weekly leaderboard
+- `GET /api/leaderboard/weekly`
 
-### User
-- `GET /api/users/:id` - Get user profile
-- `PUT /api/users/:id` - Update user profile
-- `GET /api/users/:id/bookmarks` - Get user bookmarks
-- `GET /api/users/:id/activity-history` - Get activity history
+### Users
+- `GET /api/users/[id]`
+- `PUT /api/users/[id]`
+- `GET /api/users/[id]/bookmarks`
+- `GET /api/users/[id]/activity-history`
 
-## 🎯 Roadmap Jangka Panjang
+## 📚 Dokumentasi Proyek
 
-MVP saat ini adalah single app, namun struktur dirancang untuk scalability:
-
-```
-Phase 1 (Current):
-└── Jepangku News MVP (Single App)
-
-Phase 2:
-├── jepangku.com          → Website utama / landing
-├── news.jepangku.com     → Portal berita (refined)
-├── learn.jepangku.com    → LMS belajar bahasa Jepang
-└── admin.jepangku.com    → Admin dashboard pusat
-
-Phase 3:
-├── Shared authentication service
-├── Global user system
-├── Cross-app leaderboard & poin system
-└── Advanced role & permission system
-```
+- `docs/TECH_STACK.md`
+- `docs/R2_SETUP.md`
+- `docs/UNCOMPLETED_FEATURE.md`
+- `.agents/erd.md`
+- `.agents/mvp.md`
+- `.agents/user-flow.md`
+- `.agents/steering.md`
 
 ## 🤝 Kontribusi
 
-Kami menerima kontribusi! Silakan:
-
-1. Fork repository ini
-2. Buat branch fitur (`git checkout -b feature/AmazingFeature`)
-3. Commit perubahan (`git commit -m 'Add AmazingFeature'`)
-4. Push ke branch (`git push origin feature/AmazingFeature`)
+1. Fork repository
+2. Buat branch: `git checkout -b feature/nama-fitur`
+3. Commit perubahan
+4. Push branch
 5. Buat Pull Request
 
-## 📝 License
+## 📄 Lisensi
 
-Project ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE untuk detail.
-
-## 📧 Contact & Support
-
-- **Email**: contact@jepangku.com
-- **Issues**: [GitHub Issues](https://github.com/yourusername/jepangku-news-app/issues)
-- **Documentation**: [Wiki](https://github.com/yourusername/jepangku-news-app/wiki)
-
----
-
-**Dibuat dengan ❤️ untuk komunitas Indonesia yang mencintai Jepang**
+Project ini dilisensikan di bawah MIT License. Lihat `LICENSE`.
+''
