@@ -1,49 +1,81 @@
-'use client';
-export const dynamic = 'force-dynamic';
+"use client";
+export const dynamic = "force-dynamic";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AdminCreatePoll() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: '', description: '', poll_type: 'POLLING', thumbnail_url: '', status: 'ACTIVE' });
-  const [options, setOptions] = useState(['', '']);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    poll_type: "POLLING",
+    thumbnail_url: "",
+    status: "ACTIVE",
+  });
+  const [options, setOptions] = useState(["", ""]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) { toast.error('Title is required'); return; }
-    if (options.some((o) => !o.trim())) { toast.error('All options must be filled'); return; }
-    if (options.length < 2) { toast.error('At least 2 options required'); return; }
+    if (!form.title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (options.some((o) => !o.trim())) {
+      toast.error("All options must be filled");
+      return;
+    }
+    if (options.length < 2) {
+      toast.error("At least 2 options required");
+      return;
+    }
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/polls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/polls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, options }),
       });
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
-      toast.success('Poll created successfully');
-      router.push('/admin');
-    } catch (e: any) { toast.error(e.message || 'Failed to create poll'); }
-    finally { setLoading(false); }
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.error);
+      }
+      toast.success("Poll created successfully");
+      router.push("/admin");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to create poll");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-create-poll-page">
-      <section className="border-b-2 border-[#0A0A0A] bg-[#F4F4F5]">
+      <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link href="/admin" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B] hover:text-[#D90429] mb-4">
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
+          >
             <ArrowLeft size={14} /> Back to Dashboard
           </Link>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">Create Poll / Voting</h1>
+          <h1 className="font-heading font-black text-4xl tracking-tighter">
+            Create Poll / Voting
+          </h1>
         </div>
       </section>
 
@@ -52,17 +84,17 @@ export default function AdminCreatePoll() {
           <Label>Type</Label>
           <div className="flex gap-2">
             <Button
-              variant={form.poll_type === 'POLLING' ? 'black' : 'outline'}
+              variant={form.poll_type === "POLLING" ? "black" : "outline"}
               size="sm"
-              onClick={() => setForm({ ...form, poll_type: 'POLLING' })}
+              onClick={() => setForm({ ...form, poll_type: "POLLING" })}
               data-testid="type-polling"
             >
               Polling
             </Button>
             <Button
-              variant={form.poll_type === 'VOTING' ? 'default' : 'outline'}
+              variant={form.poll_type === "VOTING" ? "default" : "outline"}
               size="sm"
-              onClick={() => setForm({ ...form, poll_type: 'VOTING' })}
+              onClick={() => setForm({ ...form, poll_type: "VOTING" })}
               data-testid="type-voting"
             >
               Voting
@@ -94,7 +126,10 @@ export default function AdminCreatePoll() {
 
         <div className="space-y-2">
           <Label>Status</Label>
-          <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+          <Select
+            value={form.status}
+            onValueChange={(v) => setForm({ ...form, status: v })}
+          >
             <SelectTrigger data-testid="poll-status-select">
               <SelectValue />
             </SelectTrigger>
@@ -112,8 +147,8 @@ export default function AdminCreatePoll() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setOptions([...options, ''])}
-              className="text-[#D90429] hover:text-[#D90429]"
+              onClick={() => setOptions([...options, ""])}
+              className="text-jepang-red hover:text-jepang-red"
               data-testid="add-option-btn"
             >
               <Plus size={12} /> Add Option
@@ -122,7 +157,7 @@ export default function AdminCreatePoll() {
           <div className="space-y-2">
             {options.map((opt, idx) => (
               <div key={idx} className="flex items-center gap-2">
-                <span className="font-mono font-bold text-[#52525B] self-center w-8">
+                <span className="font-mono font-bold text-jepang-muted self-center w-8">
                   {String.fromCharCode(65 + idx)}.
                 </span>
                 <Input
@@ -130,15 +165,21 @@ export default function AdminCreatePoll() {
                   className="flex-1"
                   placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                   value={opt}
-                  onChange={(e) => { const o = [...options]; o[idx] = e.target.value; setOptions(o); }}
+                  onChange={(e) => {
+                    const o = [...options];
+                    o[idx] = e.target.value;
+                    setOptions(o);
+                  }}
                   data-testid={`option-input-${idx}`}
                 />
                 {options.length > 2 && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setOptions(options.filter((_, i) => i !== idx))}
-                    className="text-[#D90429]"
+                    onClick={() =>
+                      setOptions(options.filter((_, i) => i !== idx))
+                    }
+                    className="text-jepang-red"
                     data-testid={`remove-option-${idx}`}
                   >
                     <Trash2 size={14} />
@@ -149,9 +190,13 @@ export default function AdminCreatePoll() {
           </div>
         </div>
 
-        <div className="pt-6 border-t border-[#E4E4E7]">
-          <Button onClick={handleSubmit} disabled={loading} data-testid="create-poll-submit">
-            {loading ? 'Creating...' : 'Create Poll'}
+        <div className="pt-6 border-t border-jepang-border">
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            data-testid="create-poll-submit"
+          >
+            {loading ? "Creating..." : "Create Poll"}
           </Button>
         </div>
       </div>

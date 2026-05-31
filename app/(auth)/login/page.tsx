@@ -1,52 +1,65 @@
-'use client';
+"use client";
 export const dynamic = "force-dynamic";
 
-import { useState, Suspense } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useState, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams?.get('from') || '/';
+  const from = searchParams?.get("from") || "/";
 
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      if (user.role === 'ADMIN') router.push('/admin');
+      if (user.role === "ADMIN") router.push("/admin");
       else router.push(from);
     } catch (e: any) {
-      setError(e.message || 'Login failed');
+      setError(e.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-[#F4F4F5]" data-testid="login-page">
+    <div
+      className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-jepang-off-white"
+      data-testid="login-page"
+    >
       <div className="w-full max-w-md">
-        <Card className="border border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <Card className="border border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <CardHeader className="text-center pb-2">
-            <Link href="/" className="font-heading font-black text-3xl tracking-tighter">
-              <span className="text-[#D90429]">Jepang</span><span className="text-[#0A0A0A]">ku</span>
+            <Link
+              href="/"
+              className="font-heading font-black text-3xl tracking-tighter"
+            >
+              <span className="text-jepang-red">Jepang</span>
+              <span className="text-foreground">ku</span>
             </Link>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B] mt-2">Welcome Back</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mt-2">
+              Welcome Back
+            </p>
           </CardHeader>
           <CardContent className="pt-4">
-            <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4"
+              data-testid="login-form"
+            >
               <div className="space-y-2">
                 <Label htmlFor="email">Email or Username</Label>
                 <Input
@@ -64,14 +77,19 @@ function LoginForm() {
                   id="password"
                   type="password"
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
                   required
                   data-testid="login-password-input"
                 />
               </div>
 
               {error && (
-                <div className="bg-[#D90429] text-white p-3 text-sm" data-testid="login-error">
+                <div
+                  className="bg-jepang-red text-white p-3 text-sm"
+                  data-testid="login-error"
+                >
                   {error}
                 </div>
               )}
@@ -82,13 +100,17 @@ function LoginForm() {
                 className="w-full"
                 data-testid="login-submit-btn"
               >
-                {loading ? 'Logging in...' : 'Login'}
+                {loading ? "Logging in..." : "Login"}
               </Button>
             </form>
 
-            <p className="text-center text-sm text-[#52525B] mt-6">
-              Don&apos;t have an account?{' '}
-              <Link href="/register" className="text-[#D90429] font-semibold hover:underline" data-testid="link-to-register">
+            <p className="text-center text-sm text-jepang-muted mt-6">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/register"
+                className="text-jepang-red font-semibold hover:underline"
+                data-testid="link-to-register"
+              >
                 Register
               </Link>
             </p>
@@ -101,11 +123,15 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B]">Loading...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
+            Loading...
+          </p>
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

@@ -2,15 +2,21 @@
 
 @import "tailwindcss";
 
+
+@import "tailwindcss";
+
+@theme {
+  --color-jepang-red: #D90429;
+  --color-jepang-red-hover: #B3001B;
+  --color-jepang-black: #0A0A0A;
+  --color-jepang-off-white: #F4F4F5;
+  --color-jepang-muted: #52525B;
+  --color-jepang-border: #E4E4E7;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
-  --jepang-red: #D90429;
-  --jepang-red-hover: #B3001B;
-  --jepang-black: #0A0A0A;
-  --jepang-off-white: #F4F4F5;
-  --jepang-muted: #52525B;
-  --jepang-border: #E4E4E7;
 }
 
 * {
@@ -191,15 +197,3 @@ code {
 .article-content ul, .article-content ol { margin-left: 2em; margin-bottom: 1.5em; }
 .article-content ul { list-style: disc; }
 .article-content ol { list-style: decimal; }
-
-/* Color utilities */
-.bg-jepang-red { background-color: #D90429; }
-.bg-jepang-black { background-color: #0A0A0A; }
-.bg-jepang-off-white { background-color: #F4F4F5; }
-.text-jepang-red { color: #D90429; }
-.text-jepang-black { color: #0A0A0A; }
-.text-jepang-muted { color: #52525B; }
-.border-jepang-red { border-color: #D90429; }
-.border-jepang-black { border-color: #0A0A0A; }
-.border-jepang-border { border-color: #E4E4E7; }
-.font-heading { font-family: "Cabinet Grotesk", "Inter", sans-serif; }

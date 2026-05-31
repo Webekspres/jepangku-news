@@ -215,8 +215,8 @@ export default function HomePage() {
         <section className="py-12">
           <div className="px-4 mx-auto max-w-7xl">
             <div className="mb-8">
-              <div className="h-8 bg-[#D90429]/10 rounded animate-pulse w-1/4 mb-2" />
-              <div className="h-10 bg-[#D90429]/10 rounded animate-pulse w-1/3" />
+              <div className="h-8 bg-jepang-red/10 rounded animate-pulse w-1/4 mb-2" />
+              <div className="h-10 bg-jepang-red/10 rounded animate-pulse w-1/3" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[...Array(5)].map((_, idx) => (
