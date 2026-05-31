@@ -176,7 +176,7 @@ function ArticleListContent() {
               <button
                 key={s}
                 onClick={() => updateParams({ sort: s })}
-                className={`text-xs uppercase tracking-wider font-bold px-3 py-1 ${sort === s ? "text-jepang-red border-b-2 border-jepang-red" : "text-jepang-muted hover:text-foreground cursor-pointer hover:text-jepang-red"}`}
+                className={`text-xs uppercase tracking-wider font-bold px-3 py-1 ${sort === s ? "text-jepang-red border-b-2 border-jepang-red" : "text-jepang-muted hover:text-foreground cursor-pointer"}`}
                 data-testid={`sort-${s}`}
               >
                 {s}
