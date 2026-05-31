@@ -1,7 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED_ROUTES = ['/profile', '/my-articles', '/submit-article', '/edit-article', '/bookmarks', '/points'];
-const ADMIN_ROUTES = ['/admin'];
+const PROTECTED_ROUTES = [
+  "/profile",
+  "/my-articles",
+  "/submit-article",
+  "/edit-article",
+  "/bookmarks",
+  "/points",
+];
+const ADMIN_ROUTES = ["/admin"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,25 +20,31 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get('access_token')?.value;
+  const token = request.cookies.get("access_token")?.value;
 
   if (!token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('from', pathname);
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname === "/login" || pathname === "/register") {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (isAdminRoute) {
     try {
-      const parts = token.split('.');
-      if (parts.length !== 3) throw new Error('Invalid token');
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-      if (payload.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/', request.url));
+      const parts = token.split(".");
+      if (parts.length !== 3) throw new Error("Invalid token");
+      const payload = JSON.parse(
+        atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+      );
+      if (payload.role !== "ADMIN") {
+        return NextResponse.redirect(new URL("/", request.url));
       }
     } catch {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('from', pathname);
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
     }
   }
@@ -41,12 +54,12 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/profile/:path*',
-    '/my-articles/:path*',
-    '/submit-article/:path*',
-    '/edit-article/:path*',
-    '/bookmarks/:path*',
-    '/points/:path*',
-    '/admin/:path*',
+    "/profile/:path*",
+    "/my-articles/:path*",
+    "/submit-article/:path*",
+    "/edit-article/:path*",
+    "/bookmarks/:path*",
+    "/points/:path*",
+    "/admin/:path*",
   ],
 };

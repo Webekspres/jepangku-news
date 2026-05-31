@@ -32,19 +32,29 @@ export default function LeaderboardPage() {
         <div className="max-w-3xl mx-auto">
           {loading ? (
             <div className="max-w-5xl mx-auto space-y-8">
-              <div className="grid grid-cols-3 gap-2 md:gap-4">
-                {[...Array(3)].map((_, idx) => (
-                  <div key={idx} className="flex flex-col items-center animate-pulse">
-                    <div className="mb-2 h-10 w-10 rounded-full bg-jepang-red/10" />
-                    <div className="w-full h-16 rounded-lg bg-jepang-red/10" />
-                    <div className="mt-3 h-3 w-24 rounded bg-jepang-red/10" />
-                    <div className="mt-1 h-3 w-16 rounded bg-jepang-red/10" />
+              <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8 items-end">
+                {[
+                  { heights: "h-32", colors: "bg-zinc-300" },
+                  { heights: "h-44", colors: "bg-jepang-red" },
+                  { heights: "h-28", colors: "bg-zinc-200" },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center justify-end h-full animate-pulse"
+                  >
+                    <div className="mb-2 h-8 w-8 rounded-full bg-jepang-red/10" />
+                    <div className="w-16 h-16 bg-jepang-red/10 mb-2" />
+                    <div className="h-3 w-20 bg-jepang-red/10 mb-1" />
+                    <div className="h-2 w-16 bg-jepang-red/10 mb-3" />
+                    <div className={`${item.heights} ${item.colors} w-full`} />
                   </div>
                 ))}
               </div>
               <Card className="border border-foreground">
                 <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-                  <div className="h-4 w-32 rounded bg-jepang-red/10 animate-pulse" />
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em]">
+                    SEMUA PERINGKAT
+                  </p>
                 </CardHeader>
                 <CardContent className="p-0">
                   {[...Array(6)].map((_, idx) => (
@@ -56,7 +66,7 @@ export default function LeaderboardPage() {
           ) : leaderboard.length > 0 ? (
             <>
               {leaderboard.length >= 3 && (
-                <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8">
+                <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8 items-end">
                   {[leaderboard[1], leaderboard[0], leaderboard[2]].map(
                     (entry: any, idx: number) => {
                       const positions = [2, 1, 3];
@@ -75,7 +85,7 @@ export default function LeaderboardPage() {
                       return (
                         <div
                           key={entry.userId}
-                          className="flex flex-col items-center"
+                          className="flex flex-col items-center justify-end h-full"
                           data-testid={`podium-${realIdx}`}
                         >
                           <div className="mb-2">
@@ -116,7 +126,7 @@ export default function LeaderboardPage() {
               <Card className="border border-foreground">
                 <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                    FULL RANKINGS
+                    SEMUA PERINGKAT
                   </p>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -166,7 +176,9 @@ export default function LeaderboardPage() {
               <p className="font-heading font-bold text-2xl mb-2">
                 Belum ada peringkat
               </p>
-              <p className="text-jepang-muted">Jadilah yang pertama mengumpulkan poin!</p>
+              <p className="text-jepang-muted">
+                Jadilah yang pertama mengumpulkan poin!
+              </p>
             </div>
           )}
         </div>

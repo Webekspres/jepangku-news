@@ -90,7 +90,7 @@ export default function Navbar() {
                   data-testid="navbar-submit-article"
                 >
                   <Link href="/submit-article">
-                    <PenSquare size={14} strokeWidth={1.5} /> Submit
+                    <PenSquare size={14} strokeWidth={1.5} /> Buat Artikel
                   </Link>
                 </Button>
 
@@ -138,7 +138,7 @@ export default function Navbar() {
                         className="cursor-pointer"
                         data-testid="menu-profile"
                       >
-                        <User size={16} strokeWidth={1.5} /> P
+                        <User size={16} strokeWidth={1.5} /> Profil
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>

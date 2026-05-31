@@ -129,7 +129,7 @@ export default function PollDetailPage() {
                         />
                         <div className="relative space-y-4">
                           {option.imageUrl ? (
-                            <div className="relative h-48 overflow-hidden rounded-md bg-jepang-off-white">
+                            <div className="relative h-48 overflow-hidden  bg-jepang-off-white">
                               <Image
                                 src={option.imageUrl}
                                 alt={option.optionText}

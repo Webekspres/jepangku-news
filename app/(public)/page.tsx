@@ -9,6 +9,7 @@ import TrendingArticleSkeleton from "@/components/skeletons/TrendingArticleSkele
 import PollQuizCardSkeleton from "@/components/skeletons/PollQuizCardSkeleton";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import CategoryCardSkeleton from "@/components/skeletons/CategoryCardSkeleton";
+import SectionHeader from "@/components/SectionHeader";
 import {
   ArrowRight,
   Trophy,
@@ -81,38 +82,32 @@ export default function HomePage() {
         </section>
 
         {/* Hero Banner - Static Content */}
-        <section className="relative border-b border-jepang-black bg-jepang-black overflow-hidden">
-          <div className="asanoha-bg" />
-          <div className="relative py-8 md:py-12">
-            <div className="px-4 mx-auto max-w-7xl">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                <div className="md:col-span-2">
-                  <p className="small-caps text-jepang-red mb-3">
-                    日本のポータル / PORTAL JEPANG
-                  </p>
-                  <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter text-white mb-3">
-                    Berita, Budaya &{" "}
-                    <span className="text-jepang-red">Hiburan Jepang</span>
-                  </h1>
-                  <p className="text-zinc-300 text-base md:text-lg max-w-2xl">
-                    Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz,
-                    vote, dan raih poin!
-                  </p>
-                </div>
-                <div className="hidden md:flex justify-end">
-                  <Link
-                    href="/register"
-                    className="jepang-btn-primary"
-                    data-testid="hero-register-btn"
-                  >
-                    Gabung Sekarang
-                    <ArrowRight className="inline ml-2" size={16} />
-                  </Link>
-                </div>
-              </div>
-            </div>
+        <SectionHeader
+          label="日本のポータル / PORTAL JEPANG"
+          title={
+            <>
+              Berita, Budaya &{" "}
+              <span className="text-jepang-red">Hiburan Jepang</span>
+            </>
+          }
+          subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz, vote, dan raih poin!"
+          dark
+          className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
+        >
+          <div className="absolute inset-0">
+            <div className="asanoha-bg" />
           </div>
-        </section>
+          <div className="mt-6 hidden md:flex justify-end">
+            <Link
+              href="/register"
+              className="jepang-btn-primary"
+              data-testid="hero-register-btn cursor-pointer"
+            >
+              Gabung Sekarang
+              <ArrowRight className="inline ml-2" size={16} />
+            </Link>
+          </div>
+        </SectionHeader>
 
         {/* Latest Articles Skeleton */}
         <section className="py-12 bg-jepang-off-white">
@@ -215,8 +210,8 @@ export default function HomePage() {
         <section className="py-12">
           <div className="px-4 mx-auto max-w-7xl">
             <div className="mb-8">
-              <div className="h-8 bg-jepang-red/10 rounded animate-pulse w-1/4 mb-2" />
-              <div className="h-10 bg-jepang-red/10 rounded animate-pulse w-1/3" />
+              <div className="h-8 bg-jepang-red/10 animate-pulse w-1/4 mb-2" />
+              <div className="h-10 bg-jepang-red/10 animate-pulse w-1/3" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[...Array(5)].map((_, idx) => (
@@ -284,38 +279,32 @@ export default function HomePage() {
       )}
 
       {/* Hero Banner */}
-      <section className="relative border-b border-jepang-black bg-jepang-black overflow-hidden">
-        <div className="asanoha-bg" />
-        <div className="relative py-8 md:py-12">
-          <div className="px-4 mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <div className="md:col-span-2">
-                <p className="small-caps text-jepang-red mb-3">
-                  日本のポータル / PORTAL JEPANG
-                </p>
-                <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter text-white mb-3">
-                  Berita, Budaya &{" "}
-                  <span className="text-jepang-red">Hiburan Jepang</span>
-                </h1>
-                <p className="text-zinc-300 text-base md:text-lg max-w-2xl">
-                  Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz,
-                  vote, dan raih poin!
-                </p>
-              </div>
-              <div className="hidden md:flex justify-end">
-                <Link
-                  href="/register"
-                  className="jepang-btn-primary"
-                  data-testid="hero-register-btn"
-                >
-                  Gabung Sekarang
-                  <ArrowRight className="inline ml-2" size={16} />
-                </Link>
-              </div>
-            </div>
-          </div>
+      <SectionHeader
+        label="日本のポータル / PORTAL JEPANG"
+        title={
+          <>
+            Berita, Budaya &{" "}
+            <span className="text-jepang-red">Hiburan Jepang</span>
+          </>
+        }
+        subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz, vote, dan raih poin!"
+        dark
+        className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
+      >
+        <div className="absolute inset-0">
+          <div className="asanoha-bg" />
         </div>
-      </section>
+        <div className="mt-6 hidden md:flex justify-end">
+          <Link
+            href="/register"
+            className="jepang-btn-primary"
+            data-testid="hero-register-btn"
+          >
+            Gabung Sekarang
+            <ArrowRight className="inline ml-2" size={16} />
+          </Link>
+        </div>
+      </SectionHeader>
 
       {/* Latest Articles Grid */}
       <section className="py-12 bg-jepang-off-white">
