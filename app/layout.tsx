@@ -3,7 +3,7 @@ import ClientProviders from '@/components/ClientProviders';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jepangku News — Portal Berita Jepang',
+  title: 'Jepangku News | Portal Berita Jepang',
   description: 'Portal media interaktif bertema Jepang untuk pembaca Indonesia. Baca artikel, ikuti quiz, vote, dan raih poin!',
 };
 

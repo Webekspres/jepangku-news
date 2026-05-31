@@ -1,18 +1,20 @@
 'use client';
 export const dynamic = "force-dynamic";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Suspense } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams?.get('from') || '/';
-
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -34,43 +36,77 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-jepang-off-white" data-testid="login-page">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-[#F4F4F5]" data-testid="login-page">
       <div className="w-full max-w-md">
-        <div className="bg-white border border-jepang-black p-8 hard-shadow">
-          <div className="text-center mb-6">
+        <Card className="border border-[#0A0A0A] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <CardHeader className="text-center pb-2">
             <Link href="/" className="font-heading font-black text-3xl tracking-tighter">
-              <span className="text-jepang-red">Jepang</span><span className="text-jepang-black">ku</span>
+              <span className="text-[#D90429]">Jepang</span><span className="text-[#0A0A0A]">ku</span>
             </Link>
-            <p className="small-caps text-jepang-muted mt-2">Welcome Back</p>
-          </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B] mt-2">Welcome Back</p>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email or Username</Label>
+                <Input
+                  id="email"
+                  type="text"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                  data-testid="login-email-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                  data-testid="login-password-input"
+                />
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
-            <div>
-              <label className="small-caps mb-2 block">Email or Username</label>
-              <input type="text" className="jepang-input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required data-testid="login-email-input" />
-            </div>
-            <div>
-              <label className="small-caps mb-2 block">Password</label>
-              <input type="password" className="jepang-input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required data-testid="login-password-input" />
-            </div>
+              {error && (
+                <div className="bg-[#D90429] text-white p-3 text-sm" data-testid="login-error">
+                  {error}
+                </div>
+              )}
 
-            {error && <div className="bg-jepang-red text-white p-3 text-sm" data-testid="login-error">{error}</div>}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full"
+                data-testid="login-submit-btn"
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </Button>
+            </form>
 
-            <button type="submit" disabled={loading} className="jepang-btn-primary w-full disabled:opacity-50" data-testid="login-submit-btn">
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-jepang-muted mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-jepang-red font-semibold hover:underline" data-testid="link-to-register">Register</Link>
-          </p>
-        </div>
+            <p className="text-center text-sm text-[#52525B] mt-6">
+              Don&apos;t have an account?{' '}
+              <Link href="/register" className="text-[#D90429] font-semibold hover:underline" data-testid="link-to-register">
+                Register
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
 
 export default function LoginPage() {
-  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="small-caps text-jepang-muted">Loading...</p></div>}><LoginForm /></Suspense>;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B]">Loading...</p>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
+  );
 }

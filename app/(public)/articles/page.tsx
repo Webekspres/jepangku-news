@@ -5,6 +5,8 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ArticleCard from '@/components/ArticleCard';
 import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 function ArticleListContent() {
   const searchParams = useSearchParams();
@@ -19,7 +21,10 @@ function ArticleListContent() {
   const [searchInput, setSearchInput] = useState(search);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetch('/api/categories').then((r) => r.json()).then((d) => setCategories(Array.isArray(d) ? d : [])); }, []);
+  useEffect(() => {
+    fetch('/api/categories').then((r) => r.json()).then((d) => setCategories(Array.isArray(d) ? d : []));
+  }, []);
+
   useEffect(() => { loadArticles(); }, [category, search, sort]);
 
   const loadArticles = async () => {
@@ -51,9 +56,9 @@ function ArticleListContent() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="article-list-page">
-      <section className="border-b-2 border-jepang-black bg-jepang-off-white">
+      <section className="border-b-2 border-[#0A0A0A] bg-[#F4F4F5]">
         <div className="px-4 mx-auto max-w-7xl py-12">
-          <p className="small-caps text-jepang-red mb-2">記事 / ARTIKEL</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D90429] mb-2">記事 / ARTIKEL</p>
           <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6">Semua Artikel</h1>
         </div>
       </section>
@@ -61,27 +66,58 @@ function ArticleListContent() {
       <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="mb-8 space-y-4">
           <form onSubmit={handleSearch} className="flex gap-2">
-            <input type="text" placeholder="Cari Artikel" className="jepang-input flex-1" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} data-testid="search-input" />
-            <button type="submit" className="jepang-btn-black px-4 py-3" data-testid="search-submit"><Search size={16} strokeWidth={1.5} /></button>
+            <Input
+              type="text"
+              placeholder="Cari Artikel"
+              className="flex-1"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              data-testid="search-input"
+            />
+            <Button type="submit" variant="black" size="icon" data-testid="search-submit">
+              <Search size={16} strokeWidth={1.5} />
+            </Button>
           </form>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => updateParams({ category: '' })} className={`text-xs uppercase tracking-wider font-bold px-3 py-2 border ${!category ? 'bg-jepang-black text-white border-jepang-black' : 'border-jepang-border hover:border-jepang-black'}`} data-testid="filter-all">Semua</button>
+            <Button
+              size="sm"
+              variant={!category ? 'black' : 'outline'}
+              onClick={() => updateParams({ category: '' })}
+              data-testid="filter-all"
+            >
+              Semua
+            </Button>
             {categories.map((cat: any) => (
-              <button key={cat.id} onClick={() => updateParams({ category: cat.slug })} className={`text-xs uppercase tracking-wider font-bold px-3 py-2 border ${category === cat.slug ? 'bg-jepang-red text-white border-jepang-red' : 'border-jepang-border hover:border-jepang-black'}`} data-testid={`filter-${cat.slug}`}>{cat.name}</button>
+              <Button
+                key={cat.id}
+                size="sm"
+                variant={category === cat.slug ? 'default' : 'outline'}
+                onClick={() => updateParams({ category: cat.slug })}
+                data-testid={`filter-${cat.slug}`}
+              >
+                {cat.name}
+              </Button>
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <span className="small-caps text-jepang-muted self-center">Filter</span>
+          <div className="flex gap-2 items-center">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B]">Filter</span>
             {['latest', 'popular', 'trending'].map((s) => (
-              <button key={s} onClick={() => updateParams({ sort: s })} className={`text-xs uppercase tracking-wider font-bold px-3 py-1 ${sort === s ? 'text-jepang-red border-b-2 border-jepang-red' : 'text-jepang-muted hover:text-jepang-black'}`} data-testid={`sort-${s}`}>{s}</button>
+              <button
+                key={s}
+                onClick={() => updateParams({ sort: s })}
+                className={`text-xs uppercase tracking-wider font-bold px-3 py-1 ${sort === s ? 'text-[#D90429] border-b-2 border-[#D90429]' : 'text-[#52525B] hover:text-[#0A0A0A]'}`}
+                data-testid={`sort-${s}`}
+              >
+                {s}
+              </button>
             ))}
           </div>
         </div>
 
         {loading ? (
-          <p className="text-center text-jepang-muted py-12 small-caps">Loading articles...</p>
+          <p className="text-center text-[#52525B] py-12 text-xs font-semibold uppercase tracking-[0.2em]">Loading articles...</p>
         ) : articles.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {articles.map((article: any) => <ArticleCard key={article.id} article={article} />)}
@@ -89,7 +125,7 @@ function ArticleListContent() {
         ) : (
           <div className="text-center py-24" data-testid="no-articles">
             <p className="font-heading font-bold text-2xl mb-2">No articles found</p>
-            <p className="text-jepang-muted">Try adjusting your filters or search</p>
+            <p className="text-[#52525B]">Try adjusting your filters or search</p>
           </div>
         )}
       </div>
@@ -98,5 +134,13 @@ function ArticleListContent() {
 }
 
 export default function ArticleListPage() {
-  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="small-caps text-jepang-muted">Loading...</p></div>}><ArticleListContent /></Suspense>;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B]">Loading...</p>
+      </div>
+    }>
+      <ArticleListContent />
+    </Suspense>
+  );
 }

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Award, BookOpen, Bookmark, Zap, MessageSquare, LogIn, Share2 } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 const ACTIVITY_ICONS: Record<string, any> = {
   article_read: BookOpen,
@@ -39,14 +40,14 @@ export default function PointsHistoryPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="points-page">
-      <section className="border-b-2 border-jepang-black bg-jepang-red text-white">
+      <section className="border-b-2 border-[#0A0A0A] bg-[#D90429] text-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
-          <p className="small-caps mb-2 opacity-80">POINTS HISTORY</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-2 opacity-80">POINTS HISTORY</p>
           <div className="flex items-center justify-between">
             <h1 className="font-heading font-black text-4xl tracking-tighter">Your Activity</h1>
             <div className="text-right">
               <p className="font-mono font-black text-5xl md:text-7xl">{(user as any)?.totalPoints || 0}</p>
-              <p className="small-caps opacity-80">TOTAL POINTS</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">TOTAL POINTS</p>
             </div>
           </div>
         </div>
@@ -54,39 +55,41 @@ export default function PointsHistoryPage() {
 
       <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
-          <p className="text-center small-caps text-jepang-muted py-12">Loading...</p>
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B] py-12">Loading...</p>
         ) : transactions.length > 0 ? (
-          <div className="bg-white border border-jepang-black">
-            <div className="p-4 border-b border-jepang-border bg-jepang-off-white">
-              <h2 className="small-caps">RECENT TRANSACTIONS</h2>
-            </div>
-            <div className="divide-y divide-jepang-border">
-              {transactions.map((t: any, idx: number) => {
-                const baseType = t.activityType?.replace(/_\d+$/, '');
-                const Icon = ACTIVITY_ICONS[baseType] || Award;
-                const label = ACTIVITY_LABELS[baseType] || t.activityType;
-                return (
-                  <div key={idx} className="flex items-center gap-4 p-4" data-testid={`transaction-${idx}`}>
-                    <div className="w-10 h-10 bg-jepang-off-white border border-jepang-border flex items-center justify-center">
-                      <Icon size={18} strokeWidth={1.5} />
+          <Card className="border border-[#0A0A0A]">
+            <CardHeader className="border-b border-[#E4E4E7] bg-[#F4F4F5] py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">RECENT TRANSACTIONS</p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-[#E4E4E7]">
+                {transactions.map((t: any, idx: number) => {
+                  const baseType = t.activityType?.replace(/_\d+$/, '');
+                  const Icon = ACTIVITY_ICONS[baseType] || Award;
+                  const label = ACTIVITY_LABELS[baseType] || t.activityType;
+                  return (
+                    <div key={idx} className="flex items-center gap-4 p-4" data-testid={`transaction-${idx}`}>
+                      <div className="w-10 h-10 bg-[#F4F4F5] border border-[#E4E4E7] flex items-center justify-center">
+                        <Icon size={18} strokeWidth={1.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm">{t.description || label}</p>
+                        <p className="text-xs text-[#52525B] font-mono uppercase tracking-wider">
+                          {new Date(t.occurredAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <p className="font-mono font-black text-lg text-[#D90429]">+{t.points}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{t.description || label}</p>
-                      <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
-                        {new Date(t.occurredAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <p className="font-mono font-black text-lg text-jepang-red">+{t.points}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           <div className="text-center py-24" data-testid="no-transactions">
-            <Award size={48} strokeWidth={1.5} className="mx-auto mb-4 text-jepang-muted" />
+            <Award size={48} strokeWidth={1.5} className="mx-auto mb-4 text-[#52525B]" />
             <p className="font-heading font-bold text-2xl mb-2">No points yet</p>
-            <p className="text-jepang-muted">Start reading articles and taking quizzes to earn points!</p>
+            <p className="text-[#52525B]">Start reading articles and taking quizzes to earn points!</p>
           </div>
         )}
       </div>

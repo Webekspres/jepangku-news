@@ -6,6 +6,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function AdminCreatePoll() {
   const router = useRouter();
@@ -19,7 +24,11 @@ export default function AdminCreatePoll() {
     if (options.length < 2) { toast.error('At least 2 options required'); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/polls', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, options }) });
+      const res = await fetch('/api/admin/polls', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, options }),
+      });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
       toast.success('Poll created successfully');
       router.push('/admin');
@@ -29,50 +38,121 @@ export default function AdminCreatePoll() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-create-poll-page">
-      <section className="border-b-2 border-jepang-black bg-jepang-off-white">
+      <section className="border-b-2 border-[#0A0A0A] bg-[#F4F4F5]">
         <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link href="/admin" className="inline-flex items-center gap-2 small-caps text-jepang-muted hover:text-jepang-red mb-4"><ArrowLeft size={14} /> Back to Dashboard</Link>
+          <Link href="/admin" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#52525B] hover:text-[#D90429] mb-4">
+            <ArrowLeft size={14} /> Back to Dashboard
+          </Link>
           <h1 className="font-heading font-black text-4xl tracking-tighter">Create Poll / Voting</h1>
         </div>
       </section>
 
       <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
-        <div>
-          <label className="small-caps mb-2 block">Type</label>
+        <div className="space-y-2">
+          <Label>Type</Label>
           <div className="flex gap-2">
-            <button onClick={() => setForm({ ...form, poll_type: 'POLLING' })} className={`text-xs uppercase tracking-wider font-bold px-4 py-2 border ${form.poll_type === 'POLLING' ? 'bg-jepang-black text-white border-jepang-black' : 'border-jepang-border'}`} data-testid="type-polling">Polling</button>
-            <button onClick={() => setForm({ ...form, poll_type: 'VOTING' })} className={`text-xs uppercase tracking-wider font-bold px-4 py-2 border ${form.poll_type === 'VOTING' ? 'bg-jepang-red text-white border-jepang-red' : 'border-jepang-border'}`} data-testid="type-voting">Voting</button>
+            <Button
+              variant={form.poll_type === 'POLLING' ? 'black' : 'outline'}
+              size="sm"
+              onClick={() => setForm({ ...form, poll_type: 'POLLING' })}
+              data-testid="type-polling"
+            >
+              Polling
+            </Button>
+            <Button
+              variant={form.poll_type === 'VOTING' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setForm({ ...form, poll_type: 'VOTING' })}
+              data-testid="type-voting"
+            >
+              Voting
+            </Button>
           </div>
         </div>
-        <div><label className="small-caps mb-2 block">Title / Question *</label><input type="text" className="jepang-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} data-testid="poll-title-input" /></div>
-        <div><label className="small-caps mb-2 block">Description</label><textarea className="jepang-input" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="poll-description-input" /></div>
-        <div>
-          <label className="small-caps mb-2 block">Status</label>
-          <select className="jepang-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} data-testid="poll-status-select">
-            <option value="ACTIVE">Active</option><option value="DRAFT">Draft</option><option value="CLOSED">Closed</option>
-          </select>
+
+        <div className="space-y-2">
+          <Label htmlFor="title">Title / Question *</Label>
+          <Input
+            id="title"
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            data-testid="poll-title-input"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            rows={3}
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            data-testid="poll-description-input"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+            <SelectTrigger data-testid="poll-status-select">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="DRAFT">Draft</SelectItem>
+              <SelectItem value="CLOSED">Closed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="small-caps">Options</label>
-            <button onClick={() => setOptions([...options, ''])} className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline inline-flex items-center gap-1" data-testid="add-option-btn"><Plus size={12} /> Add Option</button>
+            <Label>Options</Label>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOptions([...options, ''])}
+              className="text-[#D90429] hover:text-[#D90429]"
+              data-testid="add-option-btn"
+            >
+              <Plus size={12} /> Add Option
+            </Button>
           </div>
           <div className="space-y-2">
             {options.map((opt, idx) => (
-              <div key={idx} className="flex gap-2">
-                <span className="font-mono font-bold text-jepang-muted self-center w-8">{String.fromCharCode(65 + idx)}.</span>
-                <input type="text" className="jepang-input flex-1" placeholder={`Option ${String.fromCharCode(65 + idx)}`} value={opt} onChange={(e) => { const o = [...options]; o[idx] = e.target.value; setOptions(o); }} data-testid={`option-input-${idx}`} />
-                {options.length > 2 && <button onClick={() => setOptions(options.filter((_, i) => i !== idx))} className="p-2 text-jepang-red hover:bg-jepang-off-white" data-testid={`remove-option-${idx}`}><Trash2 size={14} /></button>}
+              <div key={idx} className="flex items-center gap-2">
+                <span className="font-mono font-bold text-[#52525B] self-center w-8">
+                  {String.fromCharCode(65 + idx)}.
+                </span>
+                <Input
+                  type="text"
+                  className="flex-1"
+                  placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                  value={opt}
+                  onChange={(e) => { const o = [...options]; o[idx] = e.target.value; setOptions(o); }}
+                  data-testid={`option-input-${idx}`}
+                />
+                {options.length > 2 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setOptions(options.filter((_, i) => i !== idx))}
+                    className="text-[#D90429]"
+                    data-testid={`remove-option-${idx}`}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="pt-6 border-t border-jepang-border">
-          <button onClick={handleSubmit} disabled={loading} className="jepang-btn-primary disabled:opacity-50" data-testid="create-poll-submit">
+        <div className="pt-6 border-t border-[#E4E4E7]">
+          <Button onClick={handleSubmit} disabled={loading} data-testid="create-poll-submit">
             {loading ? 'Creating...' : 'Create Poll'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
