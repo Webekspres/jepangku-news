@@ -53,28 +53,27 @@ function ArticleListContent() {
     <div className="bg-white min-h-screen" data-testid="article-list-page">
       <section className="border-b-2 border-jepang-black bg-jepang-off-white">
         <div className="px-4 md:px-8 lg:px-12 py-12">
-          <p className="small-caps text-jepang-red mb-2">記事 / ARTICLES</p>
-          <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6">All Articles</h1>
-          <p className="text-jepang-muted font-mono uppercase tracking-wider text-sm">{total} ARTICLES FOUND</p>
+          <p className="small-caps text-jepang-red mb-2">記事 / ARTIKEL</p>
+          <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6">Semua Artikel</h1>
         </div>
       </section>
 
       <div className="px-4 md:px-8 lg:px-12 py-8">
         <div className="mb-8 space-y-4">
           <form onSubmit={handleSearch} className="flex gap-2">
-            <input type="text" placeholder="Search articles..." className="jepang-input flex-1" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} data-testid="search-input" />
+            <input type="text" placeholder="Cari Artikel" className="jepang-input flex-1" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} data-testid="search-input" />
             <button type="submit" className="jepang-btn-black px-4 py-3" data-testid="search-submit"><Search size={16} strokeWidth={1.5} /></button>
           </form>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => updateParams({ category: '' })} className={`text-xs uppercase tracking-wider font-bold px-3 py-2 border ${!category ? 'bg-jepang-black text-white border-jepang-black' : 'border-jepang-border hover:border-jepang-black'}`} data-testid="filter-all">All</button>
+            <button onClick={() => updateParams({ category: '' })} className={`text-xs uppercase tracking-wider font-bold px-3 py-2 border ${!category ? 'bg-jepang-black text-white border-jepang-black' : 'border-jepang-border hover:border-jepang-black'}`} data-testid="filter-all">Semua</button>
             {categories.map((cat: any) => (
               <button key={cat.id} onClick={() => updateParams({ category: cat.slug })} className={`text-xs uppercase tracking-wider font-bold px-3 py-2 border ${category === cat.slug ? 'bg-jepang-red text-white border-jepang-red' : 'border-jepang-border hover:border-jepang-black'}`} data-testid={`filter-${cat.slug}`}>{cat.name}</button>
             ))}
           </div>
 
           <div className="flex gap-2">
-            <span className="small-caps text-jepang-muted self-center">Sort:</span>
+            <span className="small-caps text-jepang-muted self-center">Filter</span>
             {['latest', 'popular', 'trending'].map((s) => (
               <button key={s} onClick={() => updateParams({ sort: s })} className={`text-xs uppercase tracking-wider font-bold px-3 py-1 ${sort === s ? 'text-jepang-red border-b-2 border-jepang-red' : 'text-jepang-muted hover:text-jepang-black'}`} data-testid={`sort-${s}`}>{s}</button>
             ))}
