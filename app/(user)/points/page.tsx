@@ -13,6 +13,7 @@ import {
   Share2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 
 const ACTIVITY_ICONS: Record<string, any> = {
   article_read: BookOpen,
@@ -73,9 +74,20 @@ export default function PointsHistoryPage() {
 
       <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted py-12">
-            Loading...
-          </p>
+          <Card className="border border-foreground">
+            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
+                RECENT TRANSACTIONS
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-jepang-border">
+                {[1, 2, 3, 4].map((i) => (
+                  <LeaderboardRowSkeleton key={i} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         ) : transactions.length > 0 ? (
           <Card className="border border-foreground">
             <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">

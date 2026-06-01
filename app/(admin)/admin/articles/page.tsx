@@ -6,7 +6,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import {
   Table,
   TableBody,
@@ -27,6 +28,14 @@ const STATUS_BADGE: Record<
   ARCHIVED: "muted",
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  DRAFT: "Draft",
+  PENDING_REVIEW: "Menunggu Review",
+  PUBLISHED: "Dipublikasikan",
+  REJECTED: "Ditolak",
+  ARCHIVED: "Diarsipkan",
+};
+
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<any[]>([]);
   const [filter, setFilter] = useState("");
@@ -38,21 +47,24 @@ export default function AdminArticlesPage() {
 
   const loadArticles = async () => {
     setLoading(true);
+
     const url = filter
       ? `/api/admin/articles?status=${filter}`
       : "/api/admin/articles";
+
     const data = await fetch(url).then((r) => r.json());
+
     setArticles(Array.isArray(data) ? data : []);
     setLoading(false);
   };
 
   const filters = [
-    { v: "", l: "All" },
+    { v: "", l: "Semua" },
     { v: "DRAFT", l: "Draft" },
-    { v: "PENDING_REVIEW", l: "Pending" },
-    { v: "PUBLISHED", l: "Published" },
-    { v: "REJECTED", l: "Rejected" },
-    { v: "ARCHIVED", l: "Archived" },
+    { v: "PENDING_REVIEW", l: "Menunggu Review" },
+    { v: "PUBLISHED", l: "Dipublikasikan" },
+    { v: "REJECTED", l: "Ditolak" },
+    { v: "ARCHIVED", l: "Diarsipkan" },
   ];
 
   return (
@@ -63,10 +75,11 @@ export default function AdminArticlesPage() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Back to Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dashboard
           </Link>
+
           <h1 className="font-heading font-black text-4xl tracking-tighter">
-            All Articles
+            Semua Artikel
           </h1>
         </div>
       </section>
@@ -86,64 +99,85 @@ export default function AdminArticlesPage() {
           ))}
         </div>
 
-        {loading ? (
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted py-12">
-            Loading...
-          </p>
-        ) : (
-          <Card className="border border-foreground overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>TITLE</TableHead>
-                  <TableHead>AUTHOR</TableHead>
-                  <TableHead>CATEGORY</TableHead>
-                  <TableHead>STATUS</TableHead>
-                  <TableHead>VIEWS</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {articles.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-center text-jepang-muted py-12"
-                    >
-                      No articles found
+        <Card className="border border-foreground overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>JUDUL</TableHead>
+                <TableHead>PENULIS</TableHead>
+                <TableHead>KATEGORI</TableHead>
+                <TableHead>STATUS</TableHead>
+                <TableHead>DILIHAT</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {loading && articles.length === 0 ? (
+                [1, 2, 3].map((r) => (
+                  <TableRow key={r}>
+                    <TableCell>
+                      <SkeletonBox height="1rem" width="70%" />
+                    </TableCell>
+
+                    <TableCell>
+                      <SkeletonBox height="0.9rem" width="40%" />
+                    </TableCell>
+
+                    <TableCell>
+                      <SkeletonBox height="0.9rem" width="40%" />
+                    </TableCell>
+
+                    <TableCell>
+                      <SkeletonBox height="0.9rem" width="30%" />
+                    </TableCell>
+
+                    <TableCell>
+                      <SkeletonBox height="0.9rem" width="20%" />
                     </TableCell>
                   </TableRow>
-                ) : (
-                  articles.map((article: any) => (
-                    <TableRow
-                      key={article.id}
-                      data-testid={`admin-article-row-${article.id}`}
-                    >
-                      <TableCell className="font-semibold max-w-xs truncate">
-                        {article.title}
-                      </TableCell>
-                      <TableCell className="text-jepang-muted">
-                        {article.author?.name || "-"}
-                      </TableCell>
-                      <TableCell className="text-jepang-muted">
-                        {article.category?.name || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={STATUS_BADGE[article.status] || "muted"}
-                        >
-                          {article.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono">
-                        {article.viewCount || 0}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-        )}
+                ))
+              ) : articles.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-jepang-muted py-12"
+                  >
+                    Tidak ada artikel ditemukan
+                  </TableCell>
+                </TableRow>
+              ) : (
+                articles.map((article: any) => (
+                  <TableRow
+                    key={article.id}
+                    data-testid={`admin-article-row-${article.id}`}
+                  >
+                    <TableCell className="font-semibold max-w-xs truncate">
+                      {article.title}
+                    </TableCell>
+
+                    <TableCell className="text-jepang-muted">
+                      {article.author?.name || "-"}
+                    </TableCell>
+
+                    <TableCell className="text-jepang-muted">
+                      {article.category?.name || "-"}
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge variant={STATUS_BADGE[article.status] || "muted"}>
+                        {STATUS_LABEL[article.status] || article.status}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="font-mono">
+                      {article.viewCount || 0}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
     </div>
   );

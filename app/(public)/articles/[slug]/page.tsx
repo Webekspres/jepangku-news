@@ -264,7 +264,7 @@ export default function ArticleDetailPage() {
 
           {isLoading ? (
             <div className="my-8 -mx-4 md:mx-0">
-              <div className="h-72 w-full bg-jepang-red/10 animate-pulse rounded-xl" />
+              <div className="h-72 w-full bg-jepang-red/10 animate-pulse" />
             </div>
           ) : (
             article.coverImageUrl && (

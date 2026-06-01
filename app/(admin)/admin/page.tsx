@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import SectionHeader from "@/components/SectionHeader";
+import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -28,10 +30,11 @@ export default function AdminDashboard() {
     if (!loading && (!user || (user as any).role !== "ADMIN")) {
       router.push("/");
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (!user || (user as any).role !== "ADMIN") return;
+
     Promise.all([
       fetch("/api/admin/stats").then((r) => r.json()),
       fetch("/api/admin/articles/pending").then((r) => r.json()),
@@ -45,38 +48,38 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      label: "Total Articles",
+      label: "Total Artikel",
       value: stats?.totalArticles || 0,
       icon: FileText,
       link: "/admin/articles",
     },
     {
-      label: "Pending Review",
+      label: "Menunggu Review",
       value: stats?.pendingArticles || 0,
       icon: CheckSquare,
       link: "/admin/articles/review",
       highlight: true,
     },
     {
-      label: "Published",
+      label: "Dipublikasikan",
       value: stats?.publishedArticles || 0,
       icon: Eye,
       link: "/admin/articles",
     },
     {
-      label: "Total Users",
+      label: "Total Pengguna",
       value: stats?.totalUsers || 0,
       icon: Users,
       link: "/admin/users",
     },
     {
-      label: "Quizzes",
+      label: "Kuis",
       value: stats?.totalQuizzes || 0,
       icon: Zap,
       link: "/admin/quizzes/create",
     },
     {
-      label: "Polls",
+      label: "Polling",
       value: stats?.totalPolls || 0,
       icon: MessageSquare,
       link: "/admin/polls/create",
@@ -85,41 +88,56 @@ export default function AdminDashboard() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-dashboard">
-      <section className="border-b-2 border-foreground bg-foreground text-white">
-        <div className="px-4 mx-auto max-w-7xl py-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            管理 / ADMIN
-          </p>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Admin Dashboard
-          </h1>
-          <p className="text-zinc-300 mt-2">Manage your Jepangku portal</p>
-        </div>
-      </section>
+      <SectionHeader
+        label="管理 / ADMIN"
+        title="Dashboard Admin"
+        subtitle="Kelola portal Jepangku"
+        className="border-b-2 border-foreground bg-foreground text-white"
+        data-testid="admin-dashboard-header"
+      />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-          {statCards.map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <Link
-                key={idx}
-                href={stat.link}
-                className={`block p-5 border transition-colors ${(stat as any).highlight ? "bg-jepang-red text-white border-jepang-red hover:opacity-90" : "bg-white border-jepang-border hover:border-foreground"}`}
-                data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}
-              >
-                <Icon size={20} strokeWidth={1.5} className="mb-3" />
-                <p className="font-mono font-black text-3xl">{stat.value}</p>
-                <p className="text-[10px] uppercase tracking-wider font-bold mt-1">
-                  {stat.label}
-                </p>
-              </Link>
-            );
-          })}
+          {!stats
+            ? [1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="p-5 border bg-white">
+                  <SkeletonBox height="1rem" width="30%" className="mb-3" />
+                  <div className="my-3">
+                    <SkeletonBox height="2rem" width="100%" />
+                  </div>
+                  <SkeletonBox height="0.6rem" width="60%" />
+                </div>
+              ))
+            : statCards.map((stat, idx) => {
+                const Icon = stat.icon;
+
+                return (
+                  <Link
+                    key={idx}
+                    href={stat.link}
+                    className={`block p-5 border transition-colors ${
+                      (stat as any).highlight
+                        ? "bg-jepang-red text-white border-jepang-red hover:opacity-90"
+                        : "bg-white border-jepang-border hover:border-foreground"
+                    }`}
+                    data-testid={`stat-${stat.label
+                      .toLowerCase()
+                      .replace(/\s+/g, "-")}`}
+                  >
+                    <Icon size={20} strokeWidth={1.5} className="mb-3" />
+
+                    <p className="font-mono font-black text-3xl">
+                      {stat.value}
+                    </p>
+
+                    <p className="text-[10px] uppercase tracking-wider font-bold mt-1">
+                      {stat.label}
+                    </p>
+                  </Link>
+                );
+              })}
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <Link
             href="/admin/articles/review"
@@ -127,58 +145,65 @@ export default function AdminDashboard() {
             data-testid="action-review"
           >
             <CheckSquare size={28} strokeWidth={1.5} className="mb-3" />
-            <p className="font-heading font-bold text-xl">Review Articles</p>
+
+            <p className="font-heading font-bold text-xl">Review Artikel</p>
+
             <p className="text-sm opacity-80 mt-1">
-              {stats?.pendingArticles || 0} articles waiting
+              {stats?.pendingArticles || 0} artikel menunggu review
             </p>
           </Link>
+
           <Link
             href="/admin/quizzes/create"
             className="bg-foreground text-white p-6 hover:opacity-90 transition-opacity"
             data-testid="action-create-quiz"
           >
             <Zap size={28} strokeWidth={1.5} className="mb-3" />
-            <p className="font-heading font-bold text-xl">Create Quiz</p>
-            <p className="text-sm opacity-80 mt-1">Add new trivia quiz</p>
+
+            <p className="font-heading font-bold text-xl">Buat Kuis</p>
+
+            <p className="text-sm opacity-80 mt-1">Tambah kuis trivia baru</p>
           </Link>
+
           <Link
             href="/admin/polls/create"
             className="bg-white border border-foreground p-6 hover:bg-jepang-off-white transition-colors"
             data-testid="action-create-poll"
           >
             <MessageSquare size={28} strokeWidth={1.5} className="mb-3" />
-            <p className="font-heading font-bold text-xl">Create Poll</p>
+
+            <p className="font-heading font-bold text-xl">Buat Polling</p>
+
             <p className="text-sm text-jepang-muted mt-1">
-              Add polling or voting
+              Tambah polling atau voting
             </p>
           </Link>
         </div>
 
-        {/* Management Links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
           {[
             {
               href: "/admin/users",
               icon: Users,
-              label: "Manage Users",
+              label: "Kelola Pengguna",
               testid: "action-manage-users",
             },
             {
               href: "/admin/tags",
               icon: Tag,
-              label: "Manage Tags",
+              label: "Kelola Tag",
               testid: "action-manage-tags",
             },
             {
               href: "/admin/homepage",
               icon: Home,
-              label: "Homepage Settings",
+              label: "Pengaturan Beranda",
               testid: "action-manage-homepage",
             },
             {
               href: "/admin/articles",
               icon: FileText,
-              label: "All Articles",
+              label: "Semua Artikel",
               testid: "action-manage-articles",
             },
           ].map(({ href, icon: Icon, label, testid }) => (
@@ -189,6 +214,7 @@ export default function AdminDashboard() {
               data-testid={testid}
             >
               <Icon size={20} strokeWidth={1.5} className="mb-2" />
+
               <p className="text-xs font-bold uppercase tracking-wider">
                 {label}
               </p>
@@ -196,22 +222,42 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Recent Pending */}
         <Card className="border border-foreground">
           <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3 flex flex-row items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              RECENT PENDING ARTICLES
+              ARTIKEL MENUNGGU REVIEW TERBARU
             </p>
+
             <Link
               href="/admin/articles/review"
               className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
               data-testid="view-all-pending"
             >
-              View All →
+              Lihat Semua →
             </Link>
           </CardHeader>
+
           <CardContent className="p-0">
-            {pendingArticles.length > 0 ? (
+            {pendingArticles.length === 0 && stats ? (
+              <p className="p-6 text-center text-jepang-muted text-sm">
+                Tidak ada artikel yang menunggu review
+              </p>
+            ) : !stats ? (
+              <div className="divide-y divide-jepang-border">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="p-4 flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <SkeletonBox height="1rem" width="60%" />
+                      <div className="mt-2">
+                        <SkeletonBox height="0.8rem" width="40%" />
+                      </div>
+                    </div>
+
+                    <SkeletonBox height="1.6rem" width="4rem" />
+                  </div>
+                ))}
+              </div>
+            ) : (
               <div className="divide-y divide-jepang-border">
                 {pendingArticles.map((article: any) => (
                   <div
@@ -221,26 +267,26 @@ export default function AdminDashboard() {
                   >
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold">{article.title}</h3>
+
                       <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
-                        BY {article.author?.name} •{" "}
-                        {new Date(article.createdAt).toLocaleDateString()}
+                        OLEH {article.author?.name} •{" "}
+                        {new Date(article.createdAt).toLocaleDateString(
+                          "id-ID",
+                        )}
                       </p>
                     </div>
+
                     <Button
                       variant="outline"
                       size="sm"
                       asChild
                       data-testid={`review-${article.id}`}
                     >
-                      <Link href="/admin/articles/review">Review</Link>
+                      <Link href="/admin/articles/review">Tinjau</Link>
                     </Button>
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="p-6 text-center text-jepang-muted text-sm">
-                No pending articles
-              </p>
             )}
           </CardContent>
         </Card>

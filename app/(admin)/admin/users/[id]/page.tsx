@@ -6,6 +6,10 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Award, FileText, Bookmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  SkeletonBox,
+  SkeletonAvatar,
+} from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
@@ -28,10 +32,90 @@ export default function AdminUserDetailPage() {
 
   if (loading)
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-          Loading...
-        </p>
+      <div className="min-h-[60vh]">
+        <section className="border-b-2 border-foreground bg-jepang-off-white">
+          <div className="px-4 mx-auto max-w-7xl py-8 flex items-center gap-6">
+            <SkeletonAvatar size={64} />
+            <div className="flex-1">
+              <SkeletonBox height="1.6rem" width="40%" />
+              <div className="mt-2">
+                <SkeletonBox height="1rem" width="30%" />
+              </div>
+              <div className="flex gap-2 mt-3">
+                <SkeletonBox height="1.6rem" width="4rem" />
+                <SkeletonBox height="1.6rem" width="4rem" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="px-4 mx-auto max-w-7xl py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="p-5 border bg-white">
+                <SkeletonBox height="1rem" width="30%" />
+                <div className="mt-3">
+                  <SkeletonBox height="2rem" width="100%" />
+                </div>
+                <div className="mt-2">
+                  <SkeletonBox height="0.8rem" width="50%" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Card className="border border-foreground mb-6">
+            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
+                ARTIKEL
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-jepang-border">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="p-4 flex items-center justify-between"
+                  >
+                    <div>
+                      <SkeletonBox height="1rem" width="12rem" />
+                      <div className="mt-1">
+                        <SkeletonBox height="0.8rem" width="8rem" />
+                      </div>
+                    </div>
+                    <SkeletonBox height="1.6rem" width="4rem" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-foreground">
+            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
+                TRANSAKSI POIN TERBARU
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-jepang-border">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="p-4 flex items-center justify-between"
+                  >
+                    <div>
+                      <SkeletonBox height="1rem" width="12rem" />
+                      <div className="mt-1">
+                        <SkeletonBox height="0.8rem" width="8rem" />
+                      </div>
+                    </div>
+                    <SkeletonBox height="1.6rem" width="4rem" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   if (!data) return null;
@@ -46,7 +130,7 @@ export default function AdminUserDetailPage() {
             href="/admin/users"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Back to Users
+            <ArrowLeft size={14} /> Kembali ke Pengguna
           </Link>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-foreground text-white flex items-center justify-center font-heading font-black text-2xl">
@@ -61,10 +145,10 @@ export default function AdminUserDetailPage() {
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant={user.role === "ADMIN" ? "red" : "muted"}>
-                  {user.role}
+                  {user.role === "ADMIN" ? "ADMIN" : "PENGGUNA"}
                 </Badge>
                 <Badge variant={user.status === "active" ? "success" : "muted"}>
-                  {user.status}
+                  {user.status === "active" ? "AKTIF" : "TIDAK AKTIF"}
                 </Badge>
               </div>
             </div>
@@ -78,23 +162,23 @@ export default function AdminUserDetailPage() {
             {
               icon: Award,
               value: user.totalPoints || 0,
-              label: "Total Points",
+              label: "Total Poin",
               red: true,
             },
             {
               icon: FileText,
               value: stats?.articleCount || 0,
-              label: "Articles",
+              label: "Artikel",
             },
             {
               icon: Bookmark,
               value: stats?.bookmarkCount || 0,
-              label: "Bookmarks",
+              label: "Markah",
             },
             {
               icon: Award,
               value: stats?.quizAttempts || 0,
-              label: "Quiz Attempts",
+              label: "Percobaan Kuis",
             },
           ].map(({ icon: Icon, value, label, red }, i) => (
             <div
@@ -113,7 +197,7 @@ export default function AdminUserDetailPage() {
         <Card className="border border-foreground mb-6">
           <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              ARTICLES ({articles?.length || 0})
+              ARTIKEL ({articles?.length || 0})
             </p>
           </CardHeader>
           <CardContent className="p-0">
@@ -127,16 +211,16 @@ export default function AdminUserDetailPage() {
                     <div>
                       <p className="font-semibold text-sm">{a.title}</p>
                       <p className="text-xs text-jepang-muted font-mono uppercase">
-                        {a.status} •{" "}
-                        {new Date(a.createdAt).toLocaleDateString()}
+                        {a.status === "PUBLISHED" ? "TERBIT" : a.status} •{" "}
+                        {new Date(a.createdAt).toLocaleDateString("id-ID")}
                       </p>
                     </div>
                     {a.status === "PUBLISHED" && (
                       <Link
-                        href={`/articles/${a.slug}`}
+                        href={`/artikel/${a.slug}`}
                         className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
                       >
-                        View
+                        Lihat
                       </Link>
                     )}
                   </div>
@@ -144,7 +228,7 @@ export default function AdminUserDetailPage() {
               </div>
             ) : (
               <p className="p-6 text-center text-jepang-muted text-sm">
-                No articles
+                Tidak ada artikel
               </p>
             )}
           </CardContent>
@@ -153,7 +237,7 @@ export default function AdminUserDetailPage() {
         <Card className="border border-foreground">
           <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              RECENT POINT TRANSACTIONS
+              TRANSAKSI POIN TERBARU
             </p>
           </CardHeader>
           <CardContent className="p-0">
@@ -169,7 +253,7 @@ export default function AdminUserDetailPage() {
                         {t.description || t.activityType}
                       </p>
                       <p className="text-xs text-jepang-muted font-mono uppercase">
-                        {new Date(t.occurredAt).toLocaleString()}
+                        {new Date(t.occurredAt).toLocaleString("id-ID")}
                       </p>
                     </div>
                     <p className="font-mono font-bold text-jepang-red">
@@ -180,7 +264,7 @@ export default function AdminUserDetailPage() {
               </div>
             ) : (
               <p className="p-6 text-center text-jepang-muted text-sm">
-                No transactions
+                Tidak ada transaksi
               </p>
             )}
           </CardContent>

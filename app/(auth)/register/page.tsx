@@ -66,7 +66,7 @@ export default function RegisterPage() {
               <span className="text-foreground">ku</span>
             </Link>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mt-2">
-              Join the Community
+              Bergabunglah dengan kami! Buat akun untuk mulai berbagi dan menikmati berita seputar Jepang.
             </p>
           </CardHeader>
           <CardContent className="pt-4">
@@ -76,7 +76,7 @@ export default function RegisterPage() {
               data-testid="register-form"
             >
               <div className="space-y-2">
-                <Label htmlFor="name">Display Name</Label>
+                <Label htmlFor="name">Nama Tampilan</Label>
                 <Input
                   id="name"
                   type="text"
@@ -87,7 +87,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Nama Pengguna</Label>
                 <Input
                   id="username"
                   type="text"
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Kata Sandi</Label>
                 <Input
                   id="password"
                   type="password"
@@ -126,7 +126,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Konfirmasi Kata Sandi</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -159,13 +159,13 @@ export default function RegisterPage() {
             </form>
 
             <p className="text-center text-sm text-jepang-muted mt-6">
-              Already have an account?{" "}
+              Sudah punya akun?{" "}
               <Link
                 href="/login"
                 className="text-jepang-red font-semibold hover:underline"
                 data-testid="link-to-login"
               >
-                Login
+                Masuk
               </Link>
             </p>
           </CardContent>

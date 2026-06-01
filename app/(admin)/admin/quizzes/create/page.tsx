@@ -21,12 +21,14 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function AdminCreateQuiz() {
   const router = useRouter();
+
   const [form, setForm] = useState({
     title: "",
     description: "",
     thumbnail_url: "",
     status: "ACTIVE",
   });
+
   const [questions, setQuestions] = useState([
     {
       question_text: "",
@@ -36,6 +38,7 @@ export default function AdminCreateQuiz() {
       ],
     },
   ]);
+
   const [loading, setLoading] = useState(false);
 
   const addQuestion = () =>
@@ -49,23 +52,28 @@ export default function AdminCreateQuiz() {
         ],
       },
     ]);
+
   const removeQuestion = (idx: number) =>
     setQuestions(questions.filter((_, i) => i !== idx));
+
   const updateQuestion = (idx: number, val: string) => {
     const q = [...questions];
     q[idx].question_text = val;
     setQuestions(q);
   };
+
   const addOption = (qIdx: number) => {
     const q = [...questions];
     q[qIdx].options.push({ option_text: "", is_correct: false });
     setQuestions(q);
   };
+
   const removeOption = (qIdx: number, oIdx: number) => {
     const q = [...questions];
     q[qIdx].options = q[qIdx].options.filter((_, i) => i !== oIdx);
     setQuestions(q);
   };
+
   const updateOption = (
     qIdx: number,
     oIdx: number,
@@ -73,6 +81,7 @@ export default function AdminCreateQuiz() {
     val: any,
   ) => {
     const q = [...questions];
+
     if (field === "is_correct") {
       q[qIdx].options.forEach((o, i) => {
         o.is_correct = i === oIdx;
@@ -80,14 +89,16 @@ export default function AdminCreateQuiz() {
     } else {
       (q[qIdx].options[oIdx] as any)[field] = val;
     }
+
     setQuestions(q);
   };
 
   const handleSubmit = async () => {
     if (!form.title.trim()) {
-      toast.error("Title is required");
+      toast.error("Judul kuis wajib diisi");
       return;
     }
+
     if (
       questions.some(
         (q) =>
@@ -95,24 +106,28 @@ export default function AdminCreateQuiz() {
           q.options.some((o) => !o.option_text.trim()),
       )
     ) {
-      toast.error("All questions and options must be filled");
+      toast.error("Semua pertanyaan dan opsi jawaban wajib diisi");
       return;
     }
+
     setLoading(true);
+
     try {
       const res = await fetch("/api/admin/quizzes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, questions }),
       });
+
       if (!res.ok) {
         const e = await res.json();
         throw new Error(e.error);
       }
-      toast.success("Quiz created successfully");
+
+      toast.success("Kuis berhasil dibuat");
       router.push("/admin");
     } catch (e: any) {
-      toast.error(e.message || "Failed to create quiz");
+      toast.error(e.message || "Gagal membuat kuis");
     } finally {
       setLoading(false);
     }
@@ -126,17 +141,19 @@ export default function AdminCreateQuiz() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Back to Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dashboard
           </Link>
+
           <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Create Quiz
+            Buat Kuis
           </h1>
         </div>
       </section>
 
       <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="quiz-title">Quiz Title *</Label>
+          <Label htmlFor="quiz-title">Judul Kuis *</Label>
+
           <Input
             id="quiz-title"
             type="text"
@@ -147,7 +164,8 @@ export default function AdminCreateQuiz() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="quiz-desc">Description</Label>
+          <Label htmlFor="quiz-desc">Deskripsi</Label>
+
           <Textarea
             id="quiz-desc"
             rows={3}
@@ -158,7 +176,8 @@ export default function AdminCreateQuiz() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="quiz-thumb">Thumbnail URL</Label>
+          <Label htmlFor="quiz-thumb">URL Thumbnail</Label>
+
           <Input
             id="quiz-thumb"
             type="text"
@@ -172,6 +191,7 @@ export default function AdminCreateQuiz() {
 
         <div className="space-y-2">
           <Label>Status</Label>
+
           <Select
             value={form.status}
             onValueChange={(v) => setForm({ ...form, status: v })}
@@ -179,10 +199,11 @@ export default function AdminCreateQuiz() {
             <SelectTrigger data-testid="quiz-status-select">
               <SelectValue />
             </SelectTrigger>
+
             <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="ACTIVE">Aktif</SelectItem>
               <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="INACTIVE">Inactive</SelectItem>
+              <SelectItem value="INACTIVE">Tidak Aktif</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -190,15 +211,16 @@ export default function AdminCreateQuiz() {
         <div className="pt-6 border-t border-jepang-border">
           <div className="flex items-center justify-between mb-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              QUESTIONS
+              PERTANYAAN
             </p>
+
             <Button
               variant="outline"
               size="sm"
               onClick={addQuestion}
               data-testid="add-question-btn"
             >
-              <Plus size={14} /> Add Question
+              <Plus size={14} /> Tambah Pertanyaan
             </Button>
           </div>
 
@@ -211,8 +233,9 @@ export default function AdminCreateQuiz() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
-                    QUESTION {qIdx + 1}
+                    PERTANYAAN {qIdx + 1}
                   </p>
+
                   {questions.length > 1 && (
                     <Button
                       variant="ghost"
@@ -225,14 +248,16 @@ export default function AdminCreateQuiz() {
                     </Button>
                   )}
                 </div>
+
                 <Input
                   type="text"
                   className="mb-3"
-                  placeholder="Question text..."
+                  placeholder="Tulis pertanyaan..."
                   value={q.question_text}
                   onChange={(e) => updateQuestion(qIdx, e.target.value)}
                   data-testid={`question-text-${qIdx}`}
                 />
+
                 <div className="space-y-2">
                   {q.options.map((o, oIdx) => (
                     <div key={oIdx} className="flex items-center gap-2">
@@ -246,10 +271,11 @@ export default function AdminCreateQuiz() {
                         className="w-4 h-4 accent-jepang-red"
                         data-testid={`correct-${qIdx}-${oIdx}`}
                       />
+
                       <Input
                         type="text"
                         className="flex-1"
-                        placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
+                        placeholder={`Opsi ${String.fromCharCode(65 + oIdx)}`}
                         value={o.option_text}
                         onChange={(e) =>
                           updateOption(
@@ -261,6 +287,7 @@ export default function AdminCreateQuiz() {
                         }
                         data-testid={`option-text-${qIdx}-${oIdx}`}
                       />
+
                       {q.options.length > 2 && (
                         <Button
                           variant="ghost"
@@ -274,6 +301,7 @@ export default function AdminCreateQuiz() {
                       )}
                     </div>
                   ))}
+
                   <Button
                     variant="ghost"
                     size="sm"
@@ -281,7 +309,7 @@ export default function AdminCreateQuiz() {
                     className="text-jepang-red hover:text-jepang-red"
                     data-testid={`add-option-${qIdx}`}
                   >
-                    + Add Option
+                    + Tambah Opsi
                   </Button>
                 </div>
               </CardContent>
@@ -295,7 +323,7 @@ export default function AdminCreateQuiz() {
             disabled={loading}
             data-testid="create-quiz-submit"
           >
-            {loading ? "Creating..." : "Create Quiz"}
+            {loading ? "Membuat..." : "Buat Kuis"}
           </Button>
         </div>
       </div>

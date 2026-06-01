@@ -18,6 +18,7 @@ export default function PollDetailPage() {
   const [poll, setPoll] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
+  const isLoading = loading && !poll;
 
   useEffect(() => {
     fetch(`/api/polls/${slug}`)
@@ -64,18 +65,10 @@ export default function PollDetailPage() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-          Loading...
-        </p>
-      </div>
-    );
-  if (!poll) return null;
+  if (!poll && !loading) return null;
 
   const totalVotes =
-    poll.options?.reduce(
+    poll?.options?.reduce(
       (sum: number, o: any) => sum + (o.voteCount || 0),
       0,
     ) || 0;
@@ -89,87 +82,127 @@ export default function PollDetailPage() {
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
             data-testid="back-to-polls"
           >
-            <ArrowLeft size={14} /> Back to Polls
+            <ArrowLeft size={14} /> Kembali ke Polls
           </Link>
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant={poll.pollType === "VOTING" ? "red" : "black"}>
-                {poll.pollType?.toUpperCase()}
-              </Badge>
-              <Badge className="text-jepang-red border-jepang-red">
-                <Award size={10} strokeWidth={1.5} className="mr-1" /> +
-                {poll.pointsReward || 5} PTS
-              </Badge>
+              {isLoading ? (
+                <>
+                  <div className="h-6 w-24 bg-jepang-red/10 animate-pulse" />
+                  <div className="h-6 w-28 bg-jepang-red/10 animate-pulse" />
+                </>
+              ) : (
+                <>
+                  <Badge variant={poll.pollType === "VOTING" ? "red" : "black"}>
+                    {poll.pollType?.toUpperCase()}
+                  </Badge>
+                  <Badge className="text-jepang-red border-jepang-red">
+                    <Award size={10} strokeWidth={1.5} className="mr-1" /> +
+                    {poll.pointsReward || 5} PTS
+                  </Badge>
+                </>
+              )}
             </div>
             <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter mb-3">
-              {poll.title}
+              {isLoading ? (
+                <div className="h-12 w-full max-w-3xl bg-jepang-red/10 animate-pulse" />
+              ) : (
+                poll.title
+              )}
             </h1>
-            {poll.description && (
-              <p className="text-jepang-muted text-lg">{poll.description}</p>
+            {isLoading ? (
+              <div className="h-4 w-full bg-jepang-red/10 animate-pulse" />
+            ) : (
+              poll.description && (
+                <p className="text-jepang-muted text-lg">{poll.description}</p>
+              )
             )}
           </div>
 
           <Card className="border border-foreground shadow-[4px_4px_0px_0px_#d90429]">
             <CardContent className="p-6">
               <div className="space-y-3">
-                {poll.options?.map((option: any, idx: number) => {
-                  const pct = option.percentage || 0;
-                  return (
-                    <button
-                      key={option.id}
-                      onClick={() => handleVote(option.id)}
-                      disabled={voting}
-                      className="w-full text-left border border-jepang-border hover:border-foreground transition-colors disabled:opacity-50 overflow-hidden"
-                      data-testid={`poll-option-${idx}`}
-                    >
-                      <div className="relative p-4">
-                        <Progress
-                          value={Math.round(pct)}
-                          className="absolute inset-0 h-full opacity-15"
-                        />
-                        <div className="relative space-y-4">
-                          {option.imageUrl ? (
-                            <div className="relative h-48 overflow-hidden  bg-jepang-off-white">
-                              <Image
-                                src={option.imageUrl}
-                                alt={option.optionText}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          ) : null}
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <span className="font-mono font-bold text-jepang-muted">
-                                {String.fromCharCode(65 + idx)}
-                              </span>
-                              <span className="font-semibold">
-                                {option.optionText}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-xs font-mono text-jepang-muted">
-                                {option.voteCount || 0} votes
-                              </span>
-                              <span className="text-xl font-mono font-black text-jepang-red">
-                                {Math.round(pct)}%
-                              </span>
+                {isLoading
+                  ? [1, 2, 3].map((idx) => (
+                      <div
+                        key={idx}
+                        className="w-full border border-jepang-border overflow-hidden"
+                      >
+                        <div className="relative p-4">
+                          <div className="absolute inset-0 h-full bg-jepang-red/10 opacity-15" />
+                          <div className="relative space-y-4">
+                            <div className="h-4 w-8 bg-jepang-red/10 animate-pulse" />
+                            <div className="h-5 w-full bg-jepang-red/10 animate-pulse" />
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="h-4 w-16 bg-jepang-red/10 animate-pulse" />
+                              <div className="h-4 w-12 bg-jepang-red/10 animate-pulse" />
                             </div>
                           </div>
                         </div>
                       </div>
-                    </button>
-                  );
-                })}
+                    ))
+                  : poll.options?.map((option: any, idx: number) => {
+                      const pct = option.percentage || 0;
+                      return (
+                        <button
+                          key={option.id}
+                          onClick={() => handleVote(option.id)}
+                          disabled={voting}
+                          className="w-full text-left border border-jepang-border hover:border-foreground transition-colors disabled:opacity-50 overflow-hidden"
+                          data-testid={`poll-option-${idx}`}
+                        >
+                          <div className="relative p-4">
+                            <Progress
+                              value={Math.round(pct)}
+                              className="absolute inset-0 h-full opacity-15"
+                            />
+                            <div className="relative space-y-4">
+                              {option.imageUrl ? (
+                                <div className="relative h-48 overflow-hidden  bg-jepang-off-white">
+                                  <Image
+                                    src={option.imageUrl}
+                                    alt={option.optionText}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : null}
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="font-mono font-bold text-jepang-muted">
+                                    {String.fromCharCode(65 + idx)}
+                                  </span>
+                                  <span className="font-semibold">
+                                    {option.optionText}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <span className="text-xs font-mono text-jepang-muted">
+                                    {option.voteCount || 0} suara
+                                  </span>
+                                  <span className="text-xl font-mono font-black text-jepang-red">
+                                    {Math.round(pct)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
               </div>
               <div className="mt-6 pt-4 border-t border-jepang-border flex items-center justify-between text-xs font-mono uppercase tracking-wider">
                 <span className="flex items-center gap-2 text-jepang-muted">
-                  <BarChart3 size={12} strokeWidth={1.5} /> {totalVotes} TOTAL
-                  VOTES
+                  <BarChart3 size={12} strokeWidth={1.5} />
+                  {isLoading ? (
+                    <span className="h-4 w-16 bg-jepang-red/10 animate-pulse inline-block" />
+                  ) : (
+                    `${totalVotes} TOTAL SUARA`
+                  )}
                 </span>
                 {!user && (
                   <Link href="/login" className="text-jepang-red font-bold">
-                    LOGIN TO VOTE & EARN POINTS
+                    MASUK UNTUK MEMBERIKAN SUARA ANDA DAN DAPATKAN POIN!
                   </Link>
                 )}
               </div>

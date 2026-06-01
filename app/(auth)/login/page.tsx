@@ -51,7 +51,7 @@ function LoginForm() {
               <span className="text-foreground">ku</span>
             </Link>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mt-2">
-              Welcome Back
+              Selamat datang kembali! Silakan masuk untuk melanjutkan.
             </p>
           </CardHeader>
           <CardContent className="pt-4">
@@ -61,7 +61,7 @@ function LoginForm() {
               data-testid="login-form"
             >
               <div className="space-y-2">
-                <Label htmlFor="email">Email or Username</Label>
+                <Label htmlFor="email">Email atau Nama Pengguna</Label>
                 <Input
                   id="email"
                   type="text"
@@ -72,7 +72,7 @@ function LoginForm() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Kata Sandi</Label>
                 <Input
                   id="password"
                   type="password"
@@ -105,13 +105,13 @@ function LoginForm() {
             </form>
 
             <p className="text-center text-sm text-jepang-muted mt-6">
-              Don&apos;t have an account?{" "}
+              Tidak punya akun?{" "}
               <Link
                 href="/register"
                 className="text-jepang-red font-semibold hover:underline"
                 data-testid="link-to-register"
               >
-                Register
+                Daftar
               </Link>
             </p>
           </CardContent>
@@ -127,7 +127,7 @@ export default function LoginPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-            Loading...
+            Memuat halaman login...
           </p>
         </div>
       }

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Edit, Trash2, Send, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 
 const STATUS_BADGE: Record<
   string,
@@ -119,9 +120,11 @@ export default function MyArticlesPage() {
         </div>
 
         {loading ? (
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted py-12">
-            Loading...
-          </p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <ArticleCardSkeleton key={i} variant="compact" />
+            ))}
+          </div>
         ) : filtered.length > 0 ? (
           <div className="space-y-3">
             {filtered.map((article: any) => (

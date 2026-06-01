@@ -19,6 +19,7 @@ export default function QuizDetailPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const isLoading = loading && !quiz;
 
   useEffect(() => {
     fetch(`/api/quizzes/${slug}`)
@@ -74,15 +75,7 @@ export default function QuizDetailPage() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-          Loading quiz...
-        </p>
-      </div>
-    );
-  if (!quiz) return null;
+  if (!quiz && !loading) return null;
 
   if (result) {
     return (
@@ -100,7 +93,7 @@ export default function QuizDetailPage() {
                   className="mx-auto text-jepang-red mb-3"
                 />
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-                  QUIZ COMPLETED
+                  KUIS SELESAI
                 </p>
                 <h2 className="font-heading font-black text-4xl tracking-tighter">
                   {quiz.title}
@@ -112,7 +105,7 @@ export default function QuizDetailPage() {
                     {result.correctAnswers}
                   </p>
                   <p className="text-[10px] uppercase tracking-wider text-jepang-muted mt-1">
-                    Correct
+                    Benar
                   </p>
                 </div>
                 <div className="text-center p-4 border border-jepang-border">
@@ -128,13 +121,13 @@ export default function QuizDetailPage() {
                     +{result.pointsAwarded}
                   </p>
                   <p className="text-[10px] uppercase tracking-wider mt-1">
-                    Points
+                    Poin
                   </p>
                 </div>
               </div>
               <div className="text-center">
                 <p className="font-mono text-2xl mb-6">
-                  Score:{" "}
+                  SKOR:{" "}
                   <span className="font-black">
                     {Math.round(result.score)}%
                   </span>
@@ -145,10 +138,10 @@ export default function QuizDetailPage() {
                     asChild
                     data-testid="back-to-quizzes"
                   >
-                    <Link href="/quizzes">More Quizzes</Link>
+                    <Link href="/quizzes">KUIS LAIN</Link>
                   </Button>
                   <Button asChild data-testid="view-leaderboard">
-                    <Link href="/leaderboard">View Leaderboard</Link>
+                    <Link href="/leaderboard">LIHAT LEADERBOARD</Link>
                   </Button>
                 </div>
               </div>
@@ -168,25 +161,47 @@ export default function QuizDetailPage() {
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
             data-testid="back-to-quizzes-link"
           >
-            <ArrowLeft size={14} /> Back to Quizzes
+            <ArrowLeft size={14} /> Kembali ke kuis
           </Link>
           <div className="mb-8">
             <Badge variant="red" className="mb-3 inline-block">
-              QUIZ
+              KUIS
             </Badge>
             <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter mb-3 mt-2">
-              {quiz.title}
+              {isLoading ? (
+                <div className="h-12 w-full max-w-3xl bg-jepang-red/10 animate-pulse" />
+              ) : (
+                quiz.title
+              )}
             </h1>
-            {quiz.description && (
-              <p className="text-jepang-muted text-lg">{quiz.description}</p>
+            {isLoading ? (
+              <div className="h-4 w-full bg-jepang-red/10 animate-pulse mb-4" />
+            ) : (
+              quiz.description && (
+                <p className="text-jepang-muted text-lg">{quiz.description}</p>
+              )
             )}
             <div className="flex items-center gap-4 mt-4 text-xs font-mono uppercase tracking-wider text-jepang-muted">
-              <span>{quiz.questions?.length || 0} QUESTIONS</span>
-              <span className="text-jepang-red font-bold">
-                +{quiz.pointsReward} BASE PTS
+              <span>
+                {isLoading ? (
+                  <span className="inline-block h-4 w-10 bg-jepang-red/10 animate-pulse" />
+                ) : (
+                  `${quiz.questions?.length || 0} QUESTIONS`
+                )}
               </span>
               <span className="text-jepang-red font-bold">
-                +{quiz.correctAnswerPoints} PER CORRECT
+                {isLoading ? (
+                  <span className="inline-block h-4 w-16 bg-jepang-red/10 animate-pulse" />
+                ) : (
+                  `+${quiz.pointsReward} BASE PTS`
+                )}
+              </span>
+              <span className="text-jepang-red font-bold">
+                {isLoading ? (
+                  <span className="inline-block h-4 w-20 bg-jepang-red/10 animate-pulse" />
+                ) : (
+                  `+${quiz.correctAnswerPoints} PER CORRECT`
+                )}
               </span>
             </div>
           </div>
@@ -202,61 +217,87 @@ export default function QuizDetailPage() {
                   href="/login"
                   className="text-jepang-red font-bold underline"
                 >
-                  Login
+                  Masuk
                 </Link>{" "}
-                to save your results and earn points!
+                untuk menjawab kuis dan mendapatkan poin!
               </p>
             </div>
           )}
 
           <div className="space-y-6">
-            {quiz.questions?.map((question: any, qIdx: number) => (
-              <Card
-                key={question.id}
-                className="border border-foreground"
-                data-testid={`question-${qIdx}`}
-              >
-                <CardContent className="p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-                    QUESTION {qIdx + 1}
-                  </p>
-                  <h3 className="font-heading font-bold text-xl mb-4">
-                    {question.questionText}
-                  </h3>
-                  <div className="space-y-2">
-                    {question.options?.map((option: any, oIdx: number) => (
-                      <button
-                        key={option.id}
-                        onClick={() =>
-                          setAnswers({ ...answers, [question.id]: option.id })
-                        }
-                        className={`w-full text-left p-4 border transition-colors ${answers[question.id] === option.id ? "border-jepang-red bg-jepang-red text-white" : "border-jepang-border hover:border-foreground"}`}
-                        data-testid={`question-${qIdx}-option-${oIdx}`}
-                      >
-                        <span className="font-mono font-bold mr-3">
-                          {String.fromCharCode(65 + oIdx)}.
-                        </span>
-                        {option.optionText}
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {isLoading
+              ? [1, 2, 3].map((qIdx) => (
+                  <Card key={qIdx} className="border border-foreground">
+                    <CardContent className="p-6">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
+                        PERTANYAAN {" "}
+                        <span className="inline-block h-4 w-6 bg-jepang-red/10 animate-pulse" />
+                      </p>
+                      <div className="h-6 w-full bg-jepang-red/10 animate-pulse mb-4" />
+                      <div className="space-y-2">
+                        {[1, 2, 3].map((optionIdx) => (
+                          <div
+                            key={optionIdx}
+                            className="w-full h-12 bg-jepang-red/10 animate-pulse"
+                          />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              : quiz.questions?.map((question: any, qIdx: number) => (
+                  <Card
+                    key={question.id}
+                    className="border border-foreground"
+                    data-testid={`question-${qIdx}`}
+                  >
+                    <CardContent className="p-6">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
+                        PERTANYAAN {qIdx + 1}
+                      </p>
+                      <h3 className="font-heading font-bold text-xl mb-4">
+                        {question.questionText}
+                      </h3>
+                      <div className="space-y-2">
+                        {question.options?.map((option: any, oIdx: number) => (
+                          <button
+                            key={option.id}
+                            onClick={() =>
+                              setAnswers({
+                                ...answers,
+                                [question.id]: option.id,
+                              })
+                            }
+                            className={`w-full text-left p-4 border transition-colors ${answers[question.id] === option.id ? "border-jepang-red bg-jepang-red text-white" : "border-jepang-border hover:border-foreground"}`}
+                            data-testid={`question-${qIdx}-option-${oIdx}`}
+                          >
+                            <span className="font-mono font-bold mr-3">
+                              {String.fromCharCode(65 + oIdx)}.
+                            </span>
+                            {option.optionText}
+                          </button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
           </div>
 
           <div className="mt-8 sticky bottom-0 bg-white border-t-2 border-foreground p-4 -mx-4 md:mx-0">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-                {Object.keys(answers).length} / {quiz.questions?.length || 0}{" "}
-                ANSWERED
+                {isLoading ? (
+                  <span className="inline-block h-4 w-20 bg-jepang-red/10 animate-pulse" />
+                ) : (
+                  `${Object.keys(answers).length} / ${quiz.questions?.length || 0} JAWABAN`
+                )}
               </p>
               <Button
                 onClick={handleSubmit}
-                disabled={submitting || !user}
+                disabled={submitting || !user || isLoading}
                 data-testid="submit-quiz-btn"
               >
-                {submitting ? "Submitting..." : "Submit Quiz"}
+                {submitting ? "MENGIRIM JAWABAN..." : "KIRIM JAWABAN"}
               </Button>
             </div>
           </div>

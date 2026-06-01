@@ -1,101 +1,100 @@
-# 📌 Fitur Tidak Selesai / Prioritas
+# 📌 Status Fitur & Prioritas (Ringkas)
 
-Dokumen ini mencatat fitur yang saat ini belum lengkap dan yang perlu diprioritaskan.
+Dokumen ini merangkum status fitur utama, prioritas, dan perubahan terbaru yang relevan dengan keadaan proyek saat ini.
 
-## 🎯 Prioritas Pengembangan
+## 🎯 Prioritas Pengembangan (singkat)
 
-1. User-facing features terlebih dahulu
-2. Kemudian admin management
-3. Baru setelah itu implementasi multi-app / shared auth
+- User-facing features terlebih dahulu
+- Admin management berikutnya
+- Arsitektur shared auth / multi-app setelah fitur inti stabil
 
-## ✅ Fitur yang Sudah Implementasi Dasar
+## ✅ Ringkasan Fitur Dasar yang Sudah Ada
 
 - Auth: register, login, logout, `auth/me`
-- Article CRUD dasar untuk user/admin
-- Submit artikel user dengan workflow review admin
+- Article CRUD (user + admin)
+- Submit artikel dengan workflow review admin
 - Bookmark artikel
-- Quiz list, detail, submit quiz
-- Poll list, detail, vote
+- Quiz: list, detail, submit
+- Poll: list, detail, vote
 - Weekly leaderboard
-- User profile sederhana
-- Cloudflare R2 utility untuk upload file
+- User profile dasar
+- Cloudflare R2 helper untuk upload
 
-## 🔧 Fitur User yang Belum Lengkap
+## 🔁 Perubahan Terbaru (sinkron dengan repo sekarang)
 
-- Email verification
-- Forgot password / reset password
+- Skeleton placeholders: telah diterapkan pada banyak halaman untuk bagian dinamis (contoh: article detail, polls, quizzes, admin users/tags/homepage, user bookmarks, my-articles, points).
+- Perbaikan runtime sederhana: beberapa guard (`?.`) ditambahkan untuk mencegah null-read errors.
+- Perbaikan sintaks di beberapa halaman admin (mis. badge variant) dan konsistensi header pada dashboard.
+
+## 🔧 Fitur Penting yang Belum Lengkap
+
+(Prioritas menengah → tinggi)
+
+- Email verification & forgot/reset password
 - Avatar upload terintegrasi profile
-- Share article + poin reward
-- Full-text search dan filter artikel yang lebih kuat
-- Trending algorithm dan weekly view reset
-- Reading progress page / UI indicator
-- Profile edit dan username update
+- Full-text search & filter kategori/tag
+- Reading progress + reward points
+- Admin: manage categories, quiz management, poll management
+- Admin: activity log & point transaction viewer
+- Bulk actions & export CSV/JSON
 
-## 🗃️ Fitur Admin yang Belum Lengkap
+## ✅ Pekerjaan Skeleton (status)
 
-- Manage categories UI / endpoints lengkap
-- Manage quiz list dan edit quiz
-- Manage poll list dan edit poll
-- Activity log viewer admin
-- Point transaction viewer admin
-- Bulk actions untuk artikel, users, reviews
-- Export data CSV/JSON untuk users / articles / transactions
+- Skeleton untuk komponen/article card dan detail: ✅
+- Skeleton untuk halaman publik (articles, polls, quizzes): ✅
+- Skeleton untuk area admin: users, tags, homepage, articles review: ✅
+- Skeleton untuk user pages: bookmarks, my-articles, points: ✅
 
-## 🧩 Fitur Engagement & Gamification yang Belum Lengkap
+Jika ada halaman publik/admin lain yang perlu di-skeleton-kan, tambahkan ke daftar prioritas.
 
-- Share tracking + daily share limit
-- Badge / achievement system
-- Monthly leaderboard / all-time leaderboard
-- Poll result page terpisah dengan grafik
-- Notification system
-- Comment system
+## 🛠️ Prioritas Jangka Pendek (tindak lanjut)
 
-## 🌐 Fitur Ekosistem & Integrasi Masa Depan
+- [ ] Selesaikan `profile` editing + avatar upload
+- [ ] Implementasi email verification + reset password
+- [ ] Tingkatkan search & discovery (kategori/tag, trending)
+- [ ] Perluas admin UI (categories, quizzes, polls)
+- [ ] Tambah activity log + point transaction viewer
 
-- Shared auth service terpisah
-- Multi-app deployment: news, learn, admin, main
-- Subdomain routing untuk `news.jepangku.com`, `learn.jepangku.com`
-- LMS integration
-- Multi-language support
+## 📌 Catatan Implementasi & Tautan Cepat
 
-## 🛠️ Prioritas Jangka Pendek
+- Skeleton components ada di: `components/skeletons/*`
+- Halaman admin yang direvisi: `app/(admin)/admin/*`
+- Halaman user yang direvisi: `app/(user)/*`
 
-- [ ] Selesaikan user profile editing dan avatar upload
-- [ ] Tambah email verification dan forgot/reset password
-- [ ] Tambahkan reading progress / halaman baca selesai dan reward poin
-- [ ] Perbaiki search, kategori/tag filter, dan discovery homepage
-- [ ] Lengkapi admin UI untuk quiz / poll / categories / tags
-- [ ] Tambahkan activity log admin dan point transaction viewer
-- [ ] Stabilkan leaderboard, analytics, dan poin reward
-- [ ] Siapkan arsitektur shared auth readiness / source_app global-ready
+## ✅ Checklist File-by-File (Skeleton)
 
-### 📌 Urutan Fitur Prioritas dari Awal sampai Selesai
+Berikut status penerapan skeleton pada halaman-halaman utama. Centang menandakan skeleton untuk bagian dinamis sudah diterapkan.
 
-1. Selesaikan profile user: edit profile, username update, dan avatar upload terintegrasi.
-2. Implementasikan email verification serta forgot password / password reset.
-3. Bangun reading progress page atau indicator, dan pastikan poin baca selesai diberikan sekali per artikel.
-4. Perbaiki search artikel secara menyeluruh: full-text search, filter kategori/tag, sort latest/popular/trending.
-5. Perbaiki discovery homepage: featured article, hot article, trending, popular, dan leaderboard preview.
-6. Tambahkan share article tracking + reward poin + daily share limit.
-7. Lengkapi admin kategori & tag management dengan UI, API, dan CRUD penuh.
-8. Lengkapi admin quiz management: list, detail, create, edit, delete, dan publikasi.
-9. Lengkapi admin poll management: list, detail, create, edit, delete, dan tampilan hasil.
-10. Bangun admin user management yang menyertakan activity log dan point transaction viewer.
-11. Tambahkan bulk actions admin untuk artikel, users, review, serta export CSV/JSON.
-12. Tingkatkan engagement dengan notification system dasar dan comment system roadmap.
-13. Tambahkan badge/achievement groundwork untuk gamifikasi dan retention.
-14. Tambahkan monthly leaderboard dan all-time leaderboard di samping leaderboard mingguan.
-15. Stabilkan point transaction reporting, leaderboard reset, dan analytics user activity.
-16. Siapkan shared auth service terpisah secara arsitektural dengan model global-ready.
-17. Rencanakan dan mulai implementasi multi-app deployment untuk `news`, `learn`, `admin`, dan landing.
-18. Siapkan subdomain routing untuk `news.jepangku.com`, `learn.jepangku.com`, `admin.jepangku.com`.
-19. Tambahkan dukungan multi-language sebagai fitur ekosistem.
-20. Lakukan audit dokumentasi dan roadmap transisi dari single-app ke multi-app.
+- [x] `app/(public)/page.tsx` — homepage (featured, trending, polls/quiz, leaderboard skeleton)
+- [x] `app/(public)/articles/page.tsx` — articles list (ArticleCardSkeleton)
+- [x] `app/(public)/articles/[slug]/page.tsx` — article detail (ArticleCardSkeleton / content skeleton)
+- [x] `app/(public)/polls/page.tsx` — polls list (PollCardSkeleton)
+- [x] `app/(public)/polls/[slug]/page.tsx` — poll detail (options & results skeleton)
+- [x] `app/(public)/quizzes/page.tsx` — quizzes list (PollQuizCardSkeleton)
+- [x] `app/(public)/quizzes/[slug]/page.tsx` — quiz detail (questions/options skeleton)
+- [x] `app/(public)/leaderboard/page.tsx` — leaderboard (LeaderboardRowSkeleton)
 
-### 🧭 Sumber Analisis Prioritas
+- [x] `app/(user)/bookmarks/page.tsx` — bookmarks (ArticleCardSkeleton grid)
+- [x] `app/(user)/my-articles/page.tsx` — my-articles (compact ArticleCardSkeleton)
+- [x] `app/(user)/points/page.tsx` — points (LeaderboardRowSkeleton placeholders)
+- [ ] `app/(user)/profile/page.tsx` — profile (pending)
+- [ ] `app/(user)/submit-article/page.tsx` — submit article (pending)
+- [ ] `app/(user)/edit-article/[id]/page.tsx` — edit article (pending)
+
+- [x] `app/(admin)/admin/page.tsx` — admin dashboard (stats + pending skeleton)
+- [x] `app/(admin)/admin/homepage/page.tsx` — homepage settings (featured/hot skeleton)
+- [x] `app/(admin)/admin/tags/page.tsx` — tags management (row skeleton)
+- [x] `app/(admin)/admin/users/page.tsx` — users list (table row skeleton)
+- [x] `app/(admin)/admin/users/[id]/page.tsx` — user detail (detail skeleton)
+- [x] `app/(admin)/admin/articles/page.tsx` — admin articles list (table skeleton)
+- [x] `app/(admin)/admin/articles/review/page.tsx` — review queue & detail (skeleton)
+- [ ] `app/(admin)/admin/quizzes/create/page.tsx` — quiz create (pending)
+- [ ] `app/(admin)/admin/polls/create/page.tsx` — poll create (pending)
+
+Jika ada halaman lain yang ingin dimasukkan, sebutkan path-nya dan saya akan cek status serta menambahkan ke checklist.
+
+## 🧭 Sumber & Referensi
 
 - `README.md`
 - `docs/technical-architecture.md`
-- `.agents/mvp.md`
-- `.agents/user-flow.md`
-- `.agents/project-steering.md`
+- kode sumber di `app/`, `components/`, `lib/`

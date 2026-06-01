@@ -20,6 +20,7 @@ import {
 
 export default function AdminCreatePoll() {
   const router = useRouter();
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -27,37 +28,44 @@ export default function AdminCreatePoll() {
     thumbnail_url: "",
     status: "ACTIVE",
   });
+
   const [options, setOptions] = useState(["", ""]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.title.trim()) {
-      toast.error("Title is required");
+      toast.error("Judul wajib diisi");
       return;
     }
+
     if (options.some((o) => !o.trim())) {
-      toast.error("All options must be filled");
+      toast.error("Semua opsi wajib diisi");
       return;
     }
+
     if (options.length < 2) {
-      toast.error("At least 2 options required");
+      toast.error("Minimal harus ada 2 opsi");
       return;
     }
+
     setLoading(true);
+
     try {
       const res = await fetch("/api/admin/polls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, options }),
       });
+
       if (!res.ok) {
         const e = await res.json();
         throw new Error(e.error);
       }
-      toast.success("Poll created successfully");
+
+      toast.success("Polling berhasil dibuat");
       router.push("/admin");
     } catch (e: any) {
-      toast.error(e.message || "Failed to create poll");
+      toast.error(e.message || "Gagal membuat polling");
     } finally {
       setLoading(false);
     }
@@ -71,17 +79,19 @@ export default function AdminCreatePoll() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Back to Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dashboard
           </Link>
+
           <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Create Poll / Voting
+            Buat Polling / Voting
           </h1>
         </div>
       </section>
 
       <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
         <div className="space-y-2">
-          <Label>Type</Label>
+          <Label>Tipe</Label>
+
           <div className="flex gap-2">
             <Button
               variant={form.poll_type === "POLLING" ? "black" : "outline"}
@@ -91,6 +101,7 @@ export default function AdminCreatePoll() {
             >
               Polling
             </Button>
+
             <Button
               variant={form.poll_type === "VOTING" ? "default" : "outline"}
               size="sm"
@@ -103,7 +114,8 @@ export default function AdminCreatePoll() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="title">Title / Question *</Label>
+          <Label htmlFor="title">Judul / Pertanyaan *</Label>
+
           <Input
             id="title"
             type="text"
@@ -114,7 +126,8 @@ export default function AdminCreatePoll() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">Deskripsi</Label>
+
           <Textarea
             id="description"
             rows={3}
@@ -126,6 +139,7 @@ export default function AdminCreatePoll() {
 
         <div className="space-y-2">
           <Label>Status</Label>
+
           <Select
             value={form.status}
             onValueChange={(v) => setForm({ ...form, status: v })}
@@ -133,17 +147,19 @@ export default function AdminCreatePoll() {
             <SelectTrigger data-testid="poll-status-select">
               <SelectValue />
             </SelectTrigger>
+
             <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="ACTIVE">Aktif</SelectItem>
               <SelectItem value="DRAFT">Draft</SelectItem>
-              <SelectItem value="CLOSED">Closed</SelectItem>
+              <SelectItem value="CLOSED">Ditutup</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-3">
-            <Label>Options</Label>
+            <Label>Opsi Jawaban</Label>
+
             <Button
               variant="ghost"
               size="sm"
@@ -151,19 +167,21 @@ export default function AdminCreatePoll() {
               className="text-jepang-red hover:text-jepang-red"
               data-testid="add-option-btn"
             >
-              <Plus size={12} /> Add Option
+              <Plus size={12} /> Tambah Opsi
             </Button>
           </div>
+
           <div className="space-y-2">
             {options.map((opt, idx) => (
               <div key={idx} className="flex items-center gap-2">
                 <span className="font-mono font-bold text-jepang-muted self-center w-8">
                   {String.fromCharCode(65 + idx)}.
                 </span>
+
                 <Input
                   type="text"
                   className="flex-1"
-                  placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                  placeholder={`Opsi ${String.fromCharCode(65 + idx)}`}
                   value={opt}
                   onChange={(e) => {
                     const o = [...options];
@@ -172,6 +190,7 @@ export default function AdminCreatePoll() {
                   }}
                   data-testid={`option-input-${idx}`}
                 />
+
                 {options.length > 2 && (
                   <Button
                     variant="ghost"
@@ -196,7 +215,7 @@ export default function AdminCreatePoll() {
             disabled={loading}
             data-testid="create-poll-submit"
           >
-            {loading ? "Creating..." : "Create Poll"}
+            {loading ? "Membuat..." : "Buat Polling"}
           </Button>
         </div>
       </div>

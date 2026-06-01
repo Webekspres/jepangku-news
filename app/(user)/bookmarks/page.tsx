@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import ArticleCard from "@/components/ArticleCard";
+import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import { Bookmark as BookmarkIcon } from "lucide-react";
 
 export default function BookmarksPage() {
@@ -33,9 +34,11 @@ export default function BookmarksPage() {
 
       <div className="px-4 mx-auto max-w-7xl py-12">
         {loading ? (
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted py-12">
-            Loading...
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <ArticleCardSkeleton key={i} />
+            ))}
+          </div>
         ) : bookmarks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {bookmarks.map((article: any) => (
