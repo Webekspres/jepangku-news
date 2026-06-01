@@ -1,4 +1,4 @@
-export const TAGS_DATA = [
+const TAGS_DATA = [
   { name: 'Tokyo',        slug: 'tokyo' },
   { name: 'Kyoto',        slug: 'kyoto' },
   { name: 'Sakura',       slug: 'sakura' },
@@ -20,3 +20,5 @@ export const TAGS_DATA = [
   { name: 'Gacha',        slug: 'gacha' },
   { name: 'Retro Game',   slug: 'retro-game' },
 ];
+
+module.exports = { TAGS_DATA };

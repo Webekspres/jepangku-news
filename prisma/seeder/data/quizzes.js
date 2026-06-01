@@ -1,208 +1,160 @@
-export const SAMPLE_QUIZZES = [
+const QUIZ_TYPE = "trivia";
+
+const THUMBNAILS = [
+  "https://images.unsplash.com/photo-1578632767115-351597cf2477?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
+  "https://images.unsplash.com/photo-1545569310-29ddd0a82dac?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
+  "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
+  "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
+];
+
+const TOPICS = [
+  "Anime Klasik",
+  "Budaya Jepang",
+  "Kuliner Jepang",
+  "Manga Ikonik",
+  "Tempat Wisata",
+  "Teknologi Pop",
+  "Bahasa Jepang",
+];
+
+const QUESTION_BANK = [
   {
-    title: 'Trivia Anime Klasik Jepang',
-    slug_base: 'trivia-anime-klasik-jepang',
-    description: 'Tes pengetahuanmu tentang anime klasik Jepang!',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200',
-    quizType: 'trivia',
-    pointsReward: 10,
-    correctAnswerPoints: 5,
-    questions: [
-      {
-        q: 'Siapa pencipta manga Dragon Ball?',
-        opts: [
-          { text: 'Akira Toriyama', isCorrect: true },
-          { text: 'Eiichiro Oda', isCorrect: false },
-          { text: 'Masashi Kishimoto', isCorrect: false },
-          { text: 'Hajime Isayama', isCorrect: false },
-        ],
-      },
-      {
-        q: "Anime 'Spirited Away' diproduksi oleh studio?",
-        opts: [
-          { text: 'Studio Ghibli', isCorrect: true },
-          { text: 'Kyoto Animation', isCorrect: false },
-          { text: 'MAPPA', isCorrect: false },
-          { text: 'Madhouse', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Apa nama karakter utama anime Naruto?',
-        opts: [
-          { text: 'Naruto Uzumaki', isCorrect: true },
-          { text: 'Sasuke Uchiha', isCorrect: false },
-          { text: 'Kakashi Hatake', isCorrect: false },
-          { text: 'Sakura Haruno', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Berapa jumlah episode anime One Piece hingga tahun 2025?',
-        opts: [
-          { text: 'Lebih dari 1000 episode', isCorrect: true },
-          { text: 'Sekitar 500 episode', isCorrect: false },
-          { text: 'Tepat 700 episode', isCorrect: false },
-          { text: 'Kurang dari 300 episode', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Studio mana yang memproduksi anime Attack on Titan season final?',
-        opts: [
-          { text: 'MAPPA', isCorrect: true },
-          { text: 'Wit Studio', isCorrect: false },
-          { text: 'Ufotable', isCorrect: false },
-          { text: 'A-1 Pictures', isCorrect: false },
-        ],
-      },
-    ],
+    q: "Siapa pencipta manga Dragon Ball?",
+    correct: "Akira Toriyama",
+    wrong: ["Eiichiro Oda", "Masashi Kishimoto", "Hajime Isayama"],
   },
   {
-    title: 'Kuis Budaya dan Tradisi Jepang',
-    slug_base: 'kuis-budaya-tradisi-jepang',
-    description: 'Seberapa dalam pengetahuanmu tentang budaya dan tradisi Jepang?',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1545569310-29ddd0a82dac?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200',
-    quizType: 'trivia',
-    pointsReward: 15,
-    correctAnswerPoints: 5,
-    questions: [
-      {
-        q: 'Apa arti kata "Ikigai" dalam bahasa Jepang?',
-        opts: [
-          { text: 'Alasan untuk hidup', isCorrect: true },
-          { text: 'Keindahan alam', isCorrect: false },
-          { text: 'Semangat juang', isCorrect: false },
-          { text: 'Ketenangan jiwa', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Festival apa yang dirayakan dengan melihat bunga sakura bersama?',
-        opts: [
-          { text: 'Hanami', isCorrect: true },
-          { text: 'Matsuri', isCorrect: false },
-          { text: 'Obon', isCorrect: false },
-          { text: 'Tanabata', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Apa nama pakaian tradisional Jepang yang paling dikenal?',
-        opts: [
-          { text: 'Kimono', isCorrect: true },
-          { text: 'Yukata', isCorrect: false },
-          { text: 'Hakama', isCorrect: false },
-          { text: 'Haori', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Berapa jumlah karakter Hiragana dasar dalam bahasa Jepang?',
-        opts: [
-          { text: '46', isCorrect: true },
-          { text: '26', isCorrect: false },
-          { text: '52', isCorrect: false },
-          { text: '100', isCorrect: false },
-        ],
-      },
-    ],
+    q: "Anime 'Spirited Away' diproduksi oleh studio?",
+    correct: "Studio Ghibli",
+    wrong: ["Kyoto Animation", "MAPPA", "Madhouse"],
   },
   {
-    title: 'Kuis Kuliner Jepang',
-    slug_base: 'kuis-kuliner-jepang',
-    description: 'Tes pengetahuanmu tentang makanan dan minuman khas Jepang!',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200',
-    quizType: 'trivia',
-    pointsReward: 10,
-    correctAnswerPoints: 5,
-    questions: [
-      {
-        q: 'Mie Jepang mana yang terbuat dari tepung buckwheat?',
-        opts: [
-          { text: 'Soba', isCorrect: true },
-          { text: 'Ramen', isCorrect: false },
-          { text: 'Udon', isCorrect: false },
-          { text: 'Somen', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Apa nama teknik memasak Jepang yang menggunakan arang binchotan?',
-        opts: [
-          { text: 'Yakitori', isCorrect: true },
-          { text: 'Tempura', isCorrect: false },
-          { text: 'Shabu-shabu', isCorrect: false },
-          { text: 'Sukiyaki', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Sushi jenis apa yang berbentuk kerucut dari nori?',
-        opts: [
-          { text: 'Temaki', isCorrect: true },
-          { text: 'Nigiri', isCorrect: false },
-          { text: 'Maki', isCorrect: false },
-          { text: 'Gunkan', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Apa nama minuman teh Jepang yang berbentuk bubuk hijau?',
-        opts: [
-          { text: 'Matcha', isCorrect: true },
-          { text: 'Sencha', isCorrect: false },
-          { text: 'Hojicha', isCorrect: false },
-          { text: 'Genmaicha', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Wagyu grade A5 memiliki skor marbling BMS berapa?',
-        opts: [
-          { text: '8-12', isCorrect: true },
-          { text: '1-3', isCorrect: false },
-          { text: '4-6', isCorrect: false },
-          { text: '13-15', isCorrect: false },
-        ],
-      },
-    ],
+    q: "Apa nama karakter utama anime Naruto?",
+    correct: "Naruto Uzumaki",
+    wrong: ["Sasuke Uchiha", "Kakashi Hatake", "Sakura Haruno"],
   },
   {
-    title: 'Kuis Manga dan Karakter Ikonik',
-    slug_base: 'kuis-manga-karakter-ikonik',
-    description: 'Seberapa hafal kamu dengan karakter-karakter manga legendaris?',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200',
-    quizType: 'trivia',
-    pointsReward: 10,
-    correctAnswerPoints: 5,
-    questions: [
-      {
-        q: 'Siapa kapten bajak laut dalam manga One Piece?',
-        opts: [
-          { text: 'Monkey D. Luffy', isCorrect: true },
-          { text: 'Roronoa Zoro', isCorrect: false },
-          { text: 'Portgas D. Ace', isCorrect: false },
-          { text: 'Trafalgar Law', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Manga Berserk diciptakan oleh siapa?',
-        opts: [
-          { text: 'Kentaro Miura', isCorrect: true },
-          { text: 'Hirohiko Araki', isCorrect: false },
-          { text: 'Naoki Urasawa', isCorrect: false },
-          { text: 'Takehiko Inoue', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Apa nama teknik andalan Naruto Uzumaki?',
-        opts: [
-          { text: 'Rasengan', isCorrect: true },
-          { text: 'Chidori', isCorrect: false },
-          { text: 'Amaterasu', isCorrect: false },
-          { text: 'Susanoo', isCorrect: false },
-        ],
-      },
-      {
-        q: 'Dalam manga Death Note, siapa nama shinigami yang menjatuhkan Death Note?',
-        opts: [
-          { text: 'Ryuk', isCorrect: true },
-          { text: 'Rem', isCorrect: false },
-          { text: 'Gelus', isCorrect: false },
-          { text: 'Sidoh', isCorrect: false },
-        ],
-      },
-    ],
+    q: "Berapa jumlah karakter Hiragana dasar dalam bahasa Jepang?",
+    correct: "46",
+    wrong: ["26", "52", "100"],
+  },
+  {
+    q: "Festival apa yang dirayakan dengan melihat bunga sakura bersama?",
+    correct: "Hanami",
+    wrong: ["Matsuri", "Obon", "Tanabata"],
+  },
+  {
+    q: "Mie Jepang mana yang terbuat dari tepung buckwheat?",
+    correct: "Soba",
+    wrong: ["Ramen", "Udon", "Somen"],
+  },
+  {
+    q: "Apa nama teknik memasak Jepang yang menggunakan arang binchotan?",
+    correct: "Yakitori",
+    wrong: ["Tempura", "Shabu-shabu", "Sukiyaki"],
+  },
+  {
+    q: "Sushi jenis apa yang berbentuk kerucut dari nori?",
+    correct: "Temaki",
+    wrong: ["Nigiri", "Maki", "Gunkan"],
+  },
+  {
+    q: "Wagyu grade A5 memiliki skor marbling BMS berapa?",
+    correct: "8-12",
+    wrong: ["1-3", "4-6", "13-15"],
+  },
+  {
+    q: "Siapa kapten bajak laut dalam manga One Piece?",
+    correct: "Monkey D. Luffy",
+    wrong: ["Roronoa Zoro", "Portgas D. Ace", "Trafalgar Law"],
+  },
+  {
+    q: "Manga Berserk diciptakan oleh siapa?",
+    correct: "Kentaro Miura",
+    wrong: ["Hirohiko Araki", "Naoki Urasawa", "Takehiko Inoue"],
+  },
+  {
+    q: "Apa nama teknik andalan Naruto Uzumaki?",
+    correct: "Rasengan",
+    wrong: ["Chidori", "Amaterasu", "Susanoo"],
+  },
+  {
+    q: "Dalam manga Death Note, siapa nama shinigami yang menjatuhkan Death Note?",
+    correct: "Ryuk",
+    wrong: ["Rem", "Gelus", "Sidoh"],
   },
 ];
+
+function mulberry32(seed) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function pickN(arr, n, rng) {
+  const copy = [...arr];
+  const out = [];
+  while (out.length < n && copy.length) {
+    const idx = Math.floor(rng() * copy.length);
+    out.push(copy.splice(idx, 1)[0]);
+  }
+  return out;
+}
+
+function buildOptions(bankItem, rng) {
+  const wrong = [...bankItem.wrong];
+  // ensure 3 wrong options
+  const chosenWrong = pickN(wrong, 3, rng);
+  const all = [
+    { text: bankItem.correct, isCorrect: true },
+    ...chosenWrong.map((w) => ({ text: w, isCorrect: false })),
+  ];
+
+  // shuffle
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [all[i], all[j]] = [all[j], all[i]];
+  }
+  return all;
+}
+
+const SAMPLE_QUIZZES = (() => {
+  const target = 60;
+  const out = [];
+
+  for (let i = 0; i < target; i++) {
+    const rng = mulberry32(4242 + i * 1013);
+    const topic = TOPICS[i % TOPICS.length];
+
+    const questionsCount = clamp(4 + Math.floor(rng() * 3), 4, 7);
+    const questionItems = pickN(QUESTION_BANK, questionsCount, rng);
+
+    const pointsReward = 8 + Math.floor(rng() * 18); // 8..25
+    const correctAnswerPoints = 4 + Math.floor(rng() * 6); // 4..9
+
+    out.push({
+      title: `[${topic}] Trivia Jepang #${i + 1}`,
+      slug_base: `trivia-${topic.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${i + 1}`,
+      description: `Kuis trivia Jepang bertema: ${topic}. Coba jawab dan lihat skormu!`,
+      thumbnailUrl: THUMBNAILS[i % THUMBNAILS.length],
+      quizType: QUIZ_TYPE,
+      pointsReward,
+      correctAnswerPoints,
+      questions: questionItems.map((qi) => ({
+        q: qi.q,
+        opts: buildOptions(qi, rng),
+      })),
+    });
+  }
+
+  return out;
+})();
+
+module.exports = SAMPLE_QUIZZES;

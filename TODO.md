@@ -1,0 +1,15 @@
+- [ ] Implement “very many and diverse” seed data for articles (~300)
+  - [ ] Expand `prisma/seeder/data/articles.js` to generate hundreds of article objects with varied categories, tags, status, and author distribution inputs
+  - [ ] Ensure article objects contain needed fields: title, category_slug, tags, excerpt, content, cover_image_url, is_featured, is_hot, status, author_email
+- [ ] Update `prisma/seed.js`
+  - [ ] Stop hardcoding article `status: 'PUBLISHED'`
+  - [ ] Use seeded `status` per article
+  - [ ] Assign `authorId` from seeded users (admin + other users)
+  - [ ] Keep idempotency by checking existing article by title
+  - [ ] Attach tags as before
+- [ ] Quick validation
+  - [ ] Run seed command and confirm:
+    - article count increased to ~300
+    - statuses are mixed
+    - user-owned articles exist
+    - article tags pivot rows exist

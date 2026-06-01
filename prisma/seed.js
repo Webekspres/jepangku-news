@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
@@ -7,27 +7,27 @@ const prisma = new PrismaClient();
 // DATA
 // ---------------------------------------------------------------------------
 
-const { CATEGORIES_DATA } = require('./seeder/data/categories.js');
-const { TAGS_DATA } = require('./seeder/data/tags.js');
-const SAMPLE_ARTICLES = require('./seeder/data/articles.js');
+const { CATEGORIES_DATA } = require("./seeder/data/categories.js");
+const { TAGS_DATA } = require("./seeder/data/tags.js");
+const SAMPLE_ARTICLES = require("./seeder/data/articles.js");
 
 // ---------------------------------------------------------------------------
 // QUIZZES
 // ---------------------------------------------------------------------------
 
-const SAMPLE_QUIZZES = require('./seeder/data/quizzes.js');
+const SAMPLE_QUIZZES = require("./seeder/data/quizzes.js");
 
 // ---------------------------------------------------------------------------
 // POLLS
 // ---------------------------------------------------------------------------
 
-const SAMPLE_POLLS = require('./seeder/data/polls.js');
+const SAMPLE_POLLS = require("./seeder/data/polls.js");
 
 // ---------------------------------------------------------------------------
 // USERS
 // ---------------------------------------------------------------------------
 
-const SAMPLE_USERS = require('./seeder/data/users.js');
+const SAMPLE_USERS = require("./seeder/data/users.js");
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -36,8 +36,8 @@ const SAMPLE_USERS = require('./seeder/data/users.js');
 function createSlug(base) {
   const clean = base
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
   return `${clean}-${Math.random().toString(36).substring(2, 8)}`;
 }
 
@@ -46,11 +46,11 @@ function createSlug(base) {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  console.log('🌱 Starting seed...');
+  console.log("🌱 Starting seed...");
 
   // ── 1. Admin user ──────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@jepangku.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'JepangkuAdmin2025!';
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@jepangku.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "JepangkuAdmin2025!";
 
   let admin = await prisma.user.findUnique({ where: { email: adminEmail } });
   if (!admin) {
@@ -58,15 +58,15 @@ async function main() {
     admin = await prisma.user.create({
       data: {
         email: adminEmail,
-        username: 'admin',
+        username: "admin",
         passwordHash: hashedPassword,
-        name: 'Admin Jepangku',
-        role: 'ADMIN',
-        status: 'active',
+        name: "Admin Jepangku",
+        role: "ADMIN",
+        status: "active",
         profile: {
           create: {
-            displayName: 'Admin Jepangku',
-            bio: 'Official Administrator of Jepangku Portal.',
+            displayName: "Admin Jepangku",
+            bio: "Official Administrator of Jepangku Portal.",
           },
         },
       },
@@ -77,11 +77,13 @@ async function main() {
   }
 
   // ── 2. Sample users ────────────────────────────────────────────────────
-  const defaultUserPassword = 'UserJepangku2025!';
+  const defaultUserPassword = "UserJepangku2025!";
   const hashedUserPassword = await bcrypt.hash(defaultUserPassword, 10);
 
   for (const userData of SAMPLE_USERS) {
-    const existing = await prisma.user.findUnique({ where: { email: userData.email } });
+    const existing = await prisma.user.findUnique({
+      where: { email: userData.email },
+    });
     if (existing) {
       console.log(`⏭  User exists: ${userData.email}`);
       continue;
@@ -92,8 +94,8 @@ async function main() {
         username: userData.username,
         passwordHash: hashedUserPassword,
         name: userData.name,
-        role: 'USER',
-        status: 'active',
+        role: "USER",
+        status: "active",
         totalPoints: userData.totalPoints,
         profile: {
           create: {
@@ -149,14 +151,27 @@ async function main() {
       continue;
     }
 
-    const existing = await prisma.article.findFirst({ where: { title: art.title } });
+    const existing = await prisma.article.findFirst({
+      where: { title: art.title },
+    });
     if (existing) {
       console.log(`⏭  Article exists: "${art.title}"`);
       continue;
     }
 
     const slug = createSlug(art.title);
-    const publishedAt = new Date(Date.now() - i * 23 * 60 * 60 * 1000 - i * 37 * 60 * 1000);
+    const publishedAt = new Date(
+      Date.now() - i * 23 * 60 * 60 * 1000 - i * 37 * 60 * 1000,
+    );
+
+    // Resolve author: prefer author_email from seed data (so user-owned articles exist)
+    const authorEmail = art.author_email;
+    const author = authorEmail
+      ? await prisma.user.findUnique({ where: { email: authorEmail } })
+      : null;
+    const resolvedAuthorId = author?.id || admin.id;
+
+    const resolvedStatus = art.status || "PUBLISHED";
 
     const created = await prisma.article.create({
       data: {
@@ -165,16 +180,16 @@ async function main() {
         excerpt: art.excerpt,
         content: art.content,
         coverImageUrl: art.cover_image_url,
-        status: 'PUBLISHED',
-        visibility: 'public',
+        status: resolvedStatus,
+        visibility: "public",
         isFeatured: art.is_featured || false,
         isHot: art.is_hot || false,
-        publishedAt,
-        viewCount: 80 + i * 53,
-        weeklyViewCount: 30 + i * 17,
-        bookmarkCount: 3 + i,
-        shareCount: 1 + i,
-        authorId: admin.id,
+        publishedAt: resolvedStatus === "PUBLISHED" ? publishedAt : null,
+        viewCount: resolvedStatus === "PUBLISHED" ? 80 + i * 53 : 0,
+        weeklyViewCount: resolvedStatus === "PUBLISHED" ? 30 + i * 17 : 0,
+        bookmarkCount: resolvedStatus === "PUBLISHED" ? 3 + i : 0,
+        shareCount: resolvedStatus === "PUBLISHED" ? 1 + i : 0,
+        authorId: resolvedAuthorId,
         categoryId: category.id,
         createdAt: publishedAt,
         updatedAt: publishedAt,
@@ -198,7 +213,9 @@ async function main() {
 
   // ── 6. Quizzes ─────────────────────────────────────────────────────────
   for (const quizData of SAMPLE_QUIZZES) {
-    const existing = await prisma.quiz.findFirst({ where: { title: quizData.title } });
+    const existing = await prisma.quiz.findFirst({
+      where: { title: quizData.title },
+    });
     if (existing) {
       console.log(`⏭  Quiz exists: "${quizData.title}"`);
       continue;
@@ -211,7 +228,7 @@ async function main() {
         description: quizData.description,
         thumbnailUrl: quizData.thumbnailUrl,
         quizType: quizData.quizType,
-        status: 'ACTIVE',
+        status: "ACTIVE",
         pointsReward: quizData.pointsReward,
         correctAnswerPoints: quizData.correctAnswerPoints,
         allowRetry: false,
@@ -236,12 +253,16 @@ async function main() {
         });
       }
     }
-    console.log(`✅ Created quiz: "${quizData.title}" (${quizData.questions.length} questions)`);
+    console.log(
+      `✅ Created quiz: "${quizData.title}" (${quizData.questions.length} questions)`,
+    );
   }
 
   // ── 7. Polls ───────────────────────────────────────────────────────────
   for (const pollData of SAMPLE_POLLS) {
-    const existing = await prisma.poll.findFirst({ where: { title: pollData.title } });
+    const existing = await prisma.poll.findFirst({
+      where: { title: pollData.title },
+    });
     if (existing) {
       console.log(`⏭  Poll exists: "${pollData.title}"`);
       continue;
@@ -253,7 +274,7 @@ async function main() {
         slug: createSlug(pollData.slug_base),
         description: pollData.description,
         pollType: pollData.pollType,
-        status: 'ACTIVE',
+        status: "ACTIVE",
         pointsReward: pollData.pointsReward,
         allowGuestVote: false,
         showResultBeforeVote: false,
@@ -271,18 +292,20 @@ async function main() {
         },
       });
     }
-    console.log(`✅ Created poll: "${pollData.title}" (${pollData.options.length} options)`);
+    console.log(
+      `✅ Created poll: "${pollData.title}" (${pollData.options.length} options)`,
+    );
   }
 
   // ── 8. User Activities (for leaderboard) ──────────────────────────────
   // Fetch all seeded users (excluding admin) and all quizzes/polls/articles
   const allUsers = await prisma.user.findMany({
-    where: { role: 'USER' },
+    where: { role: "USER" },
     select: { id: true, email: true },
   });
 
   if (allUsers.length === 0) {
-    console.log('⏭  No users found, skipping activity seed.');
+    console.log("⏭  No users found, skipping activity seed.");
   } else {
     const allQuizzes = await prisma.quiz.findMany({
       include: { questions: { include: { options: true } } },
@@ -295,7 +318,8 @@ async function main() {
     });
 
     // Helper: random int between min and max inclusive
-    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const randInt = (min, max) =>
+      Math.floor(Math.random() * (max - min + 1)) + min;
 
     // Helper: date within last N days
     const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
@@ -303,24 +327,25 @@ async function main() {
     // Per-user activity config — controls how "active" each user is
     // Maps to SAMPLE_USERS order: budi, siti, andi, dewi, rizky, maya, fajar, lina
     const activityConfig = [
-      { quizzes: 2, polls: 2, bookmarks: 3, loginDays: 5, extraPoints: 50  }, // budi
+      { quizzes: 2, polls: 2, bookmarks: 3, loginDays: 5, extraPoints: 50 }, // budi
       { quizzes: 3, polls: 3, bookmarks: 5, loginDays: 7, extraPoints: 120 }, // siti
       { quizzes: 4, polls: 4, bookmarks: 8, loginDays: 7, extraPoints: 300 }, // andi (top)
       { quizzes: 3, polls: 3, bookmarks: 6, loginDays: 6, extraPoints: 180 }, // dewi
-      { quizzes: 2, polls: 2, bookmarks: 4, loginDays: 5, extraPoints: 80  }, // rizky
-      { quizzes: 1, polls: 2, bookmarks: 3, loginDays: 4, extraPoints: 40  }, // maya
+      { quizzes: 2, polls: 2, bookmarks: 4, loginDays: 5, extraPoints: 80 }, // rizky
+      { quizzes: 1, polls: 2, bookmarks: 3, loginDays: 4, extraPoints: 40 }, // maya
       { quizzes: 4, polls: 3, bookmarks: 7, loginDays: 7, extraPoints: 220 }, // fajar
-      { quizzes: 1, polls: 1, bookmarks: 2, loginDays: 3, extraPoints: 20  }, // lina
+      { quizzes: 1, polls: 1, bookmarks: 2, loginDays: 3, extraPoints: 20 }, // lina
     ];
 
     for (let uIdx = 0; uIdx < allUsers.length; uIdx++) {
       const user = allUsers[uIdx];
-      const cfg = activityConfig[uIdx] || activityConfig[activityConfig.length - 1];
+      const cfg =
+        activityConfig[uIdx] || activityConfig[activityConfig.length - 1];
 
       // ── a. Daily Login Rewards ────────────────────────────────────────
       for (let d = 0; d < cfg.loginDays; d++) {
         const rewardDate = new Date(daysAgo(d));
-        const dateStr = rewardDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateStr = rewardDate.toISOString().split("T")[0]; // YYYY-MM-DD
 
         const existingLogin = await prisma.dailyLoginReward.findFirst({
           where: { userId: user.id, rewardDate: dateStr },
@@ -331,8 +356,8 @@ async function main() {
         const tx = await prisma.pointTransaction.create({
           data: {
             userId: user.id,
-            activityType: 'daily_login',
-            sourceType: 'login',
+            activityType: "daily_login",
+            sourceType: "login",
             points: loginPoints,
             description: `Daily login reward - ${dateStr}`,
             occurredAt: rewardDate,
@@ -375,7 +400,8 @@ async function main() {
         }
 
         const score = (correctCount / questions.length) * 100;
-        const pointsAwarded = correctCount * quiz.correctAnswerPoints + quiz.pointsReward;
+        const pointsAwarded =
+          correctCount * quiz.correctAnswerPoints + quiz.pointsReward;
         const attemptDate = daysAgo(randInt(0, 6));
 
         const attempt = await prisma.quizAttempt.create({
@@ -388,7 +414,9 @@ async function main() {
             pointsAwarded,
             isPointAwarded: true,
             startedAt: attemptDate,
-            submittedAt: new Date(attemptDate.getTime() + randInt(2, 8) * 60 * 1000),
+            submittedAt: new Date(
+              attemptDate.getTime() + randInt(2, 8) * 60 * 1000,
+            ),
             createdAt: attemptDate,
           },
         });
@@ -408,8 +436,8 @@ async function main() {
         await prisma.pointTransaction.create({
           data: {
             userId: user.id,
-            activityType: 'quiz_completed',
-            sourceType: 'quiz',
+            activityType: "quiz_completed",
+            sourceType: "quiz",
             sourceId: quiz.id,
             points: pointsAwarded,
             description: `Completed quiz: ${quiz.title} (${correctCount}/${questions.length} correct)`,
@@ -417,7 +445,9 @@ async function main() {
           },
         });
 
-        console.log(`  ✅ Quiz attempt: ${user.email} → "${quiz.title}" (${correctCount}/${questions.length})`);
+        console.log(
+          `  ✅ Quiz attempt: ${user.email} → "${quiz.title}" (${correctCount}/${questions.length})`,
+        );
       }
 
       // ── c. Poll Votes ─────────────────────────────────────────────────
@@ -453,8 +483,8 @@ async function main() {
         await prisma.pointTransaction.create({
           data: {
             userId: user.id,
-            activityType: 'poll_voted',
-            sourceType: 'poll',
+            activityType: "poll_voted",
+            sourceType: "poll",
             sourceId: poll.id,
             points: poll.pointsReward,
             description: `Voted on poll: ${poll.title}`,
@@ -486,24 +516,51 @@ async function main() {
         await prisma.pointTransaction.create({
           data: {
             userId: user.id,
-            activityType: 'article_bookmarked',
-            sourceType: 'article',
+            activityType: "article_bookmarked",
+            sourceType: "article",
             sourceId: article.id,
             points: 2,
-            description: 'Bookmarked an article',
+            description: "Bookmarked an article",
             occurredAt: bookmarkDate,
           },
         });
       }
-      console.log(`  ✅ Bookmarks: ${user.email} → ${articlesToBookmark.length} articles`);
+      console.log(
+        `  ✅ Bookmarks: ${user.email} → ${articlesToBookmark.length} articles`,
+      );
 
       // ── e. Extra point transactions (article reads, shares, etc.) ─────
       const extraActivities = [
-        { activityType: 'article_read',   sourceType: 'article', points: 1,  description: 'Read an article' },
-        { activityType: 'article_shared',  sourceType: 'article', points: 3,  description: 'Shared an article' },
-        { activityType: 'profile_updated', sourceType: 'profile', points: 5,  description: 'Updated profile' },
-        { activityType: 'article_read',   sourceType: 'article', points: 1,  description: 'Read an article' },
-        { activityType: 'article_read',   sourceType: 'article', points: 1,  description: 'Read an article' },
+        {
+          activityType: "article_read",
+          sourceType: "article",
+          points: 1,
+          description: "Read an article",
+        },
+        {
+          activityType: "article_shared",
+          sourceType: "article",
+          points: 3,
+          description: "Shared an article",
+        },
+        {
+          activityType: "profile_updated",
+          sourceType: "profile",
+          points: 5,
+          description: "Updated profile",
+        },
+        {
+          activityType: "article_read",
+          sourceType: "article",
+          points: 1,
+          description: "Read an article",
+        },
+        {
+          activityType: "article_read",
+          sourceType: "article",
+          points: 1,
+          description: "Read an article",
+        },
       ];
 
       let remainingExtra = cfg.extraPoints;
@@ -517,7 +574,7 @@ async function main() {
             userId: user.id,
             activityType: act.activityType,
             sourceType: act.sourceType,
-            sourceId: act.sourceType === 'article' ? articleId : null,
+            sourceId: act.sourceType === "article" ? articleId : null,
             points: pts,
             description: act.description,
             occurredAt: daysAgo(randInt(0, 6)),
@@ -526,18 +583,20 @@ async function main() {
         remainingExtra -= pts;
         actIdx++;
       }
-      console.log(`  ✅ Extra transactions: ${user.email} → ~${cfg.extraPoints} pts`);
+      console.log(
+        `  ✅ Extra transactions: ${user.email} → ~${cfg.extraPoints} pts`,
+      );
     }
 
-    console.log('✅ All user activities seeded.');
+    console.log("✅ All user activities seeded.");
   }
 
-  console.log('\n🎉 Seeding complete!');
+  console.log("\n🎉 Seeding complete!");
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error during seeding:', e);
+    console.error("❌ Error during seeding:", e);
     process.exit(1);
   })
   .finally(async () => {

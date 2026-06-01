@@ -10,3 +10,5 @@ const CATEGORIES_DATA = [
   { name: 'Education',  slug: 'education',  color: '#D90429' },
   { name: 'Fun',        slug: 'fun',        color: '#0A0A0A' },
 ];
+
+module.exports = { CATEGORIES_DATA };
