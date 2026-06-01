@@ -167,6 +167,21 @@ export default function QuizDetailPage() {
             <Badge variant="red" className="mb-3 inline-block">
               KUIS
             </Badge>
+            {isLoading ? (
+            <div className="my-8 -mx-4 md:mx-0">
+              <div className="h-72 w-full bg-jepang-red/10 animate-pulse" />
+            </div>
+          ) : (
+            quiz.thumbnailUrl && (
+              <div className="my-8 -mx-4 md:mx-0">
+                <img
+                  src={quiz.thumbnailUrl}
+                  alt={quiz.title}
+                  className="w-full max-h-150 object-cover"
+                />
+              </div>
+            )
+          )}
             <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter mb-3 mt-2">
               {isLoading ? (
                 <div className="h-12 w-full max-w-3xl bg-jepang-red/10 animate-pulse" />
@@ -230,7 +245,7 @@ export default function QuizDetailPage() {
                   <Card key={qIdx} className="border border-foreground">
                     <CardContent className="p-6">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-                        PERTANYAAN {" "}
+                        PERTANYAAN{" "}
                         <span className="inline-block h-4 w-6 bg-jepang-red/10 animate-pulse" />
                       </p>
                       <div className="h-6 w-full bg-jepang-red/10 animate-pulse mb-4" />
