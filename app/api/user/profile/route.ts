@@ -140,22 +140,31 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  // Upsert UserProfile (bio / displayName)
+  // Update or create UserProfile (bio / displayName)
   if (displayName !== undefined || bio !== undefined) {
-    await db.userProfile.upsert({
+    const existingProfile = await db.userProfile.findUnique({
       where: { userId: user.id },
-      update: {
-        ...(displayName !== undefined ? { displayName: String(displayName).trim() } : {}),
-        ...(bio !== undefined ? { bio: String(bio).trim() || null } : {}),
-      },
-      create: {
-        userId: user.id,
-        displayName: displayName !== undefined
-          ? String(displayName).trim()
-          : (name?.trim() ?? updatedUser.name),
-        bio: bio !== undefined ? String(bio).trim() || null : null,
-      },
     });
+
+    if (existingProfile) {
+      await db.userProfile.update({
+        where: { userId: user.id },
+        data: {
+          ...(displayName !== undefined ? { displayName: String(displayName).trim() } : {}),
+          ...(bio !== undefined ? { bio: String(bio).trim() || null } : {}),
+        },
+      });
+    } else {
+      await db.userProfile.create({
+        data: {
+          userId: user.id,
+          displayName: displayName !== undefined
+            ? String(displayName).trim()
+            : (name?.trim() ?? updatedUser.name),
+          bio: bio !== undefined ? String(bio).trim() || null : null,
+        },
+      });
+    }
   }
 
   const { passwordHash, ...clean } = updatedUser as any;

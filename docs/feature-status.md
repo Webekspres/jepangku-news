@@ -28,10 +28,10 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Cloudflare R2 upload helper (`lib/r2.ts`)
 - [x] Profile edit page / profile update flow
 - [x] Avatar upload terintegrasi profile
+- [x] Submit article page untuk user (form UI + submit)
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Submit article page untuk user (form UI + submit)
 - [ ] Edit article page untuk user
 - [ ] Quiz create page admin
 - [ ] Poll create page admin
@@ -126,8 +126,8 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] `app/(user)/my-articles/page.tsx` — my-articles (compact ArticleCardSkeleton)
 - [x] `app/(user)/points/page.tsx` — points (LeaderboardRowSkeleton placeholders)
 - [x] `app/(user)/profile/page.tsx` — profile (pending)
-- [ ] `app/(user)/submit-article/page.tsx` — submit article (pending)
-- [ ] `app/(user)/edit-article/[id]/page.tsx` — edit article (pending)
+- [X] `app/(user)/submit-article/page.tsx` — submit article (pending)
+- [X] `app/(user)/edit-article/[id]/page.tsx` — edit article (pending)
 
 - [x] `app/(admin)/admin/page.tsx` — admin dashboard (stats + pending skeleton)
 - [x] `app/(admin)/admin/homepage/page.tsx` — homepage settings (featured/hot skeleton)
