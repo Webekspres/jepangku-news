@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -9,9 +9,6 @@ import {
   Save,
   Send,
   Upload,
-  Bold,
-  Italic,
-  List as ListIcon,
   PenSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SectionHeader from "@/components/SectionHeader";
-
+import RichTextEditor from "@/components/RichTextEditor";
 export default function SubmitArticlePage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -41,7 +38,6 @@ export default function SubmitArticlePage() {
   });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   // Redirect jika belum login
   useEffect(() => {
@@ -77,34 +73,6 @@ export default function SubmitArticlePage() {
     } finally {
       setUploading(false);
     }
-  };
-
-  const insertFormatting = (tag: string) => {
-    const ta = contentRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart,
-      end = ta.selectionEnd;
-    const sel = form.content.substring(start, end);
-    const map: Record<string, string> = {
-      bold: `<strong>${sel || "bold text"}</strong>`,
-      italic: `<em>${sel || "italic text"}</em>`,
-      h2: `<h2>${sel || "Heading"}</h2>`,
-      h3: `<h3>${sel || "Subheading"}</h3>`,
-      ul: `<ul><li>${sel || "List item"}</li></ul>`,
-      p: `<p>${sel || "Paragraph"}</p>`,
-    };
-    const inserted = map[tag] || sel;
-    const newContent =
-      form.content.substring(0, start) +
-      inserted +
-      form.content.substring(end);
-    setForm((f) => ({ ...f, content: newContent }));
-    // Restore focus & cursor after state update
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + inserted.length;
-      ta.setSelectionRange(pos, pos);
-    });
   };
 
   const handleSubmit = async (status: string) => {
@@ -292,43 +260,11 @@ export default function SubmitArticlePage() {
             <Label>
               Konten <span className="text-jepang-red">*</span>
             </Label>
-            {/* Formatting toolbar */}
-            <div className="border border-jepang-border bg-jepang-off-white p-2 flex flex-wrap gap-1">
-              {(
-                [
-                  ["h2", "H2"],
-                  ["h3", "H3"],
-                  ["bold", <Bold key="b" size={14} strokeWidth={2} />],
-                  ["italic", <Italic key="i" size={14} strokeWidth={2} />],
-                  ["p", "P"],
-                  ["ul", <ListIcon key="l" size={14} strokeWidth={2} />],
-                ] as [string, React.ReactNode][]
-              ).map(([tag, label]) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => insertFormatting(tag)}
-                  className="px-3 py-1 hover:bg-white border border-transparent hover:border-jepang-border text-sm font-bold transition-colors"
-                  data-testid={`format-${tag}`}
-                  title={tag}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <Textarea
-              ref={contentRef}
-              className="font-mono text-sm border-t-0 rounded-t-none"
-              rows={16}
+            <RichTextEditor
               value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              placeholder="<p>Tulis artikel menggunakan tag HTML...</p>"
-              data-testid="article-content-input"
+              onChange={(html) => setForm((f) => ({ ...f, content: html }))}
+              placeholder="Tulis konten artikel di sini..."
             />
-            <p className="text-xs text-jepang-muted font-mono">
-              Gunakan tag HTML: &lt;p&gt;, &lt;h2&gt;, &lt;h3&gt;,
-              &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;&lt;li&gt;
-            </p>
           </div>
 
           {/* Actions */}
