@@ -26,11 +26,11 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Admin users list + detail
 - [x] Admin articles list + review queue
 - [x] Cloudflare R2 upload helper (`lib/r2.ts`)
+- [x] Profile edit page / profile update flow
+- [x] Avatar upload terintegrasi profile
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Profile edit page / profile update flow
-- [ ] Avatar upload terintegrasi profile
 - [ ] Submit article page untuk user (form UI + submit)
 - [ ] Edit article page untuk user
 - [ ] Quiz create page admin
