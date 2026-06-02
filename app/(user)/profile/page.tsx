@@ -9,6 +9,7 @@ import {
   FileText,
   Bookmark as BookmarkIcon,
   BarChart3,
+  Pencil,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ articles: 0, bookmarks: 0 });
   const [recentPoints, setRecentPoints] = useState<any[]>([]);
+  const [bio, setBio] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -24,12 +26,14 @@ export default function ProfilePage() {
       fetch("/api/articles/my").then((r) => r.json()),
       fetch("/api/bookmarks").then((r) => r.json()),
       fetch("/api/points/my").then((r) => r.json()),
-    ]).then(([articles, bookmarks, points]) => {
+      fetch("/api/user/profile").then((r) => r.json()),
+    ]).then(([articles, bookmarks, points, profile]) => {
       setStats({
         articles: Array.isArray(articles) ? articles.length : 0,
         bookmarks: Array.isArray(bookmarks) ? bookmarks.length : 0,
       });
       setRecentPoints(Array.isArray(points) ? points.slice(0, 5) : []);
+      setBio(profile?.bio ?? null);
     });
   }, [user]);
 
@@ -39,11 +43,22 @@ export default function ProfilePage() {
     <div className="bg-white min-h-screen" data-testid="profile-page">
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
-          <div className="flex items-center gap-6">
-            <div className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-foreground">
-              {(user as any).name?.charAt(0).toUpperCase()}
+          <div className="flex items-start gap-6">
+            <div className="shrink-0">
+              {(user as any).avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={(user as any).avatarUrl}
+                  alt={(user as any).name}
+                  className="w-24 h-24 object-cover border-2 border-foreground"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-foreground">
+                  {(user as any).name?.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
                 PROFILE
               </p>
@@ -53,7 +68,21 @@ export default function ProfilePage() {
               <p className="text-jepang-muted font-mono">
                 @{(user as any).username}
               </p>
+              {bio && (
+                <p className="mt-2 text-sm text-jepang-muted max-w-lg">{bio}</p>
+              )}
             </div>
+            <Button
+              variant="outline"
+              asChild
+              className="shrink-0 hover:bg-foreground hover:text-white"
+              data-testid="edit-profile-btn"
+            >
+              <Link href="/profile/edit">
+                <Pencil size={14} className="mr-2" />
+                Edit Profil
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -100,7 +129,7 @@ export default function ProfilePage() {
             </p>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[
                 {
                   href: "/submit-article",
@@ -125,6 +154,12 @@ export default function ProfilePage() {
                   icon: BarChart3,
                   label: "Points",
                   testid: "action-points",
+                },
+                {
+                  href: "/profile/edit",
+                  icon: Pencil,
+                  label: "Edit Profil",
+                  testid: "action-edit-profile",
                 },
               ].map(({ href, icon: Icon, label, testid }) => (
                 <Button

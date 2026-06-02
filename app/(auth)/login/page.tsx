@@ -29,7 +29,7 @@ function LoginForm() {
       if (user.role === "ADMIN") router.push("/admin");
       else router.push(from);
     } catch (e: any) {
-      setError(e.message || "Login failed");
+      setError(e.message || "Masuk gagal");
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ function LoginForm() {
                 className="w-full"
                 data-testid="login-submit-btn"
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? "Masuk.." : "Masuk"}
               </Button>
             </form>
 

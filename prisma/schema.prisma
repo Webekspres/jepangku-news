@@ -48,6 +48,7 @@ model User {
   avatarUrl        String?           @map("avatar_url")
   status           String            @default("active") // "active", "inactive", "banned"
   totalPoints      Int               @default(0) @map("total_points")
+  usernameChangedAt DateTime?        @map("username_changed_at")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   lastLoginAt      DateTime?         @map("last_login_at")
