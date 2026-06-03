@@ -8,7 +8,18 @@ export async function POST(request: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
 
   const body = await request.json();
-  const { title, description, thumbnailUrl, status = 'ACTIVE', questions = [] } = body;
+  const {
+    title,
+    description,
+    thumbnailUrl,
+    quizType = 'trivia',
+    status = 'ACTIVE',
+    pointsReward = 10,
+    correctAnswerPoints = 5,
+    allowRetry = false,
+    showResultImmediately = true,
+    questions = [],
+  } = body;
 
   if (!title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
 
@@ -21,9 +32,12 @@ export async function POST(request: NextRequest) {
       slug,
       description: description || null,
       thumbnailUrl: thumbnailUrl || null,
+      quizType,
       status: status.toUpperCase() as any,
-      pointsReward: 10,
-      correctAnswerPoints: 5,
+      pointsReward: Number(pointsReward) || 10,
+      correctAnswerPoints: Number(correctAnswerPoints) || 5,
+      allowRetry: Boolean(allowRetry),
+      showResultImmediately: Boolean(showResultImmediately),
     },
   });
 
@@ -33,7 +47,8 @@ export async function POST(request: NextRequest) {
       data: {
         quizId: quiz.id,
         questionText: q.question_text,
-        sortOrder: i,
+        imageUrl: q.image_url || null,
+        sortOrder: q.sort_order ?? i,
       },
     });
 
@@ -43,8 +58,9 @@ export async function POST(request: NextRequest) {
         data: {
           questionId: question.id,
           optionText: opt.option_text,
+          imageUrl: opt.image_url || null,
           isCorrect: opt.is_correct || false,
-          sortOrder: j,
+          sortOrder: opt.sort_order ?? j,
         },
       });
     }

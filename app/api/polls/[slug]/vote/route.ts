@@ -3,7 +3,10 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { awardPoints } from '@/lib/points';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> },
+) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
@@ -11,23 +14,70 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const poll = await db.poll.findUnique({ where: { slug } });
   if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
-
-  const existing = await db.pollVote.findFirst({ where: { pollId: poll.id, userId: user.id } });
-  if (existing) return NextResponse.json({ error: 'You have already voted' }, { status: 400 });
+  if (poll.status !== 'ACTIVE')
+    return NextResponse.json({ error: 'Poll is not active' }, { status: 400 });
 
   const body = await request.json();
-  const { option_id } = body;
+  // votes: [{ questionId, optionId }]
+  const { votes } = body as { votes: { questionId: string; optionId: string }[] };
 
-  const option = await db.pollOption.findFirst({ where: { id: option_id, pollId: poll.id } });
-  if (!option) return NextResponse.json({ error: 'Invalid option' }, { status: 400 });
+  if (!Array.isArray(votes) || votes.length === 0)
+    return NextResponse.json({ error: 'votes array is required' }, { status: 400 });
 
-  await db.pollVote.create({
-    data: { pollId: poll.id, optionId: option_id, userId: user.id, pointsAwarded: 5 },
+  // Cek apakah user sudah vote di salah satu pertanyaan ini
+  const questionIds = votes.map((v) => v.questionId);
+  const existingVotes = await db.pollVote.findMany({
+    where: { pollId: poll.id, userId: user.id, questionId: { in: questionIds } },
   });
+  const alreadyVotedQuestions = new Set(existingVotes.map((v) => v.questionId));
 
-  await db.pollOption.update({ where: { id: option_id }, data: { voteCount: { increment: 1 } } });
+  const toProcess = votes.filter((v) => !alreadyVotedQuestions.has(v.questionId));
+  if (toProcess.length === 0)
+    return NextResponse.json({ error: 'You have already voted on all questions' }, { status: 400 });
 
-  await awardPoints(user.id, 'poll_joined', 'poll', poll.id, 5, `Voted in poll: ${poll.title}`);
+  // Validasi opsi dan simpan vote
+  for (const v of toProcess) {
+    const option = await db.pollOption.findFirst({
+      where: { id: v.optionId, questionId: v.questionId },
+    });
+    if (!option)
+      return NextResponse.json(
+        { error: `Invalid option ${v.optionId} for question ${v.questionId}` },
+        { status: 400 },
+      );
 
-  return NextResponse.json({ message: 'Vote recorded', pointsAwarded: 5 });
+    await db.pollVote.create({
+      data: {
+        pollId: poll.id,
+        questionId: v.questionId,
+        optionId: v.optionId,
+        userId: user.id,
+        pointsAwarded: poll.pointsReward,
+        isPointAwarded: true,
+      },
+    });
+
+    await db.pollOption.update({
+      where: { id: v.optionId },
+      data: { voteCount: { increment: 1 } },
+    });
+  }
+
+  // Award poin hanya sekali per poll (saat pertama kali vote)
+  const wasFirstVote = existingVotes.length === 0;
+  if (wasFirstVote) {
+    await awardPoints(
+      user.id,
+      'poll_voted',
+      'poll',
+      poll.id,
+      poll.pointsReward,
+      `Voted in poll: ${poll.title}`,
+    );
+  }
+
+  return NextResponse.json({
+    message: 'Vote recorded',
+    pointsAwarded: wasFirstVote ? poll.pointsReward : 0,
+  });
 }

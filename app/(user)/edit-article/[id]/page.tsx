@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  Save,
-  Send,
-  Upload,
-  Bold,
-  Italic,
-  List as ListIcon,
-} from "lucide-react";
+import { Save, Send, Upload, PenSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import SectionHeader from "@/components/SectionHeader";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export default function EditArticlePage() {
   const { id } = useParams<{ id: string }>()!;
@@ -39,12 +34,12 @@ export default function EditArticlePage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetch("/api/categories")
       .then((r) => r.json())
       .then((d) => setCategories(Array.isArray(d) ? d : []));
+
     fetch("/api/articles/my")
       .then((r) => r.json())
       .then((articles: any[]) => {
@@ -59,14 +54,16 @@ export default function EditArticlePage() {
             content: found.content || "",
             coverImageUrl: found.coverImageUrl || "",
             categoryId: found.categoryId || "",
-            tags: "",
+            tags: Array.isArray(found.tags)
+              ? found.tags.map((t: any) => t.name ?? t).join(", ")
+              : found.tags || "",
           });
         } else {
           router.push("/my-articles");
         }
         setFetching(false);
       });
-  }, [id]);
+  }, [id, router]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,38 +80,17 @@ export default function EditArticlePage() {
         return r.json();
       });
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
-      toast.success("Image uploaded");
+      toast.success("Gambar berhasil diupload");
     } catch {
-      toast.error("Upload failed");
+      toast.error("Upload gagal");
     } finally {
       setUploading(false);
     }
   };
 
-  const insertFormatting = (tag: string) => {
-    const ta = contentRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart,
-      end = ta.selectionEnd;
-    const sel = form.content.substring(start, end);
-    const map: Record<string, string> = {
-      bold: `<strong>${sel || "bold text"}</strong>`,
-      italic: `<em>${sel || "italic text"}</em>`,
-      h2: `<h2>${sel || "Heading"}</h2>`,
-      h3: `<h3>${sel || "Subheading"}</h3>`,
-      ul: `<ul><li>${sel || "List item"}</li></ul>`,
-      p: `<p>${sel || "Paragraph"}</p>`,
-    };
-    const newContent =
-      form.content.substring(0, start) +
-      (map[tag] || sel) +
-      form.content.substring(end);
-    setForm((f) => ({ ...f, content: newContent }));
-  };
-
   const handleSubmit = async (status: string) => {
     if (!form.title.trim() || !form.content.trim()) {
-      toast.error("Title and content are required");
+      toast.error("Judul dan konten wajib diisi");
       return;
     }
     setLoading(true);
@@ -141,77 +117,86 @@ export default function EditArticlePage() {
         throw new Error(e.error);
       }
       toast.success(
-        status === "DRAFT" ? "Draft saved" : "Article submitted for review",
+        status === "DRAFT"
+          ? "Draft berhasil disimpan"
+          : "Artikel berhasil dikirim untuk direview",
       );
       router.push("/my-articles");
     } catch (e: any) {
-      toast.error(e.message || "Failed to save");
+      toast.error(e.message || "Gagal menyimpan artikel");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching)
+  if (fetching) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-          Loading...
-        </p>
+      <div className="bg-white min-h-screen">
+        <div className="border-b-2 border-foreground bg-jepang-off-white px-4 py-12">
+          <div className="mx-auto max-w-7xl space-y-3">
+            <div className="h-3 w-24 bg-jepang-border animate-pulse" />
+            <div className="h-10 w-80 bg-jepang-border animate-pulse" />
+          </div>
+        </div>
+        <div className="px-4 mx-auto max-w-7xl py-12 space-y-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-14 bg-jepang-border animate-pulse" />
+          ))}
+        </div>
       </div>
     );
+  }
 
   return (
     <div className="bg-white min-h-screen" data-testid="edit-article-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            EDIT ARTICLE
-          </p>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Edit Your Article
-          </h1>
-          <p className="text-jepang-muted mt-2">
-            Artikel akan direview ulang setelah disubmit.
-          </p>
-        </div>
-      </section>
+      <SectionHeader
+        label="EDIT ARTICLE"
+        title="Edit Artikel"
+        subtitle="Artikel akan direview ulang oleh admin setelah disubmit."
+        icon={<PenSquare size={16} strokeWidth={1.5} />}
+      />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="space-y-6">
+          {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">
+              Judul <span className="text-jepang-red">*</span>
+            </Label>
             <Input
               id="title"
               type="text"
               className="text-xl font-heading font-bold"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Article title..."
+              placeholder="Judul artikel..."
               data-testid="article-title-input"
             />
           </div>
 
+          {/* Excerpt */}
           <div className="space-y-2">
-            <Label htmlFor="excerpt">Excerpt</Label>
+            <Label htmlFor="excerpt">Ringkasan</Label>
             <Textarea
               id="excerpt"
               rows={2}
               value={form.excerpt}
               onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-              placeholder="Brief summary..."
+              placeholder="Deskripsi singkat artikel..."
               data-testid="article-excerpt-input"
             />
           </div>
 
+          {/* Category & Tags */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>Kategori</Label>
               <Select
                 value={form.categoryId}
                 onValueChange={(v) => setForm({ ...form, categoryId: v })}
               >
                 <SelectTrigger data-testid="article-category-select">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Pilih kategori" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat: any) => (
@@ -223,7 +208,7 @@ export default function EditArticlePage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (comma separated)</Label>
+              <Label htmlFor="tags">Tag (pisahkan dengan koma)</Label>
               <Input
                 id="tags"
                 type="text"
@@ -235,8 +220,9 @@ export default function EditArticlePage() {
             </div>
           </div>
 
+          {/* Cover Image */}
           <div className="space-y-2">
-            <Label>Cover Image</Label>
+            <Label>Gambar Cover</Label>
             <div className="flex gap-3 items-start">
               <Input
                 type="text"
@@ -245,13 +231,18 @@ export default function EditArticlePage() {
                 onChange={(e) =>
                   setForm({ ...form, coverImageUrl: e.target.value })
                 }
-                placeholder="Image URL or upload..."
+                placeholder="URL gambar atau upload..."
                 data-testid="article-cover-input"
               />
-              <Button variant="outline" asChild className="cursor-pointer">
+              <Button
+                variant="outline"
+                asChild
+                disabled={uploading}
+                className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
+              >
                 <label>
-                  <Upload size={14} strokeWidth={1.5} />{" "}
-                  {uploading ? "Uploading..." : "Upload"}
+                  <Upload size={14} strokeWidth={1.5} />
+                  {uploading ? "Mengupload..." : "Upload"}
                   <input
                     type="file"
                     accept="image/*"
@@ -264,62 +255,47 @@ export default function EditArticlePage() {
               </Button>
             </div>
             {form.coverImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={form.coverImageUrl}
-                alt="Preview"
+                alt="Preview cover artikel"
                 className="mt-3 max-h-48 object-cover border border-jepang-border"
+                data-testid="cover-preview"
               />
             )}
           </div>
 
+          {/* Content */}
           <div className="space-y-2">
-            <Label>Content *</Label>
-            <div className="border border-jepang-border bg-jepang-off-white p-2 flex flex-wrap gap-1">
-              {[
-                ["h2", "H2"],
-                ["h3", "H3"],
-                ["bold", <Bold key="b" size={14} strokeWidth={2} />],
-                ["italic", <Italic key="i" size={14} strokeWidth={2} />],
-                ["p", "P"],
-                ["ul", <ListIcon key="l" size={14} strokeWidth={2} />],
-              ].map(([tag, label]) => (
-                <button
-                  key={String(tag)}
-                  type="button"
-                  onClick={() => insertFormatting(String(tag))}
-                  className="px-3 py-1 hover:bg-white border border-transparent hover:border-jepang-border text-sm font-bold"
-                  data-testid={`format-${tag}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <Textarea
-              ref={contentRef}
-              className="font-mono text-sm border-t-0"
-              rows={16}
+            <Label>
+              Konten <span className="text-jepang-red">*</span>
+            </Label>
+            <RichTextEditor
               value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              placeholder="<p>Write your article...</p>"
-              data-testid="article-content-input"
+              onChange={(html) => setForm((f) => ({ ...f, content: html }))}
+              placeholder="Tulis konten artikel di sini..."
             />
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 pt-6 border-t border-jepang-border">
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-jepang-border">
             <Button
               variant="outline"
               onClick={() => handleSubmit("DRAFT")}
               disabled={loading}
+              className="hover:bg-foreground hover:text-white"
               data-testid="save-draft-btn"
             >
-              <Save size={14} strokeWidth={1.5} /> Save as Draft
+              <Save size={14} strokeWidth={1.5} className="mr-1" />
+              {loading ? "Menyimpan..." : "Simpan Draft"}
             </Button>
             <Button
               onClick={() => handleSubmit("PENDING_REVIEW")}
               disabled={loading}
               data-testid="submit-review-btn"
             >
-              <Send size={14} strokeWidth={1.5} /> Submit for Review
+              <Send size={14} strokeWidth={1.5} className="mr-1" />
+              {loading ? "Mengirim..." : "Kirim untuk Review"}
             </Button>
           </div>
         </div>
