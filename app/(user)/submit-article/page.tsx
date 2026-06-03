@@ -143,7 +143,7 @@ export default function SubmitArticlePage() {
         label="NEW ARTICLE"
         title="Submit Artikel Baru"
         subtitle="Bagikan cerita atau berita Jepang. Artikel akan direview admin sebelum tayang."
-        icon={<PenSquare size={36} strokeWidth={1.5} />}
+        icon={<PenSquare size={16} strokeWidth={1.5} />}
       />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
