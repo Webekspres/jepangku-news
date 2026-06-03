@@ -31,6 +31,7 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Submit article page untuk user (form UI + submit)
 - [x] Edit article page untuk user
 - [x] Quiz create page admin
+- [ ] Quiz list admin
 
 ## 🚧 MVP In Progress / Partial
 

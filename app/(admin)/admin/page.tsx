@@ -76,7 +76,7 @@ export default function AdminDashboard() {
       label: "Kuis",
       value: stats?.totalQuizzes || 0,
       icon: Zap,
-      link: "/admin/quizzes/create",
+      link: "/admin/quizzes",
     },
     {
       label: "Polling",
