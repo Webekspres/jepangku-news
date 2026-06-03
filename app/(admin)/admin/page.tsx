@@ -14,6 +14,7 @@ import {
   CheckSquare,
   Tag,
   Home,
+  LayoutGrid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -193,6 +194,12 @@ export default function AdminDashboard() {
               icon: Tag,
               label: "Kelola Tag",
               testid: "action-manage-tags",
+            },
+            {
+              href: "/admin/categories",
+              icon: LayoutGrid,
+              label: "Kelola Kategori",
+              testid: "action-manage-categories",
             },
             {
               href: "/admin/homepage",

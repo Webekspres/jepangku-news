@@ -33,11 +33,20 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Quiz create page admin
 - [x] Quiz list admin
 - [x] Poll create page admin
+- [x] Admin category management UI
+- [x] Full-text search dan filter kategori/tag
+  - [x] Search box UI di `/articles`
+  - [x] Filter kategori di `/articles`
+  - [x] Sort by latest/popular/trending
+  - [x] API `/api/articles` handle param `search`, `category`, `tag`, `sort`
+  - [x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
+  - [x] Search bar di homepage yang redirect ke `/articles?search=...`
+  - [x] Search API mencakup `title`, `excerpt`, dan `content` artikel
+  - [x] Filter by tag di UI halaman articles (toggle panel, aktif via URL param `?tag=`)
+  - [x] Search icon di Navbar (desktop + mobile) redirect ke `/articles?search=...`
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Admin category management UI
-- [ ] Full-text search dan filter kategori/tag
 - [ ] Reading progress detection + reward points
 - [ ] Share tracking + poin reward
 - [ ] Poin hanya satu kali per activity rule enforcement (quiz, poll, bookmark, read)
@@ -126,9 +135,9 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] `app/(user)/bookmarks/page.tsx` — bookmarks (ArticleCardSkeleton grid)
 - [x] `app/(user)/my-articles/page.tsx` — my-articles (compact ArticleCardSkeleton)
 - [x] `app/(user)/points/page.tsx` — points (LeaderboardRowSkeleton placeholders)
-- [x] `app/(user)/profile/page.tsx` — profile (pending)
-- [X] `app/(user)/submit-article/page.tsx` — submit article (pending)
-- [X] `app/(user)/edit-article/[id]/page.tsx` — edit article (pending)
+- [x] `app/(user)/profile/page.tsx` — profile
+- [X] `app/(user)/submit-article/page.tsx` — submit article
+- [X] `app/(user)/edit-article/[id]/page.tsx` — edit article
 
 - [x] `app/(admin)/admin/page.tsx` — admin dashboard (stats + pending skeleton)
 - [x] `app/(admin)/admin/homepage/page.tsx` — homepage settings (featured/hot skeleton)
@@ -137,8 +146,9 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] `app/(admin)/admin/users/[id]/page.tsx` — user detail (detail skeleton)
 - [x] `app/(admin)/admin/articles/page.tsx` — admin articles list (table skeleton)
 - [x] `app/(admin)/admin/articles/review/page.tsx` — review queue & detail (skeleton)
-- [ ] `app/(admin)/admin/quizzes/create/page.tsx` — quiz create (pending)
-- [ ] `app/(admin)/admin/polls/create/page.tsx` — poll create (pending)
+- [x] `app/(admin)/admin/quizzes/create/page.tsx` — quiz create
+- [x] `app/(admin)/admin/polls/create/page.tsx` — poll create
+- [x] `app/(admin)/admin/categories/page.tsx` — category management (CRUD, toggle aktif, guard hapus)
 
 ## 🔭 Lanjutan / Future
 

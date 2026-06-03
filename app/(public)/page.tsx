@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import TrendingArticleSkeleton from "@/components/skeletons/TrendingArticleSkeleton";
@@ -16,9 +17,11 @@ import {
   Zap,
   MessageSquare,
   TrendingUp,
+  Search,
 } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
   const [articles, setArticles] = useState<any[]>([]);
   const [trending, setTrending] = useState<any[]>([]);
   const [polls, setPolls] = useState<any[]>([]);
@@ -26,6 +29,13 @@ export default function HomePage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heroSearch, setHeroSearch] = useState("");
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heroSearch.trim()) return;
+    router.push(`/articles?search=${encodeURIComponent(heroSearch.trim())}`);
+  };
 
   useEffect(() => {
     loadData();
@@ -294,7 +304,29 @@ export default function HomePage() {
         <div className="absolute inset-0">
           <div className="asanoha-bg" />
         </div>
-        <div className="mt-6 hidden md:flex justify-end">
+        <form
+          onSubmit={handleHeroSearch}
+          className="relative mt-6 flex gap-0 max-w-xl"
+          data-testid="hero-search-form"
+        >
+          <input
+            type="text"
+            placeholder="Cari artikel, topik, atau budaya Jepang..."
+            value={heroSearch}
+            onChange={(e) => setHeroSearch(e.target.value)}
+            className="flex-1 bg-white text-foreground px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-jepang-red"
+            data-testid="hero-search-input"
+          />
+          <button
+            type="submit"
+            className="bg-jepang-red text-white px-5 py-3 hover:bg-jepang-red-hover transition-colors shrink-0"
+            aria-label="Cari"
+            data-testid="hero-search-submit"
+          >
+            <Search size={18} strokeWidth={1.5} />
+          </button>
+        </form>
+        <div className="mt-4 hidden md:flex justify-end">
           <Link
             href="/register"
             className="jepang-btn-primary"
