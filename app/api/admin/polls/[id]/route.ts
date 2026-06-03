@@ -1,0 +1,127 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentAdmin } from '@/lib/auth';
+import { db } from '@/lib/db';
+
+type Params = { params: Promise<{ id: string }> };
+
+/* ── GET /api/admin/polls/[id] ── */
+export async function GET(request: NextRequest, { params }: Params) {
+  const admin = await getCurrentAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+
+  const { id } = await params;
+
+  const poll = await db.poll.findUnique({
+    where: { id },
+    include: {
+      questions: {
+        orderBy: { sortOrder: 'asc' },
+        include: {
+          options: { orderBy: { sortOrder: 'asc' } },
+        },
+      },
+    },
+  });
+
+  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+
+  return NextResponse.json(poll);
+}
+
+/* ── PATCH /api/admin/polls/[id] ── */
+export async function PATCH(request: NextRequest, { params }: Params) {
+  const admin = await getCurrentAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+
+  const { id } = await params;
+
+  const poll = await db.poll.findUnique({ where: { id } });
+  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+
+  const body = await request.json();
+  const {
+    title,
+    description,
+    pollType,
+    thumbnailUrl,
+    status,
+    pointsReward,
+    allowGuestVote,
+    showResultBeforeVote,
+    questions,
+  } = body;
+
+  // title hanya wajib jika dikirim bersamaan dengan update konten penuh
+  if (title !== undefined && !title?.trim()) {
+    return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+  }
+
+  // Build partial update — hanya field yang dikirim
+  const updateData: any = {};
+  if (title !== undefined)                 updateData.title = title.trim();
+  if (description !== undefined)           updateData.description = description || null;
+  if (pollType !== undefined)              updateData.pollType = pollType.toUpperCase();
+  if (thumbnailUrl !== undefined)          updateData.thumbnailUrl = thumbnailUrl || null;
+  if (status !== undefined)               updateData.status = status.toUpperCase();
+  if (pointsReward !== undefined)         updateData.pointsReward = Number(pointsReward);
+  if (allowGuestVote !== undefined)       updateData.allowGuestVote = Boolean(allowGuestVote);
+  if (showResultBeforeVote !== undefined) updateData.showResultBeforeVote = Boolean(showResultBeforeVote);
+
+  // Update poll metadata
+  await db.poll.update({ where: { id }, data: updateData });
+
+  // Replace questions if provided
+  if (Array.isArray(questions)) {
+    // Delete all existing questions (cascade deletes options)
+    await db.pollQuestion.deleteMany({ where: { pollId: id } });
+
+    for (let qi = 0; qi < questions.length; qi++) {
+      const q = questions[qi];
+      const question = await db.pollQuestion.create({
+        data: {
+          pollId: id,
+          questionText: q.questionText,
+          imageUrl: q.imageUrl || null,
+          sortOrder: q.sortOrder ?? qi,
+        },
+      });
+
+      for (let oi = 0; oi < (q.options || []).length; oi++) {
+        const o = q.options[oi];
+        await db.pollOption.create({
+          data: {
+            questionId: question.id,
+            optionText: o.optionText,
+            imageUrl: o.imageUrl || null,
+            sortOrder: o.sortOrder ?? oi,
+          },
+        });
+      }
+    }
+  }
+
+  return NextResponse.json({ message: 'Poll updated' });
+}
+
+/* ── PATCH /api/admin/polls/[id]/close  (via ?action=close) ──
+   We handle close in the same PATCH with status=CLOSED, but also
+   expose a dedicated endpoint pattern via query param for clarity. */
+
+/* ── DELETE /api/admin/polls/[id] ── */
+export async function DELETE(request: NextRequest, { params }: Params) {
+  const admin = await getCurrentAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+
+  const { id } = await params;
+
+  const poll = await db.poll.findUnique({ where: { id } });
+  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+
+  if (poll.status !== 'DRAFT') {
+    return NextResponse.json({ error: 'Hanya polling berstatus Draft yang dapat dihapus' }, { status: 400 });
+  }
+
+  await db.poll.delete({ where: { id } });
+
+  return NextResponse.json({ message: 'Poll deleted' });
+}

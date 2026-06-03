@@ -3,6 +3,39 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 
+export async function GET(request: NextRequest) {
+  const admin = await getCurrentAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status');
+
+  const where: any = {};
+  if (status) where.status = status.toUpperCase();
+
+  const quizzes = await db.quiz.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      quizType: true,
+      status: true,
+      pointsReward: true,
+      correctAnswerPoints: true,
+      allowRetry: true,
+      createdAt: true,
+      _count: {
+        select: { questions: true, attempts: true },
+      },
+    },
+  });
+
+  return NextResponse.json(quizzes);
+}
+
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });

@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 
 export default function AdminTagsPage() {
   const [tags, setTags] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTagName, setNewTagName] = useState("");
   const [creating, setCreating] = useState(false);
+  const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
     loadTags();
@@ -63,20 +65,22 @@ export default function AdminTagsPage() {
       return;
     }
 
-    if (!confirm("Hapus tag ini?")) return;
-
-    try {
-      await fetch(`/api/admin/tags/${tagId}`, { method: "DELETE" });
-
-      toast.success("Tag berhasil dihapus");
-      loadTags();
-    } catch (e: any) {
-      toast.error(e.message || "Gagal menghapus tag");
-    }
+    confirm({
+      title: "Hapus Tag?",
+      description: "Tag ini akan dihapus secara permanen dan tidak bisa dipulihkan.",
+      confirmLabel: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        await fetch(`/api/admin/tags/${tagId}`, { method: "DELETE" });
+        toast.success("Tag berhasil dihapus");
+        loadTags();
+      },
+    });
   };
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-tags-page">
+      <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link

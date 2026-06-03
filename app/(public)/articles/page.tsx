@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "@/components/SectionHeader";
@@ -14,16 +14,20 @@ function ArticleListContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const category = searchParams?.get("category") || "";
+  const tag = searchParams?.get("tag") || "";
   const search = searchParams?.get("search") || "";
   const sort = searchParams?.get("sort") || "latest";
 
   const [articles, setArticles] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
   const [searchInput, setSearchInput] = useState(search);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const [showTagFilter, setShowTagFilter] = useState(!!tag);
   const [page, setPage] = useState(1);
   const PER_PAGE = 12;
 
@@ -32,12 +36,17 @@ function ArticleListContent() {
       .then((r) => r.json())
       .then((d) => setCategories(Array.isArray(d) ? d : []))
       .finally(() => setCategoriesLoading(false));
+
+    fetch("/api/tags")
+      .then((r) => r.json())
+      .then((d) => setTags(Array.isArray(d) ? d : []))
+      .finally(() => setTagsLoading(false));
   }, []);
 
   useEffect(() => {
     setPage(1);
     loadArticles(1, true);
-  }, [category, search, sort]);
+  }, [category, tag, search, sort]);
 
   const loadArticles = async (pageNum: number, reset: boolean = false) => {
     if (reset) {
@@ -50,6 +59,7 @@ function ArticleListContent() {
       const params = new URLSearchParams();
 
       if (category) params.set("category", category);
+      if (tag) params.set("tag", tag);
       if (search) params.set("search", search);
 
       params.set("sort", sort);
@@ -163,6 +173,57 @@ function ArticleListContent() {
                   </Button>
                 ))}
           </div>
+
+          {/* Tag filter toggle */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowTagFilter((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-jepang-muted hover:text-foreground transition-colors"
+              data-testid="toggle-tag-filter"
+            >
+              <TagIcon size={12} strokeWidth={1.5} />
+              {showTagFilter ? "Sembunyikan Tag" : "Filter by Tag"}
+            </button>
+            {tag && (
+              <button
+                onClick={() => updateParams({ tag: "" })}
+                className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-jepang-red hover:opacity-75 transition-opacity"
+                data-testid="clear-tag-filter"
+              >
+                #{tag} ✕
+              </button>
+            )}
+          </div>
+
+          {showTagFilter && (
+            <div className="flex flex-wrap items-center gap-2 py-2 px-3 bg-jepang-off-white border border-jepang-border" data-testid="tag-filter-panel">
+              {tagsLoading
+                ? [...Array(8)].map((_, idx) => (
+                    <span
+                      key={`tag-skel-${idx}`}
+                      className="inline-flex border border-jepang-border bg-white px-2 py-1 h-7 w-16 animate-pulse"
+                    />
+                  ))
+                : tags.length === 0 ? (
+                    <span className="text-xs text-jepang-muted">Belum ada tag</span>
+                  ) : (
+                    tags.map((t: any) => (
+                      <button
+                        key={t.id}
+                        onClick={() => updateParams({ tag: tag === t.slug ? "" : t.slug })}
+                        className={`text-xs font-semibold px-2 py-1 border transition-colors ${
+                          tag === t.slug
+                            ? "border-jepang-red bg-jepang-red text-white"
+                            : "border-jepang-border bg-white text-foreground hover:border-foreground"
+                        }`}
+                        data-testid={`tag-filter-${t.slug}`}
+                      >
+                        #{t.name}
+                      </button>
+                    ))
+                  )}
+            </div>
+          )}
 
           <div className="flex gap-2 items-center">
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">

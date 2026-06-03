@@ -3,6 +3,41 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 
+export async function GET(request: NextRequest) {
+  const admin = await getCurrentAdmin(request);
+  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status');
+  const type = searchParams.get('type');
+
+  const where: any = {};
+  if (status) where.status = status.toUpperCase();
+  if (type) where.pollType = type.toUpperCase();
+
+  const polls = await db.poll.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      pollType: true,
+      status: true,
+      pointsReward: true,
+      allowGuestVote: true,
+      showResultBeforeVote: true,
+      createdAt: true,
+      _count: {
+        select: { questions: true, votes: true },
+      },
+    },
+  });
+
+  return NextResponse.json(polls);
+}
+
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });

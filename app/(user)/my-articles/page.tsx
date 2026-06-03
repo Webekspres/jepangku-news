@@ -5,10 +5,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Send, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, Send, FileText, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
+import {
+  ReviewHistoryModal,
+  useReviewHistory,
+} from "@/components/ui/review-history-modal";
 
 const STATUS_BADGE: Record<
   string,
@@ -34,6 +39,8 @@ export default function MyArticlesPage() {
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { confirm, confirmProps } = useConfirm();
+  const { openHistory, modalProps: reviewModalProps } = useReviewHistory();
 
   useEffect(() => {
     loadArticles();
@@ -46,21 +53,25 @@ export default function MyArticlesPage() {
   };
 
   const handleDelete = async (articleId: string, slug: string) => {
-    if (!confirm("Delete this article? This cannot be undone.")) return;
-    try {
-      await fetch(`/api/articles/${slug}/delete`, { method: "DELETE" }).then(
-        (r) => {
-          if (!r.ok)
-            return r.json().then((e: any) => {
-              throw new Error(e.error);
-            });
-        },
-      );
-      toast.success("Article deleted");
-      loadArticles();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to delete");
-    }
+    confirm({
+      title: "Hapus Artikel?",
+      description:
+        "Artikel ini akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.",
+      confirmLabel: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        await fetch(`/api/articles/${slug}/delete`, { method: "DELETE" }).then(
+          (r) => {
+            if (!r.ok)
+              return r.json().then((e: any) => {
+                throw new Error(e.error);
+              });
+          },
+        );
+        toast.success("Article deleted");
+        loadArticles();
+      },
+    });
   };
 
   const handleSubmit = async (article: any) => {
@@ -82,6 +93,9 @@ export default function MyArticlesPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="my-articles-page">
+      <ConfirmModal {...confirmProps} />
+      <ReviewHistoryModal {...reviewModalProps} />
+
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-center justify-between">
@@ -134,6 +148,7 @@ export default function MyArticlesPage() {
                 data-testid={`my-article-${article.id}`}
               >
                 <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                  {/* Article info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant={STATUS_BADGE[article.status] || "muted"}>
@@ -151,14 +166,32 @@ export default function MyArticlesPage() {
                         {article.excerpt}
                       </p>
                     )}
+                    {/* Inline rejection preview */}
                     {article.status === "REJECTED" &&
                       article.reviews?.[0]?.note && (
-                        <p className="text-xs text-jepang-red mt-1 font-mono">
-                          Rejection note: {article.reviews[0].note}
+                        <p className="text-xs text-jepang-red mt-1 font-mono line-clamp-1">
+                          ✕ {article.reviews[0].note}
                         </p>
                       )}
                   </div>
-                  <div className="flex gap-2">
+
+                  {/* Actions */}
+                  <div className="flex gap-2 shrink-0">
+                    {/* Review history button — muncul jika ada review */}
+                    {article.reviews?.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          openHistory(article.slug, article.title)
+                        }
+                        title="Lihat riwayat review"
+                        data-testid={`history-${article.id}`}
+                      >
+                        <History size={14} strokeWidth={1.5} />
+                      </Button>
+                    )}
+
                     {(article.status === "DRAFT" ||
                       article.status === "REJECTED") && (
                       <>
@@ -182,6 +215,7 @@ export default function MyArticlesPage() {
                         </Button>
                       </>
                     )}
+
                     {article.status !== "PUBLISHED" && (
                       <Button
                         variant="outline"
@@ -193,6 +227,7 @@ export default function MyArticlesPage() {
                         <Trash2 size={14} strokeWidth={1.5} />
                       </Button>
                     )}
+
                     {article.status === "PUBLISHED" && (
                       <Button
                         variant="outline"

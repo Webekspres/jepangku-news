@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import TrendingArticleSkeleton from "@/components/skeletons/TrendingArticleSkeleton";
@@ -16,9 +17,14 @@ import {
   Zap,
   MessageSquare,
   TrendingUp,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
+  const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [trending, setTrending] = useState<any[]>([]);
   const [polls, setPolls] = useState<any[]>([]);
@@ -26,16 +32,49 @@ export default function HomePage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heroSearch, setHeroSearch] = useState("");
+  const [featuredIndex, setFeaturedIndex] = useState(0);
+
+  const goPrevFeatured = () => {
+    setFeaturedIndex((prev) =>
+      prev === 0 ? featuredArticles.length - 1 : prev - 1
+    );
+  };
+
+  const goNextFeatured = () => {
+    setFeaturedIndex((prev) =>
+      prev === featuredArticles.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handleHeroSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heroSearch.trim()) return;
+    router.push(`/articles?search=${encodeURIComponent(heroSearch.trim())}`);
+  };
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+  if (featuredArticles.length <= 1) return;
+
+  const interval = setInterval(() => {
+    setFeaturedIndex((prev) =>
+      prev === featuredArticles.length - 1 ? 0 : prev + 1
+    );
+  }, 4000);
+
+  return () => clearInterval(interval);
+}, [featuredArticles.length]);
 
   const loadData = async () => {
     try {
       const response = await fetch("/api/homepage");
       const data = await response.json();
 
+      setFeaturedArticles(data.featuredArticles || []);
       setArticles(data.articles || []);
       setTrending(data.trending || []);
       setPolls(Array.isArray(data.polls) ? data.polls : []);
@@ -49,8 +88,7 @@ export default function HomePage() {
     }
   };
 
-  const featured = articles[0];
-  const latestArticles = articles.slice(1, 7);
+  const latestArticles = articles.slice(0, 6);
 
   if (loading) {
     return (
@@ -226,23 +264,65 @@ export default function HomePage() {
 
   return (
     <div className="bg-white" data-testid="homepage">
-      {/* Featured Article + Trending */}
-      {featured && (
-        <section className="py-12">
-          <div className="px-4 mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ArticleCard article={featured} variant="featured" />
-              </div>
-              <div className="bg-white border border-jepang-border p-5">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
-                  <TrendingUp
-                    size={18}
-                    strokeWidth={1.5}
-                    className="text-jepang-red"
-                  />
-                  <h3 className="small-caps">Sedang Tren Sekarang</h3>
+      {/* Featured Slider + Trending */}
+      <section className="py-12">
+        <div className="px-4 mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              {featuredArticles.length > 0 ? (
+                <div className="relative overflow-hidden">
+                  <div
+                    className="flex transition-transform duration-700 ease-in-out"
+                    style={{
+                      transform: `translateX(-${featuredIndex * 100}%)`,
+                    }}
+                  >
+                    {featuredArticles.map((article: any) => (
+                      <div key={article.id} className="w-full shrink-0">
+                        <ArticleCard article={article} variant="featured" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {featuredArticles.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={goPrevFeatured}
+                        className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-jepang-black bg-white text-jepang-black transition-colors hover:bg-jepang-black hover:text-white cursor-pointer"
+                        aria-label="Artikel sebelumnya"
+                      >
+                        <ChevronLeft size={20} strokeWidth={1.5} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={goNextFeatured}
+                        className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-jepang-black bg-white text-jepang-black transition-colors hover:bg-jepang-black hover:text-white cursor-pointer"
+                        aria-label="Artikel berikutnya"
+                      >
+                        <ChevronRight size={20} strokeWidth={1.5} />
+                      </button>
+                    </>
+                  )}
                 </div>
+              ) : articles.length > 0 ? (
+                <ArticleCard article={articles[0]} variant="featured" />
+              ) : (
+                <div className="rounded-3xl border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
+                  Tidak ada artikel pilihan utama tersedia.
+                </div>
+              )}
+            </div>
+            <div className="bg-white border border-jepang-border p-5">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
+                <TrendingUp
+                  size={18}
+                  strokeWidth={1.5}
+                  className="text-jepang-red"
+                />
+                <h3 className="small-caps">Sedang Tren Sekarang</h3>
+              </div>
                 <div className="space-y-0">
                   {trending.slice(0, 4).map((article: any, idx: number) => (
                     <div
@@ -276,7 +356,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      )}
 
       {/* Hero Banner */}
       <SectionHeader
@@ -294,7 +373,29 @@ export default function HomePage() {
         <div className="absolute inset-0">
           <div className="asanoha-bg" />
         </div>
-        <div className="mt-6 hidden md:flex justify-end">
+        <form
+          onSubmit={handleHeroSearch}
+          className="relative mt-6 flex gap-0 max-w-xl"
+          data-testid="hero-search-form"
+        >
+          <input
+            type="text"
+            placeholder="Cari artikel, topik, atau budaya Jepang..."
+            value={heroSearch}
+            onChange={(e) => setHeroSearch(e.target.value)}
+            className="flex-1 bg-white text-foreground px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-jepang-red"
+            data-testid="hero-search-input"
+          />
+          <button
+            type="submit"
+            className="bg-jepang-red text-white px-5 py-3 hover:bg-jepang-red-hover transition-colors shrink-0"
+            aria-label="Cari"
+            data-testid="hero-search-submit"
+          >
+            <Search size={18} strokeWidth={1.5} />
+          </button>
+        </form>
+        <div className="mt-4 hidden md:flex justify-end">
           <Link
             href="/register"
             className="jepang-btn-primary"
