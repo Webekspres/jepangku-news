@@ -24,7 +24,12 @@ export async function GET() {
     db.poll.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { createdAt: 'desc' },
-      include: { options: { orderBy: { sortOrder: 'asc' } } },
+      take: 4,
+      include: {
+        questions: {
+          include: { options: { select: { voteCount: true } } },
+        },
+      },
     }),
     db.quiz.findMany({
       where: { status: 'ACTIVE' },
@@ -70,7 +75,12 @@ export async function GET() {
     trending,
     polls: polls.map((poll) => ({
       ...poll,
-      totalVotes: poll.options.reduce((sum, option) => sum + option.voteCount, 0),
+      questionCount: poll.questions.length,
+      totalVotes: poll.questions.reduce(
+        (sum, q) => sum + q.options.reduce((s, o) => s + o.voteCount, 0),
+        0,
+      ),
+      questions: undefined,
     })),
     quizzes: quizzes.map((quiz) => ({
       ...quiz,

@@ -8,11 +8,32 @@ export async function POST(request: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
 
   const body = await request.json();
-  const { title, description, poll_type = 'POLLING', thumbnailUrl, status = 'ACTIVE', options = [] } = body;
+  const {
+    title,
+    description,
+    poll_type = 'POLLING',
+    thumbnailUrl,
+    status = 'ACTIVE',
+    pointsReward = 5,
+    allowGuestVote = false,
+    showResultBeforeVote = false,
+    questions = [],
+  } = body;
 
   if (!title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
-  if (!Array.isArray(options) || options.length < 2)
-    return NextResponse.json({ error: 'At least 2 options required' }, { status: 400 });
+  if (!Array.isArray(questions) || questions.length < 1)
+    return NextResponse.json({ error: 'At least 1 question required' }, { status: 400 });
+
+  for (const q of questions) {
+    if (!q.questionText?.trim())
+      return NextResponse.json({ error: 'Each question must have questionText' }, { status: 400 });
+    if (!Array.isArray(q.options) || q.options.length < 2)
+      return NextResponse.json({ error: 'Each question must have at least 2 options' }, { status: 400 });
+    for (const o of q.options) {
+      if (!o.optionText?.trim())
+        return NextResponse.json({ error: 'Each option must have optionText' }, { status: 400 });
+    }
+  }
 
   const slug = createSlug(title);
 
@@ -25,34 +46,34 @@ export async function POST(request: NextRequest) {
       pollType: poll_type.toUpperCase() as any,
       status: status.toUpperCase() as any,
       thumbnailUrl: thumbnailUrl || null,
-      pointsReward: 5,
+      pointsReward: Number(pointsReward) || 5,
+      allowGuestVote: Boolean(allowGuestVote),
+      showResultBeforeVote: Boolean(showResultBeforeVote),
     },
   });
 
-  for (let i = 0; i < options.length; i++) {
-    const option = options[i];
-    let optionText = "";
-    let imageUrl: string | null = null;
-
-    if (typeof option === "string") {
-      optionText = option;
-    } else if (option && typeof option === "object") {
-      optionText = String(option.optionText || "");
-      imageUrl = option.imageUrl ? String(option.imageUrl) : null;
-    }
-
-    if (!optionText) {
-      return NextResponse.json({ error: 'Each option must include optionText' }, { status: 400 });
-    }
-
-    await db.pollOption.create({
+  for (let qi = 0; qi < questions.length; qi++) {
+    const q = questions[qi];
+    const question = await db.pollQuestion.create({
       data: {
         pollId: poll.id,
-        optionText,
-        imageUrl,
-        sortOrder: i,
+        questionText: q.questionText,
+        imageUrl: q.imageUrl || null,
+        sortOrder: q.sortOrder ?? qi,
       },
     });
+
+    for (let oi = 0; oi < q.options.length; oi++) {
+      const o = q.options[oi];
+      await db.pollOption.create({
+        data: {
+          questionId: question.id,
+          optionText: o.optionText,
+          imageUrl: o.imageUrl || null,
+          sortOrder: o.sortOrder ?? oi,
+        },
+      });
+    }
   }
 
   return NextResponse.json({ message: 'Poll created', id: poll.id }, { status: 201 });

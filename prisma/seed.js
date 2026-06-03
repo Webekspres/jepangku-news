@@ -273,6 +273,7 @@ async function main() {
         title: pollData.title,
         slug: createSlug(pollData.slug_base),
         description: pollData.description,
+        thumbnailUrl: pollData.thumbnailUrl || null,
         pollType: pollData.pollType,
         status: "ACTIVE",
         pointsReward: pollData.pointsReward,
@@ -282,18 +283,34 @@ async function main() {
       },
     });
 
-    for (let i = 0; i < pollData.options.length; i++) {
-      await prisma.pollOption.create({
+    for (let qi = 0; qi < pollData.questions.length; qi++) {
+      const qd = pollData.questions[qi];
+      const question = await prisma.pollQuestion.create({
         data: {
           pollId: poll.id,
-          optionText: pollData.options[i],
-          voteCount: 0,
-          sortOrder: i,
+          questionText: qd.questionText,
+          imageUrl: qd.imageUrl || null,
+          sortOrder: qi,
         },
       });
+
+      for (let oi = 0; oi < qd.options.length; oi++) {
+        const opt = qd.options[oi];
+        await prisma.pollOption.create({
+          data: {
+            questionId: question.id,
+            optionText: opt.optionText,
+            imageUrl: opt.imageUrl || null,
+            voteCount: 0,
+            sortOrder: oi,
+          },
+        });
+      }
     }
+
+    const totalOpts = pollData.questions.reduce((s, q) => s + q.options.length, 0);
     console.log(
-      `✅ Created poll: "${pollData.title}" (${pollData.options.length} options)`,
+      `✅ Created poll: "${pollData.title}" (${pollData.questions.length} questions, ${totalOpts} options)`,
     );
   }
 
@@ -311,7 +328,7 @@ async function main() {
       include: { questions: { include: { options: true } } },
     });
     const allPolls = await prisma.poll.findMany({
-      include: { options: true },
+      select: { id: true, title: true, pointsReward: true },
     });
     const allArticles = await prisma.article.findMany({
       select: { id: true },
@@ -453,18 +470,28 @@ async function main() {
       // ── c. Poll Votes ─────────────────────────────────────────────────
       const pollsToVote = allPolls.slice(0, cfg.polls);
       for (const poll of pollsToVote) {
+        // Ambil pertanyaan + opsi
+        const pollWithQuestions = await prisma.poll.findUnique({
+          where: { id: poll.id },
+          include: { questions: { include: { options: true } } },
+        });
+        if (!pollWithQuestions || pollWithQuestions.questions.length === 0) continue;
+
+        // Vote pada pertanyaan pertama saja (idempotent)
+        const firstQuestion = pollWithQuestions.questions[0];
         const existingVote = await prisma.pollVote.findFirst({
-          where: { userId: user.id, pollId: poll.id },
+          where: { userId: user.id, pollId: poll.id, questionId: firstQuestion.id },
         });
         if (existingVote) continue;
 
-        if (poll.options.length === 0) continue;
-        const chosenOption = poll.options[randInt(0, poll.options.length - 1)];
+        if (firstQuestion.options.length === 0) continue;
+        const chosenOption = firstQuestion.options[randInt(0, firstQuestion.options.length - 1)];
         const voteDate = daysAgo(randInt(0, 6));
 
         await prisma.pollVote.create({
           data: {
             pollId: poll.id,
+            questionId: firstQuestion.id,
             optionId: chosenOption.id,
             userId: user.id,
             pointsAwarded: poll.pointsReward,
@@ -474,7 +501,6 @@ async function main() {
           },
         });
 
-        // Increment voteCount on the chosen option
         await prisma.pollOption.update({
           where: { id: chosenOption.id },
           data: { voteCount: { increment: 1 } },

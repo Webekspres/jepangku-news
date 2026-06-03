@@ -14,7 +14,14 @@ export async function GET(request: NextRequest) {
     db.poll.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      include: { options: { orderBy: { sortOrder: "asc" } } },
+      include: {
+        questions: {
+          orderBy: { sortOrder: "asc" },
+          include: {
+            options: { select: { voteCount: true } },
+          },
+        },
+      },
       take: limit,
       skip: (page - 1) * limit,
     }),
@@ -22,12 +29,25 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     total,
-    polls: polls.map((p: (typeof polls)[number]) => ({
-      ...p,
-      totalVotes: p.options.reduce(
-        (sum: number, o: { voteCount: number }) => sum + o.voteCount,
+    polls: polls.map((p) => {
+      const totalVotes = p.questions.reduce(
+        (sum, q) =>
+          sum + q.options.reduce((s, o) => s + o.voteCount, 0),
         0,
-      ),
-    })),
+      );
+      return {
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        description: p.description,
+        thumbnailUrl: p.thumbnailUrl,
+        pollType: p.pollType,
+        status: p.status,
+        pointsReward: p.pointsReward,
+        questionCount: p.questions.length,
+        totalVotes,
+        createdAt: p.createdAt,
+      };
+    }),
   });
 }
