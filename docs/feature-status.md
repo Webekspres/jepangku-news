@@ -26,12 +26,12 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Admin users list + detail
 - [x] Admin articles list + review queue
 - [x] Cloudflare R2 upload helper (`lib/r2.ts`)
+- [x] Profile edit page / profile update flow
+- [x] Avatar upload terintegrasi profile
+- [x] Submit article page untuk user (form UI + submit)
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Profile edit page / profile update flow
-- [ ] Avatar upload terintegrasi profile
-- [ ] Submit article page untuk user (form UI + submit)
 - [ ] Edit article page untuk user
 - [ ] Quiz create page admin
 - [ ] Poll create page admin
@@ -81,7 +81,7 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Dapatkan poin untuk aktivitas tertentu
 - [x] Lihat halaman my-articles
 - [x] Lihat halaman points
-- [ ] Edit profile / avatar
+- [x] Edit profile / avatar
 - [ ] Edit atau submit ulang artikel yang ditolak
 - [ ] Booking ulang / kembali bookmark tanpa poin duplikat
 - [ ] Login harian + poin login harian
@@ -104,13 +104,12 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 
 ## ⏱️ Prioritas Jangka Pendek (MVP-focused)
 
-1. Selesaikan `profile` editing + avatar upload
-2. Lengkapi `submit-article` dan `edit-article` flow
-3. Tambahkan search / category / tag filter
-4. Implementasikan reading progress + reward points
-5. Perbaiki admin quiz / poll management
-6. Tambahkan activity log dan point transaction viewer
-7. Tambahkan email verification + password reset
+1. Lengkapi `submit-article` dan `edit-article` flow
+2. Tambahkan search / category / tag filter
+3. Implementasikan reading progress + reward points
+4. Perbaiki admin quiz / poll management
+5. Tambahkan activity log dan point transaction viewer
+6. Tambahkan email verification + password reset
 
 ## 🛠️ Checklist File-by-File
 
@@ -126,9 +125,9 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] `app/(user)/bookmarks/page.tsx` — bookmarks (ArticleCardSkeleton grid)
 - [x] `app/(user)/my-articles/page.tsx` — my-articles (compact ArticleCardSkeleton)
 - [x] `app/(user)/points/page.tsx` — points (LeaderboardRowSkeleton placeholders)
-- [ ] `app/(user)/profile/page.tsx` — profile (pending)
-- [ ] `app/(user)/submit-article/page.tsx` — submit article (pending)
-- [ ] `app/(user)/edit-article/[id]/page.tsx` — edit article (pending)
+- [x] `app/(user)/profile/page.tsx` — profile (pending)
+- [X] `app/(user)/submit-article/page.tsx` — submit article (pending)
+- [X] `app/(user)/edit-article/[id]/page.tsx` — edit article (pending)
 
 - [x] `app/(admin)/admin/page.tsx` — admin dashboard (stats + pending skeleton)
 - [x] `app/(admin)/admin/homepage/page.tsx` — homepage settings (featured/hot skeleton)

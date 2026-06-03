@@ -58,11 +58,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         const tagSlug = createAdminSlug(tagName.trim());
         let tag = await db.tag.findUnique({ where: { slug: tagSlug } });
         if (!tag) tag = await db.tag.create({ data: { name: tagName.trim(), slug: tagSlug } });
-        await db.articleTag.upsert({
-          where: { articleId_tagId: { articleId: article.id, tagId: tag.id } },
-          create: { articleId: article.id, tagId: tag.id },
-          update: {},
+        const existingLink = await db.articleTag.findFirst({
+          where: { articleId: article.id, tagId: tag.id },
         });
+        if (!existingLink) {
+          await db.articleTag.create({
+            data: { articleId: article.id, tagId: tag.id },
+          });
+        }
       }
     }
 

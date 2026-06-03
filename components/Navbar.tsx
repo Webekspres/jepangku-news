@@ -110,12 +110,21 @@ export default function Navbar() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
-                      className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none"
+                      className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none cursor-pointer"
                       data-testid="user-menu-button"
                     >
-                      <div className="w-9 h-9 bg-foreground text-white flex items-center justify-center font-bold text-sm border border-foreground">
-                        {authUser.name?.charAt(0).toUpperCase()}
-                      </div>
+                      {authUser.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={authUser.avatarUrl}
+                          alt={authUser.name}
+                          className="w-9 h-9 object-cover border border-foreground"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 bg-foreground text-white flex items-center justify-center font-bold text-sm border border-foreground">
+                          {authUser.name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
