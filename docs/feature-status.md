@@ -29,10 +29,10 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Profile edit page / profile update flow
 - [x] Avatar upload terintegrasi profile
 - [x] Submit article page untuk user (form UI + submit)
+- [x] Edit article page untuk user
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Edit article page untuk user
 - [ ] Quiz create page admin
 - [ ] Poll create page admin
 - [ ] Admin category management UI
