@@ -26,28 +26,6 @@ export async function POST(
     return NextResponse.json({ error: 'Article not found' }, { status: 404 });
   }
 
-  // Mark read_completed_at on article_views if a record exists for this user+article
-  // (best-effort, not critical if it fails)
-  try {
-    const existingView = await db.articleView.findFirst({
-      where: {
-        articleId: article.id,
-        userId: user.id,
-        readCompletedAt: null,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (existingView) {
-      await db.articleView.update({
-        where: { id: existingView.id },
-        data: { readCompletedAt: new Date() },
-      });
-    }
-  } catch {
-    // non-blocking
-  }
-
   // Award points — awardPoints handles anti-duplicate internally
   const awarded = await awardPoints(
     user.id,
