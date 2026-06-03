@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
 export async function GET() {
-  const [articles, trending, polls, quizzes, leaderboard, categories] = await Promise.all([
+  const [featuredArticles, articles, trending, polls, quizzes, leaderboard, categories] = await Promise.all([
     db.article.findMany({
-      where: { status: 'PUBLISHED', visibility: 'public' },
+      where: { isFeatured: true, status: 'PUBLISHED', visibility: 'public' },
+      orderBy: { publishedAt: 'desc' },
+      include: {
+        author: { select: { name: true, username: true } },
+        category: { select: { name: true, slug: true } },
+      },
+    }),
+    db.article.findMany({
+      where: { status: 'PUBLISHED', visibility: 'public', NOT: { isFeatured: true } },
       orderBy: { publishedAt: 'desc' },
       take: 7,
       include: {
@@ -71,6 +79,7 @@ export async function GET() {
   );
 
   return NextResponse.json({
+    featuredArticles,
     articles,
     trending,
     polls: polls.map((poll) => ({

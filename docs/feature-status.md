@@ -1,6 +1,10 @@
-# 📌 Status Fitur & Prioritas (MVP → Lanjutan)
+# 📌 Status Fitur & Prioritas — Jepangku News
 
-Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan dari MVP inti sampai lanjutan / future.
+Dokumen ini menyajikan status aktual implementasi fitur berdasarkan audit kode sumber, diurutkan dari
+yang sudah selesai hingga yang masih perlu dibangun. Diperbarui secara manual setiap ada perubahan
+signifikan pada fitur.
+
+---
 
 ## 🎯 Tujuan Utama
 
@@ -9,173 +13,326 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - Setelah fitur inti stabil, tingkatkan admin management dan sistem global-ready
 - Shared auth / multi-app / LMS ditunda ke fase lanjutan
 
-## 🧩 MVP Inti: Sudah Implementasi
+---
 
-- [x] Auth dasar: register, login, logout, `auth/me`
-- [x] Publik artikel: homepage, daftar artikel, detail artikel
-- [x] Article CRUD untuk admin
-- [x] Submit artikel user + workflow review admin
-- [x] Bookmark artikel user
-- [x] Quiz: halaman list, detail quiz, submit jawaban
-- [x] Polling/voting: halaman list, detail, vote
-- [x] Weekly leaderboard
-- [x] User profile dasar
-- [x] User pages: bookmarks, my-articles, points
-- [x] Admin dashboard dasar
-- [x] Admin tags management
-- [x] Admin users list + detail
-- [x] Admin articles list + review queue
-- [x] Cloudflare R2 upload helper (`lib/r2.ts`)
-- [x] Profile edit page / profile update flow
-- [x] Avatar upload terintegrasi profile
-- [x] Submit article page untuk user (form UI + submit)
-- [x] Edit article page untuk user
-- [x] Quiz create page admin
-- [x] Quiz list admin
-- [x] Poll create page admin
-- [x] Admin category management UI
-- [x] Full-text search dan filter kategori/tag
-  - [x] Search box UI di `/articles`
-  - [x] Filter kategori di `/articles`
-  - [x] Sort by latest/popular/trending
-  - [x] API `/api/articles` handle param `search`, `category`, `tag`, `sort`
-  - [x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
-  - [x] Search bar di homepage yang redirect ke `/articles?search=...`
-  - [x] Search API mencakup `title`, `excerpt`, dan `content` artikel
-  - [x] Filter by tag di UI halaman articles (toggle panel, aktif via URL param `?tag=`)
-  - [x] Search icon di Navbar (desktop + mobile) redirect ke `/articles?search=...`
-- [x] Reading progress detection + reward points
-  - [x] Scroll detection di artikel detail — trigger saat user sampai akhir konten
-  - [x] API `POST /api/articles/[slug]/read-complete` — award +2 poin sekali per artikel
-  - [x] Anti-duplicate via `awardPoints()` — poin hanya diberikan satu kali per user per artikel
-  - [x] `readCompletedAt` di-update pada `article_views` jika ada record view
-  - [x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
-  - [x] Guest tidak dapat poin (silently ignored)
+## ✅ Sudah Diimplementasi (Verified)
 
-## 🚧 MVP In Progress / Partial
+### 🔐 Auth & Akun
 
-- [ ] Share tracking + poin reward
-- [ ] Poin hanya satu kali per activity rule enforcement (quiz, poll, bookmark, read)
-- [ ] Review catatan reject / history pada halaman user article
-- [ ] Admin homepage section management (featured / hot) — skeleton tersedia
+- [x] Register: validasi uniqueness email/username, bcrypt hash, JWT cookie (access 15m + refresh 7d), seed DB otomatis
+- [x] Login: mendukung email atau username, cek status banned, JWT cookie
+- [x] Logout: clear cookie
+- [x] `GET /api/auth/me`: validasi JWT, return data user bersih
+- [x] Daily login points: `checkDailyLogin()` dipanggil tiap login, +3 poin per hari via `DailyLoginReward` table
+- [x] Username change cooldown 14 hari (field `usernameChangedAt`, enforced di API + UI profile edit)
 
-## ❌ MVP Belum Dibangun / Fitur Penting yang Belum Lengkap
+### 📰 Artikel — Publik & User
 
-- [ ] Email verification
-- [ ] Forgot password / password reset
-- [ ] Activity log viewer
-- [ ] Point transaction viewer
-- [ ] Bulk action / export CSV / JSON
-- [ ] Advanced admin quiz management (edit/update, status control)
-- [ ] Advanced admin poll management (edit/update, status control)
-- [ ] Improved search & discovery: kategori, tag, trending
-- [ ] Monthly / all-time leaderboard
-- [ ] Better author profile / bio / statistics on profile
-- [ ] In-app notifications
-- [ ] Comments system   
-- [ ] Reaction system
-- [ ] Rate limiting, sanitasi input, monitoring
+- [x] `GET /api/articles`: search (title, excerpt, content), filter kategori (by slug), filter tag, sort (latest/popular/trending), pagination
+- [x] `GET /api/articles/[slug]`: increment view count, related articles by category, tags resolved
+- [x] `POST /api/articles/create`: auth required, slug generation, resolve kategori, create/link tag, status DRAFT atau PENDING_REVIEW
+- [x] `GET /api/articles/my`: daftar artikel milik user, termasuk catatan review terakhir
+- [x] `PUT /api/articles/[slug]/update`: ownership check, hanya DRAFT/REJECTED yang bisa diedit user, admin bisa update semua status
+- [x] `DELETE /api/articles/[slug]/delete`: ownership check, PUBLISHED tidak bisa dihapus non-admin
+- [x] `POST /api/articles/[slug]/read-complete`: +2 poin sekali per artikel, anti-duplikat via `awardPoints()`, update `readCompletedAt` di ArticleView
+- [x] `GET /api/articles/[slug]/share`: cek status `hasShared` per user
+- [x] `POST /api/articles/[slug]/share`: +5 poin, satu kali per user, increment `shareCount`, simpan record ArticleShare
+- [x] `GET /api/articles/[slug]/reviews`: riwayat review artikel, hanya bisa diakses penulis artikel
+- [x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
+- [x] Scroll detection di halaman detail artikel — trigger saat user sampai akhir konten
 
-## 📦 Fitur User-Facing yang Perlu Di-track
+### 🧩 Quiz
 
-### Guest / publik
+- [x] `GET /api/quizzes`: daftar quiz, filter by status
+- [x] `GET /api/quizzes/[slug]`: detail quiz dengan questions + options (jawaban benar disembunyikan dari response)
+- [x] `POST /api/quizzes/[slug]/attempt`: one-attempt guard, per-answer scoring, award base points + bonus per-correct via `awardPoints()`
+- [x] Halaman list quiz publik
+- [x] Halaman detail quiz + submit jawaban
+- [x] Hasil quiz langsung tampil setelah submit
 
-- [x] Baca artikel tanpa login
-- [x] Lihat daftar artikel
-- [x] Lihat detail artikel
-- [x] Lihat leaderboard mingguan
-- [x] Lihat quiz dan polling
-- [ ] Search / filter hasil artikel
-- [ ] Trending / popular article discovery
+### 📊 Polling / Voting
 
-### Pengguna terdaftar
+- [x] `GET /api/polls`: daftar polling, filter status, total votes per poll dihitung
+- [x] `GET /api/polls/[slug]`: detail polling, persentase per opsi dihitung
+- [x] `POST /api/polls/[slug]/vote`: multi-question support, duplicate guard per pertanyaan per user, award poin satu kali per poll
+- [x] Halaman list polling publik
+- [x] Halaman detail polling + vote + hasil
 
-- [x] Bookmark artikel
-- [x] Submit artikel untuk review
-- [x] Lihat status artikel milik sendiri
-- [x] Mengikuti quiz dengan hasil langsung
-- [x] Mengikuti polling/vote
-- [x] Dapatkan poin untuk aktivitas tertentu
-- [x] Lihat halaman my-articles
-- [x] Lihat halaman points
-- [x] Edit profile / avatar
-- [ ] Edit atau submit ulang artikel yang ditolak
-- [ ] Booking ulang / kembali bookmark tanpa poin duplikat
-- [ ] Login harian + poin login harian
-- [ ] Share artikel + poin share
-- [ ] Riwayat poin lengkap
+### 🔖 Bookmark
+
+- [x] `GET /api/bookmarks`: list artikel yang di-bookmark user
+- [x] `POST /api/bookmarks/[articleId]`: bookmark artikel, soft-delete aware (restore jika pernah di-bookmark), +1 poin (hanya sekali)
+- [x] `DELETE /api/bookmarks/[articleId]`: soft-delete (set `deletedAt`), decrement `bookmarkCount`
+- [x] Poin bookmark tidak diberikan ulang jika user hapus lalu bookmark ulang artikel yang sama
+
+### 🏆 Leaderboard & Poin
+
+- [x] `GET /api/leaderboard/weekly`: rolling window 7 hari, group by userId, resolve display name dari profile
+- [x] `GET /api/points/my`: return 100 transaksi poin terakhir milik user
+- [x] Halaman leaderboard mingguan publik
+- [x] Halaman points user dengan riwayat transaksi lengkap + ikon per tipe aktivitas
+
+### 📤 Upload
+
+- [x] `POST /api/upload`: auth required, validasi tipe image + max 10MB, upload ke Cloudflare R2 (graceful fallback jika unconfigured), simpan record ke tabel `File`
+- [x] `lib/r2.ts`: S3Client wrapper, `uploadToR2`, `deleteFromR2`, `getSignedUrlR2`, fallback path jika unconfigured
+
+### 👤 Profile User
+
+- [x] `GET/PUT /api/profile`: get profile + stats, update displayName / bio / avatar
+- [x] Halaman profil: stats dari API, recent points, quick actions
+- [x] Edit profil: avatar upload, name/username (dengan cooldown 14 hari), displayName, bio
+- [x] Avatar upload terintegrasi profile edit
+
+### 📄 Halaman User
+
+- [x] `app/(user)/submit-article`: RichTextEditor, image upload, pilih kategori/tag, simpan sebagai draft atau submit untuk review
+- [x] `app/(user)/edit-article/[id]`: pre-populate form dari API, flow submit sama dengan create
+- [x] `app/(user)/my-articles`: filter by status, preview catatan penolakan, aksi edit/submit/hapus, modal riwayat review
+- [x] `app/(user)/bookmarks`: list artikel yang di-bookmark
+- [x] `app/(user)/points`: riwayat transaksi poin lengkap
+- [x] `app/(user)/profile`: halaman profil user
+- [x] `app/(user)/profile/edit`: form edit profil
+
+### 🛡️ Admin — API
+
+- [x] `GET /api/admin/stats`: count artikel/user/quiz/poll
+- [x] `GET /api/admin/articles`: list artikel, filter by status
+- [x] `GET /api/admin/articles/pending`: filter PENDING_REVIEW saja
+- [x] `POST /api/admin/articles/[id]/approve`: set PUBLISHED, buat record ArticleReview
+- [x] `POST /api/admin/articles/[id]/reject`: set REJECTED, buat record ArticleReview dengan catatan
+- [x] `PUT /api/admin/articles/[id]/featured`: toggle `isFeatured`
+- [x] `PUT /api/admin/articles/[id]/hot`: toggle `isHot`
+- [x] `GET/POST /api/admin/tags`: list dengan usage count, buat tag baru dengan slug, duplicate guard
+- [x] `DELETE /api/admin/tags/[id]`: guard hapus jika tag masih dipakai artikel
+- [x] `GET/PUT /api/admin/users`: search/filter, update role + status user
+- [x] `GET /api/admin/users/[id]`: detail user + artikel + transaksi poin + statistik
+- [x] `GET/POST /api/admin/categories`: CRUD dengan slug generation, duplicate guard
+- [x] `PATCH/DELETE /api/admin/categories/[id]`: update dengan rename check, delete dengan guard artikel
+- [x] `GET /api/admin/homepage`: return featured + hot articles
+- [x] `GET/POST /api/admin/polls`: list dengan filter, create dengan questions + options validasi
+- [x] `GET/PATCH/DELETE /api/admin/polls/[id]`: edit semua field + replace questions, delete hanya DRAFT
+- [x] `GET/POST /api/admin/quizzes`: list dengan filter, create dengan questions + options + correct answers
+- [x] `GET/PATCH/DELETE /api/admin/quizzes/[id]`: edit semua field + replace questions, delete hanya DRAFT
+
+### 🛡️ Admin — Halaman
+
+- [x] `app/(admin)/admin/page.tsx`: stats cards, quick action links, preview artikel pending
+- [x] `app/(admin)/admin/homepage/page.tsx`: toggle featured/hot untuk semua artikel published, search, live data
+- [x] `app/(admin)/admin/tags/page.tsx`: CRUD tag, usage count, guard hapus
+- [x] `app/(admin)/admin/users/page.tsx`: list user dengan search + filter role, update role/status
+- [x] `app/(admin)/admin/users/[id]/page.tsx`: detail user + statistik + transaksi poin
+- [x] `app/(admin)/admin/articles/page.tsx`: list artikel admin, filter status
+- [x] `app/(admin)/admin/articles/review/page.tsx`: queue review + detail + approve/reject dengan catatan
+- [x] `app/(admin)/admin/categories/page.tsx`: CRUD kategori, toggle aktif/nonaktif, guard hapus, confirm modal
+- [x] `app/(admin)/admin/quizzes/page.tsx`: list quiz, filter status, aksi aktivasi/hapus, link ke edit
+- [x] `app/(admin)/admin/quizzes/create/page.tsx`: multi-question builder, marking jawaban benar, image upload per soal/opsi
+- [x] `app/(admin)/admin/quizzes/[id]/edit/page.tsx`: load data existing, same builder seperti create
+- [x] `app/(admin)/admin/polls/page.tsx`: list polling, filter status + tipe, aksi tutup/aktifkan/hapus
+- [x] `app/(admin)/admin/polls/create/page.tsx`: multi-question builder, image upload, toggle guest vote
+- [x] `app/(admin)/admin/polls/[id]/edit/page.tsx`: load data existing, same builder seperti create
+
+### 🌐 Halaman Publik
+
+- [x] Homepage: featured article slider auto-advance, trending sidebar, hero search, latest articles grid, polls + quiz CTA, leaderboard preview, kategori grid
+- [x] `app/(public)/articles/page.tsx`: search box, filter kategori, filter tag (toggle panel via URL param `?tag=`), sort latest/popular/trending, pagination
+- [x] `app/(public)/articles/[slug]/page.tsx`: read complete detection, bookmark toggle, share tracking, related articles, tags
+- [x] `app/(public)/polls/page.tsx`: list polling
+- [x] `app/(public)/polls/[slug]/page.tsx`: detail polling, vote, hasil persentase
+- [x] `app/(public)/quizzes/page.tsx`: list quiz
+- [x] `app/(public)/quizzes/[slug]/page.tsx`: detail quiz, submit jawaban, hasil langsung
+- [x] `app/(public)/leaderboard/page.tsx`: weekly leaderboard
+- [x] Search icon di Navbar (desktop + mobile) redirect ke `/articles?search=...`
+- [x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
+
+### 🔧 Utilities & Infrastruktur
+
+- [x] `lib/auth.ts`: bcrypt, JWT create/verify, `getCurrentUser`, `getCurrentAdmin`, cookie set/clear
+- [x] `lib/points.ts`: `awardPoints()` dengan idempotency via unique constraint + race condition handling
+- [x] `lib/slug.ts`: `createSlug` (user content) dan `createAdminSlug` (admin content)
+- [x] `lib/db.ts`: Prisma client singleton
+- [x] `lib/seed.ts`: auto-seed DB dipanggil saat register/login/categories
+- [x] `components/ui/confirm-modal.tsx` + `useConfirm` hook: reusable confirm dialog
+- [x] `components/ui/review-history-modal.tsx` + `useReviewHistory` hook: modal riwayat review artikel
+- [x] `RichTextEditor` component: digunakan di submit/edit article
+
+---
+
+## 🚧 Belum Diimplementasi
+
+### 🔐 Auth & Akun
+
+- [ ] **Email verification** — kirim email konfirmasi saat register, validasi token sebelum akun aktif
+- [ ] **Forgot password / password reset** — form request reset, kirim email link, form set password baru
+- [ ] **OAuth login** — login via Google/sosial media (opsional, sesuai arah ekosistem)
+- [ ] **Session management UI** — user bisa lihat dan revoke session aktif
+
+### 📰 Artikel
+
+- [ ] **Admin: create artikel langsung dari panel** — saat ini admin bisa publish/reject tapi belum ada UI create artikel dari admin
+- [ ] **Admin: edit artikel published** — edit konten artikel yang sudah dipublish
+- [ ] **Admin: archive artikel** — pindah status ke ARCHIVED dan tidak tampil di portal
+- [ ] **Pagination di my-articles** — saat ini list mungkin tanpa pagination jika artikel banyak
+- [ ] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
+- [ ] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
+
+### 🧩 Quiz
+
+- [ ] **Monthly / all-time quiz leaderboard per quiz** — saat ini hanya global weekly
+- [ ] **Statistik detail per quiz di admin** — berapa user sudah attempt, distribusi skor, pass rate
+
+### 📊 Polling / Voting
+
+- [ ] **Statistik detail per poll di admin** — breakdown votasi per opsi, tren waktu
+
+### 🏆 Leaderboard
+
+- [ ] **Monthly leaderboard** — rolling window 30 hari
+- [ ] **All-time leaderboard** — total poin sepanjang waktu
+- [ ] **Filter leaderboard by app** — `source_app = news` vs `all` (global-ready, belum UI)
+- [ ] **Badge / level pada leaderboard** — indikasi visual pencapaian user
+
+### 👤 Profile & Riwayat User
+
+- [ ] **Author profile publik** — halaman `/profile/[username]` yang bisa dilihat user lain: bio, artikel published, statistik publik
+- [ ] **Statistik penulis** — total artikel published, total views, total bookmark diterima
+- [ ] **Riwayat aktivitas lengkap** — `activity_log` viewer: kapan baca artikel apa, ikut quiz apa, vote poll apa
+- [ ] **Export riwayat poin** — download CSV transaksi poin milik user
+
+### 🛡️ Admin
+
+- [ ] **Admin: create/write artikel** — admin membuat artikel langsung (bukan hanya mereview)
+- [ ] **Activity audit log** — log semua aksi admin: siapa approve apa, siapa reject apa, kapan
+- [ ] **Bulk action artikel** — pilih banyak artikel sekaligus untuk approve/reject/archive
+- [ ] **Export data CSV/JSON** — export list artikel, user, poin ke CSV atau JSON
+- [ ] **Monitor leaderboard di admin** — tampilan leaderboard dari sisi admin
+- [ ] **Monitor point transactions di admin** — lihat semua transaksi poin semua user, bisa filter by user/tipe/periode
+- [ ] **Admin artikel: filter + sort lebih lengkap** — filter by author, kategori, tanggal
+- [ ] **Admin: lihat statistik per kategori** — berapa artikel, views, engagement per kategori
+
+### 💬 Engagement & Sosial
+
+- [ ] **Sistem komentar artikel** — user bisa komentar pada artikel, thread sederhana, moderasi admin
+- [ ] **Reaction / like artikel** — user bisa react/like artikel sebagai bentuk engagement ringan
+- [ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
+- [ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
+
+### 🔍 Search & Discovery
+
+- [ ] **Dedicated search result page** — `/search?q=...` dengan hasil artikel + quiz + poll sekaligus
+- [ ] **Trending articles discovery** — halaman atau section khusus trending (bukan hanya sort param)
+- [ ] **Related tags di halaman artikel** — klik tag langsung filter artikel dengan tag tersebut
+- [ ] **Popular / trending tags** — tampilan tag populer di sidebar atau halaman explore
+
+### ⚙️ Keamanan & Kualitas
+
+- [ ] **Rate limiting** — throttle API endpoint sensitif: login, register, submit artikel, vote
+- [ ] **Input sanitasi HTML** — sanitasi konten RichTextEditor sebelum disimpan ke DB (mencegah XSS)
+- [ ] **Image moderation** — validasi / moderasi gambar upload sebelum publish
+- [ ] **Monitoring & alerting** — error tracking (Sentry atau setara), uptime monitoring
+- [ ] **Logging structured** — log request/response penting ke file atau service
+
+### 📈 Analytics & Reporting
+
+- [ ] **View analytics per artikel** — grafik views per hari/minggu, unique visitor vs total views
+- [ ] **Point transaction summary di admin** — total poin diberikan per periode, breakdown by activity type
+- [ ] **User growth tracking** — grafik registrasi user per hari/minggu
+- [ ] **Content performance report** — artikel dengan views, bookmark, share tertinggi dalam periode tertentu
+
+### 🌐 Ekosistem & Infrastruktur (Future)
+
+- [ ] **Shared auth multi-app** — auth terpusat untuk `news`, `learn`, `admin`, `landing`
+- [ ] **LMS integration** — `learn.jepangku.com` dengan shared user dan poin
+- [ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student`
+- [ ] **Multi-app deployment** — subdomain production per app
+- [ ] **CI/CD pipeline** — otomasi deploy ke Vercel / VPS
+- [ ] **Global leaderboard** — gabungan poin dari semua app (`source_app = all`)
+- [ ] **Mobile app** — React Native atau PWA
+
+---
+
+## 📦 Checklist Halaman (File-by-File)
+
+### Public
+
+- [x] `app/(public)/page.tsx` — homepage (featured slider, trending, polls/quiz, leaderboard, kategori)
+- [x] `app/(public)/articles/page.tsx` — articles list (search, filter kategori, tag, sort)
+- [x] `app/(public)/articles/[slug]/page.tsx` — article detail (read complete, bookmark, share, related)
+- [x] `app/(public)/polls/page.tsx` — polls list
+- [x] `app/(public)/polls/[slug]/page.tsx` — poll detail (vote, hasil)
+- [x] `app/(public)/quizzes/page.tsx` — quizzes list
+- [x] `app/(public)/quizzes/[slug]/page.tsx` — quiz detail (attempt, hasil langsung)
+- [x] `app/(public)/leaderboard/page.tsx` — leaderboard mingguan
+
+### User
+
+- [x] `app/(user)/bookmarks/page.tsx` — list artikel yang di-bookmark
+- [x] `app/(user)/my-articles/page.tsx` — list artikel user + status + riwayat review
+- [x] `app/(user)/points/page.tsx` — riwayat transaksi poin lengkap
+- [x] `app/(user)/profile/page.tsx` — halaman profil (stats, recent points, quick actions)
+- [x] `app/(user)/profile/edit/page.tsx` — edit profil (avatar, name, bio, username cooldown)
+- [x] `app/(user)/submit-article/page.tsx` — submit artikel (RichTextEditor, upload, kategori, tag)
+- [x] `app/(user)/edit-article/[id]/page.tsx` — edit artikel (pre-populate, same flow)
+- [ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user *(belum ada)*
+- [ ] `app/(public)/profile/[username]/page.tsx` — profil publik author *(belum ada)*
 
 ### Admin
 
-- [x] Akses admin dashboard
-- [x] Review artikel pending
-- [x] Publish / reject user article
-- [x] Kelola tag
-- [x] Kelola user
-- [x] Kelola homepage settings dasar
-- [ ] Kelola kategori
-- [ ] Kelola quiz (create/update/status)
-- [ ] Kelola poll (create/update/status)
-- [ ] Activity audit / admin log
-- [ ] Export data dan bulk action
+- [x] `app/(admin)/admin/page.tsx` — dashboard (stats, quick actions, pending preview)
+- [x] `app/(admin)/admin/homepage/page.tsx` — manage featured/hot artikel (full functional)
+- [x] `app/(admin)/admin/tags/page.tsx` — CRUD tag
+- [x] `app/(admin)/admin/users/page.tsx` — list + search + filter + update role/status user
+- [x] `app/(admin)/admin/users/[id]/page.tsx` — detail user (stats + poin + artikel)
+- [x] `app/(admin)/admin/articles/page.tsx` — list artikel admin (filter status)
+- [x] `app/(admin)/admin/articles/review/page.tsx` — review queue (approve/reject dengan catatan)
+- [x] `app/(admin)/admin/categories/page.tsx` — CRUD kategori (toggle aktif, guard hapus)
+- [x] `app/(admin)/admin/quizzes/page.tsx` — list quiz (filter, aktivasi, hapus)
+- [x] `app/(admin)/admin/quizzes/create/page.tsx` — buat quiz (multi-question builder)
+- [x] `app/(admin)/admin/quizzes/[id]/edit/page.tsx` — edit quiz *(fully implemented)*
+- [x] `app/(admin)/admin/polls/page.tsx` — list poll (filter, tutup, aktivasi, hapus)
+- [x] `app/(admin)/admin/polls/create/page.tsx` — buat poll (multi-question builder)
+- [x] `app/(admin)/admin/polls/[id]/edit/page.tsx` — edit poll *(fully implemented)*
+- [ ] `app/(admin)/admin/articles/create/page.tsx` — admin buat artikel *(belum ada)*
+- [ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin *(belum ada)*
+- [ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin *(belum ada)*
+- [ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin *(belum ada)*
 
-## ⏱️ Prioritas Jangka Pendek (MVP-focused)
+---
 
-1. Lengkapi `submit-article` dan `edit-article` flow
-2. Tambahkan search / category / tag filter
-3. Implementasikan reading progress + reward points
-4. Perbaiki admin quiz / poll management
-5. Tambahkan activity log dan point transaction viewer
-6. Tambahkan email verification + password reset
+## ⏱️ Prioritas Pengerjaan Berikutnya
 
-## 🛠️ Checklist File-by-File
+### Jangka Pendek (segera)
 
-- [x] `app/(public)/page.tsx` — homepage (featured, trending, polls/quiz, leaderboard skeleton)
-- [x] `app/(public)/articles/page.tsx` — articles list (ArticleCardSkeleton)
-- [x] `app/(public)/articles/[slug]/page.tsx` — article detail (ArticleCardSkeleton / content skeleton)
-- [x] `app/(public)/polls/page.tsx` — polls list (PollCardSkeleton)
-- [x] `app/(public)/polls/[slug]/page.tsx` — poll detail (options & results skeleton)
-- [x] `app/(public)/quizzes/page.tsx` — quizzes list (PollQuizCardSkeleton)
-- [x] `app/(public)/quizzes/[slug]/page.tsx` — quiz detail (questions/options skeleton)
-- [x] `app/(public)/leaderboard/page.tsx` — leaderboard (LeaderboardRowSkeleton)
+1. Email verification + forgot password / password reset
+2. Admin: create/edit artikel published
+3. Riwayat aktivitas user (`/activity`)
+4. Monitor point transactions di admin
+5. Rate limiting dan sanitasi input HTML (security)
 
-- [x] `app/(user)/bookmarks/page.tsx` — bookmarks (ArticleCardSkeleton grid)
-- [x] `app/(user)/my-articles/page.tsx` — my-articles (compact ArticleCardSkeleton)
-- [x] `app/(user)/points/page.tsx` — points (LeaderboardRowSkeleton placeholders)
-- [x] `app/(user)/profile/page.tsx` — profile
-- [X] `app/(user)/submit-article/page.tsx` — submit article
-- [X] `app/(user)/edit-article/[id]/page.tsx` — edit article
+### Jangka Menengah
 
-- [x] `app/(admin)/admin/page.tsx` — admin dashboard (stats + pending skeleton)
-- [x] `app/(admin)/admin/homepage/page.tsx` — homepage settings (featured/hot skeleton)
-- [x] `app/(admin)/admin/tags/page.tsx` — tags management (row skeleton)
-- [x] `app/(admin)/admin/users/page.tsx` — users list (table row skeleton)
-- [x] `app/(admin)/admin/users/[id]/page.tsx` — user detail (detail skeleton)
-- [x] `app/(admin)/admin/articles/page.tsx` — admin articles list (table skeleton)
-- [x] `app/(admin)/admin/articles/review/page.tsx` — review queue & detail (skeleton)
-- [x] `app/(admin)/admin/quizzes/create/page.tsx` — quiz create
-- [x] `app/(admin)/admin/polls/create/page.tsx` — poll create
-- [x] `app/(admin)/admin/categories/page.tsx` — category management (CRUD, toggle aktif, guard hapus)
+6. Author profile publik (`/profile/[username]`)
+7. Sistem komentar artikel
+8. Monthly / all-time leaderboard
+9. Activity audit log admin
+10. Bulk action + export CSV artikel/user
 
-## 🔭 Lanjutan / Future
+### Jangka Panjang (post-MVP)
 
-- Shared auth / multi-app integration (`news`, `learn`, `admin`, landing)
-- LMS integration
-- Super-admin / role hierarchy: `editor`, `moderator`, `instructor`, `student`
-- Comments system
-- Notifications / inbox
-- Badge / achievement system
-- Monetization / paywall / premium article
-- Mobile app
-- Monthly / all-time leaderboard
-- System monitoring / observability
-- Data warehouse / export analytics
-- Optimasi pengambilan data
+11. In-app notifications
+12. Reaction / like artikel
+13. Follow / subscribe kategori
+14. Shared auth multi-app (ekosistem Jepangku)
+15. LMS integration
+
+---
 
 ## 📌 Referensi
 
-- `README.md`
-- `docs/technical-architecture.md`
-- `.agents/mvp.md`
-- `.agents/user-flow.md`
-- kode sumber di `app/`, `components/`, `lib/`
+- `.agents/mvp.md` — scope MVP dan batasan fitur
+- `.agents/erd.md` — desain database dan schema
+- `.agents/user-flow.md` — role permissions dan user flow
+- `.agents/project-steering.md` — arah dan prioritas proyek
+- `docs/TECH_STACK.md` — arsitektur teknis
+- `docs/R2_SETUP.md` — setup Cloudflare R2
+- `docs/UNCOMPLETED_FEATURE.md` — catatan fitur yang belum selesai

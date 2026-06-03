@@ -378,6 +378,7 @@ model PointTransaction {
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, sourceApp, activityType, sourceType, sourceId])
   @@map("point_transactions")
 }
 

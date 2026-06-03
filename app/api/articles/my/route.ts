@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: 'desc' },
     include: {
       category: { select: { name: true, slug: true } },
-      reviews: { orderBy: { createdAt: 'desc' }, take: 1 },
+      reviews: { orderBy: { reviewedAt: 'desc' }, take: 1, select: { id: true, previousStatus: true, newStatus: true, note: true, reviewedAt: true } },
     },
   });
 

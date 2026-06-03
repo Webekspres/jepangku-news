@@ -1,4 +1,5 @@
 import { db } from './db';
+import { Prisma } from '@prisma/client';
 
 export async function awardPoints(
   userId: string,
@@ -9,7 +10,7 @@ export async function awardPoints(
   description?: string
 ): Promise<boolean> {
   try {
-    // Anti-spam: check if already awarded for this activity+source
+    // Quick check to avoid extra work
     const existing = await db.pointTransaction.findFirst({
       where: {
         userId,
@@ -22,25 +23,37 @@ export async function awardPoints(
 
     if (existing) return false;
 
-    await db.pointTransaction.create({
-      data: {
-        userId,
-        sourceApp: 'news',
-        activityType,
-        sourceType,
-        sourceId: sourceId ?? null,
-        points,
-        description: description ?? null,
-        occurredAt: new Date(),
-      },
-    });
+    // Use a transaction to create the point transaction and increment user's points atomically
+    try {
+      await db.$transaction(async (tx) => {
+        await tx.pointTransaction.create({
+          data: {
+            userId,
+            sourceApp: 'news',
+            activityType,
+            sourceType,
+            sourceId: sourceId ?? null,
+            points,
+            description: description ?? null,
+            occurredAt: new Date(),
+          },
+        });
 
-    await db.user.update({
-      where: { id: userId },
-      data: { totalPoints: { increment: points } },
-    });
+        await tx.user.update({
+          where: { id: userId },
+          data: { totalPoints: { increment: points } },
+        });
+      });
 
-    return true;
+      return true;
+    } catch (e) {
+      // Handle unique constraint violation (race condition)
+      if ((e as any)?.code === 'P2002' || (e as any)?.code === '23505') {
+        // Duplicate detected, treat as already awarded
+        return false;
+      }
+      throw e;
+    }
   } catch (e) {
     console.error('Error awarding points:', e);
     return false;

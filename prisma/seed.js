@@ -211,7 +211,125 @@ async function main() {
     console.log(`✅ Created article: "${art.title}"`);
   }
 
-  // ── 6. Quizzes ─────────────────────────────────────────────────────────
+  // ── 6. Article Reviews (approve/reject history) ────────────────────────
+  // Seed review records untuk artikel yang statusnya PUBLISHED atau REJECTED
+  // agar tombol "History" muncul di halaman /my-articles.
+  const articlesNeedingReviews = await prisma.article.findMany({
+    where: { status: { in: ["PUBLISHED", "REJECTED"] }, authorId: { not: admin.id } },
+    select: { id: true, title: true, status: true, authorId: true },
+    take: 40,
+  });
+
+  for (let i = 0; i < articlesNeedingReviews.length; i++) {
+    const art = articlesNeedingReviews[i];
+
+    // Skip jika sudah ada review untuk artikel ini
+    const existingReview = await prisma.articleReview.findFirst({
+      where: { articleId: art.id },
+    });
+    if (existingReview) continue;
+
+    const baseDate = new Date(Date.now() - i * 18 * 60 * 60 * 1000);
+
+    if (art.status === "PUBLISHED") {
+      // ~30% artikel PUBLISHED pernah di-reject dulu sebelum akhirnya di-approve
+      const hadPriorReject = i % 3 === 0;
+
+      if (hadPriorReject) {
+        // Review 1 — Reject pertama
+        const rejectDate = new Date(baseDate.getTime() - 3 * 24 * 60 * 60 * 1000);
+        const rejectNotes = [
+          "Konten terlalu singkat, mohon tambahkan minimal 500 kata lagi beserta referensi yang valid.",
+          "Judul kurang sesuai dengan isi artikel. Tolong sesuaikan dan perbaiki struktur paragraf.",
+          "Artikel mengandung informasi yang belum terverifikasi. Mohon sertakan sumber yang kredibel.",
+          "Format penulisan belum sesuai standar. Gunakan heading yang tepat dan tambahkan kesimpulan.",
+        ];
+        await prisma.articleReview.create({
+          data: {
+            articleId: art.id,
+            reviewerId: admin.id,
+            previousStatus: "PENDING_REVIEW",
+            newStatus: "REJECTED",
+            note: rejectNotes[i % rejectNotes.length],
+            reviewedAt: rejectDate,
+            createdAt: rejectDate,
+          },
+        });
+
+        // Review 2 — Resubmit lalu di-approve
+        const approveDate = new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000);
+        await prisma.articleReview.create({
+          data: {
+            articleId: art.id,
+            reviewerId: admin.id,
+            previousStatus: "PENDING_REVIEW",
+            newStatus: "PUBLISHED",
+            note: "Revisi sudah bagus. Artikel layak tayang.",
+            reviewedAt: approveDate,
+            createdAt: approveDate,
+          },
+        });
+      } else {
+        // Langsung approve
+        await prisma.articleReview.create({
+          data: {
+            articleId: art.id,
+            reviewerId: admin.id,
+            previousStatus: "PENDING_REVIEW",
+            newStatus: "PUBLISHED",
+            note: "Approved",
+            reviewedAt: baseDate,
+            createdAt: baseDate,
+          },
+        });
+      }
+    } else if (art.status === "REJECTED") {
+      // ~40% artikel REJECTED pernah di-reject lebih dari sekali
+      const multiReject = i % 5 === 0;
+
+      const firstRejectNotes = [
+        "Artikel terlalu pendek dan tidak memiliki kedalaman informasi yang cukup.",
+        "Topik sudah pernah dibahas sebelumnya di portal ini. Mohon cari angle yang berbeda.",
+        "Banyak typo dan kesalahan tata bahasa. Mohon proofread terlebih dahulu.",
+        "Konten tidak relevan dengan tema portal Jepangku. Pastikan artikel membahas topik Jepang.",
+        "Artikel tidak memiliki struktur yang jelas. Tambahkan intro, isi, dan kesimpulan.",
+      ];
+
+      const firstRejectDate = new Date(baseDate.getTime() - 5 * 24 * 60 * 60 * 1000);
+      await prisma.articleReview.create({
+        data: {
+          articleId: art.id,
+          reviewerId: admin.id,
+          previousStatus: "PENDING_REVIEW",
+          newStatus: "REJECTED",
+          note: firstRejectNotes[i % firstRejectNotes.length],
+          reviewedAt: firstRejectDate,
+          createdAt: firstRejectDate,
+        },
+      });
+
+      if (multiReject) {
+        // User resubmit → di-reject lagi
+        const secondRejectDate = new Date(baseDate.getTime() - 2 * 24 * 60 * 60 * 1000);
+        await prisma.articleReview.create({
+          data: {
+            articleId: art.id,
+            reviewerId: admin.id,
+            previousStatus: "PENDING_REVIEW",
+            newStatus: "REJECTED",
+            note: "Revisi masih belum memenuhi standar. Konten perlu diperdalam dan sumber harus lebih kredibel.",
+            reviewedAt: secondRejectDate,
+            createdAt: secondRejectDate,
+          },
+        });
+      }
+    }
+
+    console.log(`  ✅ ArticleReview seeded: "${art.title}" (${art.status})`);
+  }
+  console.log("✅ Article reviews seeded.");
+
+  // ── 7. Quizzes ─────────────────────────────────────────────────────────
   for (const quizData of SAMPLE_QUIZZES) {
     const existing = await prisma.quiz.findFirst({
       where: { title: quizData.title },
@@ -258,7 +376,7 @@ async function main() {
     );
   }
 
-  // ── 7. Polls ───────────────────────────────────────────────────────────
+  // ── 8. Polls ───────────────────────────────────────────────────────────
   for (const pollData of SAMPLE_POLLS) {
     const existing = await prisma.poll.findFirst({
       where: { title: pollData.title },
@@ -314,7 +432,7 @@ async function main() {
     );
   }
 
-  // ── 8. User Activities (for leaderboard) ──────────────────────────────
+  // ── 9. User Activities (for leaderboard) ──────────────────────────────
   // Fetch all seeded users (excluding admin) and all quizzes/polls/articles
   const allUsers = await prisma.user.findMany({
     where: { role: "USER" },
