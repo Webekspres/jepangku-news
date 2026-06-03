@@ -47,7 +47,13 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Reading progress detection + reward points
+- [x] Reading progress detection + reward points
+  - [x] Scroll detection di artikel detail — trigger saat user sampai akhir konten
+  - [x] API `POST /api/articles/[slug]/read-complete` — award +2 poin sekali per artikel
+  - [x] Anti-duplicate via `awardPoints()` — poin hanya diberikan satu kali per user per artikel
+  - [x] `readCompletedAt` di-update pada `article_views` jika ada record view
+  - [x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
+  - [x] Guest tidak dapat poin (silently ignored)
 - [ ] Share tracking + poin reward
 - [ ] Poin hanya satu kali per activity rule enforcement (quiz, poll, bookmark, read)
 - [ ] Review catatan reject / history pada halaman user article
