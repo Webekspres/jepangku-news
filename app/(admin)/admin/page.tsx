@@ -82,7 +82,7 @@ export default function AdminDashboard() {
       label: "Polling",
       value: stats?.totalPolls || 0,
       icon: MessageSquare,
-      link: "/admin/polls/create",
+      link: "/admin/polls",
     },
   ];
 

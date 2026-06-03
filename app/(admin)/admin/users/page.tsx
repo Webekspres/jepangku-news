@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
     loadUsers();
@@ -59,40 +61,43 @@ export default function AdminUsersPage() {
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     const roleLabel = getRoleLabel(newRole);
-
-    if (!confirm(`Ubah role menjadi ${roleLabel}?`)) return;
-
-    try {
-      await fetch(`/api/admin/users/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      toast.success("Role berhasil diperbarui");
-      loadUsers();
-    } catch {
-      toast.error("Gagal memperbarui role");
-    }
+    confirm({
+      title: `Ubah Role ke ${roleLabel}?`,
+      description: `Pengguna ini akan mendapat hak akses sebagai ${roleLabel}.`,
+      confirmLabel: "Ya, Ubah",
+      variant: "warning",
+      onConfirm: async () => {
+        await fetch(`/api/admin/users/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: newRole }),
+        });
+        toast.success("Role berhasil diperbarui");
+        loadUsers();
+      },
+    });
   };
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
     const statusLabel = getStatusLabel(newStatus);
-
-    if (!confirm(`Ubah status menjadi ${statusLabel}?`)) return;
-
-    try {
-      await fetch(`/api/admin/users/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      toast.success("Status berhasil diperbarui");
-      loadUsers();
-    } catch {
-      toast.error("Gagal memperbarui status");
-    }
+    const isBan = newStatus === "banned";
+    confirm({
+      title: isBan ? "Blokir Pengguna?" : `Ubah Status ke ${statusLabel}?`,
+      description: isBan
+        ? "Pengguna tidak akan bisa mengakses platform setelah diblokir."
+        : `Status pengguna akan diubah menjadi ${statusLabel}.`,
+      confirmLabel: isBan ? "Ya, Blokir" : "Ya, Ubah",
+      variant: isBan ? "danger" : "warning",
+      onConfirm: async () => {
+        await fetch(`/api/admin/users/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        });
+        toast.success("Status berhasil diperbarui");
+        loadUsers();
+      },
+    });
   };
 
   const roleFilters = [
@@ -103,6 +108,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-users-page">
+      <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link

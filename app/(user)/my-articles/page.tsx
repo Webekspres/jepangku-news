@@ -9,6 +9,7 @@ import { Plus, Edit, Trash2, Send, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 
 const STATUS_BADGE: Record<
   string,
@@ -34,6 +35,7 @@ export default function MyArticlesPage() {
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
     loadArticles();
@@ -46,21 +48,22 @@ export default function MyArticlesPage() {
   };
 
   const handleDelete = async (articleId: string, slug: string) => {
-    if (!confirm("Delete this article? This cannot be undone.")) return;
-    try {
-      await fetch(`/api/articles/${slug}/delete`, { method: "DELETE" }).then(
-        (r) => {
-          if (!r.ok)
-            return r.json().then((e: any) => {
-              throw new Error(e.error);
-            });
-        },
-      );
-      toast.success("Article deleted");
-      loadArticles();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to delete");
-    }
+    confirm({
+      title: "Hapus Artikel?",
+      description: "Artikel ini akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.",
+      confirmLabel: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        await fetch(`/api/articles/${slug}/delete`, { method: "DELETE" }).then(
+          (r) => {
+            if (!r.ok)
+              return r.json().then((e: any) => { throw new Error(e.error); });
+          },
+        );
+        toast.success("Article deleted");
+        loadArticles();
+      },
+    });
   };
 
   const handleSubmit = async (article: any) => {
@@ -82,6 +85,7 @@ export default function MyArticlesPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="my-articles-page">
+      <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-center justify-between">

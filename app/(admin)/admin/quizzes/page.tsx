@@ -3,11 +3,14 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Plus, Pencil, Zap, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
   Table,
   TableBody,
@@ -42,6 +45,8 @@ export default function AdminQuizzesPage() {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
     loadQuizzes();
@@ -58,6 +63,45 @@ export default function AdminQuizzesPage() {
     setLoading(false);
   };
 
+  const handleActivate = (quizId: string, title: string) => {
+    confirm({
+      title: "Aktifkan Kuis?",
+      description: `"${title}" akan dipublikasikan dan bisa diakses oleh pengguna.`,
+      confirmLabel: "Ya, Aktifkan",
+      variant: "info",
+      onConfirm: async () => {
+        const res = await fetch(`/api/admin/quizzes/${quizId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "ACTIVE" }),
+        });
+        if (!res.ok) throw new Error("Gagal mengaktifkan kuis");
+        toast.success("Kuis berhasil diaktifkan");
+        setQuizzes((prev) =>
+          prev.map((q) => (q.id === quizId ? { ...q, status: "ACTIVE" } : q)),
+        );
+      },
+    });
+  };
+
+  const handleDelete = (quizId: string, title: string) => {
+    confirm({
+      title: "Hapus Kuis?",
+      description: `"${title}" akan dihapus secara permanen beserta semua pertanyaannya.`,
+      confirmLabel: "Hapus",
+      variant: "danger",
+      onConfirm: async () => {
+        const res = await fetch(`/api/admin/quizzes/${quizId}`, { method: "DELETE" });
+        if (!res.ok) {
+          const e = await res.json();
+          throw new Error(e.error || "Gagal menghapus kuis");
+        }
+        toast.success("Kuis berhasil dihapus");
+        setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+      },
+    });
+  };
+
   const filters = [
     { v: "", l: "Semua" },
     { v: "ACTIVE", l: "Aktif" },
@@ -67,6 +111,7 @@ export default function AdminQuizzesPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-quizzes-page">
+      <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
@@ -115,6 +160,7 @@ export default function AdminQuizzesPage() {
                 <TableHead>PERCOBAAN</TableHead>
                 <TableHead>POIN</TableHead>
                 <TableHead>DIBUAT</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
 
@@ -122,7 +168,7 @@ export default function AdminQuizzesPage() {
               {loading && quizzes.length === 0 ? (
                 [1, 2, 3].map((r) => (
                   <TableRow key={r}>
-                    {[...Array(7)].map((_, i) => (
+                    {[...Array(8)].map((_, i) => (
                       <TableCell key={i}>
                         <SkeletonBox height="0.9rem" width={i === 0 ? "70%" : "40%"} />
                       </TableCell>
@@ -132,7 +178,7 @@ export default function AdminQuizzesPage() {
               ) : quizzes.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center text-jepang-muted py-12"
                   >
                     Tidak ada kuis ditemukan
@@ -177,6 +223,40 @@ export default function AdminQuizzesPage() {
 
                     <TableCell className="text-jepang-muted text-sm">
                       {new Date(quiz.createdAt).toLocaleDateString("id-ID")}
+                    </TableCell>
+
+                    <TableCell>
+                      {quiz.status === "DRAFT" && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => router.push(`/admin/quizzes/${quiz.id}/edit`)}
+                            data-testid={`edit-quiz-${quiz.id}`}
+                            className="hover:bg-foreground hover:text-white"
+                          >
+                            <Pencil size={13} className="mr-1" /> Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleActivate(quiz.id, quiz.title)}
+                            data-testid={`activate-quiz-${quiz.id}`}
+                            className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                          >
+                            <Zap size={13} className="mr-1" /> Aktifkan
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDelete(quiz.id, quiz.title)}
+                            data-testid={`delete-quiz-${quiz.id}`}
+                            className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                          >
+                            <Trash2 size={13} className="mr-1" /> Hapus
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

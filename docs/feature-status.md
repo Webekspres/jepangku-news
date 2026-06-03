@@ -31,11 +31,11 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [x] Submit article page untuk user (form UI + submit)
 - [x] Edit article page untuk user
 - [x] Quiz create page admin
-- [ ] Quiz list admin
+- [x] Quiz list admin
+- [x] Poll create page admin
 
 ## 🚧 MVP In Progress / Partial
 
-- [ ] Poll create page admin
 - [ ] Admin category management UI
 - [ ] Full-text search dan filter kategori/tag
 - [ ] Reading progress detection + reward points
@@ -153,6 +153,7 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - Monthly / all-time leaderboard
 - System monitoring / observability
 - Data warehouse / export analytics
+- Optimasi pengambilan data
 
 ## 📌 Referensi
 
