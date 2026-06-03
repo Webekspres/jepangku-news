@@ -25,6 +25,8 @@ export default function ArticleDetailPage() {
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [hasShared, setHasShared] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [readCompleted, setReadCompleted] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const isLoading = loading && !article;
@@ -53,12 +55,25 @@ export default function ArticleDetailPage() {
         return r.json();
       });
       setArticle(data);
+
       if (user) {
-        const bookmarks = await fetch("/api/bookmarks").then((r) => r.json());
-        setIsBookmarked(
-          Array.isArray(bookmarks) &&
-            bookmarks.some((b: any) => b.id === data.id),
-        );
+        // Fetch bookmark dan share status secara independen — error di sini
+        // tidak boleh menyebabkan redirect ke /articles
+        Promise.allSettled([
+          fetch("/api/bookmarks", { credentials: "include" })
+            .then((r) => r.json())
+            .then((bookmarks) => {
+              setIsBookmarked(
+                Array.isArray(bookmarks) &&
+                  bookmarks.some((b: any) => b.id === data.id),
+              );
+            }),
+          fetch(`/api/articles/${slug}/share`, { credentials: "include" })
+            .then((r) => (r.ok ? r.json() : { hasShared: false }))
+            .then((shareStatus) => {
+              setHasShared(shareStatus.hasShared || false);
+            }),
+        ]);
       }
     } catch {
       router.push("/articles");
@@ -73,6 +88,7 @@ export default function ArticleDetailPage() {
     try {
       const data = await fetch(`/api/articles/${slug}/read-complete`, {
         method: "POST",
+        credentials: "include",
       }).then((r) => r.json());
       if (data.awarded) {
         toast.success(`+${data.points} points for reading!`);
@@ -89,12 +105,16 @@ export default function ArticleDetailPage() {
     }
     try {
       if (isBookmarked) {
-        await fetch(`/api/bookmarks/${article.id}`, { method: "DELETE" });
+        await fetch(`/api/bookmarks/${article.id}`, { 
+          method: "DELETE",
+          credentials: "include",
+        });
         setIsBookmarked(false);
         toast.success("Bookmark removed");
       } else {
         const data = await fetch(`/api/bookmarks/${article.id}`, {
           method: "POST",
+          credentials: "include",
         }).then((r) => r.json());
         setIsBookmarked(true);
         if (data.pointsAwarded) {
@@ -108,9 +128,34 @@ export default function ArticleDetailPage() {
   };
 
   const handleShare = async () => {
+    // Allow guest users to copy link
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied!");
+
+      // If user is logged in, track share and award points
+      if (user && !hasShared) {
+        setIsSharing(true);
+        try {
+          const trackResponse = await fetch(`/api/articles/${slug}/share`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ shareMethod: "copy-link" }),
+          }).then((r) => r.json());
+
+          if (trackResponse.pointsAwarded) {
+            toast.success(`Link copied! +${trackResponse.points} points for sharing!`);
+            setHasShared(true);
+            refreshUser();
+          }
+        } catch (error) {
+          console.error("Error tracking share:", error);
+        } finally {
+          setIsSharing(false);
+        }
+      } else {
+        toast.success("Link copied!");
+      }
     } catch {
       toast.error("Failed to copy link");
     }
@@ -250,14 +295,14 @@ export default function ArticleDetailPage() {
               </Button>
 
               <Button
-                variant="outline"
+                variant={(user && hasShared) ? "default" : "outline"}
                 size="sm"
                 onClick={handleShare}
-                disabled={loading}
+                disabled={loading || isSharing}
                 data-testid="share-btn"
               >
                 <Share2 size={14} strokeWidth={1.5} />
-                Share
+                {user && hasShared ? "Shared" : "Share"}
               </Button>
             </div>
           </div>

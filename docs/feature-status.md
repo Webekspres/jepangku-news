@@ -44,9 +44,6 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
   - [x] Search API mencakup `title`, `excerpt`, dan `content` artikel
   - [x] Filter by tag di UI halaman articles (toggle panel, aktif via URL param `?tag=`)
   - [x] Search icon di Navbar (desktop + mobile) redirect ke `/articles?search=...`
-
-## 🚧 MVP In Progress / Partial
-
 - [x] Reading progress detection + reward points
   - [x] Scroll detection di artikel detail — trigger saat user sampai akhir konten
   - [x] API `POST /api/articles/[slug]/read-complete` — award +2 poin sekali per artikel
@@ -54,6 +51,9 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
   - [x] `readCompletedAt` di-update pada `article_views` jika ada record view
   - [x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
   - [x] Guest tidak dapat poin (silently ignored)
+
+## 🚧 MVP In Progress / Partial
+
 - [ ] Share tracking + poin reward
 - [ ] Poin hanya satu kali per activity rule enforcement (quiz, poll, bookmark, read)
 - [ ] Review catatan reject / history pada halaman user article
@@ -72,7 +72,8 @@ Dokumen ini menyajikan daftar fitur terperinci yang dapat di-track, diurutkan da
 - [ ] Monthly / all-time leaderboard
 - [ ] Better author profile / bio / statistics on profile
 - [ ] In-app notifications
-- [ ] Comments system
+- [ ] Comments system   
+- [ ] Reaction system
 - [ ] Rate limiting, sanitasi input, monitoring
 
 ## 📦 Fitur User-Facing yang Perlu Di-track
