@@ -37,7 +37,11 @@ signifikan pada fitur.
 [x] `POST /api/articles/[slug]/read-complete`: +2 poin sekali per artikel, anti-duplikat via `awardPoints()`, update `readCompletedAt` di ArticleView
 [x] `GET /api/articles/[slug]/share`: cek status `hasShared` per user
 [x] `POST /api/articles/[slug]/share`: +5 poin, satu kali per user, increment `shareCount`, simpan record ArticleShare
-[x] `GET /api/articles/[slug]/reviews`: riwayat review artikel, hanya bisa diakses penulis artikel
+[x] `GET /api/articles/[slug]/reviews`: riwayat review artikel (status + reviewer), hanya penulis
+[x] `GET /api/articles/[slug]/revisions`: riwayat revisi konten artikel, hanya penulis
+[x] `lib/article-audit.ts`: pencatatan revisi konten, status review, lastEditedBy admin
+[x] Admin edit artikel: `changeNote` wajib; tercatat di `article_revisions`
+[x] `components/ui/article-activity-modal.tsx`: modal gabungan riwayat revisi + review untuk penulis
 [x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
 [x] Scroll detection di halaman detail artikel — trigger saat user sampai akhir konten
 

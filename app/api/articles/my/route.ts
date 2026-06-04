@@ -18,11 +18,20 @@ export async function GET(request: NextRequest) {
 
   const include = {
     category: { select: { name: true, slug: true } },
+    lastEditedBy: { select: { id: true, name: true, role: true } },
     reviews: {
       orderBy: { reviewedAt: 'desc' as const },
       take: 1,
-      select: { id: true, previousStatus: true, newStatus: true, note: true, reviewedAt: true },
+      select: {
+        id: true,
+        previousStatus: true,
+        newStatus: true,
+        note: true,
+        reviewedAt: true,
+        reviewer: { select: { id: true, name: true, role: true } },
+      },
     },
+    _count: { select: { revisions: true, reviews: true } },
   };
 
   if (!shouldPaginate) {

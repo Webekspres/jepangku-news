@@ -48,6 +48,7 @@ export default function AdminEditArticlePage() {
   const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [rejectNote, setRejectNote] = useState("");
+  const [changeNote, setChangeNote] = useState("");
   const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
@@ -108,6 +109,10 @@ export default function AdminEditArticlePage() {
       toast.error("Judul dan konten wajib diisi");
       return;
     }
+    if (!changeNote.trim()) {
+      toast.error("Catatan perubahan wajib diisi");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -125,6 +130,7 @@ export default function AdminEditArticlePage() {
             .map((t) => t.trim())
             .filter(Boolean),
           status: targetStatus,
+          changeNote: changeNote.trim(),
         }),
       });
       if (!res.ok) {
@@ -135,6 +141,7 @@ export default function AdminEditArticlePage() {
       setStatus(updated.status || targetStatus);
       setArticleSlug(updated.slug || articleSlug);
       toast.success("Artikel diperbarui");
+      setChangeNote("");
       if (targetStatus !== status) {
         router.push("/admin/articles");
       }
@@ -156,6 +163,10 @@ export default function AdminEditArticlePage() {
           toast.error("Judul dan konten wajib diisi");
           return;
         }
+        if (!changeNote.trim()) {
+          toast.error("Catatan perubahan wajib diisi sebelum menyetujui");
+          return;
+        }
         setLoading(true);
         try {
           const patchRes = await fetch(`/api/admin/articles/${id}`, {
@@ -171,6 +182,7 @@ export default function AdminEditArticlePage() {
                 .split(",")
                 .map((t) => t.trim())
                 .filter(Boolean),
+              changeNote: changeNote.trim(),
             }),
           });
           if (!patchRes.ok) {
@@ -366,6 +378,23 @@ export default function AdminEditArticlePage() {
               value={form.content}
               onChange={(html) => setForm((f) => ({ ...f, content: html }))}
               placeholder="Tulis konten artikel di sini..."
+            />
+          </div>
+
+          <div className="space-y-2 border border-jepang-border bg-jepang-off-white p-4">
+            <Label htmlFor="change-note">
+              Catatan Perubahan (wajib){" "}
+              <span className="text-jepang-muted font-normal normal-case tracking-normal">
+                — terlihat oleh penulis di riwayat artikel
+              </span>
+            </Label>
+            <Textarea
+              id="change-note"
+              rows={2}
+              value={changeNote}
+              onChange={(e) => setChangeNote(e.target.value)}
+              placeholder="Jelaskan apa yang diubah dan alasannya..."
+              data-testid="admin-change-note"
             />
           </div>
 

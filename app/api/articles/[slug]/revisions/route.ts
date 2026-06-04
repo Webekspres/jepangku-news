@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { reviewListSelect } from '@/lib/article-audit';
+import { revisionListSelect } from '@/lib/article-audit';
 
 export async function GET(
   request: NextRequest,
@@ -25,13 +25,14 @@ export async function GET(
   });
 
   if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
-  if (article.authorId !== user.id)
+  if (article.authorId !== user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
-  const reviews = await db.articleReview.findMany({
+  const revisions = await db.articleRevision.findMany({
     where: { articleId: article.id },
-    orderBy: { reviewedAt: 'desc' },
-    select: reviewListSelect,
+    orderBy: { revisionNumber: 'desc' },
+    select: revisionListSelect,
   });
 
   return NextResponse.json({
@@ -39,6 +40,6 @@ export async function GET(
     articleStatus: article.status,
     lastEditedAt: article.lastEditedAt,
     lastEditedBy: article.lastEditedBy,
-    reviews,
+    revisions,
   });
 }

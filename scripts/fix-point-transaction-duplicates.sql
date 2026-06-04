@@ -1,4 +1,6 @@
--- Remove duplicate point awards (keep earliest row per activity key)
+-- Run manually if migrate deploy / db push fails on point_transactions unique constraint.
+-- Keeps the oldest transaction per (user, activity, source); deletes the rest.
+
 DELETE FROM "point_transactions" pt
 WHERE pt."id" IN (
   SELECT "id"
@@ -12,14 +14,4 @@ WHERE pt."id" IN (
     FROM "point_transactions"
   ) ranked
   WHERE rn > 1
-);
-
--- Add unique constraint to prevent duplicate point transactions
-ALTER TABLE "point_transactions"
-ADD CONSTRAINT "point_transactions_user_activity_unique" UNIQUE (
-  "user_id",
-  "source_app",
-  "activity_type",
-  "source_type",
-  "source_id"
 );

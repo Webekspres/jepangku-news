@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
+import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
@@ -23,9 +24,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const body = await request.json();
-    const { title, excerpt, content, coverImageUrl, categoryId, tags, status } = body;
+    const { title, excerpt, content, coverImageUrl, categoryId, tags, status, changeNote } =
+      body;
 
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: Record<string, unknown> = {};
     if (title !== undefined) {
       updateData.title = title;
       const keepSlug =
@@ -43,9 +45,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.categoryId = await resolveCategoryId(categoryId);
     }
     if (status !== undefined) {
-      const validStatuses = user.role === 'ADMIN'
-        ? ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
-        : ['DRAFT', 'PENDING_REVIEW'];
+      const validStatuses =
+        user.role === 'ADMIN'
+          ? ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
+          : ['DRAFT', 'PENDING_REVIEW'];
       if (validStatuses.includes(status)) {
         updateData.status = status;
         if (status === 'PUBLISHED' && !article.publishedAt) {
@@ -54,14 +57,28 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    const updated = await db.article.update({ where: { id: article.id }, data: updateData });
-
-    if (tags !== undefined && Array.isArray(tags)) {
-      await syncArticleTags(article.id, tags);
-    }
+    const updated = await applyArticleUpdateWithAudit({
+      articleId: article.id,
+      editorId: user.id,
+      editorRole: user.role === 'ADMIN' ? 'ADMIN' : 'USER',
+      before: {
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content,
+        coverImageUrl: article.coverImageUrl,
+        categoryId: article.categoryId,
+        status: article.status,
+      },
+      updateData,
+      changeNote,
+      tags: Array.isArray(tags) ? tags : undefined,
+      syncTags: syncArticleTags,
+    });
 
     return NextResponse.json(updated);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Update failed';
+    const status = message.includes('wajib') ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

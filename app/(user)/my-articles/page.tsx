@@ -21,9 +21,9 @@ import { Badge } from "@/components/ui/badge";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
-  ReviewHistoryModal,
-  useReviewHistory,
-} from "@/components/ui/review-history-modal";
+  ArticleActivityModal,
+  useArticleActivity,
+} from "@/components/ui/article-activity-modal";
 
 const STATUS_BADGE: Record<
   string,
@@ -53,7 +53,7 @@ export default function MyArticlesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
-  const { openHistory, modalProps: reviewModalProps } = useReviewHistory();
+  const { openActivity, modalProps: activityModalProps } = useArticleActivity();
   const PER_PAGE = 10;
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function MyArticlesPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="my-articles-page">
       <ConfirmModal {...confirmProps} />
-      <ReviewHistoryModal {...reviewModalProps} />
+      <ArticleActivityModal {...activityModalProps} />
 
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
@@ -207,19 +207,36 @@ export default function MyArticlesPage() {
                           ✕ {article.reviews[0].note}
                         </p>
                       )}
+                    {article.lastEditedBy?.role === "ADMIN" && (
+                      <p className="text-xs text-jepang-muted mt-1">
+                        Terakhir diedit admin:{" "}
+                        <span className="font-semibold text-foreground">
+                          {article.lastEditedBy.name}
+                        </span>
+                        {article.lastEditedAt && (
+                          <span className="font-mono ml-1">
+                            ·{" "}
+                            {new Date(article.lastEditedAt).toLocaleDateString(
+                              "id-ID",
+                            )}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   {/* Actions */}
                   <div className="flex gap-2 shrink-0">
-                    {/* Review history button — muncul jika ada review */}
-                    {article.reviews?.length > 0 && (
+                    {(article._count?.reviews > 0 ||
+                      article._count?.revisions > 0 ||
+                      article.lastEditedBy?.role === "ADMIN") && (
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() =>
-                          openHistory(article.slug, article.title)
+                          openActivity(article.slug, article.title)
                         }
-                        title="Lihat riwayat review"
+                        title="Riwayat revisi & review"
                         data-testid={`history-${article.id}`}
                       >
                         <History size={14} strokeWidth={1.5} />

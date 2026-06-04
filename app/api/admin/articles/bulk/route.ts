@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { recordStatusReview, setLastEditor } from '@/lib/article-audit';
 
 const ALLOWED_ACTIONS = ['approve', 'reject', 'archive', 'delete'] as const;
 
@@ -47,16 +48,14 @@ export async function POST(request: NextRequest) {
               where: { id: article.id },
               data: { status: 'PUBLISHED', publishedAt: article.publishedAt ?? now },
             });
-            await db.articleReview.create({
-              data: {
-                articleId: article.id,
-                reviewerId: admin.id,
-                previousStatus: previousStatus as any,
-                newStatus: 'PUBLISHED',
-                note: note?.trim() || 'Bulk approved',
-                reviewedAt: now,
-              },
+            await recordStatusReview({
+              articleId: article.id,
+              reviewerId: admin.id,
+              previousStatus,
+              newStatus: 'PUBLISHED',
+              note: note?.trim() || 'Disetujui (massal)',
             });
+            await setLastEditor(article.id, admin.id);
             results.push({ id: article.id, ok: true });
             break;
           }
@@ -70,16 +69,14 @@ export async function POST(request: NextRequest) {
               where: { id: article.id },
               data: { status: 'REJECTED' },
             });
-            await db.articleReview.create({
-              data: {
-                articleId: article.id,
-                reviewerId: admin.id,
-                previousStatus: previousStatus as any,
-                newStatus: 'REJECTED',
-                note: note?.trim() || 'Bulk rejected',
-                reviewedAt: now,
-              },
+            await recordStatusReview({
+              articleId: article.id,
+              reviewerId: admin.id,
+              previousStatus,
+              newStatus: 'REJECTED',
+              note: note?.trim() || 'Ditolak (massal)',
             });
+            await setLastEditor(article.id, admin.id);
             results.push({ id: article.id, ok: true });
             break;
           }
@@ -90,16 +87,14 @@ export async function POST(request: NextRequest) {
               data: { status: 'ARCHIVED' },
             });
             if (previousStatus !== 'ARCHIVED') {
-              await db.articleReview.create({
-                data: {
-                  articleId: article.id,
-                  reviewerId: admin.id,
-                  previousStatus: previousStatus as any,
-                  newStatus: 'ARCHIVED',
-                  note: note?.trim() || 'Archived by admin',
-                  reviewedAt: now,
-                },
+              await recordStatusReview({
+                articleId: article.id,
+                reviewerId: admin.id,
+                previousStatus,
+                newStatus: 'ARCHIVED',
+                note: note?.trim() || 'Diarsipkan oleh admin',
               });
+              await setLastEditor(article.id, admin.id);
             }
             results.push({ id: article.id, ok: true });
             break;
