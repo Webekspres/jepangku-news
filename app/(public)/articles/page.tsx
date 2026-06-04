@@ -278,10 +278,10 @@ function ArticleListContent() {
         ) : (
           <div className="text-center py-24" data-testid="no-articles">
             <p className="font-heading font-bold text-2xl mb-2">
-              No articles found
+              Tidak ada artikel ditemukan
             </p>
             <p className="text-jepang-muted">
-              Try adjusting your filters or search
+              Coba ubah filter atau kata kunci pencarian
             </p>
           </div>
         )}
@@ -296,7 +296,7 @@ export default function ArticleListPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-            Loading...
+            Memuat...
           </p>
         </div>
       }

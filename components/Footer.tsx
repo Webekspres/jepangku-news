@@ -30,14 +30,14 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Explore</h4>
+            <h4 className="small-caps text-jepang-red mb-3">Jelajahi</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/articles"
                   className="hover:text-jepang-red transition-colors"
                 >
-                  Articles
+                  Artikel
                 </Link>
               </li>
               <li>
@@ -45,7 +45,7 @@ export default function Footer() {
                   href="/quizzes"
                   className="hover:text-jepang-red transition-colors"
                 >
-                  Quizzes
+                  Kuis
                 </Link>
               </li>
               <li>
@@ -53,7 +53,7 @@ export default function Footer() {
                   href="/polls"
                   className="hover:text-jepang-red transition-colors"
                 >
-                  Polls
+                  Polling
                 </Link>
               </li>
               <li>
@@ -61,13 +61,13 @@ export default function Footer() {
                   href="/leaderboard"
                   className="hover:text-jepang-red transition-colors"
                 >
-                  Leaderboard
+                  Peringkat
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Categories</h4>
+            <h4 className="small-caps text-jepang-red mb-3">Kategori</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -90,7 +90,7 @@ export default function Footer() {
                   href="/articles?category=culture"
                   className="hover:text-jepang-red transition-colors"
                 >
-                  Culture
+                  Budaya
                 </Link>
               </li>
               <li>
@@ -98,13 +98,13 @@ export default function Footer() {
                   href="/articles?category=food"
                   className="hover:text-jepang-red transition-colors"
                 >
-                  Food
+                  Kuliner
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Account</h4>
+            <h4 className="small-caps text-jepang-red mb-3">Akun</h4>
             <ul className="space-y-2 text-sm">
               {loading ? (
                 <>
@@ -117,7 +117,7 @@ export default function Footer() {
                       href="/profile"
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Profile
+                      Profil
                     </Link>
                   </li>
                   <li>
@@ -125,7 +125,7 @@ export default function Footer() {
                       onClick={handleLogout}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Logout
+                      Keluar
                     </button>
                   </li>
                   <li>
@@ -133,7 +133,7 @@ export default function Footer() {
                       href="/submit-article"
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Submit Article
+                      Kirim Artikel
                     </Link>
                   </li>
                 </>
@@ -160,7 +160,7 @@ export default function Footer() {
                       href="/submit-article"
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Submit Article
+                      Kirim Artikel
                     </Link>
                   </li>
                 </>
@@ -170,7 +170,7 @@ export default function Footer() {
         </div>
         <div className="mt-12 pt-6 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-zinc-500 font-mono">
-            &copy; 2026 JEPANGKU. ALL RIGHTS RESERVED. DEVELOPED BY{" "}
+            &copy; 2026 JEPANGKU. SEMUA HAK DILINDUNGI. DIBUAT OLEH{" "}
             <Link href={"https://webekspres.id"} className="font-bold">
               WEBEKSPRES
             </Link>

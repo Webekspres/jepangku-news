@@ -16,15 +16,45 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const where = buildAdminArticlesWhere(searchParams);
   const orderBy = buildAdminArticlesOrderBy(searchParams.get('sort'));
+  const pageParam = searchParams.get('page');
+  const limitParam = searchParams.get('limit');
+  const shouldPaginate = Boolean(pageParam || limitParam);
 
-  const articles = await db.article.findMany({
-    where,
-    orderBy,
-    take: 500,
-    include: adminArticleInclude,
+  if (!shouldPaginate) {
+    const articles = await db.article.findMany({
+      where,
+      orderBy,
+      take: 500,
+      include: adminArticleInclude,
+    });
+    return NextResponse.json(articles);
+  }
+
+  const page = Math.max(Number(pageParam || '1'), 1);
+  const limit = Math.min(Math.max(Number(limitParam || '20'), 1), 100);
+  const skip = (page - 1) * limit;
+
+  const [articles, total] = await Promise.all([
+    db.article.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+      include: adminArticleInclude,
+    }),
+    db.article.count({ where }),
+  ]);
+
+  const totalPages = Math.max(Math.ceil(total / limit), 1);
+
+  return NextResponse.json({
+    articles,
+    total,
+    page,
+    limit,
+    totalPages,
+    hasMore: page < totalPages,
   });
-
-  return NextResponse.json(articles);
 }
 
 export async function POST(request: NextRequest) {

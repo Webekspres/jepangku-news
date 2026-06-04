@@ -180,7 +180,7 @@ export default function PollDetailPage() {
                   </Badge>
                   <Badge className="text-jepang-red border-jepang-red">
                     <Award size={10} strokeWidth={1.5} className="mr-1" />
-                    +{poll!.pointsReward} PTS
+                    +{poll!.pointsReward} POIN
                   </Badge>
                 </>
               )}

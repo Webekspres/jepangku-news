@@ -24,10 +24,10 @@ export default function BookmarksPage() {
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            BOOKMARKS
+            TERSIMPAN
           </p>
           <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Saved Articles
+            Artikel Tersimpan
           </h1>
         </div>
       </section>
@@ -53,9 +53,9 @@ export default function BookmarksPage() {
               className="mx-auto mb-4 text-jepang-muted"
             />
             <p className="font-heading font-bold text-2xl mb-2">
-              No bookmarks yet
+              Belum ada bookmark
             </p>
-            <p className="text-jepang-muted">Start saving articles you love!</p>
+            <p className="text-jepang-muted">Simpan artikel favoritmu di sini!</p>
           </div>
         )}
       </div>

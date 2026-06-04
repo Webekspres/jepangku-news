@@ -24,8 +24,8 @@ export default function LeaderboardPage() {
     <div className="bg-white min-h-screen" data-testid="leaderboard-page">
       <SectionHeader
         label="ランキング / Peringkat"
-        title="Leaderboard Mingguan"
-        subtitle="Top performer minggu ini berdasarkan poin aktivitas."
+        title="Peringkat Mingguan"
+        subtitle="Performa terbaik minggu ini berdasarkan poin aktivitas."
       />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
@@ -113,7 +113,7 @@ export default function LeaderboardPage() {
                               #{realIdx}
                             </p>
                             <p className="text-xs font-mono">
-                              {entry.weeklyPoints} PTS
+                              {entry.weeklyPoints} POIN
                             </p>
                           </div>
                         </div>
@@ -158,7 +158,7 @@ export default function LeaderboardPage() {
                           {entry.weeklyPoints}
                         </p>
                         <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                          POINTS
+                          POIN
                         </p>
                       </div>
                     </div>

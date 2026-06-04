@@ -60,7 +60,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-                PROFILE
+                PROFIL
               </p>
               <h1 className="font-heading font-black text-4xl tracking-tighter">
                 {(user as any).name}
@@ -95,7 +95,7 @@ export default function ProfilePage() {
               {(user as any).totalPoints || 0}
             </p>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] mt-1">
-              TOTAL POINTS
+              TOTAL POIN
             </p>
           </div>
           <div className="bg-white border border-foreground p-6">
@@ -106,7 +106,7 @@ export default function ProfilePage() {
             />
             <p className="font-mono font-black text-4xl">{stats.articles}</p>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] mt-1 text-jepang-muted">
-              ARTICLES SUBMITTED
+              ARTIKEL DIKIRIM
             </p>
           </div>
           <div className="bg-white border border-foreground p-6">
@@ -117,7 +117,7 @@ export default function ProfilePage() {
             />
             <p className="font-mono font-black text-4xl">{stats.bookmarks}</p>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] mt-1 text-jepang-muted">
-              BOOKMARKS
+              TERSIMPAN
             </p>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function ProfilePage() {
         <Card className="border border-foreground mb-8">
           <CardHeader className="border-b border-jepang-border py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              QUICK ACTIONS
+              AKSI CEPAT
             </p>
           </CardHeader>
           <CardContent className="pt-4">
@@ -134,25 +134,25 @@ export default function ProfilePage() {
                 {
                   href: "/submit-article",
                   icon: FileText,
-                  label: "Submit",
+                  label: "Kirim Artikel",
                   testid: "action-submit-article",
                 },
                 {
                   href: "/my-articles",
                   icon: FileText,
-                  label: "My Articles",
+                  label: "Artikel Saya",
                   testid: "action-my-articles",
                 },
                 {
                   href: "/bookmarks",
                   icon: BookmarkIcon,
-                  label: "Bookmarks",
+                  label: "Tersimpan",
                   testid: "action-bookmarks",
                 },
                 {
                   href: "/points",
                   icon: BarChart3,
-                  label: "Points",
+                  label: "Poin",
                   testid: "action-points",
                 },
                 {
@@ -184,14 +184,14 @@ export default function ProfilePage() {
         <Card className="border border-foreground">
           <CardHeader className="border-b border-jepang-border py-3 flex flex-row items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              RECENT ACTIVITY
+              AKTIVITAS TERBARU
             </p>
             <Link
               href="/points"
               className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
               data-testid="view-all-points"
             >
-              View All →
+              Lihat Semua →
             </Link>
           </CardHeader>
           <CardContent className="p-0">
@@ -219,7 +219,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <p className="text-center text-jepang-muted py-6 text-sm px-6">
-                No activity yet. Start reading articles to earn points!
+                Belum ada aktivitas. Baca artikel untuk mendapat poin!
               </p>
             )}
           </CardContent>

@@ -10,7 +10,7 @@ export default function ArticleDetailSkeleton() {
       <article className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mb-6">
-            Back to Articles
+            Kembali ke Artikel
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -29,7 +29,7 @@ export default function ArticleDetailSkeleton() {
               <div>
                 <div className="h-4 w-28 bg-jepang-red/10 animate-pulse" />
                 <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                  AUTHOR
+                  PENULIS
                 </p>
               </div>
             </div>
@@ -38,11 +38,11 @@ export default function ArticleDetailSkeleton() {
             <div className="flex gap-2 ml-auto">
               <button className="h-9 px-4 border border-jepang-border text-xs uppercase font-semibold">
                 <Bookmark size={14} />
-                Save
+                Simpan
               </button>
               <button className="h-9 px-4 border border-jepang-border text-xs uppercase font-semibold">
                 <Share2 size={14} />
-                Share
+                Bagikan
               </button>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function ArticleDetailSkeleton() {
 
           <div className="pt-6 border-t border-jepang-border">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mb-3">
-              Tags
+              Tag
             </p>
             <div className="flex flex-wrap gap-2">
               <div className="h-8 w-20 bg-jepang-red/10 animate-pulse" />
@@ -77,7 +77,7 @@ export default function ArticleDetailSkeleton() {
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
           <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b-2 border-foreground">
-            Related Articles
+            Artikel Terkait
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ArticleCardSkeleton />

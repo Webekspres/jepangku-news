@@ -184,7 +184,7 @@ export default function EditProfilePage() {
             Kembali ke Profil
           </Link>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            PROFILE
+            PROFIL
           </p>
           <h1 className="font-heading font-black text-4xl tracking-tighter">
             Edit Profil
@@ -232,7 +232,7 @@ export default function EditProfilePage() {
                 {/* Upload controls */}
                 <div className="flex-1">
                   <p className="text-sm text-jepang-muted mb-3">
-                    Upload foto JPG, PNG, atau WebP. Maks. 10MB.
+                    Unggah foto JPG, PNG, atau WebP. Maks. 10MB.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -245,7 +245,7 @@ export default function EditProfilePage() {
                       data-testid="upload-avatar-btn"
                     >
                       <Camera size={14} className="mr-1" />
-                      {uploading ? "Mengupload..." : "Upload Foto"}
+                      {uploading ? "Mengunggah..." : "Unggah Foto"}
                     </Button>
                     {form.avatarUrl && (
                       <Button

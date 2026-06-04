@@ -253,7 +253,7 @@ export default function AdminEditArticlePage() {
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengupload..." : "Upload"}
+                  {uploading ? "Mengunggah..." : "Unggah"}
                   <input
                     type="file"
                     accept="image/*"

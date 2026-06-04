@@ -273,7 +273,7 @@ export default function AdminCreatePoll() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
           <h1 className="font-heading font-black text-4xl tracking-tighter">
             Buat Polling / Voting
@@ -344,13 +344,13 @@ export default function AdminCreatePoll() {
                 <SelectTrigger data-testid="poll-status-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ACTIVE">Aktif</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="DRAFT">Draf</SelectItem>
                   <SelectItem value="CLOSED">Ditutup</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-reward">Poin Reward</Label>
+              <Label htmlFor="points-reward">Hadiah Poin</Label>
               <Input id="points-reward" type="number" min={0} value={form.points_reward}
                 onChange={(e) => setForm({ ...form, points_reward: Number(e.target.value) })}
                 data-testid="poll-points-input" />

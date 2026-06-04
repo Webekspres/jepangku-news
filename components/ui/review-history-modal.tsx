@@ -32,11 +32,11 @@ export interface ReviewHistoryModalProps {
 
 /* ─── Status config ──────────────────────────────────── */
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: "Draft",
-  PENDING_REVIEW: "Pending Review",
-  PUBLISHED: "Published",
-  REJECTED: "Rejected",
-  ARCHIVED: "Archived",
+  DRAFT: "Draf",
+  PENDING_REVIEW: "Menunggu Review",
+  PUBLISHED: "Dipublikasikan",
+  REJECTED: "Ditolak",
+  ARCHIVED: "Diarsipkan",
 };
 
 type BadgeVariant = "default" | "red" | "black" | "success" | "warning" | "muted" | "outline";
@@ -106,7 +106,7 @@ export function ReviewHistoryModal({
               <History size={18} strokeWidth={1.5} className="shrink-0" />
               <div className="min-w-0">
                 <DialogPrimitive.Title className="font-heading font-black text-lg tracking-tight leading-tight">
-                  Review History
+                  Riwayat Review
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className="text-xs text-jepang-muted font-mono mt-0.5 truncate">
                   {articleTitle}
@@ -117,7 +117,7 @@ export function ReviewHistoryModal({
               type="button"
               onClick={() => onOpenChange(false)}
               className="shrink-0 p-1 hover:bg-jepang-off-white transition-colors"
-              aria-label="Close"
+              aria-label="Tutup"
             >
               <X size={16} strokeWidth={1.5} />
             </button>
@@ -148,7 +148,7 @@ export function ReviewHistoryModal({
                 </p>
               </div>
             ) : (
-              <ol className="relative space-y-0" aria-label="Review timeline">
+              <ol className="relative space-y-0" aria-label="Linimasa review">
                 {reviews.map((review, idx) => (
                   <li key={review.id} className="flex gap-3">
                     {/* Timeline line + dot */}

@@ -128,7 +128,7 @@ export default function HomePage() {
               <span className="text-jepang-red">Hiburan Jepang</span>
             </>
           }
-          subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz, vote, dan raih poin!"
+          subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
           dark
           className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
         >
@@ -341,14 +341,14 @@ export default function HomePage() {
                           {article.title}
                         </Link>
                         <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                          {article.viewCount || 0} VIEWS
+                          {article.viewCount || 0} dilihat
                         </p>
                       </div>
                     </div>
                   ))}
                   {trending.length === 0 && (
                     <p className="text-sm text-jepang-muted text-center py-8">
-                      No trending articles yet
+                      Belum ada artikel tren
                     </p>
                   )}
                 </div>
@@ -366,7 +366,7 @@ export default function HomePage() {
             <span className="text-jepang-red">Hiburan Jepang</span>
           </>
         }
-        subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz, vote, dan raih poin!"
+        subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
         dark
         className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
       >
@@ -492,7 +492,7 @@ export default function HomePage() {
                     {quizzes[0].title}
                   </h4>
                   <p className="text-sm text-zinc-400 mb-4">
-                    {quizzes[0].questionCount || 0} questions • +10 PTS
+                    {quizzes[0].questionCount || 0} pertanyaan • +10 POIN
                   </p>
                   <Link
                     href={`/quizzes/${quizzes[0].slug}`}
@@ -564,7 +564,7 @@ export default function HomePage() {
                       {entry.weeklyPoints}
                     </p>
                     <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                      PTS
+                      POIN
                     </p>
                   </div>
                 </div>

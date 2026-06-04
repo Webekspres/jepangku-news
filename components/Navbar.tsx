@@ -44,7 +44,7 @@ export default function Navbar() {
     { path: "/", label: "Beranda" },
     { path: "/articles", label: "Artikel" },
     { path: "/quizzes", label: "Kuis" },
-    { path: "/polls", label: "Pool" },
+    { path: "/polls", label: "Polling" },
     { path: "/leaderboard", label: "Peringkat" },
   ];
 
@@ -138,7 +138,7 @@ useEffect(() => {
               </span>
 
               <span className="ml-1 hidden border-l border-jepang-border pl-2 font-mono text-xs uppercase tracking-[0.2em] text-jepang-muted md:inline-block">
-                News
+                Berita
               </span>
             </Link>
 
@@ -195,7 +195,7 @@ useEffect(() => {
                     </span>
 
                     <span className="text-[10px] uppercase tracking-wider">
-                      PTS
+                      POIN
                     </span>
                   </div>
 
@@ -264,7 +264,7 @@ useEffect(() => {
                           data-testid="menu-bookmarks"
                         >
                           <Bookmark size={16} strokeWidth={1.5} />
-                          Bookmark
+                          Tersimpan
                         </Link>
                       </DropdownMenuItem>
 
@@ -290,7 +290,7 @@ useEffect(() => {
                               data-testid="menu-admin"
                             >
                               <LayoutDashboard size={16} strokeWidth={1.5} />
-                              Admin Dashboard
+                              Dasbor Admin
                             </Link>
                           </DropdownMenuItem>
                         </>

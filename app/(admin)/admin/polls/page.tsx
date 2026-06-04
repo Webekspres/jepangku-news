@@ -31,7 +31,7 @@ const STATUS_BADGE: Record<
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Aktif",
-  DRAFT: "Draft",
+  DRAFT: "Draf",
   CLOSED: "Ditutup",
 };
 
@@ -143,7 +143,7 @@ export default function AdminPollsPage() {
   const statusFilters = [
     { v: "", l: "Semua Status" },
     { v: "ACTIVE", l: "Aktif" },
-    { v: "DRAFT", l: "Draft" },
+    { v: "DRAFT", l: "Draf" },
     { v: "CLOSED", l: "Ditutup" },
   ];
 
@@ -162,7 +162,7 @@ export default function AdminPollsPage() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
 
           <div className="flex items-center justify-between gap-4">
@@ -302,7 +302,7 @@ export default function AdminPollsPage() {
                               data-testid={`edit-poll-${poll.id}`}
                               className="hover:bg-foreground hover:text-white"
                             >
-                              <Pencil size={13} className="mr-1" /> Edit
+                              <Pencil size={13} className="mr-1" /> Ubah
                             </Button>
                             <Button
                               size="sm"

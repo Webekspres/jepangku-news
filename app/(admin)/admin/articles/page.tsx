@@ -12,6 +12,8 @@ import {
   Archive,
   XCircle,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -49,7 +51,7 @@ const STATUS_BADGE: Record<
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: "Draft",
+  DRAFT: "Draf",
   PENDING_REVIEW: "Menunggu Review",
   PUBLISHED: "Dipublikasikan",
   REJECTED: "Ditolak",
@@ -72,6 +74,10 @@ export default function AdminArticlesPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const PER_PAGE = 20;
   const { confirm, confirmProps } = useConfirm();
 
   const [statusFilter, setStatusFilter] = useState("");
@@ -82,7 +88,7 @@ export default function AdminArticlesPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  const queryString = buildQuery({
+  const filterQueryString = buildQuery({
     status: statusFilter,
     categoryId: categoryFilter,
     authorId: authorFilter,
@@ -92,13 +98,32 @@ export default function AdminArticlesPage() {
     dateTo,
   });
 
+  const queryString = buildQuery({
+    status: statusFilter,
+    categoryId: categoryFilter,
+    authorId: authorFilter,
+    sort,
+    search,
+    dateFrom,
+    dateTo,
+    page: String(page),
+    limit: String(PER_PAGE),
+  });
+
   const loadArticles = useCallback(async () => {
     setLoading(true);
     const data = await fetch(`/api/admin/articles${queryString}`).then((r) =>
       r.json(),
     );
-    const list = Array.isArray(data) ? data : [];
+    const list = Array.isArray(data?.articles)
+      ? data.articles
+      : Array.isArray(data)
+        ? data
+        : [];
     setArticles(list);
+    setPage(Number(data?.page || page));
+    setTotalPages(Number(data?.totalPages || 1));
+    setTotalItems(Number(data?.total || list.length));
 
     const authorMap = new Map<string, string>();
     list.forEach((a: any) => {
@@ -173,7 +198,7 @@ export default function AdminArticlesPage() {
             body: JSON.stringify({ ids, action, note: options?.note }),
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Bulk action failed");
+          if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
           toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil`);
           await loadArticles();
         } catch (e: unknown) {
@@ -186,14 +211,17 @@ export default function AdminArticlesPage() {
   };
 
   const handleExport = (format: "csv" | "json") => {
-    window.open(`/api/admin/articles/export${queryString}${queryString ? "&" : "?"}format=${format}`, "_blank");
+    window.open(
+      `/api/admin/articles/export${filterQueryString}${filterQueryString ? "&" : "?"}format=${format}`,
+      "_blank",
+    );
   };
 
   const statusFilters = [
     { v: "", l: "Semua" },
-    { v: "DRAFT", l: "Draft" },
+    { v: "DRAFT", l: "Draf" },
     { v: "PENDING_REVIEW", l: "Review" },
-    { v: "PUBLISHED", l: "Published" },
+    { v: "PUBLISHED", l: "Dipublikasikan" },
     { v: "REJECTED", l: "Ditolak" },
     { v: "ARCHIVED", l: "Arsip" },
   ];
@@ -208,7 +236,7 @@ export default function AdminArticlesPage() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
 
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -240,7 +268,10 @@ export default function AdminArticlesPage() {
                 key={s.v}
                 size="sm"
                 variant={statusFilter === s.v ? "black" : "outline"}
-                onClick={() => setStatusFilter(s.v)}
+                onClick={() => {
+                  setStatusFilter(s.v);
+                  setPage(1);
+                }}
               >
                 {s.l}
               </Button>
@@ -252,7 +283,10 @@ export default function AdminArticlesPage() {
               <Label className="text-xs uppercase tracking-wider">Cari judul</Label>
               <Input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Judul atau ringkasan..."
                 data-testid="admin-article-search"
               />
@@ -261,7 +295,10 @@ export default function AdminArticlesPage() {
               <Label className="text-xs uppercase tracking-wider">Kategori</Label>
               <Select
                 value={categoryFilter || "_all"}
-                onValueChange={(v) => setCategoryFilter(v === "_all" ? "" : v)}
+                onValueChange={(v) => {
+                  setCategoryFilter(v === "_all" ? "" : v);
+                  setPage(1);
+                }}
               >
                 <SelectTrigger data-testid="filter-category">
                   <SelectValue placeholder="Semua kategori" />
@@ -280,7 +317,10 @@ export default function AdminArticlesPage() {
               <Label className="text-xs uppercase tracking-wider">Penulis</Label>
               <Select
                 value={authorFilter || "_all"}
-                onValueChange={(v) => setAuthorFilter(v === "_all" ? "" : v)}
+                onValueChange={(v) => {
+                  setAuthorFilter(v === "_all" ? "" : v);
+                  setPage(1);
+                }}
               >
                 <SelectTrigger data-testid="filter-author">
                   <SelectValue placeholder="Semua penulis" />
@@ -297,7 +337,13 @@ export default function AdminArticlesPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs uppercase tracking-wider">Urutkan</Label>
-              <Select value={sort} onValueChange={setSort}>
+              <Select
+                value={sort}
+                onValueChange={(v) => {
+                  setSort(v);
+                  setPage(1);
+                }}
+              >
                 <SelectTrigger data-testid="filter-sort">
                   <SelectValue />
                 </SelectTrigger>
@@ -314,7 +360,10 @@ export default function AdminArticlesPage() {
               <Input
                 type="date"
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setPage(1);
+                }}
                 data-testid="filter-date-from"
               />
             </div>
@@ -323,12 +372,22 @@ export default function AdminArticlesPage() {
               <Input
                 type="date"
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setPage(1);
+                }}
                 data-testid="filter-date-to"
               />
             </div>
             <div className="flex items-end">
-              <Button variant="black" onClick={loadArticles} data-testid="apply-filters">
+              <Button
+                variant="black"
+                onClick={() => {
+                  if (page === 1) loadArticles();
+                  else setPage(1);
+                }}
+                data-testid="apply-filters"
+              >
                 Terapkan Filter
               </Button>
             </div>
@@ -458,7 +517,7 @@ export default function AdminArticlesPage() {
                           href={`/admin/articles/${article.id}/edit`}
                           data-testid={`edit-article-${article.id}`}
                         >
-                          <Pencil size={14} className="mr-1" /> Edit
+                          <Pencil size={14} className="mr-1" /> Ubah
                         </Link>
                       </Button>
                     </TableCell>
@@ -468,6 +527,35 @@ export default function AdminArticlesPage() {
             </TableBody>
           </Table>
         </Card>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
+              Halaman {page}/{totalPages} - {totalItems} item
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                data-testid="admin-articles-prev-page"
+              >
+                <ChevronLeft size={14} className="mr-1" /> Sebelumnya
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages || loading}
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                data-testid="admin-articles-next-page"
+              >
+                Berikutnya <ChevronRight size={14} className="ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

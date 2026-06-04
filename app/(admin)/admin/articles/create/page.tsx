@@ -1,12 +1,13 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   ArrowLeft,
+  Eye,
   PenSquare,
   Save,
   Upload,
@@ -25,11 +26,76 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import RichTextEditor from "@/components/RichTextEditor";
+import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
+import NextLink from "next/link";
+import {
+  useAutosave,
+  type ArticleDraftInfo,
+  type ArticleFormSnapshot,
+} from "@/hooks/useAutosave";
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+async function apiCreateDraft(data: ArticleFormSnapshot): Promise<ArticleDraftInfo> {
+  const res = await fetch("/api/admin/articles", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: data.title,
+      excerpt: data.excerpt,
+      content: data.content,
+      coverImageUrl: data.coverImageUrl || null,
+      categoryId: data.categoryId || null,
+      tags: data.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      status: "DRAFT",
+    }),
+  });
+  if (!res.ok) {
+    const e = await res.json();
+    throw new Error(e.error || "Gagal membuat draft");
+  }
+  const article = await res.json();
+  return { id: article.id, slug: article.slug };
+}
+
+async function apiUpdateDraft(
+  id: string,
+  data: ArticleFormSnapshot,
+): Promise<void> {
+  const res = await fetch(`/api/admin/articles/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: data.title,
+      excerpt: data.excerpt,
+      content: data.content,
+      coverImageUrl: data.coverImageUrl || null,
+      categoryId: data.categoryId || null,
+      tags: data.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+    }),
+  });
+  if (!res.ok) {
+    const e = await res.json();
+    throw new Error(e.error || "Gagal menyimpan draft");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function AdminCreateArticlePage() {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ArticleFormSnapshot>({
     title: "",
     excerpt: "",
     content: "",
@@ -46,6 +112,20 @@ export default function AdminCreateArticlePage() {
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
 
+  const createDraft = useCallback(apiCreateDraft, []);
+  const updateDraft = useCallback(apiUpdateDraft, []);
+
+  const { status: autosaveStatus, lastSavedAt, draftId, setDraftInfo, getDraftId } =
+    useAutosave({
+      data: form,
+      createDraft,
+      updateDraft,
+      debounceMs: 3000,
+      disabled: loading,
+    });
+
+  // -------------------------------------------------------------------------
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -53,12 +133,13 @@ export default function AdminCreateArticlePage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const data = await fetch("/api/upload", { method: "POST", body: fd }).then(
-        (r) => {
-          if (!r.ok) throw new Error("Upload failed");
-          return r.json();
-        },
-      );
+      const data = await fetch("/api/upload", {
+        method: "POST",
+        body: fd,
+      }).then((r) => {
+        if (!r.ok) throw new Error("Upload failed");
+        return r.json();
+      });
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
       toast.success("Gambar berhasil diupload");
     } catch {
@@ -74,27 +155,60 @@ export default function AdminCreateArticlePage() {
       return;
     }
     setLoading(true);
+
+    const draftId = getDraftId();
+    const parsedTags = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     try {
-      const res = await fetch("/api/admin/articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title,
-          excerpt: form.excerpt,
-          content: form.content,
-          coverImageUrl: form.coverImageUrl || null,
-          categoryId: form.categoryId || null,
-          tags: form.tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean),
-          status,
-        }),
-      });
+      let res: Response;
+
+      if (draftId) {
+        // A draft already exists — update it with the final status
+        res = await fetch(`/api/admin/articles/${draftId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: form.title,
+            excerpt: form.excerpt,
+            content: form.content,
+            coverImageUrl: form.coverImageUrl || null,
+            categoryId: form.categoryId || null,
+            tags: parsedTags,
+            status,
+          }),
+        });
+      } else {
+        // No draft yet — create fresh
+        res = await fetch("/api/admin/articles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: form.title,
+            excerpt: form.excerpt,
+            content: form.content,
+            coverImageUrl: form.coverImageUrl || null,
+            categoryId: form.categoryId || null,
+            tags: parsedTags,
+            status,
+          }),
+        });
+      }
+
       if (!res.ok) {
         const e = await res.json();
         throw new Error(e.error || "Gagal membuat artikel");
       }
+
+      const article = await res.json();
+
+      // Sync autosave state so a late-firing timer doesn't create a duplicate
+      if (article?.id && article?.slug) {
+        setDraftInfo({ id: article.id, slug: article.slug });
+      }
+
       toast.success(
         status === "PUBLISHED"
           ? "Artikel dipublikasikan"
@@ -104,14 +218,19 @@ export default function AdminCreateArticlePage() {
       );
       router.push("/admin/articles");
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Gagal menyimpan artikel");
+      toast.error(
+        e instanceof Error ? e.message : "Gagal menyimpan artikel",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-article-create-page">
+    <div
+      className="bg-white min-h-screen"
+      data-testid="admin-article-create-page"
+    >
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
@@ -214,7 +333,7 @@ export default function AdminCreateArticlePage() {
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengupload..." : "Upload"}
+                  {uploading ? "Mengunggah..." : "Unggah"}
                   <input
                     type="file"
                     accept="image/*"
@@ -247,32 +366,54 @@ export default function AdminCreateArticlePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-6 border-t border-jepang-border">
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit("DRAFT")}
-              disabled={loading}
-              data-testid="admin-save-draft"
-            >
-              <Save size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Menyimpan..." : "Simpan Draft"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit("PENDING_REVIEW")}
-              disabled={loading}
-              data-testid="admin-save-pending"
-            >
-              <FileText size={14} strokeWidth={1.5} className="mr-1" />
-              Antrian Review
-            </Button>
-            <Button
-              onClick={() => handleSubmit("PUBLISHED")}
-              disabled={loading}
-              data-testid="admin-publish"
-            >
-              <Globe size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Menyimpan..." : "Publikasikan"}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => handleSubmit("DRAFT")}
+                disabled={loading}
+                data-testid="admin-save-draft"
+              >
+                <Save size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Menyimpan..." : "Simpan Draft"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleSubmit("PENDING_REVIEW")}
+                disabled={loading}
+                data-testid="admin-save-pending"
+              >
+                <FileText size={14} strokeWidth={1.5} className="mr-1" />
+                Antrian Review
+              </Button>
+              <Button
+                onClick={() => handleSubmit("PUBLISHED")}
+                disabled={loading}
+                data-testid="admin-publish"
+              >
+                <Globe size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Menyimpan..." : "Publikasikan"}
+              </Button>
+              {draftId && (
+                <Button
+                  variant="outline"
+                  asChild
+                  data-testid="admin-preview-draft-btn"
+                >
+                  <NextLink
+                    href={`/preview-article/${draftId}`}
+                    target="_blank"
+                  >
+                    <Eye size={14} strokeWidth={1.5} className="mr-1" />
+                    Pratinjau
+                  </NextLink>
+                </Button>
+              )}
+            </div>
+            <AutosaveIndicator
+              status={autosaveStatus}
+              lastSavedAt={lastSavedAt}
+              className="self-center"
+            />
           </div>
         </div>
       </div>

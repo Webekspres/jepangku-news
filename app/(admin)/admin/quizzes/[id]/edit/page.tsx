@@ -98,7 +98,7 @@ function ImageUploadField({
           className="cursor-pointer hover:bg-foreground hover:text-white shrink-0">
           <label>
             <Upload size={14} strokeWidth={1.5} />
-            {isUploading ? "Mengupload..." : "Upload"}
+            {isUploading ? "Mengunggah..." : "Unggah"}
             <input type="file" accept="image/*" className="hidden" disabled={isUploading}
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -374,7 +374,7 @@ export default function AdminEditQuizPage() {
                 <SelectTrigger data-testid="quiz-status-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ACTIVE">Aktif</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="DRAFT">Draf</SelectItem>
                   <SelectItem value="INACTIVE">Tidak Aktif</SelectItem>
                 </SelectContent>
               </Select>
