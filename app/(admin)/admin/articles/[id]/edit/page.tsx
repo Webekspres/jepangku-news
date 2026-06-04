@@ -13,8 +13,10 @@ import {
   Upload,
   Archive,
   Globe,
-  FileText,
+  Check,
+  XCircle,
 } from "lucide-react";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +47,8 @@ export default function AdminEditArticlePage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [rejectNote, setRejectNote] = useState("");
+  const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
     fetch("/api/categories")
@@ -99,17 +103,16 @@ export default function AdminEditArticlePage() {
     }
   };
 
-  const handleSubmit = async (targetStatus: string) => {
+  const saveArticle = async (targetStatus: string) => {
     if (!form.title.trim() || !form.content.trim()) {
       toast.error("Judul dan konten wajib diisi");
       return;
     }
-    if (!articleSlug) return;
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/articles/${articleSlug}/update`, {
-        method: "PUT",
+      const res = await fetch(`/api/admin/articles/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: form.title,
@@ -122,18 +125,98 @@ export default function AdminEditArticlePage() {
             .map((t) => t.trim())
             .filter(Boolean),
           status: targetStatus,
-          preserveSlug:
-            status === "PUBLISHED" && targetStatus === "PUBLISHED",
         }),
       });
       if (!res.ok) {
         const e = await res.json();
         throw new Error(e.error || "Gagal memperbarui artikel");
       }
+      const updated = await res.json();
+      setStatus(updated.status || targetStatus);
+      setArticleSlug(updated.slug || articleSlug);
       toast.success("Artikel diperbarui");
-      router.push("/admin/articles");
+      if (targetStatus !== status) {
+        router.push("/admin/articles");
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Gagal menyimpan artikel");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = () => {
+    confirm({
+      title: "Setujui artikel?",
+      description: "Perubahan konten akan disimpan, lalu artikel dipublikasikan.",
+      confirmLabel: "Setujui",
+      variant: "info",
+      onConfirm: async () => {
+        if (!form.title.trim() || !form.content.trim()) {
+          toast.error("Judul dan konten wajib diisi");
+          return;
+        }
+        setLoading(true);
+        try {
+          const patchRes = await fetch(`/api/admin/articles/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: form.title,
+              excerpt: form.excerpt,
+              content: form.content,
+              coverImageUrl: form.coverImageUrl || null,
+              categoryId: form.categoryId || null,
+              tags: form.tags
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean),
+            }),
+          });
+          if (!patchRes.ok) {
+            const e = await patchRes.json();
+            throw new Error(e.error || "Gagal menyimpan artikel");
+          }
+          const res = await fetch(`/api/admin/articles/${id}/approve`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            const e = await res.json();
+            throw new Error(e.error || "Gagal menyetujui artikel");
+          }
+          toast.success("Artikel disetujui dan dipublikasikan");
+          router.push("/admin/articles");
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal menyetujui artikel");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleReject = async () => {
+    if (!rejectNote.trim()) {
+      toast.error("Catatan penolakan wajib diisi");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/articles/${id}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: rejectNote.trim() }),
+      });
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.error || "Gagal menolak artikel");
+      }
+      toast.success("Artikel berhasil ditolak");
+      setRejectNote("");
+      router.push("/admin/articles");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal menolak artikel");
     } finally {
       setLoading(false);
     }
@@ -159,6 +242,7 @@ export default function AdminEditArticlePage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-article-edit-page">
+      <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
@@ -285,54 +369,84 @@ export default function AdminEditArticlePage() {
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-6 border-t border-jepang-border">
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit("DRAFT")}
-              disabled={loading}
-              data-testid="admin-save-draft"
-            >
-              <Save size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Menyimpan..." : "Simpan Draft"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit("PENDING_REVIEW")}
-              disabled={loading}
-              data-testid="admin-save-pending"
-            >
-              <FileText size={14} strokeWidth={1.5} className="mr-1" />
-              Antrian Review
-            </Button>
-            <Button
-              onClick={() => handleSubmit("PUBLISHED")}
-              disabled={loading}
-              data-testid="admin-publish"
-            >
-              <Globe size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Menyimpan..." : "Publikasikan"}
-            </Button>
-            {status !== "ARCHIVED" && (
+          <div className="pt-6 border-t border-jepang-border space-y-6">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               <Button
                 variant="outline"
-                onClick={() => handleSubmit("ARCHIVED")}
+                onClick={() => saveArticle(status)}
                 disabled={loading}
-                data-testid="admin-archive"
+                data-testid="admin-save-changes"
               >
-                <Archive size={14} strokeWidth={1.5} className="mr-1" />
-                Arsipkan
+                <Save size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Menyimpan..." : "Simpan Perubahan"}
               </Button>
-            )}
-            {status === "ARCHIVED" && (
-              <Button
-                variant="outline"
-                onClick={() => handleSubmit("PUBLISHED")}
-                disabled={loading}
-                data-testid="admin-republish"
-              >
-                <Send size={14} strokeWidth={1.5} className="mr-1" />
-                Publikasikan Ulang
-              </Button>
+              {status === "PENDING_REVIEW" && (
+                <Button
+                  onClick={handleApprove}
+                  disabled={loading}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="admin-approve"
+                >
+                  <Check size={14} strokeWidth={1.5} className="mr-1" />
+                  Setujui & Publikasikan
+                </Button>
+              )}
+              {status === "REJECTED" && (
+                <Button
+                  onClick={() => saveArticle("PUBLISHED")}
+                  disabled={loading}
+                  data-testid="admin-publish"
+                >
+                  <Globe size={14} strokeWidth={1.5} className="mr-1" />
+                  {loading ? "Menyimpan..." : "Publikasikan"}
+                </Button>
+              )}
+              {status !== "ARCHIVED" && status !== "PENDING_REVIEW" && (
+                <Button
+                  variant="outline"
+                  onClick={() => saveArticle("ARCHIVED")}
+                  disabled={loading}
+                  data-testid="admin-archive"
+                >
+                  <Archive size={14} strokeWidth={1.5} className="mr-1" />
+                  Arsipkan
+                </Button>
+              )}
+              {status === "ARCHIVED" && (
+                <Button
+                  variant="outline"
+                  onClick={() => saveArticle("PUBLISHED")}
+                  disabled={loading}
+                  data-testid="admin-republish"
+                >
+                  <Send size={14} strokeWidth={1.5} className="mr-1" />
+                  Publikasikan Ulang
+                </Button>
+              )}
+            </div>
+
+            {status === "PENDING_REVIEW" && (
+              <div className="space-y-2 max-w-xl border border-jepang-border p-4 bg-jepang-off-white">
+                <Label htmlFor="reject-note">Catatan Penolakan (wajib)</Label>
+                <Textarea
+                  id="reject-note"
+                  rows={3}
+                  value={rejectNote}
+                  onChange={(e) => setRejectNote(e.target.value)}
+                  placeholder="Jelaskan alasan artikel ini ditolak..."
+                  data-testid="reject-note-input"
+                />
+                <Button
+                  onClick={handleReject}
+                  disabled={loading}
+                  className="w-full sm:w-auto text-jepang-red border-jepang-red bg-transparent hover:bg-jepang-red hover:text-white"
+                  variant="outline"
+                  data-testid="admin-reject"
+                >
+                  <XCircle size={14} strokeWidth={1.5} className="mr-1" />
+                  Tolak Artikel
+                </Button>
+              </div>
             )}
           </div>
         </div>

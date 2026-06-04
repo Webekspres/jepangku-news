@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
     if (status !== undefined) {
       const validStatuses = user.role === 'ADMIN'
-        ? ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
+        ? ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
         : ['DRAFT', 'PENDING_REVIEW'];
       if (validStatuses.includes(status)) {
         updateData.status = status;

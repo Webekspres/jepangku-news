@@ -23,6 +23,13 @@ export async function GET(
     return NextResponse.json({ error: 'Article not found' }, { status: 404 });
   }
 
+  if (article.status === 'DRAFT') {
+    return NextResponse.json(
+      { error: 'Draft articles are only visible to their author' },
+      { status: 403 },
+    );
+  }
+
   return NextResponse.json({
     ...article,
     tags: article.tags.map((at) => at.tag),
@@ -48,6 +55,13 @@ export async function PATCH(
   const article = await db.article.findUnique({ where: { id } });
   if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
 
+  if (article.status === 'DRAFT') {
+    return NextResponse.json(
+      { error: 'Draft articles can only be edited by their author' },
+      { status: 403 },
+    );
+  }
+
   try {
     const body = await request.json();
     const { title, excerpt, content, coverImageUrl, categoryId, tags, status } = body;
@@ -69,7 +83,7 @@ export async function PATCH(
     }
 
     if (status !== undefined) {
-      const allowed = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED'];
+      const allowed = ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED'];
       if (allowed.includes(status)) {
         updateData.status = status;
         if (status === 'PUBLISHED' && !article.publishedAt) {

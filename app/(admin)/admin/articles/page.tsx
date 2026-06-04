@@ -14,13 +14,17 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cn } from "@/lib/utils";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -58,6 +62,102 @@ const STATUS_LABEL: Record<string, string> = {
   ARCHIVED: "Diarsipkan",
 };
 
+type RejectTarget =
+  | { mode: "single"; id: string; title: string }
+  | { mode: "bulk"; count: number };
+
+function RejectArticleModal({
+  open,
+  onOpenChange,
+  target,
+  note,
+  onNoteChange,
+  onConfirm,
+  loading,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  target: RejectTarget | null;
+  note: string;
+  onNoteChange: (value: string) => void;
+  onConfirm: () => void;
+  loading: boolean;
+}) {
+  const description =
+    target?.mode === "single"
+      ? `"${target.title}" akan ditolak. Penulis dapat memperbaiki dan mengirim ulang dari halaman artikel saya.`
+      : target?.mode === "bulk"
+        ? `${target.count} artikel akan ditolak.`
+        : "";
+
+  return (
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
+        <DialogPrimitive.Content
+          className={cn(
+            "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
+            "bg-white border-2 border-foreground p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+            "duration-200",
+          )}
+          onInteractOutside={() => !loading && onOpenChange(false)}
+          onEscapeKeyDown={() => !loading && onOpenChange(false)}
+        >
+          <div className="mb-4 text-amber-500">
+            <XCircle size={28} strokeWidth={1.5} />
+          </div>
+          <DialogPrimitive.Title className="font-heading font-black text-xl tracking-tight mb-1">
+            Tolak artikel?
+          </DialogPrimitive.Title>
+          {description && (
+            <DialogPrimitive.Description className="text-sm text-jepang-muted mb-4">
+              {description}
+            </DialogPrimitive.Description>
+          )}
+          <div className="space-y-2 mb-5">
+            <Label htmlFor="reject-note-modal">Catatan Penolakan (wajib)</Label>
+            <Textarea
+              id="reject-note-modal"
+              rows={3}
+              value={note}
+              onChange={(e) => onNoteChange(e.target.value)}
+              placeholder="Jelaskan alasan artikel ini ditolak..."
+              data-testid="reject-note-input"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onConfirm}
+              className={cn(
+                "flex-1 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider transition-colors disabled:opacity-60",
+                "border border-amber-500 bg-amber-500 text-white hover:bg-amber-600 hover:border-amber-600 cursor-pointer",
+              )}
+              data-testid="reject-modal-confirm"
+            >
+              {loading ? "Memproses..." : "Tolak"}
+            </button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => onOpenChange(false)}
+              className="flex-1"
+              data-testid="reject-modal-cancel"
+            >
+              Batal
+            </Button>
+          </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  );
+}
+
 function buildQuery(params: Record<string, string>) {
   const q = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
@@ -87,6 +187,11 @@ export default function AdminArticlesPage() {
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
+  const [rejectTarget, setRejectTarget] = useState<RejectTarget | null>(null);
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   const filterQueryString = buildQuery({
     status: statusFilter,
@@ -217,9 +322,107 @@ export default function AdminArticlesPage() {
     );
   };
 
+  const handleApprove = (articleId: string) => {
+    confirm({
+      title: "Setujui artikel?",
+      description: "Artikel akan dipublikasikan dan tampil di situs.",
+      confirmLabel: "Setujui",
+      variant: "info",
+      onConfirm: async () => {
+        setActionLoading(articleId);
+        try {
+          const res = await fetch(`/api/admin/articles/${articleId}/approve`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Gagal menyetujui artikel");
+          }
+          toast.success("Artikel disetujui dan dipublikasikan");
+          await loadArticles();
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal menyetujui artikel");
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
+  };
+
+  const openRejectModal = (articleId: string, title: string) => {
+    setRejectNote("");
+    setRejectTarget({ mode: "single", id: articleId, title });
+    setRejectModalOpen(true);
+  };
+
+  const openBulkRejectModal = () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) {
+      toast.error("Pilih minimal satu artikel");
+      return;
+    }
+    setRejectNote("");
+    setRejectTarget({ mode: "bulk", count: ids.length });
+    setRejectModalOpen(true);
+  };
+
+  const closeRejectModal = () => {
+    setRejectModalOpen(false);
+    setRejectTarget(null);
+    setRejectNote("");
+  };
+
+  const submitReject = async () => {
+    if (!rejectNote.trim()) {
+      toast.error("Catatan penolakan wajib diisi");
+      return;
+    }
+    if (!rejectTarget) return;
+
+    setRejectLoading(true);
+    const note = rejectNote.trim();
+
+    try {
+      if (rejectTarget.mode === "single") {
+        setActionLoading(rejectTarget.id);
+        const res = await fetch(`/api/admin/articles/${rejectTarget.id}/reject`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ note }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Gagal menolak artikel");
+        }
+        toast.success("Artikel berhasil ditolak");
+      } else {
+        setBulkLoading(true);
+        const res = await fetch("/api/admin/articles/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: Array.from(selected),
+            action: "reject",
+            note,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
+        toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil ditolak`);
+      }
+      closeRejectModal();
+      await loadArticles();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal menolak artikel");
+    } finally {
+      setRejectLoading(false);
+      setActionLoading(null);
+      setBulkLoading(false);
+    }
+  };
+
   const statusFilters = [
     { v: "", l: "Semua" },
-    { v: "DRAFT", l: "Draf" },
     { v: "PENDING_REVIEW", l: "Review" },
     { v: "PUBLISHED", l: "Dipublikasikan" },
     { v: "REJECTED", l: "Ditolak" },
@@ -229,6 +432,17 @@ export default function AdminArticlesPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-articles-page">
       <ConfirmModal {...confirmProps} />
+      <RejectArticleModal
+        open={rejectModalOpen}
+        onOpenChange={(open) => {
+          if (!open && !rejectLoading) closeRejectModal();
+        }}
+        target={rejectTarget}
+        note={rejectNote}
+        onNoteChange={setRejectNote}
+        onConfirm={submitReject}
+        loading={rejectLoading}
+      />
 
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
@@ -410,7 +624,7 @@ export default function AdminArticlesPage() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => runBulk("reject", { note: "Bulk rejected" })}
+              onClick={openBulkRejectModal}
               disabled={bulkLoading}
               data-testid="bulk-reject"
             >
@@ -512,14 +726,38 @@ export default function AdminArticlesPage() {
                       {article.viewCount || 0}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link
-                          href={`/admin/articles/${article.id}/edit`}
-                          data-testid={`edit-article-${article.id}`}
-                        >
-                          <Pencil size={14} className="mr-1" /> Ubah
-                        </Link>
-                      </Button>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {article.status === "PENDING_REVIEW" && (
+                          <>
+                            <Button
+                              size="sm"
+                              disabled={actionLoading === article.id}
+                              onClick={() => handleApprove(article.id)}
+                              data-testid={`approve-article-${article.id}`}
+                            >
+                              <Check size={14} className="mr-1" /> Setujui
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+                              disabled={actionLoading === article.id}
+                              onClick={() => openRejectModal(article.id, article.title)}
+                              data-testid={`reject-article-${article.id}`}
+                            >
+                              <XCircle size={14} className="mr-1" /> Tolak
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            href={`/admin/articles/${article.id}/edit`}
+                            data-testid={`edit-article-${article.id}`}
+                          >
+                            <Pencil size={14} className="mr-1" /> Ubah
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

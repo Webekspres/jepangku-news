@@ -2,11 +2,29 @@ import { Prisma } from '@prisma/client';
 
 export type AdminArticlesSort = 'latest' | 'oldest' | 'popular' | 'published';
 
+/** Statuses visible on admin "Semua Artikel" — excludes author-only DRAFT. */
+export const ADMIN_LIST_ARTICLE_STATUSES = [
+  'PENDING_REVIEW',
+  'PUBLISHED',
+  'REJECTED',
+  'ARCHIVED',
+] as const;
+
 export function buildAdminArticlesWhere(searchParams: URLSearchParams): Prisma.ArticleWhereInput {
   const where: Prisma.ArticleWhereInput = {};
 
-  const status = searchParams.get('status');
-  if (status) where.status = status.toUpperCase() as Prisma.ArticleWhereInput['status'];
+  const status = searchParams.get('status')?.toUpperCase();
+  if (status === 'DRAFT') {
+    // Drafts belong to authors only; never list them for admin.
+    where.status = { in: [] };
+  } else if (
+    status &&
+    ADMIN_LIST_ARTICLE_STATUSES.includes(status as (typeof ADMIN_LIST_ARTICLE_STATUSES)[number])
+  ) {
+    where.status = status as Prisma.ArticleWhereInput['status'];
+  } else {
+    where.status = { in: [...ADMIN_LIST_ARTICLE_STATUSES] };
+  }
 
   const authorId = searchParams.get('authorId');
   if (authorId) where.authorId = authorId;
