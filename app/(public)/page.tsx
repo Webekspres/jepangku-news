@@ -309,7 +309,7 @@ export default function HomePage() {
               ) : articles.length > 0 ? (
                 <ArticleCard article={articles[0]} variant="featured" />
               ) : (
-                <div className="rounded-3xl border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
+                <div className="border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
                   Tidak ada artikel pilihan utama tersedia.
                 </div>
               )}

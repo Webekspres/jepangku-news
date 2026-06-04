@@ -362,7 +362,7 @@ export default function RichTextEditor({
           ["Shift+Enter", "Line break"],
         ].map(([key, label]) => (
           <span key={key} className="text-[10px] text-jepang-muted font-mono">
-            <kbd className="bg-white border border-jepang-border px-1 py-0.5 rounded text-[10px]">
+            <kbd className="bg-white border border-jepang-border px-1 py-0.5 text-[10px]">
               {key}
             </kbd>{" "}
             {label}

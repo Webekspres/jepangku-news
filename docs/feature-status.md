@@ -97,7 +97,11 @@ signifikan pada fitur.
 ### 🛡️ Admin — API
 
 - [x] `GET /api/admin/stats`: count artikel/user/quiz/poll
-- [x] `GET /api/admin/articles`: list artikel, filter by status
+- [x] `GET /api/admin/articles`: list artikel, filter status/author/kategori/tanggal/search/sort
+- [x] `POST /api/admin/articles`: buat artikel admin (DRAFT, PENDING_REVIEW, PUBLISHED, ARCHIVED)
+- [x] `GET /api/admin/articles/[id]`: detail artikel untuk form edit admin
+- [x] `POST /api/admin/articles/bulk`: approve, reject, archive, delete massal
+- [x] `GET /api/admin/articles/export`: export CSV atau JSON dengan filter yang sama
 - [x] `GET /api/admin/articles/pending`: filter PENDING_REVIEW saja
 - [x] `POST /api/admin/articles/[id]/approve`: set PUBLISHED, buat record ArticleReview
 - [x] `POST /api/admin/articles/[id]/reject`: set REJECTED, buat record ArticleReview dengan catatan
@@ -122,7 +126,9 @@ signifikan pada fitur.
 - [x] `app/(admin)/admin/tags/page.tsx`: CRUD tag, usage count, guard hapus
 - [x] `app/(admin)/admin/users/page.tsx`: list user dengan search + filter role, update role/status
 - [x] `app/(admin)/admin/users/[id]/page.tsx`: detail user + statistik + transaksi poin
-- [x] `app/(admin)/admin/articles/page.tsx`: list artikel admin, filter status
+- [x] `app/(admin)/admin/articles/page.tsx`: list artikel admin, filter lengkap, bulk action, export, link edit
+- [x] `app/(admin)/admin/articles/create/page.tsx`: buat artikel admin (publish langsung)
+- [x] `app/(admin)/admin/articles/[id]/edit/page.tsx`: edit artikel semua status termasuk published
 - [x] `app/(admin)/admin/articles/review/page.tsx`: queue review + detail + approve/reject dengan catatan
 - [x] `app/(admin)/admin/categories/page.tsx`: CRUD kategori, toggle aktif/nonaktif, guard hapus, confirm modal
 - [x] `app/(admin)/admin/quizzes/page.tsx`: list quiz, filter status, aksi aktivasi/hapus, link ke edit
@@ -150,6 +156,8 @@ signifikan pada fitur.
 - [x] `lib/auth.ts`: bcrypt, JWT create/verify, `getCurrentUser`, `getCurrentAdmin`, cookie set/clear
 - [x] `lib/points.ts`: `awardPoints()` dengan idempotency via unique constraint + race condition handling
 - [x] `lib/slug.ts`: `createSlug` (user content) dan `createAdminSlug` (admin content)
+- [x] `lib/article-tags.ts`: `syncArticleTags`, `resolveCategoryId`
+- [x] `lib/admin-articles-query.ts`: filter/sort query builder admin articles
 - [x] `lib/db.ts`: Prisma client singleton
 - [x] `lib/seed.ts`: auto-seed DB dipanggil saat register/login/categories
 - [x] `components/ui/confirm-modal.tsx` + `useConfirm` hook: reusable confirm dialog
@@ -169,9 +177,9 @@ signifikan pada fitur.
 
 ### 📰 Artikel
 
-- [ ] **Admin: create artikel langsung dari panel** — saat ini admin bisa publish/reject tapi belum ada UI create artikel dari admin
-- [ ] **Admin: edit artikel published** — edit konten artikel yang sudah dipublish
-- [ ] **Admin: archive artikel** — pindah status ke ARCHIVED dan tidak tampil di portal
+- [x] **Admin: create artikel langsung dari panel** — `admin/articles/create`, `POST /api/admin/articles` (publish langsung / draft / antrian review)
+- [x] **Admin: edit artikel published** — `admin/articles/[id]/edit`, slug published tidak berubah otomatis saat judul diedit
+- [x] **Admin: archive artikel** — status `ARCHIVED` dari form edit + bulk archive
 - [ ] **Pagination di my-articles** — saat ini list mungkin tanpa pagination jika artikel banyak
 - [ ] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
 - [ ] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
@@ -201,13 +209,13 @@ signifikan pada fitur.
 
 ### 🛡️ Admin
 
-- [ ] **Admin: create/write artikel** — admin membuat artikel langsung (bukan hanya mereview)
+- [x] **Admin: create/write artikel** — admin membuat artikel langsung (bukan hanya mereview)
 - [ ] **Activity audit log** — log semua aksi admin: siapa approve apa, siapa reject apa, kapan
-- [ ] **Bulk action artikel** — pilih banyak artikel sekaligus untuk approve/reject/archive
-- [ ] **Export data CSV/JSON** — export list artikel, user, poin ke CSV atau JSON
+- [x] **Bulk action artikel** — checkbox di list + `POST /api/admin/articles/bulk` (approve/reject/archive/delete)
+- [x] **Export data CSV/JSON** — `GET /api/admin/articles/export` (artikel; mengikuti filter aktif)
 - [ ] **Monitor leaderboard di admin** — tampilan leaderboard dari sisi admin
 - [ ] **Monitor point transactions di admin** — lihat semua transaksi poin semua user, bisa filter by user/tipe/periode
-- [ ] **Admin artikel: filter + sort lebih lengkap** — filter by author, kategori, tanggal
+- [x] **Admin artikel: filter + sort lebih lengkap** — filter author, kategori, tanggal, search, sort latest/oldest/popular/published
 - [ ] **Admin: lihat statistik per kategori** — berapa artikel, views, engagement per kategori
 
 ### 💬 Engagement & Sosial
@@ -292,7 +300,8 @@ signifikan pada fitur.
 - [x] `app/(admin)/admin/polls/page.tsx` — list poll (filter, tutup, aktivasi, hapus)
 - [x] `app/(admin)/admin/polls/create/page.tsx` — buat poll (multi-question builder)
 - [x] `app/(admin)/admin/polls/[id]/edit/page.tsx` — edit poll *(fully implemented)*
-- [ ] `app/(admin)/admin/articles/create/page.tsx` — admin buat artikel *(belum ada)*
+- [x] `app/(admin)/admin/articles/create/page.tsx` — admin buat artikel
+- [x] `app/(admin)/admin/articles/[id]/edit/page.tsx` — admin edit artikel
 - [ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin *(belum ada)*
 - [ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin *(belum ada)*
 - [ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin *(belum ada)*
@@ -304,7 +313,7 @@ signifikan pada fitur.
 ### Jangka Pendek (segera)
 
 1. Email verification + forgot password / password reset
-2. Admin: create/edit artikel published
+2. ~~Admin: create/edit artikel published~~ *(selesai)*
 3. Riwayat aktivitas user (`/activity`)
 4. Monitor point transactions di admin
 5. Rate limiting dan sanitasi input HTML (security)
@@ -327,6 +336,65 @@ signifikan pada fitur.
 
 ---
 
+## � Soft Launch Checklist
+
+**Target:** 30–50 artikel + 9 halaman statis untuk terlihat hidup, aktif, dan kredibel sejak hari pertama.
+
+**Rincian per Kategori:**
+
+| Kategori | Jumlah Artikel | Status |
+|-----------|---------------|--------|
+| News | 6–10 | ⏳ Persiapan |
+| Travel | 6–8 | ⏳ Persiapan |
+| Culture | 4–6 | ⏳ Persiapan |
+| Entertainment | 6–10 | ⏳ Persiapan |
+| Lifestyle | 4–6 | ⏳ Persiapan |
+| Work in Japan | 3–5 | ⏳ Persiapan |
+| Study in Japan | 3–5 | ⏳ Persiapan |
+| Review Produk | 3–5 | ⏳ Persiapan |
+| Event | 3–5 | ⏳ Persiapan |
+| **Total Artikel** | **38–60** | ⏳ Persiapan |
+
+**Halaman Statis (9 item):**
+
+- [ ] About
+- [ ] Contact
+- [ ] Advertise
+- [ ] Media Partner
+- [ ] Career
+- [ ] Internship
+- [ ] Privacy Policy
+- [ ] Terms of Service
+- [ ] Disclaimer
+
+**Struktur Artikel per Kategori:**
+
+Setiap kategori mempunyai guideline struktur konten yang berbeda:
+- **News**: Judul fakta, lead, detail, latar belakang, dampak, kutipan, kesimpulan
+- **Travel**: Judul + daya tarik, lead, akses, harga, aktivitas, tips
+- **Culture**: Judul tradisi, lead, sejarah, makna, cara masyarakat, relevansi
+- **Entertainment**: Judul, lead, sinopsis, highlight, fakta menarik, jadwal rilis
+- **Lifestyle**: Judul tren, lead, penjelasan, contoh, tips, kesimpulan
+- **Work in Japan**: Judul peluang, lead, syarat, gaji, cara apply, tips interview
+- **Study in Japan**: Judul panduan, lead, jenis sekolah, biaya, cara apply, tips
+- **Review Produk**: Judul produk, lead, deskripsi, kelebihan, kekurangan, harga, kesimpulan
+- **Event**: Judul event + tahun, lead, info dasar, highlight, suasana, tips
+
+**Persiapan Konten:**
+
+- [ ] Riset topik dan sumber untuk setiap kategori
+- [ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
+- [ ] Penyuntingan dan quality check
+- [ ] Pengumpulan/pembuatan thumbnail/cover image
+- [ ] Konfigurasi kategori dan tag di admin
+- [ ] Publikasi artikel secara bertahap atau sekaligus
+- [ ] Setup halaman statis
+- [ ] Testing: homepage, search, filter, leaderboard, quiz, poll
+
+**Referensi:** `docs/softlauhch.md` — template lengkap dan guideline penulisan artikel per kategori
+
+---
+
 ## 📌 Referensi
 
 - `.agents/mvp.md` — scope MVP dan batasan fitur
@@ -336,3 +404,4 @@ signifikan pada fitur.
 - `docs/TECH_STACK.md` — arsitektur teknis
 - `docs/R2_SETUP.md` — setup Cloudflare R2
 - `docs/UNCOMPLETED_FEATURE.md` — catatan fitur yang belum selesai
+- `docs/softlauhch.md` — soft launch content checklist dan struktur artikel

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { createSlug, createAdminSlug } from '@/lib/slug';
+import { createSlug } from '@/lib/slug';
+import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
@@ -20,14 +21,7 @@ export async function POST(request: NextRequest) {
 
     const slug = createSlug(title);
 
-    // Resolve category
-    let resolvedCategoryId: string | null = null;
-    if (categoryId) {
-      const cat = await db.category.findFirst({
-        where: { OR: [{ id: categoryId }, { slug: categoryId }] },
-      });
-      resolvedCategoryId = cat?.id ?? null;
-    }
+    const resolvedCategoryId = await resolveCategoryId(categoryId);
 
     const article = await db.article.create({
       data: {
@@ -44,24 +38,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Handle tags
     if (tags.length > 0) {
-      for (const tagName of tags) {
-        if (!tagName.trim()) continue;
-        const tagSlug = createAdminSlug(tagName.trim());
-        let tag = await db.tag.findUnique({ where: { slug: tagSlug } });
-        if (!tag) {
-          tag = await db.tag.create({ data: { name: tagName.trim(), slug: tagSlug } });
-        }
-        const existingLink = await db.articleTag.findFirst({
-          where: { articleId: article.id, tagId: tag.id },
-        });
-        if (!existingLink) {
-          await db.articleTag.create({
-            data: { articleId: article.id, tagId: tag.id },
-          });
-        }
-      }
+      await syncArticleTags(article.id, tags);
     }
 
     return NextResponse.json(article, { status: 201 });

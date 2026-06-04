@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { createSlug, createAdminSlug } from '@/lib/slug';
+import { createSlug } from '@/lib/slug';
+import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
@@ -25,17 +26,21 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { title, excerpt, content, coverImageUrl, categoryId, tags, status } = body;
 
     const updateData: any = { updatedAt: new Date() };
-    if (title !== undefined) { updateData.title = title; updateData.slug = createSlug(title); }
+    if (title !== undefined) {
+      updateData.title = title;
+      const keepSlug =
+        user.role === 'ADMIN' &&
+        article.status === 'PUBLISHED' &&
+        body.preserveSlug !== false;
+      if (!keepSlug) {
+        updateData.slug = createSlug(title);
+      }
+    }
     if (excerpt !== undefined) updateData.excerpt = excerpt;
     if (content !== undefined) updateData.content = content;
     if (coverImageUrl !== undefined) updateData.coverImageUrl = coverImageUrl;
     if (categoryId !== undefined) {
-      if (categoryId) {
-        const cat = await db.category.findFirst({ where: { OR: [{ id: categoryId }, { slug: categoryId }] } });
-        updateData.categoryId = cat?.id ?? null;
-      } else {
-        updateData.categoryId = null;
-      }
+      updateData.categoryId = await resolveCategoryId(categoryId);
     }
     if (status !== undefined) {
       const validStatuses = user.role === 'ADMIN'
@@ -51,22 +56,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const updated = await db.article.update({ where: { id: article.id }, data: updateData });
 
-    if (tags !== undefined) {
-      await db.articleTag.deleteMany({ where: { articleId: article.id } });
-      for (const tagName of tags) {
-        if (!tagName.trim()) continue;
-        const tagSlug = createAdminSlug(tagName.trim());
-        let tag = await db.tag.findUnique({ where: { slug: tagSlug } });
-        if (!tag) tag = await db.tag.create({ data: { name: tagName.trim(), slug: tagSlug } });
-        const existingLink = await db.articleTag.findFirst({
-          where: { articleId: article.id, tagId: tag.id },
-        });
-        if (!existingLink) {
-          await db.articleTag.create({
-            data: { articleId: article.id, tagId: tag.id },
-          });
-        }
-      }
+    if (tags !== undefined && Array.isArray(tags)) {
+      await syncArticleTags(article.id, tags);
     }
 
     return NextResponse.json(updated);

@@ -132,10 +132,10 @@ export function ReviewHistoryModal({
                     key={i}
                     className="animate-pulse flex gap-3"
                   >
-                    <div className="w-4 h-4 rounded-full bg-zinc-200 mt-0.5 shrink-0" />
+                    <div className="w-4 h-4 bg-zinc-200 mt-0.5 shrink-0" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-zinc-200 rounded w-1/2" />
-                      <div className="h-3 bg-zinc-200 rounded w-3/4" />
+                      <div className="h-3 bg-zinc-200 w-1/2" />
+                      <div className="h-3 bg-zinc-200 w-3/4" />
                     </div>
                   </div>
                 ))}

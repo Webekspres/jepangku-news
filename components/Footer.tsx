@@ -108,7 +108,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               {loading ? (
                 <>
-                  <li className="h-4 w-24 bg-zinc-800 rounded animate-pulse" />
+                  <li className="h-4 w-24 bg-zinc-800 animate-pulse" />
                 </>
               ) : isAuthUser(user) ? (
                 <>

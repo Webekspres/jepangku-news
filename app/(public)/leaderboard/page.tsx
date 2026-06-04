@@ -42,7 +42,7 @@ export default function LeaderboardPage() {
                     key={idx}
                     className="flex flex-col items-center justify-end h-full animate-pulse"
                   >
-                    <div className="mb-2 h-8 w-8 rounded-full bg-jepang-red/10" />
+                    <div className="mb-2 h-8 w-8  bg-jepang-red/10" />
                     <div className="w-16 h-16 bg-jepang-red/10 mb-2" />
                     <div className="h-3 w-20 bg-jepang-red/10 mb-1" />
                     <div className="h-2 w-16 bg-jepang-red/10 mb-3" />
