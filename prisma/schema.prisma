@@ -49,6 +49,27 @@ enum CommentStatus {
   HIDDEN
 }
 
+enum ReactionTargetType {
+  ARTICLE
+  POLL
+  QUIZ
+  COMMENT
+}
+
+enum ReactionType {
+  LOVE
+  LOL
+  CUTE
+  WIN
+  WTF
+  OMG
+  GEEKY
+  SCARY
+  FAIL
+  THUMB_UP
+  THUMB_DOWN
+}
+
 model User {
   id               String            @id @default(uuid())
   email            String            @unique
@@ -77,6 +98,7 @@ model User {
   articleRevisions   ArticleRevision[]
   articleReviews     ArticleReview[]   @relation("ArticleReviewer")
   comments           Comment[]
+  reactions          Reaction[]
 
   @@map("users")
 }
@@ -474,4 +496,21 @@ model Comment {
   @@index([targetType, targetId, status, createdAt])
   @@index([parentId])
   @@map("comments")
+}
+
+model Reaction {
+  id         String             @id @default(uuid())
+  sourceApp  String             @default("news") @map("source_app")
+  targetType ReactionTargetType @map("target_type")
+  targetId   String             @map("target_id")
+  userId     String             @map("user_id")
+  type       ReactionType
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([targetType, targetId, userId])
+  @@index([targetType, targetId])
+  @@map("reactions")
 }

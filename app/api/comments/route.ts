@@ -13,6 +13,7 @@ import {
   resolveCommentTarget,
   type CommentRecord,
 } from '@/lib/comments';
+import { summarizeCommentReactions } from '@/lib/reactions';
 
 const USER_SELECT = {
   select: { id: true, name: true, username: true, avatarUrl: true, role: true },
@@ -34,7 +35,13 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: 'asc' },
   });
 
-  const thread = buildPublicThread(comments as unknown as CommentRecord[]);
+  const viewer = await getCurrentUser(request).catch(() => null);
+  const reactions = await summarizeCommentReactions(
+    comments.map((c) => c.id),
+    viewer?.id ?? null,
+  );
+
+  const thread = buildPublicThread(comments as unknown as CommentRecord[], reactions);
   const total = comments.filter((c) => c.status === 'VISIBLE' && c.deletedAt === null).length;
 
   return NextResponse.json({ comments: thread, total });
@@ -145,6 +152,9 @@ export async function POST(request: NextRequest) {
           avatarUrl: user.avatarUrl,
           isAdmin: user.role === 'ADMIN',
         },
+        thumbUp: 0,
+        thumbDown: 0,
+        userReaction: null,
         replies: [],
       },
       pointsAwarded,

@@ -39,7 +39,7 @@ signifikan pada fitur.
 ### 💬 Engagement & Sosial — *Fase A (portal): komentar & like; Fase E (Core): notifikasi & follow*
 
 [x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
-[ ] **Reaction / like artikel** — user bisa react/like artikel sebagai bentuk engagement ringan
+[x] **Reaction / like artikel** — sistem reaksi polimorfik (`Reaction`, target ARTICLE/POLL/QUIZ/COMMENT). Konten: 9 reaksi (Love, Lol, Cute, Win, WTF, OMG, Geeky, Scary, Fail) dengan bar di atas kolom komentar; komentar: jempol naik/turun. Satu reaksi aktif per user per target (klik = toggle/ganti), tanpa poin, rate limit 30/menit
 [ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
 [ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
 

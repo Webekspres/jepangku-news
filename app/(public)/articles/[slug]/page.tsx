@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CommentSection from "@/components/CommentSection";
+import ReactionBar from "@/components/ReactionBar";
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -378,7 +379,10 @@ export default function ArticleDetailPage() {
           </div>
 
           {article && (
-            <CommentSection targetType="ARTICLE" targetId={article.id} />
+            <>
+              <ReactionBar targetType="ARTICLE" targetId={article.id} />
+              <CommentSection targetType="ARTICLE" targetId={article.id} />
+            </>
           )}
         </div>
       </article>

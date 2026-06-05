@@ -1,6 +1,16 @@
 import { db } from './db';
 import { sanitizeText } from './sanitizer';
-import type { CommentTargetType, CommentStatus } from '@prisma/client';
+import type { CommentTargetType, CommentStatus, ReactionType } from '@prisma/client';
+
+export type CommentReactionInfo = {
+  thumbUp: number;
+  thumbDown: number;
+  userReaction: ReactionType | null;
+};
+
+export type CommentReactionMap = Map<string, CommentReactionInfo>;
+
+const EMPTY_REACTION: CommentReactionInfo = { thumbUp: 0, thumbDown: 0, userReaction: null };
 
 export const COMMENT_TARGET_TYPES = ['ARTICLE', 'POLL', 'QUIZ'] as const;
 export const MAX_COMMENT_LENGTH = 1000;
@@ -95,13 +105,21 @@ export type SerializedComment = {
     avatarUrl: string | null;
     isAdmin: boolean;
   };
+  thumbUp: number;
+  thumbDown: number;
+  userReaction: ReactionType | null;
   replies: SerializedComment[];
 };
 
-function serializeOne(c: CommentRecord, replies: SerializedComment[]): SerializedComment {
+function serializeOne(
+  c: CommentRecord,
+  replies: SerializedComment[],
+  reactions?: CommentReactionMap,
+): SerializedComment {
   const isDeleted = c.deletedAt !== null;
   const isHidden = c.status === 'HIDDEN';
   const hideContent = isDeleted || isHidden;
+  const r = reactions?.get(c.id) ?? EMPTY_REACTION;
   return {
     id: c.id,
     parentId: c.parentId,
@@ -117,6 +135,9 @@ function serializeOne(c: CommentRecord, replies: SerializedComment[]): Serialize
       avatarUrl: c.user.avatarUrl,
       isAdmin: c.user.role === 'ADMIN',
     },
+    thumbUp: r.thumbUp,
+    thumbDown: r.thumbDown,
+    userReaction: r.userReaction,
     replies,
   };
 }
@@ -126,7 +147,10 @@ function serializeOne(c: CommentRecord, replies: SerializedComment[]): Serialize
  * - Komentar HIDDEN disembunyikan kecuali masih punya balasan yang tampil (ditampilkan sebagai placeholder).
  * - Komentar terhapus ditampilkan sebagai placeholder hanya bila masih punya balasan yang tampil.
  */
-export function buildPublicThread(comments: CommentRecord[]): SerializedComment[] {
+export function buildPublicThread(
+  comments: CommentRecord[],
+  reactions?: CommentReactionMap,
+): SerializedComment[] {
   const roots = comments.filter((c) => c.parentId === null);
   const repliesByParent = new Map<string, CommentRecord[]>();
 
@@ -144,13 +168,13 @@ export function buildPublicThread(comments: CommentRecord[]): SerializedComment[
     const childRecords = repliesByParent.get(root.id) ?? [];
     const childSerialized = childRecords
       .filter((c) => c.status !== 'HIDDEN' && c.deletedAt === null)
-      .map((c) => serializeOne(c, []));
+      .map((c) => serializeOne(c, [], reactions));
 
     const rootHiddenOrDeleted = root.status === 'HIDDEN' || root.deletedAt !== null;
     // Komentar induk yang disembunyikan/terhapus tanpa balasan tampil → dilewati.
     if (rootHiddenOrDeleted && childSerialized.length === 0) continue;
 
-    result.push(serializeOne(root, childSerialized));
+    result.push(serializeOne(root, childSerialized, reactions));
   }
 
   return result;

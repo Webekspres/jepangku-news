@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import CommentSection from "@/components/CommentSection";
+import ReactionBar from "@/components/ReactionBar";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -422,7 +423,12 @@ export default function PollDetailPage() {
             </div>
           )}
 
-          {poll && <CommentSection targetType="POLL" targetId={poll.id} />}
+          {poll && (
+            <>
+              <ReactionBar targetType="POLL" targetId={poll.id} />
+              <CommentSection targetType="POLL" targetId={poll.id} />
+            </>
+          )}
         </div>
       </div>
     </div>

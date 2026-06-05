@@ -13,6 +13,8 @@ import {
   EyeOff,
   Eye,
   ShieldCheck,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +32,8 @@ interface CommentAuthor {
   isAdmin: boolean;
 }
 
+type CommentReaction = "THUMB_UP" | "THUMB_DOWN" | null;
+
 interface CommentNode {
   id: string;
   parentId: string | null;
@@ -39,6 +43,9 @@ interface CommentNode {
   isEdited: boolean;
   createdAt: string;
   author: CommentAuthor;
+  thumbUp: number;
+  thumbDown: number;
+  userReaction: CommentReaction;
   replies: CommentNode[];
 }
 
@@ -251,6 +258,49 @@ export default function CommentSection({
     }
   };
 
+  const [votingId, setVotingId] = useState<string | null>(null);
+
+  const applyReaction = (
+    nodes: CommentNode[],
+    id: string,
+    patch: Pick<CommentNode, "thumbUp" | "thumbDown" | "userReaction">,
+  ): CommentNode[] =>
+    nodes.map((n) =>
+      n.id === id
+        ? { ...n, ...patch }
+        : { ...n, replies: applyReaction(n.replies, id, patch) },
+    );
+
+  const handleVote = async (id: string, type: "THUMB_UP" | "THUMB_DOWN") => {
+    if (!authUser) {
+      toast.error("Silakan masuk untuk memberi reaksi");
+      return;
+    }
+    if (votingId) return;
+    setVotingId(id);
+    try {
+      const res = await fetch("/api/reactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ targetType: "COMMENT", targetId: id, type }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal menyimpan reaksi");
+      setComments((prev) =>
+        applyReaction(prev, id, {
+          thumbUp: data.counts?.THUMB_UP || 0,
+          thumbDown: data.counts?.THUMB_DOWN || 0,
+          userReaction: (data.userReaction as CommentReaction) || null,
+        }),
+      );
+    } catch (e: any) {
+      toast.error(e.message || "Gagal menyimpan reaksi");
+    } finally {
+      setVotingId(null);
+    }
+  };
+
   const renderComment = (c: CommentNode, isReply = false) => {
     const isOwner = authUser?.id === c.author.id;
     const placeholder = c.isDeleted
@@ -320,6 +370,34 @@ export default function CommentSection({
           {/* Aksi */}
           {!placeholder && !isEditing && (
             <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] font-mono uppercase tracking-wider">
+              <button
+                type="button"
+                className={cn(
+                  "inline-flex items-center gap-1 hover:text-jepang-red disabled:opacity-50",
+                  c.userReaction === "THUMB_UP"
+                    ? "text-jepang-red"
+                    : "text-jepang-muted",
+                )}
+                onClick={() => handleVote(c.id, "THUMB_UP")}
+                disabled={votingId === c.id}
+                data-testid={`thumbup-btn-${c.id}`}
+              >
+                <ThumbsUp size={12} /> {c.thumbUp}
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "inline-flex items-center gap-1 hover:text-foreground disabled:opacity-50",
+                  c.userReaction === "THUMB_DOWN"
+                    ? "text-foreground"
+                    : "text-jepang-muted",
+                )}
+                onClick={() => handleVote(c.id, "THUMB_DOWN")}
+                disabled={votingId === c.id}
+                data-testid={`thumbdown-btn-${c.id}`}
+              >
+                <ThumbsDown size={12} /> {c.thumbDown}
+              </button>
               {!isReply && authUser && (
                 <button
                   type="button"

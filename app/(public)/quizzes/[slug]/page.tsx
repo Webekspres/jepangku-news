@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import CommentSection from "@/components/CommentSection";
+import ReactionBar from "@/components/ReactionBar";
 
 export default function QuizDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -318,7 +319,12 @@ export default function QuizDetailPage() {
             </div>
           </div>
 
-          {quiz && <CommentSection targetType="QUIZ" targetId={quiz.id} />}
+          {quiz && (
+            <>
+              <ReactionBar targetType="QUIZ" targetId={quiz.id} />
+              <CommentSection targetType="QUIZ" targetId={quiz.id} />
+            </>
+          )}
         </div>
       </div>
     </div>
