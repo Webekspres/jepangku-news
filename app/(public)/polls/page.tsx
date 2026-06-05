@@ -67,7 +67,7 @@ function PollCard({ poll, tall }: { poll: any; tall: boolean }) {
             {poll.pollType === "VOTING" ? "VOTING" : "POLLING"}
           </Badge>
           <span className="flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-jepang-red font-bold">
-            <Award size={11} strokeWidth={1.5} /> +{poll.pointsReward || 5} PTS
+            <Award size={11} strokeWidth={1.5} /> +{poll.pointsReward || 5} POIN
           </span>
         </div>
 

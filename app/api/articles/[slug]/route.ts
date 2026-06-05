@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { captureException } from '@/lib/monitoring';
+import { sanitizeHtmlContent, sanitizePlainField } from '@/lib/sanitizer';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -43,13 +45,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const result = {
       ...article,
+      title: sanitizePlainField(article.title, 300),
+      excerpt: article.excerpt ? sanitizePlainField(article.excerpt, 500) : null,
+      content: sanitizeHtmlContent(article.content),
       tags: article.tags.map((at: { tag: { id: string; name: string; slug: string } }) => at.tag),
       relatedArticles,
     };
 
     return NextResponse.json(result);
   } catch (e: any) {
-    console.error('Get article error:', e);
+    await captureException(e, { route: 'articles-get', slug });
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

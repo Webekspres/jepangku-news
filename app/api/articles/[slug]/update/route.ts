@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { captureException } from '@/lib/monitoring';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { createSlug, createAdminSlug } from '@/lib/slug';
+import { createSlug } from '@/lib/slug';
+import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
+import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
+import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
@@ -11,6 +16,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const article = await db.article.findFirst({ where: { slug } });
   if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+
+  const blockedResponse = enforceRateLimit(request, 'article-update', {
+    max: 6,
+    windowMs: 60_000,
+    message: 'Too many article update attempts. Please wait a moment.',
+    identifier: user.id,
+  });
+
+  if (blockedResponse) {
+    return blockedResponse;
+  }
 
   if (article.authorId !== user.id && user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
@@ -22,25 +38,41 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const body = await request.json();
-    const { title, excerpt, content, coverImageUrl, categoryId, tags, status } = body;
+    const { title, excerpt, content, coverImageUrl, categoryId, tags, status, changeNote } =
+      body;
 
-    const updateData: any = { updatedAt: new Date() };
-    if (title !== undefined) { updateData.title = title; updateData.slug = createSlug(title); }
-    if (excerpt !== undefined) updateData.excerpt = excerpt;
-    if (content !== undefined) updateData.content = content;
-    if (coverImageUrl !== undefined) updateData.coverImageUrl = coverImageUrl;
-    if (categoryId !== undefined) {
-      if (categoryId) {
-        const cat = await db.category.findFirst({ where: { OR: [{ id: categoryId }, { slug: categoryId }] } });
-        updateData.categoryId = cat?.id ?? null;
-      } else {
-        updateData.categoryId = null;
+    const updateData: Record<string, unknown> = {};
+    if (title !== undefined) {
+      const safeTitle = sanitizeText(String(title || ''));
+      if (!safeTitle) {
+        return NextResponse.json({ error: 'Title cannot be empty' }, { status: 400 });
+      }
+      updateData.title = safeTitle;
+      const keepSlug =
+        user.role === 'ADMIN' &&
+        article.status === 'PUBLISHED' &&
+        body.preserveSlug !== false;
+      if (!keepSlug) {
+        updateData.slug = createSlug(safeTitle);
       }
     }
+    if (excerpt !== undefined) updateData.excerpt = excerpt ? sanitizeText(String(excerpt)) : null;
+    if (content !== undefined) {
+      const safeContent = sanitizeHtmlContent(String(content || ''));
+      if (!safeContent) {
+        return NextResponse.json({ error: 'Content cannot be empty' }, { status: 400 });
+      }
+      updateData.content = safeContent;
+    }
+    if (coverImageUrl !== undefined) updateData.coverImageUrl = coverImageUrl;
+    if (categoryId !== undefined) {
+      updateData.categoryId = await resolveCategoryId(categoryId);
+    }
     if (status !== undefined) {
-      const validStatuses = user.role === 'ADMIN'
-        ? ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
-        : ['DRAFT', 'PENDING_REVIEW'];
+      const validStatuses =
+        user.role === 'ADMIN'
+          ? ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
+          : ['DRAFT', 'PENDING_REVIEW'];
       if (validStatuses.includes(status)) {
         updateData.status = status;
         if (status === 'PUBLISHED' && !article.publishedAt) {
@@ -49,28 +81,29 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    const updated = await db.article.update({ where: { id: article.id }, data: updateData });
-
-    if (tags !== undefined) {
-      await db.articleTag.deleteMany({ where: { articleId: article.id } });
-      for (const tagName of tags) {
-        if (!tagName.trim()) continue;
-        const tagSlug = createAdminSlug(tagName.trim());
-        let tag = await db.tag.findUnique({ where: { slug: tagSlug } });
-        if (!tag) tag = await db.tag.create({ data: { name: tagName.trim(), slug: tagSlug } });
-        const existingLink = await db.articleTag.findFirst({
-          where: { articleId: article.id, tagId: tag.id },
-        });
-        if (!existingLink) {
-          await db.articleTag.create({
-            data: { articleId: article.id, tagId: tag.id },
-          });
-        }
-      }
-    }
+    const updated = await applyArticleUpdateWithAudit({
+      articleId: article.id,
+      editorId: user.id,
+      editorRole: user.role === 'ADMIN' ? 'ADMIN' : 'USER',
+      before: {
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content,
+        coverImageUrl: article.coverImageUrl,
+        categoryId: article.categoryId,
+        status: article.status,
+      },
+      updateData,
+      changeNote,
+      tags: Array.isArray(tags) ? tags : undefined,
+      syncTags: syncArticleTags,
+    });
 
     return NextResponse.json(updated);
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (e: unknown) {
+    await captureException(e, { route: 'articles-update', slug });
+    const message = e instanceof Error ? e.message : 'Update failed';
+    const status = message.includes('wajib') ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

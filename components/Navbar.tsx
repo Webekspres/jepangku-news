@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import {
@@ -43,8 +44,9 @@ export default function Navbar() {
   const navLinks = [
     { path: "/", label: "Beranda" },
     { path: "/articles", label: "Artikel" },
+    { path: "/explore", label: "Jelajahi" },
     { path: "/quizzes", label: "Kuis" },
-    { path: "/polls", label: "Pool" },
+    { path: "/polls", label: "Polling" },
     { path: "/leaderboard", label: "Peringkat" },
   ];
 
@@ -104,7 +106,7 @@ useEffect(() => {
 
     if (!searchQuery.trim()) return;
 
-    router.push(`/articles?search=${encodeURIComponent(searchQuery.trim())}`);
+    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery("");
     setSearchOpen(false);
     setMobileOpen(false);
@@ -132,14 +134,14 @@ useEffect(() => {
               className="flex items-center gap-2"
               data-testid="navbar-logo"
             >
-              <span className="font-heading text-2xl font-black tracking-tighter">
-                <span className="text-jepang-red">Jepang</span>
-                <span className="text-foreground">ku</span>
-              </span>
-
-              <span className="ml-1 hidden border-l border-jepang-border pl-2 font-mono text-xs uppercase tracking-[0.2em] text-jepang-muted md:inline-block">
-                News
-              </span>
+              <Image
+                src="/assets/images/logo/Logo-03.svg"
+                alt="Jepangku Berita"
+                width={140}
+                height={48}
+                className="h-50 w-50"
+                priority
+              />
             </Link>
 
             <div className="hidden items-center gap-8 md:flex">
@@ -195,7 +197,7 @@ useEffect(() => {
                     </span>
 
                     <span className="text-[10px] uppercase tracking-wider">
-                      PTS
+                      POIN
                     </span>
                   </div>
 
@@ -264,7 +266,7 @@ useEffect(() => {
                           data-testid="menu-bookmarks"
                         >
                           <Bookmark size={16} strokeWidth={1.5} />
-                          Bookmark
+                          Tersimpan
                         </Link>
                       </DropdownMenuItem>
 
@@ -290,7 +292,7 @@ useEffect(() => {
                               data-testid="menu-admin"
                             >
                               <LayoutDashboard size={16} strokeWidth={1.5} />
-                              Admin Dashboard
+                              Dasbor Admin
                             </Link>
                           </DropdownMenuItem>
                         </>

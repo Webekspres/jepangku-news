@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import {
+  sanitizeMediaUrl,
+  sanitizePlainField,
+  sanitizeQuestionBundle,
+} from '@/lib/sanitizer';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -58,9 +63,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   // Build partial update — hanya field yang dikirim
   const updateData: any = {};
-  if (title !== undefined)                updateData.title = title.trim();
-  if (description !== undefined)          updateData.description = description || null;
-  if (thumbnailUrl !== undefined)         updateData.thumbnailUrl = thumbnailUrl || null;
+  if (title !== undefined)                updateData.title = sanitizePlainField(title, 200);
+  if (description !== undefined)          updateData.description = description ? sanitizePlainField(description, 1000) : null;
+  if (thumbnailUrl !== undefined)         updateData.thumbnailUrl = sanitizeMediaUrl(thumbnailUrl);
   if (quizType !== undefined)             updateData.quizType = quizType;
   if (status !== undefined)              updateData.status = status.toUpperCase();
   if (pointsReward !== undefined)        updateData.pointsReward = Number(pointsReward);
@@ -73,29 +78,29 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   // Replace questions if provided
   if (Array.isArray(questions)) {
-    // Delete all existing questions (cascade deletes options)
+    const safeQuestions = sanitizeQuestionBundle(questions);
     await db.quizQuestion.deleteMany({ where: { quizId: id } });
 
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
+    for (let i = 0; i < safeQuestions.length; i++) {
+      const q = safeQuestions[i];
       const question = await db.quizQuestion.create({
         data: {
           quizId: id,
-          questionText: q.question_text,
-          imageUrl: q.image_url || null,
-          sortOrder: q.sort_order ?? i,
+          questionText: q.questionText,
+          imageUrl: q.imageUrl,
+          sortOrder: q.sortOrder,
         },
       });
 
-      for (let j = 0; j < (q.options || []).length; j++) {
+      for (let j = 0; j < q.options.length; j++) {
         const opt = q.options[j];
         await db.quizOption.create({
           data: {
             questionId: question.id,
-            optionText: opt.option_text,
-            imageUrl: opt.image_url || null,
-            isCorrect: opt.is_correct || false,
-            sortOrder: opt.sort_order ?? j,
+            optionText: opt.optionText,
+            imageUrl: opt.imageUrl,
+            isCorrect: opt.isCorrect,
+            sortOrder: opt.sortOrder,
           },
         });
       }

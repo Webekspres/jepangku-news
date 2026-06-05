@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import {
+  sanitizeMediaUrl,
+  sanitizePlainField,
+  sanitizeQuestionBundle,
+} from '@/lib/sanitizer';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -58,10 +63,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   // Build partial update — hanya field yang dikirim
   const updateData: any = {};
-  if (title !== undefined)                 updateData.title = title.trim();
-  if (description !== undefined)           updateData.description = description || null;
+  if (title !== undefined)                 updateData.title = sanitizePlainField(title, 200);
+  if (description !== undefined)           updateData.description = description ? sanitizePlainField(description, 1000) : null;
   if (pollType !== undefined)              updateData.pollType = pollType.toUpperCase();
-  if (thumbnailUrl !== undefined)          updateData.thumbnailUrl = thumbnailUrl || null;
+  if (thumbnailUrl !== undefined)          updateData.thumbnailUrl = sanitizeMediaUrl(thumbnailUrl);
   if (status !== undefined)               updateData.status = status.toUpperCase();
   if (pointsReward !== undefined)         updateData.pointsReward = Number(pointsReward);
   if (allowGuestVote !== undefined)       updateData.allowGuestVote = Boolean(allowGuestVote);
@@ -72,28 +77,28 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   // Replace questions if provided
   if (Array.isArray(questions)) {
-    // Delete all existing questions (cascade deletes options)
+    const safeQuestions = sanitizeQuestionBundle(questions);
     await db.pollQuestion.deleteMany({ where: { pollId: id } });
 
-    for (let qi = 0; qi < questions.length; qi++) {
-      const q = questions[qi];
+    for (let qi = 0; qi < safeQuestions.length; qi++) {
+      const q = safeQuestions[qi];
       const question = await db.pollQuestion.create({
         data: {
           pollId: id,
           questionText: q.questionText,
-          imageUrl: q.imageUrl || null,
-          sortOrder: q.sortOrder ?? qi,
+          imageUrl: q.imageUrl,
+          sortOrder: q.sortOrder,
         },
       });
 
-      for (let oi = 0; oi < (q.options || []).length; oi++) {
+      for (let oi = 0; oi < q.options.length; oi++) {
         const o = q.options[oi];
         await db.pollOption.create({
           data: {
             questionId: question.id,
             optionText: o.optionText,
-            imageUrl: o.imageUrl || null,
-            sortOrder: o.sortOrder ?? oi,
+            imageUrl: o.imageUrl,
+            sortOrder: o.sortOrder,
           },
         });
       }

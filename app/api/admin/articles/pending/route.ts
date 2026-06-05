@@ -6,14 +6,49 @@ export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
 
-  const articles = await db.article.findMany({
-    where: { status: 'PENDING_REVIEW' },
-    orderBy: { createdAt: 'asc' },
-    include: {
-      author: { select: { name: true, username: true, email: true } },
-      category: { select: { name: true, slug: true } },
-    },
-  });
+  const { searchParams } = new URL(request.url);
+  const pageParam = searchParams.get('page');
+  const limitParam = searchParams.get('limit');
+  const shouldPaginate = Boolean(pageParam || limitParam);
 
-  return NextResponse.json(articles);
+  const where = { status: 'PENDING_REVIEW' as const };
+  const include = {
+    author: { select: { name: true, username: true, email: true } },
+    category: { select: { name: true, slug: true } },
+  };
+
+  if (!shouldPaginate) {
+    const articles = await db.article.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+      include,
+    });
+    return NextResponse.json(articles);
+  }
+
+  const page = Math.max(Number(pageParam || '1'), 1);
+  const limit = Math.min(Math.max(Number(limitParam || '10'), 1), 50);
+  const skip = (page - 1) * limit;
+
+  const [articles, total] = await Promise.all([
+    db.article.findMany({
+      where,
+      orderBy: { createdAt: 'asc' },
+      include,
+      skip,
+      take: limit,
+    }),
+    db.article.count({ where }),
+  ]);
+
+  const totalPages = Math.max(Math.ceil(total / limit), 1);
+
+  return NextResponse.json({
+    articles,
+    total,
+    page,
+    limit,
+    totalPages,
+    hasMore: page < totalPages,
+  });
 }

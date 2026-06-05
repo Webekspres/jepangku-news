@@ -1,107 +1,48 @@
 # Jepangku News
 
-**Jepangku** adalah portal berita interaktif bertema Jepang untuk pembaca Indonesia. Proyek ini menggabungkan konten artikel, quiz, polling, leaderboard, dan sistem poin untuk meningkatkan engagement pengguna.
+> Portal berita interaktif bertema Jepang untuk pembaca Indonesia — artikel, quiz, polling, leaderboard, dan sistem poin.
 
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-blue)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Node.js][node-image]][node-url]
+[![Next.js][next-image]][next-url]
+[![TypeScript][ts-image]][ts-url]
 
-## 📌 Ringkasan
+Jepangku News adalah aplikasi **full-stack** berbasis **Next.js App Router + TypeScript** yang menggabungkan konten berita dengan fitur interaktif untuk meningkatkan engagement pengguna. Pembaca dapat menikmati artikel seputar budaya Jepang, anime, manga, dan lifestyle, sambil mengikuti quiz, polling, dan mengumpulkan poin.
 
-Jepangku News adalah MVP single-app yang dibangun dengan **Next.js + TypeScript** dan siap dikembangkan menjadi ekosistem multi-app di masa depan. Saat ini deployment utama menggunakan **Vercel**, dan rencana selanjutnya adalah fork repository ke organisasi GitHub lalu deploy ke **self-hosted VPS**.
+MVP single-app sudah tercapai. Pengembangan lanjutan berfokus pada **Fase A** — menstabilkan portal untuk soft launch — sambil menyiapkan arsitektur agar siap menjadi ekosistem multi-app (Core Service, LMS, Clerk) di fase berikutnya. Deployment saat ini menggunakan **Vercel**.
 
-## 🎯 Fokus Prioritas
+<img width="1894" height="913" alt="Screenshot 2026-06-05 090602" src="https://github.com/user-attachments/assets/27767331-f2c5-4839-a195-afa4a17c63c2" />
 
-1. **User experience dan fitur user** terlebih dahulu
-2. Baru setelah itu, fokus ke **admin dashboard dan management tools**
-3. Saat ini, **shared auth service** tidak diimplementasikan, tetapi arsitektur sudah disiapkan agar dapat terintegrasi kelak
-4. Database sudah tersedia di **Neon PostgreSQL** dan sudah memiliki seed data
 
-## ✨ Fitur Utama Saat Ini
+## Installation
 
-### Untuk Publik (guest)
-- Membaca daftar artikel dan detail
-- Melihat kategori artikel
-- Melihat leaderboard mingguan
-- Mengikuti quiz dan polling
+**Prasyarat:** Node.js 18+, Bun (disarankan) atau npm, Git, akun Neon PostgreSQL. Cloudflare R2 opsional untuk development (ada graceful fallback).
 
-### Untuk Pengguna Terdaftar
-- Register & login
-- Mengelola bookmark artikel
-- Submit artikel untuk review admin
-- Mengikuti quiz dan polling dengan tracking hasil
-- Mengumpulkan poin dari aktivitas
-- Melihat riwayat poin dan aktivitas
-- Melihat profil personal
-- Terdaftar dalam weekly leaderboard
+**macOS & Linux:**
 
-### Untuk Admin
-- Akses admin dashboard
-- Manage artikel dan review user-submitted article
-- Manage kategori dan tags
-- Manage quiz dan polling
-- Manage user dan homepage banner
-
-## 🛠️ Tech Stack
-
-- **Next.js** 16.x
-- **React** 19.x
-- **TypeScript** 5.x
-- **Tailwind CSS** 4.x
-- **Prisma** 6.x
-- **PostgreSQL** (Neon)
-- **Cloudflare R2** untuk storage asset
-- **JWT + session cookie** untuk auth
-- **Vercel** untuk deployment awal
-
-## ✅ Status Implementasi
-
-### Sudah tersedia
-- Authentication: register, login, logout, `auth/me`
-- Artikel: listing, detail, submit artikel, review workflow
-- Bookmark untuk user
-- Quiz: list, detail, submit jawaban
-- Polling: list, detail, vote
-- Leaderboard mingguan
-- User profile dasar
-- API routes untuk auth, articles, quizzes, polls, users, leaderboard
-- Upload utility Cloudflare R2 di `lib/r2.ts`
-
-### Belum selesai / sedang ditingkatkan
-- Email verification
-- Forgot password / password reset
-- Share tracking + points reward
-- Full-text search dan trending algorithm lengkap
-- Avatar upload terintegrasi profile
-- Advanced admin management untuk quiz/poll
-- Monthly / all-time leaderboard
-- Comments dan notification system
-- Rate limiting, sanitasi input, monitoring
-
-## 📦 Prasyarat
-
-- Node.js 18+
-- npm / pnpm
-- Git
-- Neon PostgreSQL database
-- Cloudflare R2 credentials
-
-## 🧩 Setup Lokal
-
-```bash
-git clone https://github.com/yourusername/jepangku-news-app.git
-cd jepangku-news-app
-npm install
+```sh
+git clone https://github.com/Webekspres/jepangku-news.git
+cd jepangku-news
+bun install
+cp .env.example .env.local
+bunx prisma generate
 ```
 
-## 🔧 Konfigurasi Environment
+**Windows (PowerShell):**
 
-Salin `.env.example` ke `.env.local` lalu isi nilai berikut:
+```powershell
+git clone https://github.com/Webekspres/jepangku-news.git
+cd jepangku-news
+bun install
+Copy-Item .env.example .env.local
+bunx prisma generate
+```
+
+Isi `.env.local` sesuai `.env.example`:
 
 ```env
 DATABASE_URL="postgresql://user:password@host:port/database"
 JWT_SECRET="your-secret-key"
+JWT_EXPIRATION=86400
 R2_ACCOUNT_ID="your-account-id"
 R2_ACCESS_KEY_ID="your-access-key-id"
 R2_ACCESS_KEY_SECRET="your-access-key-secret"
@@ -109,112 +50,111 @@ R2_BUCKET_NAME="jepangku-storage"
 R2_PUBLIC_URL="https://your-bucket-id.r2.cloudflarestorage.com"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+NODE_ENV="development"
 ```
 
-> Catatan: database sudah di-seed di Neon. Jalankan `npx prisma db seed` hanya jika Anda membuat instance database baru.
+> Variabel `NEXT_PUBLIC_*` diekspos ke browser. Jangan commit `.env.local`.
+> Jalankan `bun prisma db seed` hanya jika membuat instance database baru.
 
-## ⚙️ Installasi dan Run
+## Usage example
 
-```bash
-npx prisma generate
-npm run dev
+Jalankan server development:
+
+```sh
+bun dev
 ```
 
-### Build & production
+Buka [http://localhost:3000](http://localhost:3000). Contoh alur penggunaan:
 
-```bash
-npm run build
-npm run start
+**Pembaca (guest):** jelajahi artikel di `/articles`, ikuti quiz di `/quizzes`, vote polling di `/polls`, lihat peringkat di `/leaderboard`.
+
+**Pengguna terdaftar:** daftar/masuk, bookmark artikel, submit artikel untuk review, kumpulkan poin, kelola profil di `/profile`.
+
+**Admin:** akses dashboard di `/admin` — kelola artikel, kategori, tag, quiz, polling, user, dan homepage banner.
+
+Contoh request API:
+
+```sh
+# Daftar artikel dengan filter
+curl "http://localhost:3000/api/articles?sort=latest&page=1"
+
+# Leaderboard mingguan
+curl "http://localhost:3000/api/leaderboard/weekly"
 ```
 
-### Lint
+_Untuk dokumentasi lengkap fitur, API, dan status implementasi, lihat [docs/feature-status.md](docs/feature-status.md) dan [docs/development-roadmap.md](docs/development-roadmap.md)._
 
-```bash
-npm run lint
+## Development setup
+
+Instal dependensi dan jalankan perintah development:
+
+```sh
+bun install
+bunx prisma generate
+bun dev          # development server (Turbopack)
+bun run build    # prisma generate + production build
+bun run start    # production server
+bun run lint     # ESLint
 ```
 
-## ☁️ Deployment
-
-### Saat ini
-- Deploy di **Vercel**
-- Pastikan environment variables terpasang di dashboard Vercel
-- Pastikan build `npm run build` sukses sebelum deploy
-
-### Rencana migrasi
-1. Fork repo ke organisasi GitHub
-2. Pindahkan repo ke organisasi tersebut
-3. Setup self-hosted VPS untuk staging/production
-4. Implement CI/CD untuk build dan deploy
-
-## 🗂️ Struktur Proyek
+**Struktur proyek:**
 
 ```
 app/
-components/
-lib/
-prisma/
-public/
-docs/
-.agents/
-README.md
-package.json
-tsconfig.json
-next.config.ts
+├── (public)/    # Homepage, artikel, quiz, poll, leaderboard
+├── (user)/      # Profil, bookmark, submit artikel, poin
+├── (admin)/     # Admin dashboard & management
+├── (auth)/      # Login & register
+└── api/         # API routes
+components/      # UI components
+lib/             # DB, auth, R2, points
+prisma/          # Schema, migrations, seed
+docs/            # Dokumentasi proyek
+.agents/         # Scope, user flow, ERD, steering
 ```
 
-## 🌐 API Endpoint Ringkas
+**Tech stack:** Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL (Neon) · Cloudflare R2 · JWT + cookie
 
-### Auth
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
+**Deployment (Vercel):** hubungkan repo, set environment variables dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
-### Articles
-- `GET /api/articles`
-- `GET /api/articles/[slug]`
-- `POST /api/articles`
-- `PUT /api/articles/[id]`
-- `DELETE /api/articles/[id]`
+## Release History
 
-### Quiz
-- `GET /api/quiz`
-- `GET /api/quiz/[slug]`
-- `POST /api/quiz/[slug]/submit`
+* **Fase A** *(aktif)*
+  * ADD: Hardening keamanan, engagement (komentar, like), profil publik author
+  * ADD: Search & discovery, analytics konten, soft launch (konten + halaman statis)
+* **MVP** *(0.1.0 — tercapai)*
+  * ADD: Auth (register, login, logout, daily login points)
+  * ADD: Artikel (listing, detail, submit, review workflow, bookmark, share, read-complete points)
+  * ADD: Quiz & polling (attempt, vote, scoring, points)
+  * ADD: Leaderboard mingguan & riwayat poin
+  * ADD: Admin dashboard (artikel, kategori, tag, quiz, poll, user, homepage)
+  * ADD: Upload ke Cloudflare R2, profil user dengan avatar
+* **0.0.1**
+  * Work in progress — scaffold Next.js + Prisma + auth dasar
 
-### Polls
-- `GET /api/polls`
-- `GET /api/polls/[slug]`
-- `POST /api/polls/[slug]/vote`
+## Meta
 
-### Leaderboard
-- `GET /api/leaderboard/weekly`
+[Webekspres](https://webekspres.id) – [GitHub](https://github.com/Webekspres)
 
-### Users
-- `GET /api/users/[id]`
-- `PUT /api/users/[id]`
-- `GET /api/users/[id]/bookmarks`
-- `GET /api/users/[id]/activity-history`
+Proyek private. Dikembangkan oleh [Webekspres](https://webekspres.id).
 
-## 📚 Dokumentasi Proyek
+[https://github.com/Webekspres/jepangku-news](https://github.com/Webekspres/jepangku-news)
 
-- `docs/TECH_STACK.md`
-- `docs/R2_SETUP.md`
-- `docs/UNCOMPLETED_FEATURE.md`
-- `.agents/erd.md`
-- `.agents/mvp.md`
-- `.agents/user-flow.md`
-- `.agents/steering.md`
+## Contributing
 
-## 🤝 Kontribusi
+1. Fork it ([https://github.com/Webekspres/jepangku-news/fork](https://github.com/Webekspres/jepangku-news/fork))
+2. Create your feature branch (`git checkout -b feature/nama-fitur`)
+3. Commit your changes (`git commit -am 'Add some namaFitur'`)
+4. Push to the branch (`git push origin feature/nama-fitur`)
+5. Create a new Pull Request
 
-1. Fork repository
-2. Buat branch: `git checkout -b feature/nama-fitur`
-3. Commit perubahan
-4. Push branch
-5. Buat Pull Request
+Ikuti prioritas di [docs/development-roadmap.md](docs/development-roadmap.md) dan update [docs/feature-status.md](docs/feature-status.md) setelah menyelesaikan fitur signifikan.
 
-## 📄 Lisensi
+<!-- Badge links -->
 
-Project ini dilisensikan di bawah MIT License. Lihat `LICENSE`.
-''
+[node-image]: https://img.shields.io/badge/Node.js-18%2B-green
+[node-url]: https://nodejs.org/
+[next-image]: https://img.shields.io/badge/Next.js-16%2B-black
+[next-url]: https://nextjs.org/
+[ts-image]: https://img.shields.io/badge/TypeScript-5%2B-blue
+[ts-url]: https://www.typescriptlang.org/

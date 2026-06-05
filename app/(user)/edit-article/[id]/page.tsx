@@ -150,7 +150,7 @@ export default function EditArticlePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="edit-article-page">
       <SectionHeader
-        label="EDIT ARTICLE"
+        label="UBAH ARTIKEL"
         title="Edit Artikel"
         subtitle="Artikel akan direview ulang oleh admin setelah disubmit."
         icon={<PenSquare size={16} strokeWidth={1.5} />}
@@ -242,7 +242,7 @@ export default function EditArticlePage() {
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengupload..." : "Upload"}
+                  {uploading ? "Mengunggah..." : "Unggah"}
                   <input
                     type="file"
                     accept="image/*"

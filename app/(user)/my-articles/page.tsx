@@ -5,15 +5,25 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Send, FileText, History } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Eye,
+  Trash2,
+  Send,
+  FileText,
+  History,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
-  ReviewHistoryModal,
-  useReviewHistory,
-} from "@/components/ui/review-history-modal";
+  ArticleActivityModal,
+  useArticleActivity,
+} from "@/components/ui/article-activity-modal";
 
 const STATUS_BADGE: Record<
   string,
@@ -27,28 +37,52 @@ const STATUS_BADGE: Record<
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "DRAFT",
-  PENDING_REVIEW: "PENDING",
-  PUBLISHED: "PUBLISHED",
-  REJECTED: "REJECTED",
-  ARCHIVED: "ARCHIVED",
+  DRAFT: "Draf",
+  PENDING_REVIEW: "Menunggu",
+  PUBLISHED: "Dipublikasikan",
+  REJECTED: "Ditolak",
+  ARCHIVED: "Diarsipkan",
 };
 
 export default function MyArticlesPage() {
   const [articles, setArticles] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
-  const { openHistory, modalProps: reviewModalProps } = useReviewHistory();
+  const { openActivity, modalProps: activityModalProps } = useArticleActivity();
+  const PER_PAGE = 10;
 
   useEffect(() => {
-    loadArticles();
-  }, []);
+    loadArticles(1, filter);
+  }, [filter]);
 
-  const loadArticles = async () => {
-    const data = await fetch("/api/articles/my").then((r) => r.json());
-    setArticles(Array.isArray(data) ? data : []);
+  const loadArticles = async (pageNum = 1, activeFilter = filter) => {
+    setLoading(true);
+    const params = new URLSearchParams({
+      page: String(pageNum),
+      limit: String(PER_PAGE),
+    });
+    if (activeFilter !== "all") {
+      params.set("status", activeFilter);
+    }
+    const data = await fetch(`/api/articles/my?${params.toString()}`).then((r) =>
+      r.json(),
+    );
+
+    const list = Array.isArray(data?.articles)
+      ? data.articles
+      : Array.isArray(data)
+        ? data
+        : [];
+
+    setArticles(list);
+    setPage(Number(data?.page || pageNum));
+    setTotalPages(Number(data?.totalPages || 1));
+    setTotalItems(Number(data?.total || list.length));
     setLoading(false);
   };
 
@@ -68,8 +102,8 @@ export default function MyArticlesPage() {
               });
           },
         );
-        toast.success("Article deleted");
-        loadArticles();
+        toast.success("Artikel dihapus");
+        await loadArticles(page, filter);
       },
     });
   };
@@ -81,35 +115,32 @@ export default function MyArticlesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "PENDING_REVIEW" }),
       });
-      toast.success("Article submitted for review");
-      loadArticles();
+      toast.success("Artikel dikirim untuk review");
+      await loadArticles(page, filter);
     } catch {
-      toast.error("Failed to submit");
+      toast.error("Gagal mengirim");
     }
   };
-
-  const filtered =
-    filter === "all" ? articles : articles.filter((a) => a.status === filter);
 
   return (
     <div className="bg-white min-h-screen" data-testid="my-articles-page">
       <ConfirmModal {...confirmProps} />
-      <ReviewHistoryModal {...reviewModalProps} />
+      <ArticleActivityModal {...activityModalProps} />
 
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-                MY ARTICLES
+                ARTIKEL SAYA
               </p>
               <h1 className="font-heading font-black text-4xl tracking-tighter">
-                Your Articles
+                Artikel Kamu
               </h1>
             </div>
             <Button asChild data-testid="new-article-btn">
               <Link href="/submit-article">
-                <Plus size={16} strokeWidth={1.5} /> New Article
+                <Plus size={16} strokeWidth={1.5} /> Artikel Baru
               </Link>
             </Button>
           </div>
@@ -124,10 +155,13 @@ export default function MyArticlesPage() {
                 key={s}
                 size="sm"
                 variant={filter === s ? "black" : "outline"}
-                onClick={() => setFilter(s)}
+                onClick={() => {
+                  setFilter(s);
+                  setPage(1);
+                }}
                 data-testid={`filter-${s}`}
               >
-                {s === "all" ? "All" : STATUS_LABELS[s]}
+                {s === "all" ? "Semua" : STATUS_LABELS[s]}
               </Button>
             ),
           )}
@@ -139,9 +173,9 @@ export default function MyArticlesPage() {
               <ArticleCardSkeleton key={i} variant="compact" />
             ))}
           </div>
-        ) : filtered.length > 0 ? (
+        ) : articles.length > 0 ? (
           <div className="space-y-3">
-            {filtered.map((article: any) => (
+            {articles.map((article: any) => (
               <div
                 key={article.id}
                 className="bg-white border border-jepang-border hover:border-foreground p-4 transition-colors"
@@ -173,24 +207,57 @@ export default function MyArticlesPage() {
                           ✕ {article.reviews[0].note}
                         </p>
                       )}
+                    {article.lastEditedBy?.role === "ADMIN" && (
+                      <p className="text-xs text-jepang-muted mt-1">
+                        Terakhir diedit admin:{" "}
+                        <span className="font-semibold text-foreground">
+                          {article.lastEditedBy.name}
+                        </span>
+                        {article.lastEditedAt && (
+                          <span className="font-mono ml-1">
+                            ·{" "}
+                            {new Date(article.lastEditedAt).toLocaleDateString(
+                              "id-ID",
+                            )}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   {/* Actions */}
                   <div className="flex gap-2 shrink-0">
-                    {/* Review history button — muncul jika ada review */}
-                    {article.reviews?.length > 0 && (
+                    {(article._count?.reviews > 0 ||
+                      article._count?.revisions > 0 ||
+                      article.lastEditedBy?.role === "ADMIN") && (
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() =>
-                          openHistory(article.slug, article.title)
+                          openActivity(article.slug, article.title)
                         }
-                        title="Lihat riwayat review"
+                        title="Riwayat revisi & review"
                         data-testid={`history-${article.id}`}
                       >
                         <History size={14} strokeWidth={1.5} />
                       </Button>
                     )}
+
+                    {/* Preview — for any non-published article */}
+                    {article.status !== "PUBLISHED" &&
+                      article.status !== "ARCHIVED" && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            router.push(`/preview-article/${article.id}`)
+                          }
+                          title="Lihat preview artikel"
+                          data-testid={`preview-${article.id}`}
+                        >
+                          <Eye size={14} strokeWidth={1.5} />
+                        </Button>
+                      )}
 
                     {(article.status === "DRAFT" ||
                       article.status === "REJECTED") && (
@@ -209,7 +276,7 @@ export default function MyArticlesPage() {
                           size="icon"
                           onClick={() => handleSubmit(article)}
                           data-testid={`submit-${article.id}`}
-                          title="Submit for review"
+                          title="Kirim untuk review"
                         >
                           <Send size={14} strokeWidth={1.5} />
                         </Button>
@@ -235,13 +302,40 @@ export default function MyArticlesPage() {
                         asChild
                         data-testid={`view-${article.id}`}
                       >
-                        <Link href={`/articles/${article.slug}`}>View</Link>
+                        <Link href={`/articles/${article.slug}`}>Lihat</Link>
                       </Button>
                     )}
                   </div>
                 </div>
               </div>
             ))}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4">
+                <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
+                  Halaman {page}/{totalPages} - {totalItems} item
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => loadArticles(page - 1, filter)}
+                    data-testid="my-articles-prev-page"
+                  >
+                    <ChevronLeft size={14} strokeWidth={1.5} /> Sebelumnya
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages}
+                    onClick={() => loadArticles(page + 1, filter)}
+                    data-testid="my-articles-next-page"
+                  >
+                    Berikutnya <ChevronRight size={14} strokeWidth={1.5} />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-24" data-testid="no-my-articles">
@@ -251,14 +345,15 @@ export default function MyArticlesPage() {
               className="mx-auto mb-4 text-jepang-muted"
             />
             <p className="font-heading font-bold text-2xl mb-2">
-              No articles {filter !== "all" && `in ${STATUS_LABELS[filter]}`}
+              Belum ada artikel
+              {filter !== "all" && ` dengan status ${STATUS_LABELS[filter]}`}
             </p>
             <p className="text-jepang-muted mb-4">
-              Start writing and share your stories!
+              Mulai menulis dan bagikan ceritamu!
             </p>
             <Button asChild>
               <Link href="/submit-article">
-                <Plus size={16} strokeWidth={1.5} /> Submit Article
+                <Plus size={16} strokeWidth={1.5} /> Kirim Artikel
               </Link>
             </Button>
           </div>

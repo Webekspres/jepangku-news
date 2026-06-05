@@ -10,6 +10,8 @@ import { ArrowLeft, BarChart3, Award, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import CommentSection from "@/components/CommentSection";
+import ReactionBar from "@/components/ReactionBar";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -180,7 +182,7 @@ export default function PollDetailPage() {
                   </Badge>
                   <Badge className="text-jepang-red border-jepang-red">
                     <Award size={10} strokeWidth={1.5} className="mr-1" />
-                    +{poll!.pointsReward} PTS
+                    +{poll!.pointsReward} POIN
                   </Badge>
                 </>
               )}
@@ -419,6 +421,13 @@ export default function PollDetailPage() {
                 </p>
               </div>
             </div>
+          )}
+
+          {poll && (
+            <>
+              <ReactionBar targetType="POLL" targetId={poll.id} />
+              <CommentSection targetType="POLL" targetId={poll.id} />
+            </>
           )}
         </div>
       </div>

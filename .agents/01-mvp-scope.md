@@ -1,5 +1,10 @@
 # Dokumen Konsep Aplikasi Jepangku
 
+> **Status:** Scope MVP single-app ini **sudah tercapai**. Dokumen tetap dipertahankan sebagai
+> acuan batasan fitur MVP. Arah lanjutan (ekosistem multi-app + Core Service) ada di
+> `.agents/05-ecosystem-strategy.md`, dan rencana pengerjaan berfase ada di
+> `docs/development-roadmap.md`.
+
 ## 1. Ringkasan Produk
 
 Jepangku adalah portal media interaktif bertema Jepang untuk pembaca Indonesia. Platform ini menyediakan berita, artikel ringan, quiz, polling, voting, leaderboard, dan sistem poin untuk meningkatkan interaksi pengguna.

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { reviewListSelect } from '@/lib/article-audit';
 
 export async function GET(
   request: NextRequest,
@@ -13,7 +14,14 @@ export async function GET(
 
   const article = await db.article.findUnique({
     where: { slug },
-    select: { id: true, authorId: true, title: true },
+    select: {
+      id: true,
+      authorId: true,
+      title: true,
+      status: true,
+      lastEditedAt: true,
+      lastEditedBy: { select: { id: true, name: true, role: true } },
+    },
   });
 
   if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
@@ -23,14 +31,14 @@ export async function GET(
   const reviews = await db.articleReview.findMany({
     where: { articleId: article.id },
     orderBy: { reviewedAt: 'desc' },
-    select: {
-      id: true,
-      previousStatus: true,
-      newStatus: true,
-      note: true,
-      reviewedAt: true,
-    },
+    select: reviewListSelect,
   });
 
-  return NextResponse.json({ articleTitle: article.title, reviews });
+  return NextResponse.json({
+    articleTitle: article.title,
+    articleStatus: article.status,
+    lastEditedAt: article.lastEditedAt,
+    lastEditedBy: article.lastEditedBy,
+    reviews,
+  });
 }

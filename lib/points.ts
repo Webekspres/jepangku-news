@@ -23,29 +23,22 @@ export async function awardPoints(
 
     if (existing) return false;
 
-    // Use a transaction to create the point transaction and increment user's points atomically
+    // Neon HTTP adapter tidak mendukung interactive transaction, jadi operasi
+    // dijalankan berurutan. Unique constraint pada pointTransaction mencegah
+    // duplikasi/race; user.totalPoints di-increment setelah transaksi tercatat.
     try {
-      await db.$transaction(async (tx) => {
-        await tx.pointTransaction.create({
-          data: {
-            userId,
-            sourceApp: 'news',
-            activityType,
-            sourceType,
-            sourceId: sourceId ?? null,
-            points,
-            description: description ?? null,
-            occurredAt: new Date(),
-          },
-        });
-
-        await tx.user.update({
-          where: { id: userId },
-          data: { totalPoints: { increment: points } },
-        });
+      await db.pointTransaction.create({
+        data: {
+          userId,
+          sourceApp: 'news',
+          activityType,
+          sourceType,
+          sourceId: sourceId ?? null,
+          points,
+          description: description ?? null,
+          occurredAt: new Date(),
+        },
       });
-
-      return true;
     } catch (e) {
       // Handle unique constraint violation (race condition)
       if ((e as any)?.code === 'P2002' || (e as any)?.code === '23505') {
@@ -54,6 +47,13 @@ export async function awardPoints(
       }
       throw e;
     }
+
+    await db.user.update({
+      where: { id: userId },
+      data: { totalPoints: { increment: points } },
+    });
+
+    return true;
   } catch (e) {
     console.error('Error awarding points:', e);
     return false;

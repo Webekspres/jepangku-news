@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { captureException } from '@/lib/monitoring';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { awardPoints } from '@/lib/points';
@@ -7,10 +9,22 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  try {
+    const user = await getCurrentUser(request);
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const { slug } = await params;
+    const blockedResponse = enforceRateLimit(request, 'poll-vote', {
+      max: 6,
+      windowMs: 60_000,
+      message: 'Too many vote attempts. Please slow down.',
+      identifier: user.id,
+    });
+
+    if (blockedResponse) {
+      return blockedResponse;
+    }
+
+    const { slug } = await params;
 
   const poll = await db.poll.findUnique({ where: { slug } });
   if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
@@ -80,4 +94,9 @@ export async function POST(
     message: 'Vote recorded',
     pointsAwarded: wasFirstVote ? poll.pointsReward : 0,
   });
+  } catch (e: unknown) {
+    await captureException(e, { route: 'poll-vote' });
+    const message = e instanceof Error ? e.message : 'Vote failed';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

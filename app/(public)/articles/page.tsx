@@ -9,6 +9,7 @@ import { Filter, Search, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "@/components/SectionHeader";
+import PopularTags from "@/components/PopularTags";
 
 function ArticleListContent() {
   const searchParams = useSearchParams();
@@ -225,6 +226,8 @@ function ArticleListContent() {
             </div>
           )}
 
+          <PopularTags limit={12} title="Tag Populer" className="py-4 border-t border-jepang-border" />
+
           <div className="flex gap-2 items-center">
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
               <Filter
@@ -278,10 +281,10 @@ function ArticleListContent() {
         ) : (
           <div className="text-center py-24" data-testid="no-articles">
             <p className="font-heading font-bold text-2xl mb-2">
-              No articles found
+              Tidak ada artikel ditemukan
             </p>
             <p className="text-jepang-muted">
-              Try adjusting your filters or search
+              Coba ubah filter atau kata kunci pencarian
             </p>
           </div>
         )}
@@ -296,7 +299,7 @@ export default function ArticleListPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">
-            Loading...
+            Memuat...
           </p>
         </div>
       }

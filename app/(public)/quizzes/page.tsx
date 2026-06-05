@@ -130,7 +130,7 @@ export default function QuizListPage() {
                         </span>
                         <span className="flex items-center gap-1 text-jepang-red font-bold">
                           <Award size={12} strokeWidth={1.5} /> +
-                          {quiz.pointsReward || 10} PTS
+                          {quiz.pointsReward || 10} POIN
                         </span>
                       </div>
                     </CardContent>
@@ -162,7 +162,7 @@ export default function QuizListPage() {
               className="mx-auto mb-4 text-jepang-muted"
             />
             <p className="font-heading font-bold text-2xl mb-2">
-              No quizzes available
+              Belum ada kuis tersedia
             </p>
             <p className="text-jepang-muted">
               Check back soon for new quizzes!

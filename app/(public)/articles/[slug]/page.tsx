@@ -13,10 +13,13 @@ import {
   Calendar,
   ArrowLeft,
   Award,
+  Tag as TagIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import CommentSection from "@/components/CommentSection";
+import ReactionBar from "@/components/ReactionBar";
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -91,7 +94,7 @@ export default function ArticleDetailPage() {
         credentials: "include",
       }).then((r) => r.json());
       if (data.awarded) {
-        toast.success(`+${data.points} points for reading!`);
+        toast.success(`+${data.points} poin untuk membaca!`);
         refreshUser();
       }
     } catch {}
@@ -99,7 +102,7 @@ export default function ArticleDetailPage() {
 
   const handleBookmark = async () => {
     if (!user) {
-      toast.error("Please login to bookmark");
+      toast.error("Silakan masuk untuk menyimpan artikel");
       router.push("/login");
       return;
     }
@@ -110,7 +113,7 @@ export default function ArticleDetailPage() {
           credentials: "include",
         });
         setIsBookmarked(false);
-        toast.success("Bookmark removed");
+        toast.success("Bookmark dihapus");
       } else {
         const data = await fetch(`/api/bookmarks/${article.id}`, {
           method: "POST",
@@ -118,12 +121,12 @@ export default function ArticleDetailPage() {
         }).then((r) => r.json());
         setIsBookmarked(true);
         if (data.pointsAwarded) {
-          toast.success("+1 point for bookmarking!");
+          toast.success("+1 poin untuk bookmark!");
           refreshUser();
-        } else toast.success("Bookmarked");
+        } else toast.success("Artikel disimpan");
       }
     } catch {
-      toast.error("Failed to bookmark");
+      toast.error("Gagal menyimpan bookmark");
     }
   };
 
@@ -144,7 +147,7 @@ export default function ArticleDetailPage() {
           }).then((r) => r.json());
 
           if (trackResponse.pointsAwarded) {
-            toast.success(`Link copied! +${trackResponse.points} points for sharing!`);
+            toast.success(`Tautan disalin! +${trackResponse.points} poin untuk berbagi!`);
             setHasShared(true);
             refreshUser();
           }
@@ -154,10 +157,10 @@ export default function ArticleDetailPage() {
           setIsSharing(false);
         }
       } else {
-        toast.success("Link copied!");
+        toast.success("Tautan disalin!");
       }
     } catch {
-      toast.error("Failed to copy link");
+      toast.error("Gagal menyalin tautan");
     }
   };
 
@@ -172,7 +175,7 @@ export default function ArticleDetailPage() {
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
             data-testid="back-to-articles"
           >
-            <ArrowLeft size={14} /> Back to Articles
+            <ArrowLeft size={14} /> Kembali ke Artikel
           </Link>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -197,6 +200,25 @@ export default function ArticleDetailPage() {
               </>
             )}
           </div>
+
+          {!isLoading && article.tags?.length > 0 && (
+            <div
+              className="flex flex-wrap items-center gap-2 mb-4"
+              data-testid="article-tags"
+            >
+              <TagIcon size={14} strokeWidth={1.5} className="text-jepang-muted shrink-0" />
+              {article.tags.map((t: { id: string; name: string; slug: string }) => (
+                <Link
+                  key={t.id}
+                  href={`/articles?tag=${t.slug}`}
+                  className="text-xs font-mono uppercase tracking-wider border border-jepang-border px-2.5 py-1 hover:border-foreground hover:bg-foreground hover:text-white transition-colors"
+                  data-testid={`article-tag-${t.slug}`}
+                >
+                  #{t.name}
+                </Link>
+              ))}
+            </div>
+          )}
 
           <h1
             className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6 leading-[1.05]"
@@ -240,7 +262,7 @@ export default function ArticleDetailPage() {
                   <>
                     <div className="h-4 w-28 bg-jepang-red/10 animate-pulse mb-2" />
                     <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                      AUTHOR
+                      PENULIS
                     </p>
                   </>
                 ) : (
@@ -249,7 +271,7 @@ export default function ArticleDetailPage() {
                       {article.author?.name || "Jepangku"}
                     </p>
                     <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                      AUTHOR
+                      PENULIS
                     </p>
                   </>
                 )}
@@ -261,10 +283,10 @@ export default function ArticleDetailPage() {
               {isLoading ? (
                 <>
                   <span className="h-3 w-8 bg-jepang-red/10 animate-pulse inline-block" />
-                  <span>VIEWS</span>
+                  <span>Dilihat</span>
                 </>
               ) : (
-                `${article.viewCount} VIEWS`
+                `${article.viewCount} dilihat`
               )}
             </div>
 
@@ -291,7 +313,7 @@ export default function ArticleDetailPage() {
                   strokeWidth={1.5}
                   fill={isBookmarked ? "currentColor" : "none"}
                 />
-                Save
+                Simpan
               </Button>
 
               <Button
@@ -302,7 +324,7 @@ export default function ArticleDetailPage() {
                 data-testid="share-btn"
               >
                 <Share2 size={14} strokeWidth={1.5} />
-                {user && hasShared ? "Shared" : "Share"}
+                {user && hasShared ? "Dibagikan" : "Bagikan"}
               </Button>
             </div>
           </div>
@@ -349,14 +371,14 @@ export default function ArticleDetailPage() {
             >
               <Award size={20} strokeWidth={1.5} />
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                +2 POINTS AWARDED FOR READING
+                +2 POIN DIBERIKAN UNTUK MEMBACA
               </p>
             </div>
           )}
 
           <div className="mt-8 pt-6 border-t border-jepang-border">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mb-3">
-              Tags
+              Tag
             </p>
 
             <div className="flex flex-wrap gap-2">
@@ -375,6 +397,13 @@ export default function ArticleDetailPage() {
               )}
             </div>
           </div>
+
+          {article && (
+            <>
+              <ReactionBar targetType="ARTICLE" targetId={article.id} />
+              <CommentSection targetType="ARTICLE" targetId={article.id} />
+            </>
+          )}
         </div>
       </article>
 
@@ -383,7 +412,7 @@ export default function ArticleDetailPage() {
         <section className="py-12 bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl">
             <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b-2 border-foreground">
-              Related Articles
+              Artikel Terkait
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {isLoading

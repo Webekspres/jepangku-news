@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -17,17 +17,38 @@ export default function AdminReviewArticles() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
   const [rejectNote, setRejectNote] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const PER_PAGE = 10;
 
   useEffect(() => {
-    loadArticles();
+    loadArticles(1);
   }, []);
 
-  const loadArticles = async () => {
-    const data = await fetch("/api/admin/articles/pending").then((r) =>
+  const loadArticles = async (pageNum = 1) => {
+    setLoading(true);
+    const params = new URLSearchParams({
+      page: String(pageNum),
+      limit: String(PER_PAGE),
+    });
+    const data = await fetch(`/api/admin/articles/pending?${params}`).then((r) =>
       r.json(),
     );
 
-    setArticles(Array.isArray(data) ? data : []);
+    const list = Array.isArray(data?.articles)
+      ? data.articles
+      : Array.isArray(data)
+        ? data
+        : [];
+    setArticles(list);
+    setPage(Number(data?.page || pageNum));
+    setTotalPages(Number(data?.totalPages || 1));
+    setTotalItems(Number(data?.total || list.length));
+    setSelected((prev: any) => {
+      if (!prev) return null;
+      return list.find((article: any) => article.id === prev.id) || null;
+    });
     setLoading(false);
   };
 
@@ -39,7 +60,7 @@ export default function AdminReviewArticles() {
 
       toast.success("Artikel berhasil disetujui dan dipublikasikan");
       setSelected(null);
-      loadArticles();
+      await loadArticles(page);
     } catch {
       toast.error("Gagal menyetujui artikel");
     }
@@ -61,7 +82,7 @@ export default function AdminReviewArticles() {
       toast.success("Artikel berhasil ditolak");
       setSelected(null);
       setRejectNote("");
-      loadArticles();
+      await loadArticles(page);
     } catch {
       toast.error("Gagal menolak artikel");
     }
@@ -76,7 +97,7 @@ export default function AdminReviewArticles() {
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
             data-testid="back-to-admin"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
 
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
@@ -93,7 +114,7 @@ export default function AdminReviewArticles() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] mb-3">
-              ANTRIAN ({loading ? "..." : articles.length})
+              ANTRIAN ({loading ? "..." : totalItems})
             </h3>
 
             {loading ? (
@@ -106,26 +127,55 @@ export default function AdminReviewArticles() {
                 </div>
               ))
             ) : articles.length > 0 ? (
-              articles.map((article: any) => (
-                <button
-                  key={article.id}
-                  onClick={() => setSelected(article)}
-                  className={`w-full text-left p-4 border transition-colors ${
-                    selected?.id === article.id
-                      ? "border-jepang-red bg-jepang-off-white"
-                      : "border-jepang-border hover:border-foreground"
-                  }`}
-                  data-testid={`queue-article-${article.id}`}
-                >
-                  <p className="font-semibold text-sm line-clamp-2">
-                    {article.title}
-                  </p>
+              <>
+                {articles.map((article: any) => (
+                  <button
+                    key={article.id}
+                    onClick={() => setSelected(article)}
+                    className={`w-full text-left p-4 border transition-colors ${
+                      selected?.id === article.id
+                        ? "border-jepang-red bg-jepang-off-white"
+                        : "border-jepang-border hover:border-foreground"
+                    }`}
+                    data-testid={`queue-article-${article.id}`}
+                  >
+                    <p className="font-semibold text-sm line-clamp-2">
+                      {article.title}
+                    </p>
 
-                  <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                    OLEH {article.author?.name}
-                  </p>
-                </button>
-              ))
+                    <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider mt-1">
+                      OLEH {article.author?.name}
+                    </p>
+                  </button>
+                ))}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="text-[11px] text-jepang-muted font-mono uppercase tracking-wider">
+                      Halaman {page}/{totalPages}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page <= 1}
+                        onClick={() => loadArticles(page - 1)}
+                        data-testid="review-prev-page"
+                      >
+                        <ChevronLeft size={14} /> Sebelumnya
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page >= totalPages}
+                        onClick={() => loadArticles(page + 1)}
+                        data-testid="review-next-page"
+                      >
+                        Berikutnya <ChevronRight size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-jepang-muted">
                 Tidak ada artikel yang menunggu review

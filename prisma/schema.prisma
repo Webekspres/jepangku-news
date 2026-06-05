@@ -38,6 +38,38 @@ enum PollStatus {
   CLOSED
 }
 
+enum CommentTargetType {
+  ARTICLE
+  POLL
+  QUIZ
+}
+
+enum CommentStatus {
+  VISIBLE
+  HIDDEN
+}
+
+enum ReactionTargetType {
+  ARTICLE
+  POLL
+  QUIZ
+  COMMENT
+}
+
+enum ReactionType {
+  LOVE
+  LOL
+  CUTE
+  WIN
+  WTF
+  OMG
+  GEEKY
+  SCARY
+  FAIL
+  THUMB_UP
+  THUMB_DOWN
+}
+
 model User {
   id               String            @id @default(uuid())
   email            String            @unique
@@ -62,6 +94,11 @@ model User {
   dailyLoginRewards DailyLoginReward[]
   files            File[]
   articleShares    ArticleShare[]
+  articlesLastEdited Article[]       @relation("ArticleLastEditor")
+  articleRevisions   ArticleRevision[]
+  articleReviews     ArticleReview[]   @relation("ArticleReviewer")
+  comments           Comment[]
+  reactions          Reaction[]
 
   @@map("users")
 }
@@ -129,11 +166,15 @@ model Article {
   shareCount       Int             @default(0) @map("share_count")
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @updatedAt @map("updated_at")
+  lastEditedById   String?         @map("last_edited_by_id")
+  lastEditedAt     DateTime?       @map("last_edited_at")
 
   author           User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  lastEditedBy     User?           @relation("ArticleLastEditor", fields: [lastEditedById], references: [id], onDelete: SetNull)
   category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags             ArticleTag[]
   reviews          ArticleReview[]
+  revisions        ArticleRevision[]
   bookmarks        Bookmark[]
   shares           ArticleShare[]
 
@@ -164,8 +205,31 @@ model ArticleReview {
   createdAt      DateTime      @default(now()) @map("created_at")
 
   article        Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  reviewer       User          @relation("ArticleReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@map("article_reviews")
+}
+
+model ArticleRevision {
+  id             String        @id @default(uuid())
+  articleId      String        @map("article_id")
+  revisionNumber Int           @map("revision_number")
+  editorId       String        @map("editor_id")
+  changeNote     String?       @map("change_note")
+  title          String
+  excerpt        String?
+  content        String
+  coverImageUrl  String?       @map("cover_image_url")
+  categoryId     String?       @map("category_id")
+  status         ArticleStatus
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  article        Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  editor         User          @relation(fields: [editorId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, revisionNumber])
+  @@index([articleId, createdAt])
+  @@map("article_revisions")
 }
 
 model Bookmark {
@@ -409,4 +473,44 @@ model File {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("files")
+}
+
+model Comment {
+  id         String            @id @default(uuid())
+  sourceApp  String            @default("news") @map("source_app")
+  targetType CommentTargetType @map("target_type")
+  targetId   String            @map("target_id")
+  userId     String            @map("user_id")
+  parentId   String?           @map("parent_id")
+  content    String
+  status     CommentStatus     @default(VISIBLE)
+  editedAt   DateTime?         @map("edited_at")
+  deletedAt  DateTime?         @map("deleted_at")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     Comment?          @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    Comment[]         @relation("CommentReplies")
+
+  @@index([targetType, targetId, status, createdAt])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Reaction {
+  id         String             @id @default(uuid())
+  sourceApp  String             @default("news") @map("source_app")
+  targetType ReactionTargetType @map("target_type")
+  targetId   String             @map("target_id")
+  userId     String             @map("user_id")
+  type       ReactionType
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([targetType, targetId, userId])
+  @@index([targetType, targetId])
+  @@map("reactions")
 }

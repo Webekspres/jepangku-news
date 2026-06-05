@@ -127,7 +127,7 @@ function ImageUploadField({
         >
           <label>
             <Upload size={14} strokeWidth={1.5} />
-            {isUploading ? "Mengupload..." : "Upload"}
+            {isUploading ? "Mengunggah..." : "Unggah"}
             <input
               type="file"
               accept="image/*"
@@ -336,7 +336,7 @@ export default function AdminCreateQuiz() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
           <h1 className="font-heading font-black text-4xl tracking-tighter">
             Buat Kuis
@@ -426,7 +426,7 @@ export default function AdminCreateQuiz() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ACTIVE">Aktif</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="DRAFT">Draf</SelectItem>
                   <SelectItem value="INACTIVE">Tidak Aktif</SelectItem>
                 </SelectContent>
               </Select>

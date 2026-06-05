@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { sanitizeMediaUrl, sanitizePlainField } from '@/lib/sanitizer';
+import { captureException } from '@/lib/monitoring';
 
 const USERNAME_COOLDOWN_DAYS = 14;
 
@@ -47,6 +49,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
+  try {
   let body: any;
   try {
     body = await request.json();
@@ -55,14 +58,17 @@ export async function PATCH(request: NextRequest) {
   }
 
   const { name, username, avatarUrl, displayName, bio } = body;
+  const safeName = name !== undefined ? sanitizePlainField(name, 100) : undefined;
+  const safeDisplayName =
+    displayName !== undefined ? sanitizePlainField(displayName, 100) : undefined;
+  const safeBio = bio !== undefined ? sanitizePlainField(bio, 300) || null : undefined;
+  const safeAvatarUrl =
+    avatarUrl !== undefined ? sanitizeMediaUrl(avatarUrl) : undefined;
 
   // Validate name
-  if (name !== undefined) {
-    if (typeof name !== 'string' || name.trim().length === 0) {
+  if (safeName !== undefined) {
+    if (safeName.length === 0) {
       return NextResponse.json({ error: 'Nama tidak boleh kosong' }, { status: 400 });
-    }
-    if (name.trim().length > 100) {
-      return NextResponse.json({ error: 'Nama terlalu panjang (maks. 100 karakter)' }, { status: 400 });
     }
   }
 
@@ -114,19 +120,14 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  // Validate bio
-  if (bio !== undefined && typeof bio === 'string' && bio.length > 300) {
-    return NextResponse.json({ error: 'Bio terlalu panjang (maks. 300 karakter)' }, { status: 400 });
-  }
-
   // Build user update payload
   const userUpdate: Record<string, any> = {};
-  if (name !== undefined) userUpdate.name = name.trim();
+  if (safeName !== undefined) userUpdate.name = safeName;
   if (isChangingUsername) {
     userUpdate.username = username.trim();
     userUpdate.usernameChangedAt = new Date();
   }
-  if (avatarUrl !== undefined) userUpdate.avatarUrl = avatarUrl;
+  if (safeAvatarUrl !== undefined) userUpdate.avatarUrl = safeAvatarUrl;
 
   // Update user fields
   const updatedUser = Object.keys(userUpdate).length > 0
@@ -141,7 +142,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   // Update or create UserProfile (bio / displayName)
-  if (displayName !== undefined || bio !== undefined) {
+  if (safeDisplayName !== undefined || safeBio !== undefined) {
     const existingProfile = await db.userProfile.findUnique({
       where: { userId: user.id },
     });
@@ -150,18 +151,16 @@ export async function PATCH(request: NextRequest) {
       await db.userProfile.update({
         where: { userId: user.id },
         data: {
-          ...(displayName !== undefined ? { displayName: String(displayName).trim() } : {}),
-          ...(bio !== undefined ? { bio: String(bio).trim() || null } : {}),
+          ...(safeDisplayName !== undefined ? { displayName: safeDisplayName } : {}),
+          ...(safeBio !== undefined ? { bio: safeBio } : {}),
         },
       });
     } else {
       await db.userProfile.create({
         data: {
           userId: user.id,
-          displayName: displayName !== undefined
-            ? String(displayName).trim()
-            : (name?.trim() ?? updatedUser.name),
-          bio: bio !== undefined ? String(bio).trim() || null : null,
+          displayName: safeDisplayName ?? safeName ?? updatedUser.name,
+          bio: safeBio ?? null,
         },
       });
     }
@@ -175,4 +174,8 @@ export async function PATCH(request: NextRequest) {
     lastLoginAt: clean.lastLoginAt?.toISOString() ?? null,
     usernameChangedAt: clean.usernameChangedAt?.toISOString() ?? null,
   });
+  } catch (e) {
+    await captureException(e, { route: 'user-profile-patch' });
+    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+  }
 }

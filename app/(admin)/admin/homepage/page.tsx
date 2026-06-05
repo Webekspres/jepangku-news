@@ -90,7 +90,7 @@ export default function AdminHomepagePage() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
 
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
@@ -384,7 +384,7 @@ export default function AdminHomepagePage() {
                           onClick={() => toggleHot(article)}
                           data-testid={`toggle-hot-${article.id}`}
                         >
-                          <Flame size={10} strokeWidth={1.5} /> Hot
+                          <Flame size={10} strokeWidth={1.5} /> Populer
                         </Button>
                       </div>
                     </div>
