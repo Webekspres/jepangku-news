@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { captureException } from '@/lib/monitoring';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import { hashPassword, createAccessToken, createRefreshToken, setAuthCookies } from '@/lib/auth';
 import { seedDatabase } from '@/lib/seed';
 
 export async function POST(request: NextRequest) {
+  const blockedResponse = enforceRateLimit(request, 'auth-register', {
+    max: 4,
+    windowMs: 60_000,
+    message: 'Too many registration attempts. Please wait and try again.',
+  });
+
+  if (blockedResponse) {
+    return blockedResponse;
+  }
   await seedDatabase();
   try {
     const body = await request.json();
@@ -61,7 +72,7 @@ export async function POST(request: NextRequest) {
     setAuthCookies(response, accessToken, refreshToken);
     return response;
   } catch (e: any) {
-    console.error('Register error:', e);
+    await captureException(e, { route: 'auth-register' });
     return NextResponse.json({ error: e.message || 'Registration failed' }, { status: 500 });
   }
 }

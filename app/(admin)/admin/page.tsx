@@ -218,6 +218,12 @@ export default function AdminDashboard() {
               testid: "action-manage-homepage",
             },
             {
+              href: "/admin/comments",
+              icon: MessageSquare,
+              label: "Moderasi Komentar",
+              testid: "action-manage-comments",
+            },
+            {
               href: "/admin/articles",
               icon: FileText,
               label: "Semua Artikel",

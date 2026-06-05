@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { captureException } from '@/lib/monitoring';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
@@ -8,6 +9,7 @@ import {
   buildAdminArticlesOrderBy,
   adminArticleInclude,
 } from '@/lib/admin-articles-query';
+import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
@@ -73,7 +75,11 @@ export async function POST(request: NextRequest) {
       status = 'DRAFT',
     } = body;
 
-    if (!title?.trim() || !content?.trim()) {
+    const safeTitle = sanitizeText(String(title || ''));
+    const safeExcerpt = excerpt ? sanitizeText(String(excerpt)) : null;
+    const safeContent = sanitizeHtmlContent(String(content || ''));
+
+    if (!safeTitle || !safeContent) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
 
@@ -81,17 +87,17 @@ export async function POST(request: NextRequest) {
     const articleStatus = validStatuses.includes(status) ? status : 'DRAFT';
 
     const resolvedCategoryId = await resolveCategoryId(categoryId);
-    const slug = createSlug(title);
+    const slug = createSlug(safeTitle);
     const now = new Date();
 
     const article = await db.article.create({
       data: {
         authorId: admin.id,
         categoryId: resolvedCategoryId,
-        title: title.trim(),
+        title: safeTitle,
         slug,
-        excerpt: excerpt?.trim() || null,
-        content,
+        excerpt: safeExcerpt,
+        content: safeContent,
         coverImageUrl: coverImageUrl || null,
         status: articleStatus as any,
         visibility: 'public',
@@ -124,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(full, { status: 201 });
   } catch (e: any) {
-    console.error('Admin create article error:', e);
+    await captureException(e, { route: 'admin-articles-create' });
     return NextResponse.json({ error: e.message || 'Failed to create article' }, { status: 500 });
   }
 }

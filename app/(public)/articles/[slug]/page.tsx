@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import CommentSection from "@/components/CommentSection";
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -375,6 +376,10 @@ export default function ArticleDetailPage() {
               )}
             </div>
           </div>
+
+          {article && (
+            <CommentSection targetType="ARTICLE" targetId={article.id} />
+          )}
         </div>
       </article>
 

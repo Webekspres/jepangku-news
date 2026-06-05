@@ -10,6 +10,7 @@ import { ArrowLeft, BarChart3, Award, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import CommentSection from "@/components/CommentSection";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -420,6 +421,8 @@ export default function PollDetailPage() {
               </div>
             </div>
           )}
+
+          {poll && <CommentSection targetType="POLL" targetId={poll.id} />}
         </div>
       </div>
     </div>

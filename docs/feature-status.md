@@ -30,15 +30,15 @@ signifikan pada fitur.
 
 ### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
 
-[ ] **Rate limiting** — throttle API endpoint sensitif: login, register, submit artikel, vote
-[ ] **Input sanitasi HTML** — sanitasi konten RichTextEditor sebelum disimpan ke DB (mencegah XSS)
-[ ] **Image moderation** — validasi / moderasi gambar upload sebelum publish
-[ ] **Monitoring & alerting** — error tracking (Sentry atau setara), uptime monitoring
-[ ] **Logging structured** — log request/response penting ke file atau service
+[x] **Rate limiting** — throttle API endpoint sensitif: login, register, submit artikel, vote
+[x] **Input sanitasi HTML** — sanitasi konten RichTextEditor sebelum disimpan ke DB (mencegah XSS)
+[x] **Image moderation** — validasi / moderasi gambar upload sebelum publish
+[x] **Monitoring & alerting** — error tracking (Sentry atau setara), uptime monitoring
+[x] **Logging structured** — log request/response penting ke file atau service
 
 ### 💬 Engagement & Sosial — *Fase A (portal): komentar & like; Fase E (Core): notifikasi & follow*
 
-[ ] **Sistem komentar artikel** — user bisa komentar pada artikel, thread sederhana, moderasi admin
+[x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
 [ ] **Reaction / like artikel** — user bisa react/like artikel sebagai bentuk engagement ringan
 [ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
 [ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
@@ -234,6 +234,17 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] `POST /api/bookmarks/[articleId]`: bookmark artikel, soft-delete aware (restore jika pernah di-bookmark), +1 poin (hanya sekali)
 [x] `DELETE /api/bookmarks/[articleId]`: soft-delete (set `deletedAt`), decrement `bookmarkCount`
 [x] Poin bookmark tidak diberikan ulang jika user hapus lalu bookmark ulang artikel yang sama
+
+### 💬 Komentar
+
+[x] Model `Comment` polimorfik (`targetType` ARTICLE/POLL/QUIZ + `targetId`), thread 1 level via `parentId`, soft-delete (`deletedAt`), moderasi (`status` VISIBLE/HIDDEN)
+[x] `GET /api/comments?targetType=&targetId=`: thread publik (komentar HIDDEN/terhapus jadi placeholder bila punya balasan tampil)
+[x] `POST /api/comments`: auth required, validasi + sanitasi plain-text (maks 1000), rate limit 10/menit, verifikasi target ada, +2 poin sekali per target via `awardPoints()`
+[x] `PATCH/DELETE /api/comments/[id]`: edit & soft-delete milik sendiri (admin bisa hapus semua)
+[x] `GET /api/admin/comments`: list moderasi dengan filter status/tipe + search + pagination
+[x] `PATCH/DELETE /api/admin/comments/[id]`: sembunyikan/tampilkan + hapus permanen
+[x] `components/CommentSection.tsx`: komponen reusable (form, balasan, edit, hapus, kontrol moderasi admin inline) — terpasang di halaman detail artikel, polling, kuis
+[x] `app/(admin)/admin/comments/page.tsx`: halaman moderasi + tautan di dashboard admin
 
 ### 🏆 Leaderboard & Poin
 

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { captureException } from '@/lib/monitoring';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { adminArticleInclude } from '@/lib/admin-articles-query';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
+import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 
 export async function GET(
   request: NextRequest,
@@ -73,13 +75,23 @@ export async function PATCH(
     const updateData: Record<string, unknown> = {};
 
     if (title !== undefined) {
-      updateData.title = title;
+      const safeTitle = sanitizeText(String(title || ''));
+      if (!safeTitle) {
+        return NextResponse.json({ error: 'Title cannot be empty' }, { status: 400 });
+      }
+      updateData.title = safeTitle;
       if (article.status !== 'PUBLISHED') {
-        updateData.slug = createSlug(title);
+        updateData.slug = createSlug(safeTitle);
       }
     }
-    if (excerpt !== undefined) updateData.excerpt = excerpt || null;
-    if (content !== undefined) updateData.content = content;
+    if (excerpt !== undefined) updateData.excerpt = excerpt ? sanitizeText(String(excerpt)) : null;
+    if (content !== undefined) {
+      const safeContent = sanitizeHtmlContent(String(content || ''));
+      if (!safeContent) {
+        return NextResponse.json({ error: 'Content cannot be empty' }, { status: 400 });
+      }
+      updateData.content = safeContent;
+    }
     if (coverImageUrl !== undefined) updateData.coverImageUrl = coverImageUrl || null;
     if (categoryId !== undefined) {
       updateData.categoryId = await resolveCategoryId(categoryId);
@@ -120,9 +132,9 @@ export async function PATCH(
 
     return NextResponse.json(full ?? updated);
   } catch (e: unknown) {
+    await captureException(e, { route: 'admin-articles-patch', id });
     const message = e instanceof Error ? e.message : 'Failed to update article';
     const status = message.includes('wajib') ? 400 : 500;
-    console.error('Admin article PATCH error:', e);
     return NextResponse.json({ error: message }, { status });
   }
 }

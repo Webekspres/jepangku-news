@@ -9,6 +9,7 @@ import { ArrowLeft, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import CommentSection from "@/components/CommentSection";
 
 export default function QuizDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -316,6 +317,8 @@ export default function QuizDetailPage() {
               </Button>
             </div>
           </div>
+
+          {quiz && <CommentSection targetType="QUIZ" targetId={quiz.id} />}
         </div>
       </div>
     </div>

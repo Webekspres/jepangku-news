@@ -10,7 +10,8 @@ Jepangku News adalah aplikasi **full-stack** berbasis **Next.js App Router + Typ
 
 MVP single-app sudah tercapai. Pengembangan lanjutan berfokus pada **Fase A** — menstabilkan portal untuk soft launch — sambil menyiapkan arsitektur agar siap menjadi ekosistem multi-app (Core Service, LMS, Clerk) di fase berikutnya. Deployment saat ini menggunakan **Vercel**.
 
-<img width="1894" height="913" alt="Image" src="https://github.com/user-attachments/assets/bcc5e3da-39f4-4583-be45-374d12eab396" />
+<img width="1894" height="913" alt="Image" src="" />
+[](https://github.com/user-attachments/assets/bcc5e3da-39f4-4583-be45-374d12eab396)
 
 ## Installation
 
