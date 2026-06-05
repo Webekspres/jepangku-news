@@ -52,16 +52,16 @@ signifikan pada fitur.
 
 ### 👤 Profile & Discovery Author — *Fase A (portal)*
 
-[ ] **Author profile publik** — halaman `/profile/[username]` yang bisa dilihat user lain: bio, artikel published, statistik publik
-[ ] **Statistik penulis** — total artikel published, total views, total bookmark diterima
+[x] **Author profile publik** — `/profile/[username]` + `GET /api/profile/[username]` (hanya user `active`, tanpa email/poin); bio, avatar, artikel published, `AuthorProfileCard` di artikel (bawah reaction, atas komentar); `AuthorLink` di artikel/komentar/leaderboard
+[x] **Statistik penulis** — agregat publik: total artikel published, total views, total bookmark diterima (di profil publik & API)
 
 ### 📈 Analytics Konten — *Fase A (portal)*
 
-[ ] **View analytics per artikel** — grafik views per hari/minggu, unique visitor vs total views
-[ ] **Content performance report** — artikel dengan views, bookmark, share tertinggi dalam periode tertentu
-[ ] **Admin: lihat statistik per kategori** — berapa artikel, views, engagement per kategori
-[ ] **Statistik detail per quiz di admin** — berapa user sudah attempt, distribusi skor, pass rate
-[ ] **Statistik detail per poll di admin** — breakdown votasi per opsi, tren waktu
+[x] **View analytics per artikel** — `article_views` time-series + `/admin/analytics/articles/[id]` (grafik harian, total vs unique visitors, periode 7/30/90 hari)
+[x] **Content performance report** — `/admin/analytics/content` ranking views/bookmark/share per periode + link ke detail grafik
+[x] **Admin: lihat statistik per kategori** — `/admin/analytics/categories` tabel + chart views & engagement per kategori
+[x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
+[x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
 
 ### 🔐 Auth Lanjutan — *Fase B/C (ditangani Clerk)*
 
@@ -109,11 +109,11 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ### Fase A — Sekarang (stabilkan portal)
 
-1. Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring
-2. Engagement portal: komentar artikel, reaction/like
-3. Profil publik author + statistik penulis
+1. ~~Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring~~ *(selesai)*
+2. ~~Engagement portal: komentar artikel, reaction/like~~ *(selesai)*
+3. ~~Profil publik author + statistik penulis~~ *(selesai)*
 4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
-5. Analytics konten: view analytics, content performance, statistik kategori/quiz/poll
+5. ~~Analytics konten: view analytics, content performance, statistik kategori/quiz/poll~~ *(selesai)*
 6. Soft launch: konten artikel + 9 halaman statis
 
 ### Fase B–C — Menunggu Core Service
@@ -134,7 +134,9 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 ### Belum Ada
 
 [ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
-[ ] `app/(public)/profile/[username]/page.tsx` — profil publik author
+[x] `app/(public)/profile/[username]/page.tsx` — profil publik author (bio, stats, artikel published)
+[x] `GET /api/profile/[username]` — profil & artikel publik penulis
+[x] `components/AuthorProfileCard.tsx` + `AuthorLink.tsx` — kartu penulis & link ke profil
 [ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
 [ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
 [ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin

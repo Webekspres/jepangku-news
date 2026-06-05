@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Pencil, Zap, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Zap, Trash2, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -226,37 +226,48 @@ export default function AdminQuizzesPage() {
                     </TableCell>
 
                     <TableCell>
-                      {quiz.status === "DRAFT" && (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => router.push(`/admin/quizzes/${quiz.id}/edit`)}
-                            data-testid={`edit-quiz-${quiz.id}`}
-                            className="hover:bg-foreground hover:text-white"
-                          >
-                            <Pencil size={13} className="mr-1" /> Ubah
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleActivate(quiz.id, quiz.title)}
-                            data-testid={`activate-quiz-${quiz.id}`}
-                            className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                          >
-                            <Zap size={13} className="mr-1" /> Aktifkan
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDelete(quiz.id, quiz.title)}
-                            data-testid={`delete-quiz-${quiz.id}`}
-                            className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
-                          >
-                            <Trash2 size={13} className="mr-1" /> Hapus
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/admin/analytics/quizzes/${quiz.id}`)}
+                          data-testid={`quiz-stats-${quiz.id}`}
+                          className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                        >
+                          <BarChart2 size={13} className="mr-1" /> Statistik
+                        </Button>
+                        {quiz.status === "DRAFT" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => router.push(`/admin/quizzes/${quiz.id}/edit`)}
+                              data-testid={`edit-quiz-${quiz.id}`}
+                              className="hover:bg-foreground hover:text-white"
+                            >
+                              <Pencil size={13} className="mr-1" /> Ubah
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleActivate(quiz.id, quiz.title)}
+                              data-testid={`activate-quiz-${quiz.id}`}
+                              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                            >
+                              <Zap size={13} className="mr-1" /> Aktifkan
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDelete(quiz.id, quiz.title)}
+                              data-testid={`delete-quiz-${quiz.id}`}
+                              className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                            >
+                              <Trash2 size={13} className="mr-1" /> Hapus
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

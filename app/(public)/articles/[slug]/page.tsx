@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
+import AuthorProfileCard from "@/components/AuthorProfileCard";
+import AuthorLink from "@/components/AuthorLink";
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -251,9 +253,15 @@ export default function ArticleDetailPage() {
             <div className="flex items-center gap-2">
               {isLoading ? (
                 <div className="w-8 h-8 bg-jepang-red/10 animate-pulse" />
+              ) : article.author?.avatarUrl ? (
+                <img
+                  src={article.author.avatarUrl}
+                  alt={article.author.displayName || article.author.name}
+                  className="h-8 w-8 shrink-0 border border-foreground object-cover"
+                />
               ) : (
-                <div className="w-8 h-8 bg-foreground text-white flex items-center justify-center font-bold text-xs">
-                  {article.author?.name?.charAt(0).toUpperCase() || "J"}
+                <div className="w-8 h-8 bg-foreground text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  {(article.author?.displayName || article.author?.name)?.charAt(0).toUpperCase() || "J"}
                 </div>
               )}
 
@@ -267,11 +275,14 @@ export default function ArticleDetailPage() {
                   </>
                 ) : (
                   <>
-                    <p className="font-semibold text-sm">
-                      {article.author?.name || "Jepangku"}
-                    </p>
+                    <AuthorLink
+                      username={article.author?.username}
+                      className="font-semibold text-sm"
+                    >
+                      {article.author?.displayName || article.author?.name || "Jepangku"}
+                    </AuthorLink>
                     <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                      PENULIS
+                      @{article.author?.username || "jepangku"}
                     </p>
                   </>
                 )}
@@ -401,6 +412,9 @@ export default function ArticleDetailPage() {
           {article && (
             <>
               <ReactionBar targetType="ARTICLE" targetId={article.id} />
+              {article.author?.username && (
+                <AuthorProfileCard author={article.author} />
+              )}
               <CommentSection targetType="ARTICLE" targetId={article.id} />
             </>
           )}

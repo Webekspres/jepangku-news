@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { cn } from "@/lib/utils";
+import AuthorLink from "@/components/AuthorLink";
 
 export type CommentTargetType = "ARTICLE" | "POLL" | "QUIZ";
 
@@ -319,7 +320,9 @@ export default function CommentSection({
         <Avatar author={c.author} />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-sm">{c.author.name}</span>
+            <AuthorLink username={c.author.username} className="font-semibold text-sm">
+              {c.author.name}
+            </AuthorLink>
             {c.author.isAdmin && (
               <Badge variant="red" className="text-[9px] px-1.5 py-0">
                 <ShieldCheck size={9} className="mr-0.5" /> ADMIN

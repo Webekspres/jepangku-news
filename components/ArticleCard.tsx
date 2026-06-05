@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AuthorLink from "@/components/AuthorLink";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,7 +71,14 @@ export default function ArticleCard({
             </p>
           )}
           <div className="flex items-center gap-4 mt-4 text-xs text-zinc-400 font-mono uppercase tracking-wider">
-            {article.author && <span>OLEH {article.author.name}</span>}
+            {article.author && (
+              <span>
+                OLEH{" "}
+                <AuthorLink username={article.author.username} className="hover:text-white">
+                  {article.author.name}
+                </AuthorLink>
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Eye size={14} strokeWidth={1.5} /> {viewCount}
             </span>
@@ -157,7 +165,9 @@ export default function ArticleCard({
             </p>
           )}
           <div className="pt-3 border-t border-jepang-border flex items-center justify-between text-xs text-jepang-muted font-mono uppercase tracking-wider">
-            <span>{article.author?.name || "Jepangku"}</span>
+            <AuthorLink username={article.author?.username} className="hover:text-jepang-red">
+              {article.author?.name || "Jepangku"}
+            </AuthorLink>
             <span className="flex items-center gap-1">
               <Eye size={12} strokeWidth={1.5} /> {viewCount}
             </span>

@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Pencil, XCircle, Zap, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, XCircle, Zap, Trash2, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -292,7 +292,16 @@ export default function AdminPollsPage() {
                     </TableCell>
 
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/admin/analytics/polls/${poll.id}`)}
+                          data-testid={`poll-stats-${poll.id}`}
+                          className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                        >
+                          <BarChart2 size={13} className="mr-1" /> Statistik
+                        </Button>
                         {poll.status === "DRAFT" && (
                           <>
                             <Button

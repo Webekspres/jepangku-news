@@ -1,3 +1,5 @@
+const { IMAGES } = require("./images.js");
+
 const POLL_TYPE = ["POLLING", "VOTING"];
 
 // ── Option pools per tema ─────────────────────────────────────────────────
@@ -8,47 +10,9 @@ const STUDIO_OPTIONS  = ["Studio Ghibli", "MAPPA", "Kyoto Animation", "Ufotable"
 const GACHA_OPTIONS   = ["Genshin Impact", "Fate/Grand Order", "Granblue Fantasy", "Blue Archive", "Arknights", "Honkai Star Rail"];
 const EXPERIENCE_OPTIONS = ["Onsen", "Matsuri", "Cosplay Event", "Gacha Museum", "Arcade Retro", "Hanami Picnic", "Food Market Tour"];
 
-// ── Thumbnails per tema (Unsplash public) ─────────────────────────────────
-const THUMBNAILS = {
-  city:       ["https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
-                "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80",
-                "https://images.unsplash.com/photo-1565130838609-c3a86655db61?w=800&q=80"],
-  food:       ["https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=800&q=80",
-                "https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&q=80",
-                "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=800&q=80"],
-  anime:      ["https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80",
-                "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=800&q=80",
-                "https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=800&q=80"],
-  studio:     ["https://images.unsplash.com/photo-1612036782180-6f0822045d55?w=800&q=80",
-                "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80"],
-  gacha:      ["https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
-                "https://images.unsplash.com/photo-1592155931584-901ac15763e3?w=800&q=80"],
-  experience: ["https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=800&q=80",
-                "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80",
-                "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80"],
-};
-
-// ── Gambar per opsi (hanya city & food) ──────────────────────────────────
-const CITY_IMAGES = [
-  "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=80",
-  "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&q=80",
-  "https://images.unsplash.com/photo-1565130838609-c3a86655db61?w=400&q=80",
-  "https://images.unsplash.com/photo-1570521462033-3015e76e7432?w=400&q=80",
-  "https://images.unsplash.com/photo-1592914610354-fd354ea45e48?w=400&q=80",
-  "https://images.unsplash.com/photo-1590559899731-a382839e5549?w=400&q=80",
-  "https://images.unsplash.com/photo-1599639668273-3296f65a70e3?w=400&q=80",
-  "https://images.unsplash.com/photo-1534957753291-b2e2f0c01b18?w=400&q=80",
-];
-const FOOD_IMAGES = [
-  "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400&q=80",
-  "https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=400&q=80",
-  "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&q=80",
-  "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&q=80",
-  "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80",
-  "https://images.unsplash.com/photo-1541014741259-de529411b96a?w=400&q=80",
-  "https://images.unsplash.com/photo-1558030006-450675393462?w=400&q=80",
-  "https://images.unsplash.com/photo-1515823662972-da6a2ab5c2ab?w=400&q=80",
-];
+const THUMBNAILS = IMAGES.pollThumbnails;
+const CITY_IMAGES = IMAGES.pollOptionImages.city;
+const FOOD_IMAGES = IMAGES.pollOptionImages.food;
 
 // Indeks poll yang mendapat thumbnail
 const THUMBNAIL_INDICES     = new Set([0, 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32]);
