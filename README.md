@@ -113,7 +113,7 @@ docs/            # Dokumentasi proyek
 .agents/         # Scope, user flow, ERD, steering
 ```
 
-**Tech stack:** Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL (Neon) · Cloudflare R2 · JWT + cookie
+**Tech stack:** Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 7 · PostgreSQL (Neon) · Cloudflare R2 · JWT + cookie
 
 **Deployment (Vercel):** hubungkan repo, set environment variables dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
