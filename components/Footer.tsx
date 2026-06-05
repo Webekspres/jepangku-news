@@ -20,7 +20,7 @@ export default function Footer() {
       data-testid="main-footer"
     >
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2 md:col-span-1">
             <Image
               src="/assets/images/logo/Logo-02-dark.svg"
@@ -103,6 +103,83 @@ export default function Footer() {
                   className="hover:text-jepang-red transition-colors"
                 >
                   Kuliner
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="small-caps text-jepang-red mb-3">Informasi</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href="/about"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/advertise"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Advertise
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/media-partner"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Media Partner
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/career"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Career
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/internship"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Internship
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy-policy"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms-of-service"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/disclaimer"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Disclaimer
                 </Link>
               </li>
             </ul>
