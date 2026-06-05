@@ -72,7 +72,7 @@ export default function AdminInfoPagesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-heading font-bold">{page.title}</p>
-                      <Badge variant={page.isPublished ? "default" : "secondary"}>
+                      <Badge variant={page.isPublished ? "success" : "muted"}>
                         {page.isPublished ? "Published" : "Draft"}
                       </Badge>
                     </div>

@@ -1,21 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import SectionHeader from '@/components/SectionHeader';
-import { INFO_PAGE_SLUGS, isInfoPageSlug } from '@/lib/info-pages';
 import { getPublishedInfoPage } from '@/lib/info-page-data';
+import type { InfoPageSlug } from '@/lib/info-pages';
 
-type PageProps = {
-  params: Promise<{ slug: string }>;
-};
-
-export function generateStaticParams() {
-  return INFO_PAGE_SLUGS.map((slug) => ({ slug }));
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  if (!isInfoPageSlug(slug)) return {};
-
+export async function generateInfoPageMetadata(
+  slug: InfoPageSlug,
+): Promise<Metadata> {
   const page = await getPublishedInfoPage(slug);
   if (!page) return {};
 
@@ -25,10 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function InfoPage({ params }: PageProps) {
-  const { slug } = await params;
-  if (!isInfoPageSlug(slug)) notFound();
-
+export async function InfoPageServer({ slug }: { slug: InfoPageSlug }) {
   const page = await getPublishedInfoPage(slug);
   if (!page) notFound();
 
