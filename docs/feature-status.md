@@ -126,17 +126,17 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 | Event             | 3–5            | ⏳ Persiapan |
 | **Total Artikel** | **38–60**      | ⏳ Persiapan |
 
-**Halaman Statis (9 item):**
+**Halaman Informasi (9 item, dinamis via admin RTE):**
 
-[ ] About
-[ ] Contact
-[ ] Advertise
-[ ] Media Partner
-[ ] Career
-[ ] Internship
-[ ] Privacy Policy
-[ ] Terms of Service
-[ ] Disclaimer
+[x] About
+[x] Contact
+[x] Advertise
+[x] Media Partner
+[x] Career
+[x] Internship
+[x] Privacy Policy
+[x] Terms of Service
+[x] Disclaimer
 
 **Struktur Artikel per Kategori:**
 

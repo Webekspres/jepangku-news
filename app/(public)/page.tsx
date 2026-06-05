@@ -278,9 +278,9 @@ export default function HomePage() {
                       transform: `translateX(-${featuredIndex * 100}%)`,
                     }}
                   >
-                    {featuredArticles.map((article: any) => (
+                    {featuredArticles.map((article: any, idx: number) => (
                       <div key={article.id} className="w-full shrink-0">
-                        <ArticleCard article={article} variant="featured" />
+                        <ArticleCard article={article} variant="featured" priority={idx === 0} />
                       </div>
                     ))}
                   </div>
@@ -308,7 +308,7 @@ export default function HomePage() {
                   )}
                 </div>
               ) : articles.length > 0 ? (
-                <ArticleCard article={articles[0]} variant="featured" />
+                <ArticleCard article={articles[0]} variant="featured" priority={true} />
               ) : (
                 <div className="border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
                   Tidak ada artikel pilihan utama tersedia.

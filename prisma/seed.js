@@ -43,6 +43,7 @@ const {
   USER_ACTIVITY_CONFIG,
   EXTRA_POINT_ACTIVITIES,
 } = require("./seeder/data/user-activities.js");
+const { INFO_PAGES_DATA } = require("./seeder/data/info-pages.js");
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -999,6 +1000,24 @@ async function main() {
     reactionsSeeded++;
   }
   console.log(`✅ Reactions seeded (${reactionsSeeded}).`);
+
+  // ── Info pages ─────────────────────────────────────────────────────────
+  console.log("📄 Seeding info pages...");
+  for (const page of INFO_PAGES_DATA) {
+    await prisma.infoPage.upsert({
+      where: { slug: page.slug },
+      update: {},
+      create: {
+        slug: page.slug,
+        title: page.title,
+        subtitle: page.subtitle,
+        content: page.content,
+        sortOrder: page.sortOrder,
+        isPublished: true,
+      },
+    });
+  }
+  console.log(`✅ Info pages seeded (${INFO_PAGES_DATA.length}).`);
 
   console.log("\n🎉 Seeding complete!");
 }

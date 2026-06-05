@@ -95,7 +95,7 @@ export async function applyArticleUpdateWithAudit(params: {
   editorId: string;
   editorRole: 'ADMIN' | 'USER';
   before: ArticleSnapshot;
-  updateData: Prisma.ArticleUpdateInput;
+  updateData: Prisma.ArticleUncheckedUpdateInput;
   changeNote?: string | null;
   tags?: string[];
   syncTags?: (articleId: string, tags: string[]) => Promise<void>;
