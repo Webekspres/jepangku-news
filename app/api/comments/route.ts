@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
+import { captureException } from '@/lib/monitoring';
 import {
   buildPublicThread,
   COMMENT_POINTS,
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
   });
   if (limited) return limited;
 
+  try {
   const body = await request.json().catch(() => ({}));
   const { targetType, targetId, parentId } = body ?? {};
 
@@ -150,4 +152,8 @@ export async function POST(request: NextRequest) {
     },
     { status: 201 },
   );
+  } catch (e) {
+    await captureException(e, { route: 'comments-post' });
+    return NextResponse.json({ error: 'Gagal membuat komentar' }, { status: 500 });
+  }
 }

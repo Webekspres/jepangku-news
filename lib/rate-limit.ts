@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from './logger';
 
 type RateLimitRecord = {
   count: number;
@@ -39,6 +40,11 @@ export function enforceRateLimit(
   const nextCount = existing.count + 1;
   if (nextCount > options.max) {
     const retryAfterSeconds = Math.ceil((existing.resetAt - now) / 1000);
+    logger.warn('rate_limit.exceeded', {
+      keyPrefix,
+      identifier,
+      retryAfterSeconds,
+    });
     return NextResponse.json(
       {
         error: options.message || 'Rate limit exceeded. Try again later.',

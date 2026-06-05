@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
+import {
+  sanitizeMediaUrl,
+  sanitizePlainField,
+  sanitizeQuestionBundle,
+} from '@/lib/sanitizer';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
@@ -54,17 +59,19 @@ export async function POST(request: NextRequest) {
     questions = [],
   } = body;
 
-  if (!title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+  const safeTitle = sanitizePlainField(title, 200);
+  if (!safeTitle) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
 
-  const slug = createSlug(title);
+  const safeQuestions = Array.isArray(questions) ? sanitizeQuestionBundle(questions) : [];
+  const slug = createSlug(safeTitle);
 
   const quiz = await db.quiz.create({
     data: {
       createdBy: admin.id,
-      title,
+      title: safeTitle,
       slug,
-      description: description || null,
-      thumbnailUrl: thumbnailUrl || null,
+      description: description ? sanitizePlainField(description, 1000) : null,
+      thumbnailUrl: sanitizeMediaUrl(thumbnailUrl),
       quizType,
       status: status.toUpperCase() as any,
       pointsReward: Number(pointsReward) || 10,
@@ -74,26 +81,26 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
+  for (let i = 0; i < safeQuestions.length; i++) {
+    const q = safeQuestions[i];
     const question = await db.quizQuestion.create({
       data: {
         quizId: quiz.id,
-        questionText: q.question_text,
-        imageUrl: q.image_url || null,
-        sortOrder: q.sort_order ?? i,
+        questionText: q.questionText,
+        imageUrl: q.imageUrl,
+        sortOrder: q.sortOrder,
       },
     });
 
-    for (let j = 0; j < (q.options || []).length; j++) {
+    for (let j = 0; j < q.options.length; j++) {
       const opt = q.options[j];
       await db.quizOption.create({
         data: {
           questionId: question.id,
-          optionText: opt.option_text,
-          imageUrl: opt.image_url || null,
-          isCorrect: opt.is_correct || false,
-          sortOrder: opt.sort_order ?? j,
+          optionText: opt.optionText,
+          imageUrl: opt.imageUrl,
+          isCorrect: opt.isCorrect,
+          sortOrder: opt.sortOrder,
         },
       });
     }

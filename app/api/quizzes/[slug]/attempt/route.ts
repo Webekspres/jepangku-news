@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { awardPoints } from '@/lib/points';
+import { enforceRateLimit } from '@/lib/rate-limit';
+import { captureException } from '@/lib/monitoring';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+  try {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+
+  const blocked = enforceRateLimit(request, 'quiz-attempt', {
+    max: 5,
+    windowMs: 60_000,
+    identifier: user.id,
+    message: 'Terlalu banyak percobaan kuis. Coba lagi sebentar.',
+  });
+  if (blocked) return blocked;
 
   const { slug } = await params;
 
@@ -98,4 +109,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     totalQuestions,
     pointsAwarded: totalPoints,
   });
+  } catch (e) {
+    await captureException(e, { route: 'quiz-attempt' });
+    return NextResponse.json({ error: 'Failed to submit quiz' }, { status: 500 });
+  }
 }

@@ -30,11 +30,11 @@ signifikan pada fitur.
 
 ### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
 
-[x] **Rate limiting** — throttle API endpoint sensitif: login, register, submit artikel, vote
-[x] **Input sanitasi HTML** — sanitasi konten RichTextEditor sebelum disimpan ke DB (mencegah XSS)
-[x] **Image moderation** — validasi / moderasi gambar upload sebelum publish
-[x] **Monitoring & alerting** — error tracking (Sentry atau setara), uptime monitoring
-[x] **Logging structured** — log request/response penting ke file atau service
+[~] **Rate limiting** — in-memory (tanpa Redis): login, register, submit/update artikel, vote, share, comment, quiz attempt, upload, read-complete, bookmark; log saat 429. *Defer pre-launch:* Redis/Upstash untuk multi-instance Vercel
+[~] **Input sanitasi HTML** — artikel (write + read), komentar, profil, quiz/poll admin; whitelist img tanpa `data:` URI. *Defer:* migrasi sanitasi ulang konten lama di DB
+[~] **Image moderation** — validasi magic bytes + MIME + ukuran (min/max); moderasi AI opsional via env; rate limit upload. *Defer:* wajibkan layanan moderasi di production
+[~] **Monitoring & alerting** — `captureException` + webhook opsional (`MONITORING_WEBHOOK_URL`); `GET /api/health` untuk uptime checker. *Defer:* Sentry SDK + alert channel terpusat
+[~] **Logging structured** — JSON console via `logger` + `proxy.ts` log semua `/api/*` (requestId, method, path, IP); log rate limit & moderasi. *Defer:* log drain / file persistence
 
 ### 💬 Engagement & Sosial — *Fase A (portal): komentar & like; Fase E (Core): notifikasi & follow*
 

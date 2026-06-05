@@ -4,12 +4,21 @@ import { getCurrentUser } from '@/lib/auth';
 import { uploadToR2 } from '@/lib/r2';
 import { db } from '@/lib/db';
 import { moderateImage, validateImageBuffer } from '@/lib/image-moderation';
+import { enforceRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
+
+  const blocked = enforceRateLimit(request, 'upload', {
+    max: 20,
+    windowMs: 60 * 60 * 1000,
+    identifier: user.id,
+    message: 'Terlalu banyak upload. Coba lagi nanti.',
+  });
+  if (blocked) return blocked;
 
   try {
     const formData = await request.formData();

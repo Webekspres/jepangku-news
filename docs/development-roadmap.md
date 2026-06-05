@@ -40,11 +40,11 @@ portal** meski Core Service hadir, jadi tidak akan terbuang.
 
 ### A1. Keamanan & Hardening (paling kritis)
 
-[ ] **Input sanitasi HTML** — sanitasi konten RichTextEditor sebelum simpan ke DB (cegah XSS)
-[ ] **Rate limiting** — throttle endpoint sensitif: login, register, submit artikel, vote, share
-[ ] **Image moderation** — validasi/moderasi gambar upload sebelum publish
-[ ] **Logging structured** — log request/response penting ke file atau service
-[ ] **Monitoring & alerting** — error tracking (Sentry atau setara) + uptime monitoring
+[~] **Input sanitasi HTML** — artikel, komentar, profil, quiz/poll admin; whitelist img. *Defer:* sanitasi ulang konten lama
+[~] **Rate limiting** — in-memory pada endpoint sensitif (login, register, artikel, vote, share, comment, quiz, upload, dll). *Defer:* Redis/Upstash pre-launch
+[~] **Image moderation** — magic bytes + MIME + ukuran; moderasi AI opsional via env. *Defer:* wajibkan di production
+[~] **Logging structured** — JSON `logger` + `proxy.ts` `/api/*`. *Defer:* log drain
+[~] **Monitoring & alerting** — `captureException`, webhook opsional, `GET /api/health`. *Defer:* Sentry + uptime checker eksternal
 
 ### A2. Engagement & Sosial (domain portal)
 

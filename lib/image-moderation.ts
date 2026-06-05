@@ -1,4 +1,8 @@
+import { logger } from './logger';
+
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const MIN_IMAGE_BYTES = 100;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 function detectImageType(buffer: Buffer) {
   if (buffer.length >= 4) {
@@ -39,6 +43,13 @@ function detectImageType(buffer: Buffer) {
 }
 
 export function validateImageBuffer(buffer: Buffer, contentType: string) {
+  if (buffer.length < MIN_IMAGE_BYTES) {
+    throw new Error('Image file is too small.');
+  }
+  if (buffer.length > MAX_IMAGE_BYTES) {
+    throw new Error('Image file exceeds maximum size (10MB).');
+  }
+
   const detected = detectImageType(buffer);
   if (!detected) {
     throw new Error('Uploaded file is not a valid image.');
@@ -63,6 +74,11 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
   const moderationKey = process.env.IMAGE_MODERATION_API_KEY;
 
   if (!moderationEndpoint || !moderationKey) {
+    if (process.env.NODE_ENV === 'production') {
+      logger.warn('image_moderation.skipped', {
+        reason: 'IMAGE_MODERATION_ENDPOINT or IMAGE_MODERATION_API_KEY not configured',
+      });
+    }
     return true;
   }
 

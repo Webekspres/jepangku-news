@@ -38,7 +38,7 @@ const allowedAttributes: sanitizeHtml.IOptions['allowedAttributes'] = {
   '*': ['class'],
 };
 
-const allowedSchemes = ['http', 'https', 'mailto', 'tel', 'data'];
+const allowedSchemes = ['http', 'https', 'mailto', 'tel'];
 
 export function sanitizeText(input: string) {
   return sanitizeHtml(input, {
@@ -47,17 +47,72 @@ export function sanitizeText(input: string) {
   }).trim();
 }
 
+/** Plain text dengan batas panjang — untuk judul, bio, pertanyaan quiz/poll. */
+export function sanitizePlainField(value: unknown, maxLen = 500): string {
+  return sanitizeText(String(value ?? '')).slice(0, maxLen);
+}
+
+/** Hanya terima URL http/https — untuk thumbnail & gambar soal/opsi. */
+export function sanitizeMediaUrl(value: unknown): string | null {
+  if (value == null || value === '') return null;
+  const url = sanitizeText(String(value));
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
 export function sanitizeHtmlContent(input: string) {
   return sanitizeHtml(input, {
     allowedTags,
     allowedAttributes,
     allowedSchemes,
     allowedSchemesByTag: {
-      img: ['http', 'https', 'data'],
+      img: ['http', 'https'],
       a: ['http', 'https', 'mailto', 'tel'],
     },
     transformTags: {
       a: sanitizeHtml.simpleTransform('a', { rel: 'nofollow noreferrer noopener', target: '_blank' }),
     },
   });
+}
+
+type QuestionInput = {
+  questionText?: string;
+  question_text?: string;
+  imageUrl?: string | null;
+  image_url?: string | null;
+  sortOrder?: number;
+  sort_order?: number;
+  options?: OptionInput[];
+};
+
+type OptionInput = {
+  optionText?: string;
+  option_text?: string;
+  imageUrl?: string | null;
+  image_url?: string | null;
+  sortOrder?: number;
+  sort_order?: number;
+  is_correct?: boolean;
+  isCorrect?: boolean;
+};
+
+/** Sanitasi bundle pertanyaan + opsi (mendukung camelCase & snake_case dari builder). */
+export function sanitizeQuestionBundle(questions: QuestionInput[]) {
+  return questions.map((q, qi) => ({
+    questionText: sanitizePlainField(q.questionText ?? q.question_text, 1000),
+    imageUrl: sanitizeMediaUrl(q.imageUrl ?? q.image_url),
+    sortOrder: q.sortOrder ?? q.sort_order ?? qi,
+    options: (q.options ?? []).map((o, oi) => ({
+      optionText: sanitizePlainField(o.optionText ?? o.option_text, 500),
+      imageUrl: sanitizeMediaUrl(o.imageUrl ?? o.image_url),
+      sortOrder: o.sortOrder ?? o.sort_order ?? oi,
+      isCorrect: Boolean(o.is_correct ?? o.isCorrect),
+    })),
+  }));
 }
