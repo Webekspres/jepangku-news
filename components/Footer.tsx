@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 
@@ -21,10 +22,13 @@ export default function Footer() {
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <h3 className="font-heading font-black text-2xl tracking-tighter mb-3">
-              <span className="text-jepang-red">Jepang</span>
-              <span className="text-white">ku</span>
-            </h3>
+            <Image
+              src="/assets/images/logo/Logo-01.svg"
+              alt="Jepangku"
+              width={160}
+              height={48}
+              className="h-50 w-50 mb-3"
+            />
             <p className="text-sm text-zinc-400 leading-relaxed">
               Portal media interaktif bertema Jepang untuk pembaca Indonesia.
             </p>

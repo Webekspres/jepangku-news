@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import {
@@ -132,14 +133,14 @@ useEffect(() => {
               className="flex items-center gap-2"
               data-testid="navbar-logo"
             >
-              <span className="font-heading text-2xl font-black tracking-tighter">
-                <span className="text-jepang-red">Jepang</span>
-                <span className="text-foreground">ku</span>
-              </span>
-
-              <span className="ml-1 hidden border-l border-jepang-border pl-2 font-mono text-xs uppercase tracking-[0.2em] text-jepang-muted md:inline-block">
-                Berita
-              </span>
+              <Image
+                src="/assets/images/logo/Logo-03.svg"
+                alt="Jepangku Berita"
+                width={140}
+                height={48}
+                className="h-50 w-50"
+                priority
+              />
             </Link>
 
             <div className="hidden items-center gap-8 md:flex">

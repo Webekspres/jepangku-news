@@ -1,5 +1,12 @@
 # ERD dan Struktur Database MVP Jepangku
 
+> **Catatan arah lanjutan:** ERD ini mendeskripsikan schema **portal berita single-app** (kondisi
+> saat ini). Pada fase ekosistem, tabel identitas & gamifikasi (`users`, `user_profiles`,
+> `point_transactions`, `daily_login_rewards`, `files`, `activity_logs`) akan **dipindah ke
+> Jepangku Core Service** sebagai tabel `core_*`, dan FK portal berubah menjadi `core_user_id`.
+> Detail migrasi ada di `.agents/05-ecosystem-strategy.md`; urutan pengerjaan di
+> `docs/development-roadmap.md`.
+
 ## 1. Ringkasan Desain Database
 
 Database MVP Jepangku dirancang untuk mendukung portal berita interaktif bertema Jepang dengan fitur artikel, kontribusi user, review admin, quiz, polling/voting, bookmark, sistem poin, activity log, dan weekly leaderboard.

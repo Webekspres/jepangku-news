@@ -198,13 +198,16 @@ next.config.ts
 
 ## 📚 Dokumentasi Proyek
 
-- `docs/TECH_STACK.md`
-- `docs/R2_SETUP.md`
-- `docs/UNCOMPLETED_FEATURE.md`
-- `.agents/erd.md`
-- `.agents/mvp.md`
-- `.agents/user-flow.md`
-- `.agents/steering.md`
+- `.agents/01-mvp-scope.md` — scope MVP dan batasan fitur
+- `.agents/02-user-flow.md` — role permissions dan user/admin flow
+- `.agents/03-database-erd.md` — desain database dan schema
+- `.agents/04-project-steering.md` — arah dan prioritas proyek
+- `.agents/05-ecosystem-strategy.md` — arsitektur ekosistem & Core Service
+- `docs/development-roadmap.md` — rencana pengerjaan berfase (Fase A–E)
+- `docs/feature-status.md` — status aktual per fitur
+- `docs/technical-architecture.md` — arsitektur teknis
+- `docs/cloudflare-r2-setup.md` — setup Cloudflare R2
+- `docs/soft-launch-content.md` — checklist konten soft launch
 
 ## 🤝 Kontribusi
 
