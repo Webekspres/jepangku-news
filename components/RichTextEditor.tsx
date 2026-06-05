@@ -170,7 +170,7 @@ export default function RichTextEditor({
   const setLink = useCallback(() => {
     if (!editor) return;
     const prev = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("URL link:", prev ?? "https://");
+    const url = window.prompt("URL tautan:", prev ?? "https://");
     if (url === null) return;
     if (url === "") {
       editor.chain().focus().unsetLink().run();
@@ -191,7 +191,7 @@ export default function RichTextEditor({
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
           active={editor.isActive("heading", { level: 2 })}
-          title="Heading 2"
+          title="Judul 2"
         >
           <Heading2 size={15} strokeWidth={2} />
         </ToolbarButton>
@@ -200,7 +200,7 @@ export default function RichTextEditor({
             editor.chain().focus().toggleHeading({ level: 3 }).run()
           }
           active={editor.isActive("heading", { level: 3 })}
-          title="Heading 3"
+          title="Judul 3"
         >
           <Heading3 size={15} strokeWidth={2} />
         </ToolbarButton>
@@ -211,7 +211,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
-          title="Bold"
+          title="Tebal"
           shortcut={`${mod}+B`}
         >
           <Bold size={15} strokeWidth={2.5} />
@@ -219,7 +219,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           active={editor.isActive("italic")}
-          title="Italic"
+          title="Miring"
           shortcut={`${mod}+I`}
         >
           <Italic size={15} strokeWidth={2} />
@@ -227,7 +227,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           active={editor.isActive("underline")}
-          title="Underline"
+          title="Garis bawah"
           shortcut={`${mod}+U`}
         >
           <UnderlineIcon size={15} strokeWidth={2} />
@@ -235,7 +235,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
           active={editor.isActive("strike")}
-          title="Strikethrough"
+          title="Coret"
           shortcut={`${mod}+Shift+X`}
         >
           <Strikethrough size={15} strokeWidth={2} />
@@ -247,7 +247,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
           active={editor.isActive({ textAlign: "left" })}
-          title="Align left"
+          title="Rata kiri"
           shortcut={`${mod}+Shift+L`}
         >
           <AlignLeft size={15} strokeWidth={2} />
@@ -255,7 +255,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign("center").run()}
           active={editor.isActive({ textAlign: "center" })}
-          title="Align center"
+          title="Rata tengah"
           shortcut={`${mod}+Shift+E`}
         >
           <AlignCenter size={15} strokeWidth={2} />
@@ -263,7 +263,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign("right").run()}
           active={editor.isActive({ textAlign: "right" })}
-          title="Align right"
+          title="Rata kanan"
           shortcut={`${mod}+Shift+R`}
         >
           <AlignRight size={15} strokeWidth={2} />
@@ -275,7 +275,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={editor.isActive("bulletList")}
-          title="Bullet list"
+          title="Daftar bullet"
           shortcut={`${mod}+Shift+8`}
         >
           <List size={15} strokeWidth={2} />
@@ -283,7 +283,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           active={editor.isActive("orderedList")}
-          title="Ordered list"
+          title="Daftar bernomor"
           shortcut={`${mod}+Shift+7`}
         >
           <ListOrdered size={15} strokeWidth={2} />
@@ -295,14 +295,14 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           active={editor.isActive("blockquote")}
-          title="Blockquote"
+          title="Kutipan"
           shortcut={`${mod}+Shift+B`}
         >
           <Quote size={15} strokeWidth={2} />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title="Horizontal rule"
+          title="Garis horizontal"
         >
           <Minus size={15} strokeWidth={2} />
         </ToolbarButton>
@@ -313,7 +313,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={setLink}
           active={editor.isActive("link")}
-          title="Add link"
+          title="Tambah tautan"
           shortcut={`${mod}+K`}
         >
           <LinkIcon size={15} strokeWidth={2} />
@@ -321,7 +321,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().unsetLink().run()}
           disabled={!editor.isActive("link")}
-          title="Remove link"
+          title="Hapus tautan"
         >
           <Unlink size={15} strokeWidth={2} />
         </ToolbarButton>
@@ -332,7 +332,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          title="Undo"
+          title="Urungkan"
           shortcut={`${mod}+Z`}
         >
           <RotateCcw size={15} strokeWidth={2} />
@@ -340,7 +340,7 @@ export default function RichTextEditor({
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          title="Redo"
+          title="Ulangi"
           shortcut={isMac ? `${mod}+Shift+Z` : `Ctrl+Y`}
         >
           <RotateCw size={15} strokeWidth={2} />
@@ -353,16 +353,16 @@ export default function RichTextEditor({
       {/* Shortcut hint bar */}
       <div className="border-t border-jepang-border bg-jepang-off-white px-3 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
         {[
-          [`${mod}+B`, "Bold"],
-          [`${mod}+I`, "Italic"],
-          [`${mod}+U`, "Underline"],
-          [`${mod}+Z`, "Undo"],
-          [isMac ? `${mod}+Shift+Z` : "Ctrl+Y", "Redo"],
-          [`${mod}+K`, "Link"],
-          ["Shift+Enter", "Line break"],
+          [`${mod}+B`, "Tebal"],
+          [`${mod}+I`, "Miring"],
+          [`${mod}+U`, "Garis bawah"],
+          [`${mod}+Z`, "Urungkan"],
+          [isMac ? `${mod}+Shift+Z` : "Ctrl+Y", "Ulangi"],
+          [`${mod}+K`, "Tautan"],
+          ["Shift+Enter", "Baris baru"],
         ].map(([key, label]) => (
           <span key={key} className="text-[10px] text-jepang-muted font-mono">
-            <kbd className="bg-white border border-jepang-border px-1 py-0.5 rounded text-[10px]">
+            <kbd className="bg-white border border-jepang-border px-1 py-0.5 text-[10px]">
               {key}
             </kbd>{" "}
             {label}

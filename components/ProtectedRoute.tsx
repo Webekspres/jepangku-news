@@ -45,7 +45,7 @@ export default function ProtectedRoute({
             className="text-sm text-jepang-muted uppercase tracking-wider"
             style={{ fontFamily: "var(--font-mono)" }}
           >
-            Loading...
+            Memuat...
           </p>
         </div>
       </div>

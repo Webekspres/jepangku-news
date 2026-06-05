@@ -1,13 +1,39 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Pencil,
+  Download,
+  CheckSquare,
+  Archive,
+  XCircle,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cn } from "@/lib/utils";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -29,85 +55,627 @@ const STATUS_BADGE: Record<
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: "Draft",
+  DRAFT: "Draf",
   PENDING_REVIEW: "Menunggu Review",
   PUBLISHED: "Dipublikasikan",
   REJECTED: "Ditolak",
   ARCHIVED: "Diarsipkan",
 };
 
+type RejectTarget =
+  | { mode: "single"; id: string; title: string }
+  | { mode: "bulk"; count: number };
+
+function RejectArticleModal({
+  open,
+  onOpenChange,
+  target,
+  note,
+  onNoteChange,
+  onConfirm,
+  loading,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  target: RejectTarget | null;
+  note: string;
+  onNoteChange: (value: string) => void;
+  onConfirm: () => void;
+  loading: boolean;
+}) {
+  const description =
+    target?.mode === "single"
+      ? `"${target.title}" akan ditolak. Penulis dapat memperbaiki dan mengirim ulang dari halaman artikel saya.`
+      : target?.mode === "bulk"
+        ? `${target.count} artikel akan ditolak.`
+        : "";
+
+  return (
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
+        <DialogPrimitive.Content
+          className={cn(
+            "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
+            "bg-white border-2 border-foreground p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+            "duration-200",
+          )}
+          onInteractOutside={() => !loading && onOpenChange(false)}
+          onEscapeKeyDown={() => !loading && onOpenChange(false)}
+        >
+          <div className="mb-4 text-amber-500">
+            <XCircle size={28} strokeWidth={1.5} />
+          </div>
+          <DialogPrimitive.Title className="font-heading font-black text-xl tracking-tight mb-1">
+            Tolak artikel?
+          </DialogPrimitive.Title>
+          {description && (
+            <DialogPrimitive.Description className="text-sm text-jepang-muted mb-4">
+              {description}
+            </DialogPrimitive.Description>
+          )}
+          <div className="space-y-2 mb-5">
+            <Label htmlFor="reject-note-modal">Catatan Penolakan (wajib)</Label>
+            <Textarea
+              id="reject-note-modal"
+              rows={3}
+              value={note}
+              onChange={(e) => onNoteChange(e.target.value)}
+              placeholder="Jelaskan alasan artikel ini ditolak..."
+              data-testid="reject-note-input"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onConfirm}
+              className={cn(
+                "flex-1 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider transition-colors disabled:opacity-60",
+                "border border-amber-500 bg-amber-500 text-white hover:bg-amber-600 hover:border-amber-600 cursor-pointer",
+              )}
+              data-testid="reject-modal-confirm"
+            >
+              {loading ? "Memproses..." : "Tolak"}
+            </button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={loading}
+              onClick={() => onOpenChange(false)}
+              className="flex-1"
+              data-testid="reject-modal-cancel"
+            >
+              Batal
+            </Button>
+          </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
+  );
+}
+
+function buildQuery(params: Record<string, string>) {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v) q.set(k, v);
+  });
+  const s = q.toString();
+  return s ? `?${s}` : "";
+}
+
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<any[]>([]);
-  const [filter, setFilter] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
+  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const PER_PAGE = 20;
+  const { confirm, confirmProps } = useConfirm();
+
+  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [authorFilter, setAuthorFilter] = useState("");
+  const [sort, setSort] = useState("latest");
+  const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
+  const [rejectTarget, setRejectTarget] = useState<RejectTarget | null>(null);
+  const [rejectLoading, setRejectLoading] = useState(false);
+
+  const filterQueryString = buildQuery({
+    status: statusFilter,
+    categoryId: categoryFilter,
+    authorId: authorFilter,
+    sort,
+    search,
+    dateFrom,
+    dateTo,
+  });
+
+  const queryString = buildQuery({
+    status: statusFilter,
+    categoryId: categoryFilter,
+    authorId: authorFilter,
+    sort,
+    search,
+    dateFrom,
+    dateTo,
+    page: String(page),
+    limit: String(PER_PAGE),
+  });
+
+  const loadArticles = useCallback(async () => {
+    setLoading(true);
+    const data = await fetch(`/api/admin/articles${queryString}`).then((r) =>
+      r.json(),
+    );
+    const list = Array.isArray(data?.articles)
+      ? data.articles
+      : Array.isArray(data)
+        ? data
+        : [];
+    setArticles(list);
+    setPage(Number(data?.page || page));
+    setTotalPages(Number(data?.totalPages || 1));
+    setTotalItems(Number(data?.total || list.length));
+
+    const authorMap = new Map<string, string>();
+    list.forEach((a: any) => {
+      if (a.author?.id) {
+        authorMap.set(a.author.id, a.author.name || a.author.username || a.author.id);
+      }
+    });
+    setAuthors(
+      Array.from(authorMap.entries()).map(([id, name]) => ({ id, name })),
+    );
+    setSelected(new Set());
+    setLoading(false);
+  }, [queryString]);
 
   useEffect(() => {
     loadArticles();
-  }, [filter]);
+  }, [loadArticles]);
 
-  const loadArticles = async () => {
-    setLoading(true);
+  useEffect(() => {
+    fetch("/api/admin/categories")
+      .then((r) => r.json())
+      .then((d) => setCategories(Array.isArray(d) ? d : []));
+  }, []);
 
-    const url = filter
-      ? `/api/admin/articles?status=${filter}`
-      : "/api/admin/articles";
-
-    const data = await fetch(url).then((r) => r.json());
-
-    setArticles(Array.isArray(data) ? data : []);
-    setLoading(false);
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const filters = [
+  const toggleAll = () => {
+    if (selected.size === articles.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(articles.map((a) => a.id)));
+    }
+  };
+
+  const runBulk = (
+    action: "approve" | "reject" | "archive" | "delete",
+    options?: { note?: string; confirmMessage?: string },
+  ) => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) {
+      toast.error("Pilih minimal satu artikel");
+      return;
+    }
+
+    confirm({
+      title:
+        action === "delete"
+          ? "Hapus artikel?"
+          : action === "archive"
+            ? "Arsipkan artikel?"
+            : action === "approve"
+              ? "Setujui artikel?"
+              : "Tolak artikel?",
+      description:
+        options?.confirmMessage ||
+        `${ids.length} artikel akan diproses.`,
+      confirmLabel: action === "delete" ? "Hapus" : "Lanjutkan",
+      variant: action === "delete" ? "danger" : "warning",
+      onConfirm: async () => {
+        setBulkLoading(true);
+        try {
+          const res = await fetch("/api/admin/articles/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids, action, note: options?.note }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
+          toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil`);
+          await loadArticles();
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal memproses bulk");
+        } finally {
+          setBulkLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleExport = (format: "csv" | "json") => {
+    window.open(
+      `/api/admin/articles/export${filterQueryString}${filterQueryString ? "&" : "?"}format=${format}`,
+      "_blank",
+    );
+  };
+
+  const handleApprove = (articleId: string) => {
+    confirm({
+      title: "Setujui artikel?",
+      description: "Artikel akan dipublikasikan dan tampil di situs.",
+      confirmLabel: "Setujui",
+      variant: "info",
+      onConfirm: async () => {
+        setActionLoading(articleId);
+        try {
+          const res = await fetch(`/api/admin/articles/${articleId}/approve`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Gagal menyetujui artikel");
+          }
+          toast.success("Artikel disetujui dan dipublikasikan");
+          await loadArticles();
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal menyetujui artikel");
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
+  };
+
+  const openRejectModal = (articleId: string, title: string) => {
+    setRejectNote("");
+    setRejectTarget({ mode: "single", id: articleId, title });
+    setRejectModalOpen(true);
+  };
+
+  const openBulkRejectModal = () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) {
+      toast.error("Pilih minimal satu artikel");
+      return;
+    }
+    setRejectNote("");
+    setRejectTarget({ mode: "bulk", count: ids.length });
+    setRejectModalOpen(true);
+  };
+
+  const closeRejectModal = () => {
+    setRejectModalOpen(false);
+    setRejectTarget(null);
+    setRejectNote("");
+  };
+
+  const submitReject = async () => {
+    if (!rejectNote.trim()) {
+      toast.error("Catatan penolakan wajib diisi");
+      return;
+    }
+    if (!rejectTarget) return;
+
+    setRejectLoading(true);
+    const note = rejectNote.trim();
+
+    try {
+      if (rejectTarget.mode === "single") {
+        setActionLoading(rejectTarget.id);
+        const res = await fetch(`/api/admin/articles/${rejectTarget.id}/reject`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ note }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Gagal menolak artikel");
+        }
+        toast.success("Artikel berhasil ditolak");
+      } else {
+        setBulkLoading(true);
+        const res = await fetch("/api/admin/articles/bulk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: Array.from(selected),
+            action: "reject",
+            note,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
+        toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil ditolak`);
+      }
+      closeRejectModal();
+      await loadArticles();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal menolak artikel");
+    } finally {
+      setRejectLoading(false);
+      setActionLoading(null);
+      setBulkLoading(false);
+    }
+  };
+
+  const statusFilters = [
     { v: "", l: "Semua" },
-    { v: "DRAFT", l: "Draft" },
-    { v: "PENDING_REVIEW", l: "Menunggu Review" },
+    { v: "PENDING_REVIEW", l: "Review" },
     { v: "PUBLISHED", l: "Dipublikasikan" },
     { v: "REJECTED", l: "Ditolak" },
-    { v: "ARCHIVED", l: "Diarsipkan" },
+    { v: "ARCHIVED", l: "Arsip" },
   ];
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-articles-page">
+      <ConfirmModal {...confirmProps} />
+      <RejectArticleModal
+        open={rejectModalOpen}
+        onOpenChange={(open) => {
+          if (!open && !rejectLoading) closeRejectModal();
+        }}
+        target={rejectTarget}
+        note={rejectNote}
+        onNoteChange={setRejectNote}
+        onConfirm={submitReject}
+        loading={rejectLoading}
+      />
+
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
 
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Semua Artikel
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <h1 className="font-heading font-black text-4xl tracking-tighter">
+              Semua Artikel
+            </h1>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleExport("csv")} data-testid="export-csv">
+                <Download size={14} className="mr-1" /> CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleExport("json")} data-testid="export-json">
+                <Download size={14} className="mr-1" /> JSON
+              </Button>
+              <Button asChild data-testid="create-article-btn">
+                <Link href="/admin/articles/create">
+                  <Plus size={14} className="mr-1" /> Buat Artikel
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {filters.map((s) => (
+      <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
+        <Card className="border border-foreground p-4 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {statusFilters.map((s) => (
+              <Button
+                key={s.v}
+                size="sm"
+                variant={statusFilter === s.v ? "black" : "outline"}
+                onClick={() => {
+                  setStatusFilter(s.v);
+                  setPage(1);
+                }}
+              >
+                {s.l}
+              </Button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs uppercase tracking-wider">Cari judul</Label>
+              <Input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Judul atau ringkasan..."
+                data-testid="admin-article-search"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs uppercase tracking-wider">Kategori</Label>
+              <Select
+                value={categoryFilter || "_all"}
+                onValueChange={(v) => {
+                  setCategoryFilter(v === "_all" ? "" : v);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger data-testid="filter-category">
+                  <SelectValue placeholder="Semua kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_all">Semua kategori</SelectItem>
+                  {categories.map((c: { id: string; name: string }) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs uppercase tracking-wider">Penulis</Label>
+              <Select
+                value={authorFilter || "_all"}
+                onValueChange={(v) => {
+                  setAuthorFilter(v === "_all" ? "" : v);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger data-testid="filter-author">
+                  <SelectValue placeholder="Semua penulis" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_all">Semua penulis</SelectItem>
+                  {authors.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs uppercase tracking-wider">Urutkan</Label>
+              <Select
+                value={sort}
+                onValueChange={(v) => {
+                  setSort(v);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger data-testid="filter-sort">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest">Terbaru dibuat</SelectItem>
+                  <SelectItem value="oldest">Terlama</SelectItem>
+                  <SelectItem value="popular">Paling dilihat</SelectItem>
+                  <SelectItem value="published">Terbaru publish</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs uppercase tracking-wider">Dari tanggal</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setPage(1);
+                }}
+                data-testid="filter-date-from"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs uppercase tracking-wider">Sampai tanggal</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setPage(1);
+                }}
+                data-testid="filter-date-to"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="black"
+                onClick={() => {
+                  if (page === 1) loadArticles();
+                  else setPage(1);
+                }}
+                data-testid="apply-filters"
+              >
+                Terapkan Filter
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {selected.size > 0 && (
+          <div className="flex flex-wrap gap-2 p-4 border border-foreground bg-jepang-off-white">
+            <span className="text-sm font-semibold self-center mr-2">
+              {selected.size} dipilih
+            </span>
             <Button
-              key={s.v}
               size="sm"
-              variant={filter === s.v ? "black" : "outline"}
-              onClick={() => setFilter(s.v)}
-              data-testid={`admin-filter-${s.v || "all"}`}
+              onClick={() => runBulk("approve")}
+              disabled={bulkLoading}
+              data-testid="bulk-approve"
             >
-              {s.l}
+              <CheckSquare size={14} className="mr-1" /> Setujui
             </Button>
-          ))}
-        </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openBulkRejectModal}
+              disabled={bulkLoading}
+              data-testid="bulk-reject"
+            >
+              <XCircle size={14} className="mr-1" /> Tolak
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => runBulk("archive")}
+              disabled={bulkLoading}
+              data-testid="bulk-archive"
+            >
+              <Archive size={14} className="mr-1" /> Arsipkan
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+              onClick={() =>
+                runBulk("delete", {
+                  confirmMessage:
+                    "Artikel akan dihapus permanen beserta bookmark terkait. Poin pembaca yang sudah ada tidak dicabut.",
+                })
+              }
+              disabled={bulkLoading}
+              data-testid="bulk-delete"
+            >
+              <Trash2 size={14} className="mr-1" /> Hapus
+            </Button>
+          </div>
+        )}
 
         <Card className="border border-foreground overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <input
+                    type="checkbox"
+                    checked={articles.length > 0 && selected.size === articles.length}
+                    onChange={toggleAll}
+                    aria-label="Pilih semua"
+                    data-testid="select-all-articles"
+                  />
+                </TableHead>
                 <TableHead>JUDUL</TableHead>
                 <TableHead>PENULIS</TableHead>
                 <TableHead>KATEGORI</TableHead>
                 <TableHead>STATUS</TableHead>
                 <TableHead>DILIHAT</TableHead>
+                <TableHead className="text-right">AKSI</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -115,33 +683,14 @@ export default function AdminArticlesPage() {
               {loading && articles.length === 0 ? (
                 [1, 2, 3].map((r) => (
                   <TableRow key={r}>
-                    <TableCell>
-                      <SkeletonBox height="1rem" width="70%" />
-                    </TableCell>
-
-                    <TableCell>
-                      <SkeletonBox height="0.9rem" width="40%" />
-                    </TableCell>
-
-                    <TableCell>
-                      <SkeletonBox height="0.9rem" width="40%" />
-                    </TableCell>
-
-                    <TableCell>
-                      <SkeletonBox height="0.9rem" width="30%" />
-                    </TableCell>
-
-                    <TableCell>
-                      <SkeletonBox height="0.9rem" width="20%" />
+                    <TableCell colSpan={7}>
+                      <SkeletonBox height="1rem" width="100%" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : articles.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-jepang-muted py-12"
-                  >
+                  <TableCell colSpan={7} className="text-center text-jepang-muted py-12">
                     Tidak ada artikel ditemukan
                   </TableCell>
                 </TableRow>
@@ -151,26 +700,64 @@ export default function AdminArticlesPage() {
                     key={article.id}
                     data-testid={`admin-article-row-${article.id}`}
                   >
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(article.id)}
+                        onChange={() => toggleSelect(article.id)}
+                        aria-label={`Pilih ${article.title}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-semibold max-w-xs truncate">
                       {article.title}
                     </TableCell>
-
                     <TableCell className="text-jepang-muted">
                       {article.author?.name || "-"}
                     </TableCell>
-
                     <TableCell className="text-jepang-muted">
                       {article.category?.name || "-"}
                     </TableCell>
-
                     <TableCell>
                       <Badge variant={STATUS_BADGE[article.status] || "muted"}>
                         {STATUS_LABEL[article.status] || article.status}
                       </Badge>
                     </TableCell>
-
                     <TableCell className="font-mono">
                       {article.viewCount || 0}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {article.status === "PENDING_REVIEW" && (
+                          <>
+                            <Button
+                              size="sm"
+                              disabled={actionLoading === article.id}
+                              onClick={() => handleApprove(article.id)}
+                              data-testid={`approve-article-${article.id}`}
+                            >
+                              <Check size={14} className="mr-1" /> Setujui
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+                              disabled={actionLoading === article.id}
+                              onClick={() => openRejectModal(article.id, article.title)}
+                              data-testid={`reject-article-${article.id}`}
+                            >
+                              <XCircle size={14} className="mr-1" /> Tolak
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            href={`/admin/articles/${article.id}/edit`}
+                            data-testid={`edit-article-${article.id}`}
+                          >
+                            <Pencil size={14} className="mr-1" /> Ubah
+                          </Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -178,6 +765,35 @@ export default function AdminArticlesPage() {
             </TableBody>
           </Table>
         </Card>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
+              Halaman {page}/{totalPages} - {totalItems} item
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                data-testid="admin-articles-prev-page"
+              >
+                <ChevronLeft size={14} className="mr-1" /> Sebelumnya
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages || loading}
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                data-testid="admin-articles-next-page"
+              >
+                Berikutnya <ChevronRight size={14} className="ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

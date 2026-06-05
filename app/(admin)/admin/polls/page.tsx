@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Pencil, XCircle, Zap, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, XCircle, Zap, Trash2, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ const STATUS_BADGE: Record<
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Aktif",
-  DRAFT: "Draft",
+  DRAFT: "Draf",
   CLOSED: "Ditutup",
 };
 
@@ -143,7 +143,7 @@ export default function AdminPollsPage() {
   const statusFilters = [
     { v: "", l: "Semua Status" },
     { v: "ACTIVE", l: "Aktif" },
-    { v: "DRAFT", l: "Draft" },
+    { v: "DRAFT", l: "Draf" },
     { v: "CLOSED", l: "Ditutup" },
   ];
 
@@ -162,7 +162,7 @@ export default function AdminPollsPage() {
             href="/admin"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dashboard
+            <ArrowLeft size={14} /> Kembali ke Dasbor
           </Link>
 
           <div className="flex items-center justify-between gap-4">
@@ -292,7 +292,16 @@ export default function AdminPollsPage() {
                     </TableCell>
 
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/admin/analytics/polls/${poll.id}`)}
+                          data-testid={`poll-stats-${poll.id}`}
+                          className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                        >
+                          <BarChart2 size={13} className="mr-1" /> Statistik
+                        </Button>
                         {poll.status === "DRAFT" && (
                           <>
                             <Button
@@ -302,7 +311,7 @@ export default function AdminPollsPage() {
                               data-testid={`edit-poll-${poll.id}`}
                               className="hover:bg-foreground hover:text-white"
                             >
-                              <Pencil size={13} className="mr-1" /> Edit
+                              <Pencil size={13} className="mr-1" /> Ubah
                             </Button>
                             <Button
                               size="sm"

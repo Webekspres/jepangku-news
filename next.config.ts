@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: [
     "127.0.0.1",
+    "fiscally-encode-stunning.ngrok-free.dev",
   ],
 };
 

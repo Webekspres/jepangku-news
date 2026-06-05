@@ -26,13 +26,13 @@ const ACTIVITY_ICONS: Record<string, any> = {
 };
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  article_read: "Read Article",
-  article_bookmarked: "Bookmarked Article",
-  quiz_completed: "Completed Quiz",
-  quiz_correct_answer: "Correct Quiz Answer",
-  poll_joined: "Voted in Poll",
-  daily_login: "Daily Login",
-  article_shared: "Shared Article",
+  article_read: "Baca Artikel",
+  article_bookmarked: "Artikel di-Bookmark",
+  quiz_completed: "Kuis Selesai",
+  quiz_correct_answer: "Jawaban Benar Kuis",
+  poll_joined: "Vote di Polling",
+  daily_login: "Login Harian",
+  article_shared: "Artikel Dibagikan",
 };
 
 export default function PointsHistoryPage() {
@@ -54,18 +54,18 @@ export default function PointsHistoryPage() {
       <section className="border-b-2 border-foreground bg-jepang-red text-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-2 opacity-80">
-            POINTS HISTORY
+            RIWAYAT POIN
           </p>
           <div className="flex items-center justify-between">
             <h1 className="font-heading font-black text-4xl tracking-tighter">
-              Your Activity
+              Aktivitasmu
             </h1>
             <div className="text-right">
               <p className="font-mono font-black text-5xl md:text-7xl">
                 {(user as any)?.totalPoints || 0}
               </p>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
-                TOTAL POINTS
+                TOTAL POIN
               </p>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function PointsHistoryPage() {
           <Card className="border border-foreground">
             <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                RECENT TRANSACTIONS
+                TRANSAKSI TERBARU
               </p>
             </CardHeader>
             <CardContent className="p-0">
@@ -92,7 +92,7 @@ export default function PointsHistoryPage() {
           <Card className="border border-foreground">
             <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                RECENT TRANSACTIONS
+                TRANSAKSI TERBARU
               </p>
             </CardHeader>
             <CardContent className="p-0">
@@ -135,10 +135,10 @@ export default function PointsHistoryPage() {
               className="mx-auto mb-4 text-jepang-muted"
             />
             <p className="font-heading font-bold text-2xl mb-2">
-              No points yet
+              Belum ada poin
             </p>
             <p className="text-jepang-muted">
-              Start reading articles and taking quizzes to earn points!
+              Baca artikel dan ikuti kuis untuk mengumpulkan poin!
             </p>
           </div>
         )}

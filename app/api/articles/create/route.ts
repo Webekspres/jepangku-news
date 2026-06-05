@@ -1,42 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { captureException } from '@/lib/monitoring';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { createSlug, createAdminSlug } from '@/lib/slug';
+import { createSlug } from '@/lib/slug';
+import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
+import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
+  const blockedResponse = enforceRateLimit(request, 'submit-article', {
+    max: 6,
+    windowMs: 60_000,
+    message: 'Too many article submissions. Please take a short break before trying again.',
+    identifier: user.id,
+  });
+
+  if (blockedResponse) {
+    return blockedResponse;
+  }
+
   try {
     const body = await request.json();
     const { title, excerpt, content, coverImageUrl, categoryId, tags = [], status = 'DRAFT' } = body;
 
-    if (!title || !content) {
+    const safeTitle = sanitizeText(String(title || ''));
+    const safeExcerpt = excerpt ? sanitizeText(String(excerpt)) : null;
+    const safeContent = sanitizeHtmlContent(String(content || ''));
+
+    if (!safeTitle || !safeContent) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
 
     const validStatuses = ['DRAFT', 'PENDING_REVIEW'];
     const articleStatus = validStatuses.includes(status) ? status : 'DRAFT';
 
-    const slug = createSlug(title);
+    const slug = createSlug(safeTitle);
 
-    // Resolve category
-    let resolvedCategoryId: string | null = null;
-    if (categoryId) {
-      const cat = await db.category.findFirst({
-        where: { OR: [{ id: categoryId }, { slug: categoryId }] },
-      });
-      resolvedCategoryId = cat?.id ?? null;
-    }
+    const resolvedCategoryId = await resolveCategoryId(categoryId);
 
     const article = await db.article.create({
       data: {
         authorId: user.id,
         categoryId: resolvedCategoryId,
-        title,
+        title: safeTitle,
         slug,
-        excerpt: excerpt || null,
-        content,
+        excerpt: safeExcerpt,
+        content: safeContent,
         coverImageUrl: coverImageUrl || null,
         status: articleStatus as any,
         visibility: 'public',
@@ -44,29 +56,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Handle tags
     if (tags.length > 0) {
-      for (const tagName of tags) {
-        if (!tagName.trim()) continue;
-        const tagSlug = createAdminSlug(tagName.trim());
-        let tag = await db.tag.findUnique({ where: { slug: tagSlug } });
-        if (!tag) {
-          tag = await db.tag.create({ data: { name: tagName.trim(), slug: tagSlug } });
-        }
-        const existingLink = await db.articleTag.findFirst({
-          where: { articleId: article.id, tagId: tag.id },
-        });
-        if (!existingLink) {
-          await db.articleTag.create({
-            data: { articleId: article.id, tagId: tag.id },
-          });
-        }
-      }
+      await syncArticleTags(article.id, tags);
     }
 
     return NextResponse.json(article, { status: 201 });
   } catch (e: any) {
-    console.error('Create article error:', e);
+    await captureException(e, { route: 'articles-create', userId: user.id });
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

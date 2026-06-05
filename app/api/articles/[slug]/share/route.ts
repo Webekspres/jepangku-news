@@ -2,15 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { awardPoints } from '@/lib/points';
+import { enforceRateLimit } from '@/lib/rate-limit';
+import { captureException } from '@/lib/monitoring';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  try {
   const user = await getCurrentUser(request);
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
+
+  const blocked = enforceRateLimit(request, 'article-share', {
+    max: 10,
+    windowMs: 60 * 60 * 1000,
+    identifier: user.id,
+    message: 'Terlalu banyak berbagi artikel. Coba lagi nanti.',
+  });
+  if (blocked) return blocked;
 
   const { slug } = await params;
   const { shareMethod = 'copy-link' } = await request.json().catch(() => ({}));
@@ -72,6 +83,10 @@ export async function POST(
     pointsAwarded,
     points: pointsAwarded ? 5 : 0,
   });
+  } catch (e) {
+    await captureException(e, { route: 'article-share' });
+    return NextResponse.json({ error: 'Failed to track share' }, { status: 500 });
+  }
 }
 
 // GET endpoint to check if user already shared this article

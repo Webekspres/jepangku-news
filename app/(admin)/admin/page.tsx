@@ -15,6 +15,7 @@ import {
   Tag,
   Home,
   LayoutGrid,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -139,7 +140,17 @@ export default function AdminDashboard() {
               })}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          <Link
+            href="/admin/articles/create"
+            className="bg-foreground text-white p-6 hover:opacity-90 transition-opacity"
+            data-testid="action-create-article"
+          >
+            <FileText size={28} strokeWidth={1.5} className="mb-3" />
+            <p className="font-heading font-bold text-xl">Buat Artikel</p>
+            <p className="text-sm opacity-80 mt-1">Konten redaksi, publish langsung</p>
+          </Link>
+
           <Link
             href="/admin/articles/review"
             className="bg-jepang-red text-white p-6 hover:opacity-90 transition-opacity"
@@ -208,10 +219,22 @@ export default function AdminDashboard() {
               testid: "action-manage-homepage",
             },
             {
+              href: "/admin/comments",
+              icon: MessageSquare,
+              label: "Moderasi Komentar",
+              testid: "action-manage-comments",
+            },
+            {
               href: "/admin/articles",
               icon: FileText,
               label: "Semua Artikel",
               testid: "action-manage-articles",
+            },
+            {
+              href: "/admin/analytics",
+              icon: BarChart3,
+              label: "Analytics Konten",
+              testid: "action-analytics",
             },
           ].map(({ href, icon: Icon, label, testid }) => (
             <Link

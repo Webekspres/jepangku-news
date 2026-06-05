@@ -1,16 +1,11 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import {
-  Save,
-  Send,
-  Upload,
-  PenSquare,
-} from "lucide-react";
+import { Eye, Save, Send, Upload, PenSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,13 +17,80 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
 import RichTextEditor from "@/components/RichTextEditor";
+import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
+import {
+  useAutosave,
+  type ArticleDraftInfo,
+  type ArticleFormSnapshot,
+} from "@/hooks/useAutosave";
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+async function apiCreateDraft(data: ArticleFormSnapshot): Promise<ArticleDraftInfo> {
+  const res = await fetch("/api/articles/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: data.title,
+      excerpt: data.excerpt,
+      content: data.content,
+      coverImageUrl: data.coverImageUrl || null,
+      categoryId: data.categoryId || null,
+      tags: data.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      status: "DRAFT",
+    }),
+  });
+  if (!res.ok) {
+    const e = await res.json();
+    throw new Error(e.error || "Gagal membuat draft");
+  }
+  const article = await res.json();
+  return { id: article.id, slug: article.slug };
+}
+
+async function apiUpdateDraft(
+  id: string,
+  data: ArticleFormSnapshot,
+): Promise<void> {
+  const res = await fetch(`/api/articles/drafts/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: data.title,
+      excerpt: data.excerpt,
+      content: data.content,
+      coverImageUrl: data.coverImageUrl || null,
+      categoryId: data.categoryId || null,
+      tags: data.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+    }),
+  });
+  if (!res.ok) {
+    const e = await res.json();
+    throw new Error(e.error || "Gagal menyimpan draft");
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
 export default function SubmitArticlePage() {
   const { user } = useAuth();
   const router = useRouter();
+
   const [categories, setCategories] = useState<any[]>([]);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ArticleFormSnapshot>({
     title: "",
     excerpt: "",
     content: "",
@@ -39,11 +101,9 @@ export default function SubmitArticlePage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Redirect jika belum login
+  // Redirect if not logged in
   useEffect(() => {
-    if (user === false) {
-      router.replace("/login");
-    }
+    if (user === false) router.replace("/login");
   }, [user, router]);
 
   useEffect(() => {
@@ -51,6 +111,22 @@ export default function SubmitArticlePage() {
       .then((r) => r.json())
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
+
+  // Stable callbacks for useAutosave (wrapped in useCallback so the refs
+  // inside the hook stay current without the hook re-subscribing).
+  const createDraft = useCallback(apiCreateDraft, []);
+  const updateDraft = useCallback(apiUpdateDraft, []);
+
+  const { status: autosaveStatus, lastSavedAt, draftId, setDraftInfo, getDraftId } =
+    useAutosave({
+      data: form,
+      createDraft,
+      updateDraft,
+      debounceMs: 3000,
+      disabled: loading,
+    });
+
+  // -------------------------------------------------------------------------
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,42 +157,79 @@ export default function SubmitArticlePage() {
       return;
     }
     setLoading(true);
+
+    const draftId = getDraftId();
+    const parsedTags = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     try {
-      const payload = {
-        title: form.title,
-        excerpt: form.excerpt,
-        content: form.content,
-        coverImageUrl: form.coverImageUrl || null,
-        categoryId: form.categoryId || null,
-        tags: form.tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
-        status,
-      };
-      const res = await fetch("/api/articles/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let res: Response;
+
+      if (draftId) {
+        // A draft already exists — update it with the final status
+        res = await fetch(`/api/articles/drafts/${draftId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: form.title,
+            excerpt: form.excerpt,
+            content: form.content,
+            coverImageUrl: form.coverImageUrl || null,
+            categoryId: form.categoryId || null,
+            tags: parsedTags,
+            status,
+          }),
+        });
+      } else {
+        // No draft yet — create fresh
+        res = await fetch("/api/articles/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: form.title,
+            excerpt: form.excerpt,
+            content: form.content,
+            coverImageUrl: form.coverImageUrl || null,
+            categoryId: form.categoryId || null,
+            tags: parsedTags,
+            status,
+          }),
+        });
+      }
+
       if (!res.ok) {
         const e = await res.json();
-        throw new Error(e.error);
+        throw new Error(e.error || "Gagal menyimpan artikel");
       }
+
+      const article = await res.json();
+
+      // Sync autosave state so a late-firing timer doesn't create a duplicate
+      if (article?.id && article?.slug) {
+        setDraftInfo({ id: article.id, slug: article.slug });
+      }
+
       toast.success(
         status === "DRAFT"
           ? "Draft berhasil disimpan"
           : "Artikel berhasil dikirim untuk direview",
       );
       router.push("/my-articles");
-    } catch (e: any) {
-      toast.error(e.message || "Gagal menyimpan artikel");
+    } catch (e: unknown) {
+      toast.error(
+        e instanceof Error ? e.message : "Gagal menyimpan artikel",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Skeleton saat user masih loading
+  // -------------------------------------------------------------------------
+  // Loading skeleton while auth resolves
+  // -------------------------------------------------------------------------
+
   if (user === null) {
     return (
       <div className="bg-white min-h-screen">
@@ -140,8 +253,8 @@ export default function SubmitArticlePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="submit-article-page">
       <SectionHeader
-        label="NEW ARTICLE"
-        title="Submit Artikel Baru"
+        label="ARTIKEL BARU"
+        title="Kirim Artikel Baru"
         subtitle="Bagikan cerita atau berita Jepang. Artikel akan direview admin sebelum tayang."
         icon={<PenSquare size={16} strokeWidth={1.5} />}
       />
@@ -232,7 +345,7 @@ export default function SubmitArticlePage() {
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengupload..." : "Upload"}
+                  {uploading ? "Mengunggah..." : "Unggah"}
                   <input
                     type="file"
                     accept="image/*"
@@ -269,24 +382,43 @@ export default function SubmitArticlePage() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-jepang-border">
-            <Button
-              variant="outline"
-              onClick={() => handleSubmit("DRAFT")}
-              disabled={loading}
-              className="hover:bg-foreground hover:text-white"
-              data-testid="save-draft-btn"
-            >
-              <Save size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Menyimpan..." : "Simpan Draft"}
-            </Button>
-            <Button
-              onClick={() => handleSubmit("PENDING_REVIEW")}
-              disabled={loading}
-              data-testid="submit-review-btn"
-            >
-              <Send size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Mengirim..." : "Kirim untuk Review"}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => handleSubmit("DRAFT")}
+                disabled={loading}
+                className="hover:bg-foreground hover:text-white"
+                data-testid="save-draft-btn"
+              >
+                <Save size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Menyimpan..." : "Simpan Draft"}
+              </Button>
+              <Button
+                onClick={() => handleSubmit("PENDING_REVIEW")}
+                disabled={loading}
+                data-testid="submit-review-btn"
+              >
+                <Send size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Mengirim..." : "Kirim untuk Review"}
+              </Button>
+              {draftId && (
+                <Button
+                  variant="outline"
+                  asChild
+                  data-testid="preview-draft-btn"
+                >
+                  <Link href={`/preview-article/${draftId}`} target="_blank">
+                    <Eye size={14} strokeWidth={1.5} className="mr-1" />
+                    Pratinjau
+                  </Link>
+                </Button>
+              )}
+            </div>
+            <AutosaveIndicator
+              status={autosaveStatus}
+              lastSavedAt={lastSavedAt}
+              className="self-center"
+            />
           </div>
         </div>
       </div>

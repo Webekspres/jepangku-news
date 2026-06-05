@@ -11,6 +11,7 @@ import PollQuizCardSkeleton from "@/components/skeletons/PollQuizCardSkeleton";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import CategoryCardSkeleton from "@/components/skeletons/CategoryCardSkeleton";
 import SectionHeader from "@/components/SectionHeader";
+import AuthorLink from "@/components/AuthorLink";
 import {
   ArrowRight,
   Trophy,
@@ -50,7 +51,7 @@ export default function HomePage() {
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!heroSearch.trim()) return;
-    router.push(`/articles?search=${encodeURIComponent(heroSearch.trim())}`);
+    router.push(`/search?q=${encodeURIComponent(heroSearch.trim())}`);
   };
 
   useEffect(() => {
@@ -128,7 +129,7 @@ export default function HomePage() {
               <span className="text-jepang-red">Hiburan Jepang</span>
             </>
           }
-          subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz, vote, dan raih poin!"
+          subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
           dark
           className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
         >
@@ -309,19 +310,28 @@ export default function HomePage() {
               ) : articles.length > 0 ? (
                 <ArticleCard article={articles[0]} variant="featured" />
               ) : (
-                <div className="rounded-3xl border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
+                <div className="border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
                   Tidak ada artikel pilihan utama tersedia.
                 </div>
               )}
             </div>
             <div className="bg-white border border-jepang-border p-5">
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
-                <TrendingUp
-                  size={18}
-                  strokeWidth={1.5}
-                  className="text-jepang-red"
-                />
-                <h3 className="small-caps">Sedang Tren Sekarang</h3>
+              <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-jepang-border">
+                <div className="flex items-center gap-2">
+                  <TrendingUp
+                    size={18}
+                    strokeWidth={1.5}
+                    className="text-jepang-red"
+                  />
+                  <h3 className="small-caps">Sedang Tren Sekarang</h3>
+                </div>
+                <Link
+                  href="/trending"
+                  className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors"
+                  data-testid="view-all-trending"
+                >
+                  Lihat Semua →
+                </Link>
               </div>
                 <div className="space-y-0">
                   {trending.slice(0, 4).map((article: any, idx: number) => (
@@ -341,14 +351,14 @@ export default function HomePage() {
                           {article.title}
                         </Link>
                         <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                          {article.viewCount || 0} VIEWS
+                          {article.weeklyViewCount || 0} dilihat minggu ini
                         </p>
                       </div>
                     </div>
                   ))}
                   {trending.length === 0 && (
                     <p className="text-sm text-jepang-muted text-center py-8">
-                      No trending articles yet
+                      Belum ada artikel tren
                     </p>
                   )}
                 </div>
@@ -366,7 +376,7 @@ export default function HomePage() {
             <span className="text-jepang-red">Hiburan Jepang</span>
           </>
         }
-        subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti quiz, vote, dan raih poin!"
+        subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
         dark
         className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
       >
@@ -492,7 +502,7 @@ export default function HomePage() {
                     {quizzes[0].title}
                   </h4>
                   <p className="text-sm text-zinc-400 mb-4">
-                    {quizzes[0].questionCount || 0} questions • +10 PTS
+                    {quizzes[0].questionCount || 0} pertanyaan • +10 POIN
                   </p>
                   <Link
                     href={`/quizzes/${quizzes[0].slug}`}
@@ -554,17 +564,22 @@ export default function HomePage() {
                     {entry.displayName?.charAt(0).toUpperCase() || "J"}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold">{entry.displayName}</p>
-                    <p className="text-xs text-jepang-muted font-mono">
+                    <AuthorLink username={entry.username} className="font-semibold block">
+                      {entry.displayName}
+                    </AuthorLink>
+                    <AuthorLink
+                      username={entry.username}
+                      className="text-xs text-jepang-muted font-mono block"
+                    >
                       @{entry.username}
-                    </p>
+                    </AuthorLink>
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-black text-xl text-jepang-red">
                       {entry.weeklyPoints}
                     </p>
                     <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                      PTS
+                      POIN
                     </p>
                   </div>
                 </div>

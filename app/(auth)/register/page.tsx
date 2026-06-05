@@ -27,11 +27,11 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Kata sandi tidak cocok");
       return;
     }
     if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("Kata sandi minimal 6 karakter");
       return;
     }
     setLoading(true);
@@ -44,7 +44,7 @@ export default function RegisterPage() {
       });
       router.push("/");
     } catch (e: any) {
-      setError(e.message || "Registration failed");
+      setError(e.message || "Pendaftaran gagal");
     } finally {
       setLoading(false);
     }
@@ -154,7 +154,7 @@ export default function RegisterPage() {
                 className="w-full"
                 data-testid="register-submit-btn"
               >
-                {loading ? "Creating account..." : "Create Account"}
+                {loading ? "Membuat akun..." : "Buat Akun"}
               </Button>
             </form>
 

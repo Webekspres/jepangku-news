@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
+import {
+  sanitizeMediaUrl,
+  sanitizePlainField,
+  sanitizeQuestionBundle,
+} from '@/lib/sanitizer';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
@@ -55,46 +60,48 @@ export async function POST(request: NextRequest) {
     questions = [],
   } = body;
 
-  if (!title) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+  const safeTitle = sanitizePlainField(title, 200);
+  if (!safeTitle) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
   if (!Array.isArray(questions) || questions.length < 1)
     return NextResponse.json({ error: 'At least 1 question required' }, { status: 400 });
 
-  for (const q of questions) {
-    if (!q.questionText?.trim())
+  const safeQuestions = sanitizeQuestionBundle(questions);
+  for (const q of safeQuestions) {
+    if (!q.questionText)
       return NextResponse.json({ error: 'Each question must have questionText' }, { status: 400 });
-    if (!Array.isArray(q.options) || q.options.length < 2)
+    if (q.options.length < 2)
       return NextResponse.json({ error: 'Each question must have at least 2 options' }, { status: 400 });
     for (const o of q.options) {
-      if (!o.optionText?.trim())
+      if (!o.optionText)
         return NextResponse.json({ error: 'Each option must have optionText' }, { status: 400 });
     }
   }
 
-  const slug = createSlug(title);
+  const slug = createSlug(safeTitle);
 
   const poll = await db.poll.create({
     data: {
       createdBy: admin.id,
-      title,
+      title: safeTitle,
       slug,
-      description: description || null,
+      description: description ? sanitizePlainField(description, 1000) : null,
       pollType: poll_type.toUpperCase() as any,
       status: status.toUpperCase() as any,
-      thumbnailUrl: thumbnailUrl || null,
+      thumbnailUrl: sanitizeMediaUrl(thumbnailUrl),
       pointsReward: Number(pointsReward) || 5,
       allowGuestVote: Boolean(allowGuestVote),
       showResultBeforeVote: Boolean(showResultBeforeVote),
     },
   });
 
-  for (let qi = 0; qi < questions.length; qi++) {
-    const q = questions[qi];
+  for (let qi = 0; qi < safeQuestions.length; qi++) {
+    const q = safeQuestions[qi];
     const question = await db.pollQuestion.create({
       data: {
         pollId: poll.id,
         questionText: q.questionText,
-        imageUrl: q.imageUrl || null,
-        sortOrder: q.sortOrder ?? qi,
+        imageUrl: q.imageUrl,
+        sortOrder: q.sortOrder,
       },
     });
 
@@ -104,8 +111,8 @@ export async function POST(request: NextRequest) {
         data: {
           questionId: question.id,
           optionText: o.optionText,
-          imageUrl: o.imageUrl || null,
-          sortOrder: o.sortOrder ?? oi,
+          imageUrl: o.imageUrl,
+          sortOrder: o.sortOrder,
         },
       });
     }

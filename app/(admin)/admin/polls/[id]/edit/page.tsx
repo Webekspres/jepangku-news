@@ -354,13 +354,13 @@ export default function AdminEditPollPage() {
                 <SelectTrigger data-testid="poll-status-select"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ACTIVE">Aktif</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="DRAFT">Draf</SelectItem>
                   <SelectItem value="CLOSED">Ditutup</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="points-reward">Poin Reward</Label>
+              <Label htmlFor="points-reward">Hadiah Poin</Label>
               <Input id="points-reward" type="number" min={0} value={form.points_reward}
                 onChange={(e) => setForm({ ...form, points_reward: Number(e.target.value) })}
                 data-testid="poll-points-input" />

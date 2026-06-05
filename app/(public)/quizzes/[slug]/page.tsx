@@ -9,6 +9,8 @@ import { ArrowLeft, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import CommentSection from "@/components/CommentSection";
+import ReactionBar from "@/components/ReactionBar";
 
 export default function QuizDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -38,12 +40,12 @@ export default function QuizDetailPage() {
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error("Please login to submit quiz");
+      toast.error("Silakan masuk untuk mengirim kuis");
       router.push("/login");
       return;
     }
     if (Object.keys(answers).length !== quiz.questions.length) {
-      toast.error("Please answer all questions");
+      toast.error("Jawab semua pertanyaan terlebih dahulu");
       return;
     }
     setSubmitting(true);
@@ -66,10 +68,10 @@ export default function QuizDetailPage() {
         return r.json();
       });
       setResult(data);
-      toast.success(`+${data.pointsAwarded} points earned!`);
+      toast.success(`+${data.pointsAwarded} poin didapat!`);
       refreshUser();
     } catch (e: any) {
-      toast.error(e.message || "Failed to submit quiz");
+      toast.error(e.message || "Gagal mengirim kuis");
     } finally {
       setSubmitting(false);
     }
@@ -141,7 +143,7 @@ export default function QuizDetailPage() {
                     <Link href="/quizzes">KUIS LAIN</Link>
                   </Button>
                   <Button asChild data-testid="view-leaderboard">
-                    <Link href="/leaderboard">LIHAT LEADERBOARD</Link>
+                    <Link href="/leaderboard">LIHAT PERINGKAT</Link>
                   </Button>
                 </div>
               </div>
@@ -201,21 +203,21 @@ export default function QuizDetailPage() {
                 {isLoading ? (
                   <span className="inline-block h-4 w-10 bg-jepang-red/10 animate-pulse" />
                 ) : (
-                  `${quiz.questions?.length || 0} QUESTIONS`
+                  `${quiz.questions?.length || 0} pertanyaan`
                 )}
               </span>
               <span className="text-jepang-red font-bold">
                 {isLoading ? (
                   <span className="inline-block h-4 w-16 bg-jepang-red/10 animate-pulse" />
                 ) : (
-                  `+${quiz.pointsReward} BASE PTS`
+                  `+${quiz.pointsReward} poin dasar`
                 )}
               </span>
               <span className="text-jepang-red font-bold">
                 {isLoading ? (
                   <span className="inline-block h-4 w-20 bg-jepang-red/10 animate-pulse" />
                 ) : (
-                  `+${quiz.correctAnswerPoints} PER CORRECT`
+                  `+${quiz.correctAnswerPoints} per jawaban benar`
                 )}
               </span>
             </div>
@@ -316,6 +318,13 @@ export default function QuizDetailPage() {
               </Button>
             </div>
           </div>
+
+          {quiz && (
+            <>
+              <ReactionBar targetType="QUIZ" targetId={quiz.id} />
+              <CommentSection targetType="QUIZ" targetId={quiz.id} />
+            </>
+          )}
         </div>
       </div>
     </div>

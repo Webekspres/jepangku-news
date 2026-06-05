@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import AuthorLink from "@/components/AuthorLink";
 import { Trophy, Award, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import SectionHeader from "@/components/SectionHeader";
@@ -24,8 +25,8 @@ export default function LeaderboardPage() {
     <div className="bg-white min-h-screen" data-testid="leaderboard-page">
       <SectionHeader
         label="ランキング / Peringkat"
-        title="Leaderboard Mingguan"
-        subtitle="Top performer minggu ini berdasarkan poin aktivitas."
+        title="Peringkat Mingguan"
+        subtitle="Performa terbaik minggu ini berdasarkan poin aktivitas."
       />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
@@ -42,7 +43,7 @@ export default function LeaderboardPage() {
                     key={idx}
                     className="flex flex-col items-center justify-end h-full animate-pulse"
                   >
-                    <div className="mb-2 h-8 w-8 rounded-full bg-jepang-red/10" />
+                    <div className="mb-2 h-8 w-8  bg-jepang-red/10" />
                     <div className="w-16 h-16 bg-jepang-red/10 mb-2" />
                     <div className="h-3 w-20 bg-jepang-red/10 mb-1" />
                     <div className="h-2 w-16 bg-jepang-red/10 mb-3" />
@@ -100,12 +101,18 @@ export default function LeaderboardPage() {
                           <div className="w-16 h-16 bg-foreground text-white flex items-center justify-center font-heading font-bold text-2xl border-2 border-foreground mb-2">
                             {entry.displayName?.charAt(0).toUpperCase() || "J"}
                           </div>
-                          <p className="font-bold text-sm text-center truncate w-full max-w-30">
+                          <AuthorLink
+                            username={entry.username}
+                            className="font-bold text-sm text-center truncate w-full max-w-30 block"
+                          >
                             {entry.displayName}
-                          </p>
-                          <p className="text-xs text-jepang-muted font-mono">
+                          </AuthorLink>
+                          <AuthorLink
+                            username={entry.username}
+                            className="text-xs text-jepang-muted font-mono block"
+                          >
                             @{entry.username}
-                          </p>
+                          </AuthorLink>
                           <div
                             className={`${heights[idx]} ${colors[idx]} ${textColors[idx]} w-full flex flex-col items-center justify-end pb-3 mt-3 border-2 border-foreground`}
                           >
@@ -113,7 +120,7 @@ export default function LeaderboardPage() {
                               #{realIdx}
                             </p>
                             <p className="text-xs font-mono">
-                              {entry.weeklyPoints} PTS
+                              {entry.weeklyPoints} POIN
                             </p>
                           </div>
                         </div>
@@ -145,12 +152,15 @@ export default function LeaderboardPage() {
                         {entry.displayName?.charAt(0).toUpperCase() || "J"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate">
+                        <AuthorLink username={entry.username} className="font-semibold truncate block">
                           {entry.displayName}
-                        </p>
-                        <p className="text-xs text-jepang-muted font-mono">
+                        </AuthorLink>
+                        <AuthorLink
+                          username={entry.username}
+                          className="text-xs text-jepang-muted font-mono block"
+                        >
                           @{entry.username}
-                        </p>
+                        </AuthorLink>
                       </div>
                       <div className="text-right">
                         <p className="font-mono font-black text-xl text-jepang-red flex items-center gap-1">
@@ -158,7 +168,7 @@ export default function LeaderboardPage() {
                           {entry.weeklyPoints}
                         </p>
                         <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                          POINTS
+                          POIN
                         </p>
                       </div>
                     </div>

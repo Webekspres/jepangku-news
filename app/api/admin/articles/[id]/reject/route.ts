@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { recordStatusReview, setLastEditor } from '@/lib/article-audit';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
@@ -17,16 +18,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   await db.article.update({ where: { id }, data: { status: 'REJECTED' } });
 
-  await db.articleReview.create({
-    data: {
-      articleId: id,
-      reviewerId: admin.id,
-      previousStatus: previousStatus as any,
-      newStatus: 'REJECTED',
-      note: note || 'Rejected',
-      reviewedAt: new Date(),
-    },
+  await recordStatusReview({
+    articleId: id,
+    reviewerId: admin.id,
+    previousStatus,
+    newStatus: 'REJECTED',
+    note: note?.trim() || 'Ditolak',
   });
+  await setLastEditor(id, admin.id);
 
   return NextResponse.json({ message: 'Article rejected' });
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import {
@@ -33,6 +34,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
   const [topVisible, setTopVisible] = useState(true);
   const [bottomVisible, setBottomVisible] = useState(true);
 
@@ -40,59 +42,104 @@ export default function Navbar() {
   const ticking = useRef(false);
   const authUser = isAuthUser(user) ? user : null;
 
+  const topVisibleRef = useRef(true);
+  const bottomVisibleRef = useRef(true);
+  const scrollAccumulator = useRef(0);
+  const scrollDirection = useRef<"up" | "down" | null>(null);
+
+  const updateTopVisible = (visible: boolean) => {
+    if (topVisibleRef.current !== visible) {
+      topVisibleRef.current = visible;
+      setTopVisible(visible);
+    }
+  };
+
+  const updateBottomVisible = (visible: boolean) => {
+    if (bottomVisibleRef.current !== visible) {
+      bottomVisibleRef.current = visible;
+      setBottomVisible(visible);
+    }
+  };
+
   const navLinks = [
     { path: "/", label: "Beranda" },
     { path: "/articles", label: "Artikel" },
+    { path: "/explore", label: "Jelajahi" },
     { path: "/quizzes", label: "Kuis" },
-    { path: "/polls", label: "Pool" },
+    { path: "/polls", label: "Polling" },
     { path: "/leaderboard", label: "Peringkat" },
   ];
 
-useEffect(() => {
-  const TOP_THRESHOLD = 5;
-  const SAFE_ZONE = 24;
-  const DELTA_THRESHOLD = 6;
+  useEffect(() => {
+    const updateNavbar = () => {
+      const currentY = window.scrollY || window.pageYOffset;
+      const deltaY = currentY - lastScrollY.current;
 
-  const updateNavbar = () => {
-    const currentY = window.scrollY || window.pageYOffset;
-    const deltaY = currentY - lastScrollY.current;
-
-    const isAtTop = currentY <= TOP_THRESHOLD;
-    const isInTopSafeZone = currentY <= SAFE_ZONE;
-
-    setTopVisible(isAtTop);
-
-    if (isAtTop) {
-      setBottomVisible(true);
-    } else if (!isInTopSafeZone) {
-      if (deltaY > DELTA_THRESHOLD) {
-        setBottomVisible(false);
+      // Determine step direction
+      let stepDirection: "up" | "down" | null = null;
+      if (deltaY > 0) {
+        stepDirection = "down";
+      } else if (deltaY < 0) {
+        stepDirection = "up";
       }
 
-      if (deltaY < -DELTA_THRESHOLD) {
-        setBottomVisible(true);
+      // Accumulate scroll distance in the same direction
+      if (stepDirection !== null) {
+        if (scrollDirection.current !== stepDirection) {
+          scrollDirection.current = stepDirection;
+          scrollAccumulator.current = deltaY;
+        } else {
+          scrollAccumulator.current += deltaY;
+        }
       }
-    }
 
-    lastScrollY.current = currentY;
-    ticking.current = false;
-  };
+      // 1. Hysteresis for Top Spacer (black bar, height ~20px)
+      if (topVisibleRef.current) {
+        if (currentY > 40) {
+          updateTopVisible(false);
+        }
+      } else {
+        if (currentY <= 5) {
+          updateTopVisible(true);
+        }
+      }
 
-  const onScroll = () => {
-    if (!ticking.current) {
-      window.requestAnimationFrame(updateNavbar);
-      ticking.current = true;
-    }
-  };
+      // 2. Cumulative Hysteresis/Buffer for Bottom Spacer (red bar, height ~40px)
+      const isAtTop = currentY <= 5;
+      const isInTopSafeZone = currentY <= 40;
 
-  updateNavbar();
+      if (isAtTop) {
+        updateBottomVisible(true);
+      } else if (!isInTopSafeZone) {
+        // We use a 50px threshold. Since the bottom spacer height change is 40px,
+        // this 50px threshold is larger than the layout shift, completely breaking
+        // any infinite vibration/jitter loops.
+        if (scrollDirection.current === "down" && scrollAccumulator.current > 50) {
+          updateBottomVisible(false);
+        } else if (scrollDirection.current === "up" && scrollAccumulator.current < -50) {
+          updateBottomVisible(true);
+        }
+      }
 
-  window.addEventListener("scroll", onScroll, { passive: true });
+      lastScrollY.current = currentY;
+      ticking.current = false;
+    };
 
-  return () => {
-    window.removeEventListener("scroll", onScroll);
-  };
-}, []);
+    const onScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(updateNavbar);
+        ticking.current = true;
+      }
+    };
+
+    updateNavbar();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -104,7 +151,7 @@ useEffect(() => {
 
     if (!searchQuery.trim()) return;
 
-    router.push(`/articles?search=${encodeURIComponent(searchQuery.trim())}`);
+    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery("");
     setSearchOpen(false);
     setMobileOpen(false);
@@ -115,7 +162,7 @@ useEffect(() => {
       <div
         data-testid="header-top-spacer"
         className={`w-full overflow-hidden transition-all duration-300 ease-out ${
-          topVisible ? "h-5 opacity-100" : "h-0 opacity-0"
+          topVisible ? "h-7 opacity-100" : "h-0 opacity-0"
         }`}
         style={{ backgroundColor: "var(--color-jepang-black)" }}
       />
@@ -132,14 +179,14 @@ useEffect(() => {
               className="flex items-center gap-2"
               data-testid="navbar-logo"
             >
-              <span className="font-heading text-2xl font-black tracking-tighter">
-                <span className="text-jepang-red">Jepang</span>
-                <span className="text-foreground">ku</span>
-              </span>
-
-              <span className="ml-1 hidden border-l border-jepang-border pl-2 font-mono text-xs uppercase tracking-[0.2em] text-jepang-muted md:inline-block">
-                News
-              </span>
+              <Image
+                src="/assets/images/logo/Logo-03.svg"
+                alt="Jepangku Berita"
+                width={140}
+                height={48}
+                className="h-50 w-50"
+                priority
+              />
             </Link>
 
             <div className="hidden items-center gap-8 md:flex">
@@ -195,7 +242,7 @@ useEffect(() => {
                     </span>
 
                     <span className="text-[10px] uppercase tracking-wider">
-                      PTS
+                      POIN
                     </span>
                   </div>
 
@@ -264,7 +311,7 @@ useEffect(() => {
                           data-testid="menu-bookmarks"
                         >
                           <Bookmark size={16} strokeWidth={1.5} />
-                          Bookmark
+                          Tersimpan
                         </Link>
                       </DropdownMenuItem>
 
@@ -290,7 +337,7 @@ useEffect(() => {
                               data-testid="menu-admin"
                             >
                               <LayoutDashboard size={16} strokeWidth={1.5} />
-                              Admin Dashboard
+                              Dasbor Admin
                             </Link>
                           </DropdownMenuItem>
                         </>

@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Login failed');
+      throw new Error(err.error || 'Masuk gagal');
     }
     const data = await res.json() as AuthUser;
     setUser(data);
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Registration failed');
+      throw new Error(err.error || 'Pendaftaran gagal');
     }
     const data = await res.json() as AuthUser;
     setUser(data);

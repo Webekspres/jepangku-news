@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { captureException } from '@/lib/monitoring';
 import { getCurrentUser } from '@/lib/auth';
 import { uploadToR2 } from '@/lib/r2';
 import { db } from '@/lib/db';
+import { moderateImage, validateImageBuffer } from '@/lib/image-moderation';
+import { enforceRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
+
+  const blocked = enforceRateLimit(request, 'upload', {
+    max: 20,
+    windowMs: 60 * 60 * 1000,
+    identifier: user.id,
+    message: 'Terlalu banyak upload. Coba lagi nanti.',
+  });
+  if (blocked) return blocked;
 
   try {
     const formData = await request.formData();
@@ -28,8 +39,10 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = file.name.split('.').pop() || 'jpg';
-    const fileName = `jepangku/uploads/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const detected = validateImageBuffer(buffer, file.type);
+    await moderateImage(buffer, file.type);
+
+    const fileName = `jepangku/uploads/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${detected.ext}`;
 
     const url = await uploadToR2(buffer, fileName, file.type);
 
@@ -45,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url, path: fileName });
   } catch (e: any) {
-    console.error('Upload error:', e);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    await captureException(e, { route: 'upload', userId: user?.id });
+    return NextResponse.json({ error: e.message || 'Upload failed' }, { status: 500 });
   }
 }

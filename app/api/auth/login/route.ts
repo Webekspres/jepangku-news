@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { captureException } from '@/lib/monitoring';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import { verifyPassword, createAccessToken, createRefreshToken, setAuthCookies } from '@/lib/auth';
 import { checkDailyLogin } from '@/lib/points';
 import { seedDatabase } from '@/lib/seed';
 
 export async function POST(request: NextRequest) {
+  const blockedResponse = enforceRateLimit(request, 'auth-login', {
+    max: 8,
+    windowMs: 60_000,
+    message: 'Too many login attempts. Please wait a minute.',
+  });
+
+  if (blockedResponse) {
+    return blockedResponse;
+  }
   await seedDatabase();
   try {
     const body = await request.json();
@@ -55,7 +66,7 @@ export async function POST(request: NextRequest) {
     setAuthCookies(response, accessToken, refreshToken);
     return response;
   } catch (e: any) {
-    console.error('Login error:', e);
+    await captureException(e, { route: 'auth-login' });
     return NextResponse.json({ error: e.message || 'Login failed' }, { status: 500 });
   }
 }
