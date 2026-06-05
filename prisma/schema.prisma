@@ -98,6 +98,7 @@ model User {
   comments           Comment[]
   reactions          Reaction[]
   articleViews       ArticleView[]
+  infoPagesUpdated   InfoPage[]      @relation("InfoPageEditor")
 
   @@map("users")
 }
@@ -512,6 +513,25 @@ model Comment {
   @@index([targetType, targetId, status, createdAt])
   @@index([parentId])
   @@map("comments")
+}
+
+model InfoPage {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  title           String
+  subtitle        String?
+  content         String
+  metaTitle       String?  @map("meta_title")
+  metaDescription String?  @map("meta_description")
+  isPublished     Boolean  @default(true) @map("is_published")
+  sortOrder       Int      @default(0) @map("sort_order")
+  updatedById     String?  @map("updated_by_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  updatedBy       User?    @relation("InfoPageEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("info_pages")
 }
 
 model Reaction {

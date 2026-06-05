@@ -16,6 +16,7 @@ import {
   Home,
   LayoutGrid,
   BarChart3,
+  FileType,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -235,6 +236,12 @@ export default function AdminDashboard() {
               icon: BarChart3,
               label: "Analytics Konten",
               testid: "action-analytics",
+            },
+            {
+              href: "/admin/info-pages",
+              icon: FileType,
+              label: "Halaman Informasi",
+              testid: "action-manage-info-pages",
             },
           ].map(({ href, icon: Icon, label, testid }) => (
             <Link
