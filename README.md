@@ -1,93 +1,42 @@
 # Jepangku News
 
-Portal berita interaktif bertema Jepang untuk pembaca Indonesia. Menggabungkan artikel, quiz, polling, leaderboard, dan sistem poin untuk meningkatkan engagement pengguna.
+> Portal berita interaktif bertema Jepang untuk pembaca Indonesia — artikel, quiz, polling, leaderboard, dan sistem poin.
 
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16%2B-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5%2B-blue)](https://www.typescriptlang.org/)
+[![Node.js][node-image]][node-url]
+[![Next.js][next-image]][next-url]
+[![TypeScript][ts-image]][ts-url]
 
-## Ringkasan
+Jepangku News adalah aplikasi **full-stack** berbasis **Next.js App Router + TypeScript** yang menggabungkan konten berita dengan fitur interaktif untuk meningkatkan engagement pengguna. Pembaca dapat menikmati artikel seputar budaya Jepang, anime, manga, dan lifestyle, sambil mengikuti quiz, polling, dan mengumpulkan poin.
 
-Jepangku News adalah portal berita **full-stack** berbasis **Next.js App Router + TypeScript**. MVP single-app sudah tercapai; pengembangan lanjutan berfokus pada **Fase A** — menstabilkan portal untuk soft launch, sambil menyiapkan arsitektur agar siap menjadi ekosistem multi-app (Core Service, LMS, Clerk) di fase berikutnya.
+MVP single-app sudah tercapai. Pengembangan lanjutan berfokus pada **Fase A** — menstabilkan portal untuk soft launch — sambil menyiapkan arsitektur agar siap menjadi ekosistem multi-app (Core Service, LMS, Clerk) di fase berikutnya. Deployment saat ini menggunakan **Vercel**.
 
-Deployment saat ini: **Vercel**. Rencana migrasi: fork ke organisasi GitHub → self-hosted VPS.
+<img width="1894" height="913" alt="Image" src="https://github.com/user-attachments/assets/bcc5e3da-39f4-4583-be45-374d12eab396" />
 
-## Fitur Utama
+## Installation
 
-### Publik (tanpa login)
+**Prasyarat:** Node.js 18+, Bun (disarankan) atau npm, Git, akun Neon PostgreSQL. Cloudflare R2 opsional untuk development (ada graceful fallback).
 
-- Homepage dengan featured slider, trending, kategori, preview quiz/poll & leaderboard
-- Daftar & detail artikel (search, filter kategori/tag, sort)
-- Quiz & polling (guest dapat ikut; hasil tercatat setelah login)
-- Leaderboard mingguan
+**macOS & Linux:**
 
-### Pengguna terdaftar
-
-- Register, login, logout
-- Bookmark artikel (+poin)
-- Submit & edit artikel (draft → review admin)
-- Quiz & polling dengan tracking hasil
-- Sistem poin (baca artikel, share, bookmark, quiz, poll, daily login)
-- Profil & edit profil (avatar, bio, username dengan cooldown 14 hari)
-- Riwayat transaksi poin
-
-### Admin
-
-- Dashboard statistik
-- Kelola artikel (CRUD, review queue, bulk action, export)
-- Kelola kategori & tag
-- Kelola quiz & polling (multi-question builder)
-- Kelola user (role, status)
-- Kelola homepage (featured & hot articles)
-
-## Status & Prioritas
-
-> **Sumber kebenaran:** [`docs/feature-status.md`](docs/feature-status.md) — audit fitur per modul (sudah/belum).
-> **Rencana berfase:** [`docs/development-roadmap.md`](docs/development-roadmap.md) — Fase A–E.
-
-**MVP portal sudah tercapai.** Prioritas aktif (**Fase A**):
-
-1. Keamanan & hardening — sanitasi HTML, rate limiting, image moderation, logging, monitoring
-2. Engagement — komentar artikel, reaction/like
-3. Profil publik author & statistik penulis
-4. Search & discovery — halaman `/search`, trending, popular tags
-5. Analytics konten — view analytics, performance report, statistik kategori/quiz/poll
-6. Soft launch — konten artikel + halaman statis
-
-Fitur yang **ditunda** (akan ditangani Core Service / Clerk): email verification, OAuth, forgot password, leaderboard global, badge, notifikasi in-app.
-
-## Tech Stack
-
-| Layer | Teknologi |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| UI | React 19, Tailwind CSS 4, Radix UI, shadcn/ui |
-| Editor | TipTap (RichTextEditor) |
-| ORM | Prisma 6 |
-| Database | PostgreSQL (Neon) |
-| Storage | Cloudflare R2 (S3-compatible) |
-| Auth | JWT + HTTP-only cookie |
-| Deploy | Vercel (`output: standalone`) |
-
-## Prasyarat
-
-- **Node.js** 18+
-- **Bun** (disarankan) atau npm
-- **Git**
-- Akun **Neon PostgreSQL**
-- Akun **Cloudflare R2** (opsional untuk development; ada graceful fallback)
-
-## Setup Lokal
-
-```bash
+```sh
 git clone https://github.com/Webekspres/jepangku-news.git
 cd jepangku-news
 bun install
+cp .env.example .env.local
+bunx prisma generate
 ```
 
-### Konfigurasi environment
+**Windows (PowerShell):**
 
-Salin `.env.example` ke `.env.local`, lalu isi nilai yang diperlukan:
+```powershell
+git clone https://github.com/Webekspres/jepangku-news.git
+cd jepangku-news
+bun install
+Copy-Item .env.example .env.local
+bunx prisma generate
+```
+
+Isi `.env.local` sesuai `.env.example`:
 
 ```env
 DATABASE_URL="postgresql://user:password@host:port/database"
@@ -103,98 +52,108 @@ NEXT_PUBLIC_API_URL="http://localhost:3000/api"
 NODE_ENV="development"
 ```
 
-> Variabel `NEXT_PUBLIC_*` diekspos ke browser. Jangan commit file `.env.local`.
+> Variabel `NEXT_PUBLIC_*` diekspos ke browser. Jangan commit `.env.local`.
 > Jalankan `bun prisma db seed` hanya jika membuat instance database baru.
 
-### Menjalankan aplikasi
+## Usage example
 
-```bash
-bunx prisma generate
+Jalankan server development:
+
+```sh
 bun dev
 ```
 
-Aplikasi berjalan di [http://localhost:3000](http://localhost:3000).
+Buka [http://localhost:3000](http://localhost:3000). Contoh alur penggunaan:
 
-### Perintah lain
+**Pembaca (guest):** jelajahi artikel di `/articles`, ikuti quiz di `/quizzes`, vote polling di `/polls`, lihat peringkat di `/leaderboard`.
 
-```bash
-bun run build    # prisma generate + next build
+**Pengguna terdaftar:** daftar/masuk, bookmark artikel, submit artikel untuk review, kumpulkan poin, kelola profil di `/profile`.
+
+**Admin:** akses dashboard di `/admin` — kelola artikel, kategori, tag, quiz, polling, user, dan homepage banner.
+
+Contoh request API:
+
+```sh
+# Daftar artikel dengan filter
+curl "http://localhost:3000/api/articles?sort=latest&page=1"
+
+# Leaderboard mingguan
+curl "http://localhost:3000/api/leaderboard/weekly"
+```
+
+_Untuk dokumentasi lengkap fitur, API, dan status implementasi, lihat [docs/feature-status.md](docs/feature-status.md) dan [docs/development-roadmap.md](docs/development-roadmap.md)._
+
+## Development setup
+
+Instal dependensi dan jalankan perintah development:
+
+```sh
+bun install
+bunx prisma generate
+bun dev          # development server (Turbopack)
+bun run build    # prisma generate + production build
 bun run start    # production server
 bun run lint     # ESLint
 ```
 
-## Deployment
-
-### Vercel (saat ini)
-
-1. Hubungkan repository ke Vercel
-2. Set semua environment variables dari `.env.example`
-3. Pastikan `bun run build` sukses sebelum deploy
-
-### Rencana migrasi
-
-1. Fork repo ke organisasi GitHub
-2. Setup self-hosted VPS (staging & production)
-3. Implementasi CI/CD
-
-Detail setup R2: [`docs/cloudflare-r2-setup.md`](docs/cloudflare-r2-setup.md)
-
-## Struktur Proyek
+**Struktur proyek:**
 
 ```
 app/
-├── (public)/       # Halaman publik: homepage, artikel, quiz, poll, leaderboard
-├── (user)/         # Halaman user: profil, bookmark, submit artikel, poin
-├── (admin)/        # Admin dashboard & management
-├── (auth)/         # Login & register
-└── api/            # API routes (auth, articles, quiz, poll, admin, upload, …)
-components/         # UI components (Navbar, Footer, ArticleCard, …)
-contexts/           # React context (AuthContext)
-lib/                # Utilities: DB, auth, R2, points, article-audit
-prisma/             # Schema, migrations, seed
-public/             # Static assets (logo, favicons)
-docs/               # Dokumentasi proyek
-.agents/            # Scope, user flow, ERD, steering, ekosistem
+├── (public)/    # Homepage, artikel, quiz, poll, leaderboard
+├── (user)/      # Profil, bookmark, submit artikel, poin
+├── (admin)/     # Admin dashboard & management
+├── (auth)/      # Login & register
+└── api/         # API routes
+components/      # UI components
+lib/             # DB, auth, R2, points
+prisma/          # Schema, migrations, seed
+docs/            # Dokumentasi proyek
+.agents/         # Scope, user flow, ERD, steering
 ```
 
-## API (ringkas)
+**Tech stack:** Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL (Neon) · Cloudflare R2 · JWT + cookie
 
-| Grup | Endpoint utama |
-|------|----------------|
-| Auth | `POST /api/auth/register`, `login`, `logout` · `GET /api/auth/me` |
-| Artikel | `GET /api/articles` · `GET /api/articles/[slug]` · `POST /api/articles/create` · `PUT /api/articles/[slug]/update` · `POST /api/articles/[slug]/read-complete` · `POST /api/articles/[slug]/share` |
-| Bookmark | `GET /api/bookmarks` · `POST/DELETE /api/bookmarks/[articleId]` |
-| Quiz | `GET /api/quizzes` · `GET /api/quizzes/[slug]` · `POST /api/quizzes/[slug]/attempt` |
-| Poll | `GET /api/polls` · `GET /api/polls/[slug]` · `POST /api/polls/[slug]/vote` |
-| Poin | `GET /api/points/my` |
-| Leaderboard | `GET /api/leaderboard/weekly` |
-| Profil | `GET/PUT /api/user/profile` |
-| Upload | `POST /api/upload` |
-| Admin | `/api/admin/*` — artikel, kategori, tag, user, quiz, poll, homepage, stats |
+**Deployment (Vercel):** hubungkan repo, set environment variables dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
-Daftar lengkap dan status verifikasi ada di [`docs/feature-status.md`](docs/feature-status.md).
+## Release History
 
-## Dokumentasi
+* **Fase A** *(aktif)*
+  * ADD: Hardening keamanan, engagement (komentar, like), profil publik author
+  * ADD: Search & discovery, analytics konten, soft launch (konten + halaman statis)
+* **MVP** *(0.1.0 — tercapai)*
+  * ADD: Auth (register, login, logout, daily login points)
+  * ADD: Artikel (listing, detail, submit, review workflow, bookmark, share, read-complete points)
+  * ADD: Quiz & polling (attempt, vote, scoring, points)
+  * ADD: Leaderboard mingguan & riwayat poin
+  * ADD: Admin dashboard (artikel, kategori, tag, quiz, poll, user, homepage)
+  * ADD: Upload ke Cloudflare R2, profil user dengan avatar
+* **0.0.1**
+  * Work in progress — scaffold Next.js + Prisma + auth dasar
 
-| Dokumen | Isi |
-|---------|-----|
-| [`docs/feature-status.md`](docs/feature-status.md) | Status aktual per fitur — **mulai dari sini** |
-| [`docs/development-roadmap.md`](docs/development-roadmap.md) | Rencana pengerjaan Fase A–E |
-| [`.agents/04-project-steering.md`](.agents/04-project-steering.md) | Arah & prioritas proyek |
-| [`.agents/01-mvp-scope.md`](.agents/01-mvp-scope.md) | Scope & batasan MVP |
-| [`.agents/02-user-flow.md`](.agents/02-user-flow.md) | Alur pengguna & permission |
-| [`.agents/03-database-erd.md`](.agents/03-database-erd.md) | Desain database & schema |
-| [`.agents/05-ecosystem-strategy.md`](.agents/05-ecosystem-strategy.md) | Arsitektur ekosistem & Core Service |
-| [`docs/technical-architecture.md`](docs/technical-architecture.md) | Arsitektur teknis |
-| [`docs/cloudflare-r2-setup.md`](docs/cloudflare-r2-setup.md) | Setup Cloudflare R2 |
-| [`docs/soft-launch-content.md`](docs/soft-launch-content.md) | Checklist konten soft launch |
+## Meta
 
-## Kontribusi
+[Webekspres](https://webekspres.id) – [GitHub](https://github.com/Webekspres)
 
-1. Fork repository
-2. Buat branch: `git checkout -b feature/nama-fitur`
-3. Commit perubahan
-4. Push branch
-5. Buat Pull Request
+Proyek private. Dikembangkan oleh [Webekspres](https://webekspres.id).
 
-Ikuti prioritas di `docs/development-roadmap.md` dan update `docs/feature-status.md` setelah menyelesaikan fitur signifikan.
+[https://github.com/Webekspres/jepangku-news](https://github.com/Webekspres/jepangku-news)
+
+## Contributing
+
+1. Fork it ([https://github.com/Webekspres/jepangku-news/fork](https://github.com/Webekspres/jepangku-news/fork))
+2. Create your feature branch (`git checkout -b feature/nama-fitur`)
+3. Commit your changes (`git commit -am 'Add some namaFitur'`)
+4. Push to the branch (`git push origin feature/nama-fitur`)
+5. Create a new Pull Request
+
+Ikuti prioritas di [docs/development-roadmap.md](docs/development-roadmap.md) dan update [docs/feature-status.md](docs/feature-status.md) setelah menyelesaikan fitur signifikan.
+
+<!-- Badge links -->
+
+[node-image]: https://img.shields.io/badge/Node.js-18%2B-green
+[node-url]: https://nodejs.org/
+[next-image]: https://img.shields.io/badge/Next.js-16%2B-black
+[next-url]: https://nextjs.org/
+[ts-image]: https://img.shields.io/badge/TypeScript-5%2B-blue
+[ts-url]: https://www.typescriptlang.org/
