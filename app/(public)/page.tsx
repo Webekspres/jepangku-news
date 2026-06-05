@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
@@ -23,15 +24,75 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+interface Author {
+  name: string;
+  username: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  coverImageUrl?: string;
+  cover_image_url?: string;
+  weeklyViewCount?: number;
+  author?: Author;
+  category?: Category;
+}
+
+interface TrendingArticle extends Article {}
+
+interface Poll {
+  id: string;
+  slug: string;
+  title: string;
+  pollType?: string;
+  totalVotes: number;
+  questionCount: number;
+}
+
+interface Quiz {
+  id: string;
+  slug: string;
+  title: string;
+  questionCount: number;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  username: string;
+  avatarUrl?: string | null;
+  weeklyPoints: number;
+}
+
+interface CategoryArticle {
+  id: string;
+  title: string;
+  slug: string;
+}
+
+interface CategoryWithArticles extends Category {
+  articles: CategoryArticle[];
+}
+
 export default function HomePage() {
   const router = useRouter();
-  const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
-  const [articles, setArticles] = useState<any[]>([]);
-  const [trending, setTrending] = useState<any[]>([]);
-  const [polls, setPolls] = useState<any[]>([]);
-  const [quizzes, setQuizzes] = useState<any[]>([]);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [trending, setTrending] = useState<TrendingArticle[]>([]);
+  const [polls, setPolls] = useState<Poll[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [categories, setCategories] = useState<CategoryWithArticles[]>([]);
   const [loading, setLoading] = useState(true);
   const [heroSearch, setHeroSearch] = useState("");
   const [featuredIndex, setFeaturedIndex] = useState(0);
@@ -59,16 +120,16 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-  if (featuredArticles.length <= 1) return;
+    if (featuredArticles.length <= 1) return;
 
-  const interval = setInterval(() => {
-    setFeaturedIndex((prev) =>
-      prev === featuredArticles.length - 1 ? 0 : prev + 1
-    );
-  }, 4000);
+    const interval = setInterval(() => {
+      setFeaturedIndex((prev) =>
+        prev === featuredArticles.length - 1 ? 0 : prev + 1
+      );
+    }, 4000);
 
-  return () => clearInterval(interval);
-}, [featuredArticles.length]);
+    return () => clearInterval(interval);
+  }, [featuredArticles.length]);
 
   const loadData = async () => {
     try {
@@ -82,8 +143,8 @@ export default function HomePage() {
       setQuizzes(Array.isArray(data.quizzes) ? data.quizzes : []);
       setLeaderboard(Array.isArray(data.leaderboard) ? data.leaderboard : []);
       setCategories(Array.isArray(data.categories) ? data.categories : []);
-    } catch (e) {
-      console.error("Error loading homepage:", e);
+    } catch (error) {
+      console.error("Error loading homepage:", error);
     } finally {
       setLoading(false);
     }
@@ -111,7 +172,7 @@ export default function HomePage() {
                   <h3 className="small-caps">Sedang Tren Sekarang</h3>
                 </div>
                 <div className="space-y-0">
-                  {[...Array(4)].map((_, idx) => (
+                  {[...Array(5)].map((_, idx) => (
                     <TrendingArticleSkeleton key={idx} />
                   ))}
                 </div>
@@ -278,7 +339,7 @@ export default function HomePage() {
                       transform: `translateX(-${featuredIndex * 100}%)`,
                     }}
                   >
-                    {featuredArticles.map((article: any, idx: number) => (
+                    {featuredArticles.map((article: Article, idx: number) => (
                       <div key={article.id} className="w-full shrink-0">
                         <ArticleCard article={article} variant="featured" priority={idx === 0} />
                       </div>
@@ -334,28 +395,51 @@ export default function HomePage() {
                 </Link>
               </div>
                 <div className="space-y-0">
-                  {trending.slice(0, 4).map((article: any, idx: number) => (
-                    <div
-                      key={article.id}
-                      className="flex gap-3 py-3 border-b border-jepang-border last:border-b-0"
-                    >
-                      <span className="font-mono font-black text-2xl text-jepang-red">
-                        0{idx + 1}
-                      </span>
-                      <div className="flex-1">
+                  {trending.slice(0, 5).map((article: TrendingArticle, idx: number) => {
+                    const thumbnailUrl = article.coverImageUrl || article.cover_image_url;
+
+                    return (
+                      <div
+                        key={article.id}
+                        className="flex items-center gap-3 py-3 border-b border-jepang-border last:border-b-0"
+                      >
+                        <span className="font-mono font-black text-2xl text-jepang-red">
+                          0{idx + 1}
+                        </span>
                         <Link
                           href={`/articles/${article.slug}`}
-                          className="font-heading font-bold text-sm hover:text-jepang-red transition-colors line-clamp-2"
-                          data-testid={`trending-${article.slug}`}
+                          className="relative shrink-0 overflow-hidden rounded-sm bg-jepang-off-white w-20 h-16"
+                          data-testid={`trending-thumbnail-${article.slug}`}
                         >
-                          {article.title}
+                          {thumbnailUrl ? (
+                            <Image
+                              src={thumbnailUrl}
+                              alt={article.title}
+                              fill
+                              sizes="80px"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] text-jepang-muted uppercase tracking-wider">
+                              Tidak ada gambar
+                            </div>
+                          )}
                         </Link>
-                        <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                          {article.weeklyViewCount || 0} dilihat minggu ini
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/articles/${article.slug}`}
+                            className="font-heading font-bold text-sm hover:text-jepang-red transition-colors line-clamp-2"
+                            data-testid={`trending-${article.slug}`}
+                          >
+                            {article.title}
+                          </Link>
+                          <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
+                            {article.weeklyViewCount || 0} dilihat minggu ini
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {trending.length === 0 && (
                     <p className="text-sm text-jepang-muted text-center py-8">
                       Belum ada artikel tren
@@ -437,7 +521,7 @@ export default function HomePage() {
           </div>
           {latestArticles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {latestArticles.map((article: any) => (
+              {latestArticles.map((article: Article) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>
@@ -549,7 +633,7 @@ export default function HomePage() {
           </div>
           <div className="bg-white border border-jepang-black">
             {leaderboard.length > 0 ? (
-              leaderboard.slice(0, 5).map((entry: any, idx: number) => (
+              leaderboard.slice(0, 5).map((entry: LeaderboardEntry, idx: number) => (
                 <div
                   key={entry.userId}
                   className="flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0"
@@ -592,33 +676,65 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* Categories Grid */}
-      <section className="py-12">
+      <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="mb-8 pb-3 border-b-2 border-jepang-black">
-            <p className="small-caps text-jepang-red mb-1">
-              カテゴリ / KATEGORI
-            </p>
-            <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
-              Jelajahi Kategori
-            </h2>
+          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-black">
+            <div>
+              <p className="small-caps text-jepang-red mb-1">
+                カテゴリ / KATEGORI
+              </p>
+              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
+                Jelajahi Kategori
+              </h2>
+            </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {categories.map((cat: any) => (
-              <Link
+              <div
                 key={cat.id}
-                href={`/articles?category=${cat.slug}`}
-                className="block p-4 border border-jepang-border hover:border-jepang-black hover:bg-jepang-black hover:text-white transition-all group"
-                data-testid={`category-${cat.slug}`}
+                className="bg-white border border-jepang-black p-5"
               >
-                <p className="font-heading font-bold text-lg group-hover:text-white transition-colors">
-                  {cat.name}
-                </p>
-                <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted group-hover:text-zinc-400 mt-1">
-                  JELAJAHI →
-                </p>
-              </Link>
+                <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-jepang-border">
+                  <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-jepang-red">
+                    {cat.name}
+                  </h3>
+
+                  <Link
+                    href={`/articles?category=${cat.slug}`}
+                    className="shrink-0 font-mono text-[9px] uppercase tracking-[0.18em] text-jepang-muted hover:text-jepang-red transition-colors"
+                  >
+                    Lihat Semua →
+                  </Link>
+                </div>
+
+                <ul>
+                  {cat.articles && cat.articles.length > 0 ? (
+                    cat.articles.slice(0, 5).map((article: any, idx: number) => (
+                      <li
+                        key={article.id}
+                        className="grid grid-cols-[28px_1fr] gap-3 py-2.5 border-b border-jepang-border last:border-b-0"
+                      >
+                        <span className="font-mono text-base font-black leading-5 text-jepang-red">
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+
+                        <Link
+                          href={`/articles/${article.slug}`}
+                          className="text-[13px] font-semibold leading-5 text-jepang-black hover:text-jepang-red transition-colors line-clamp-2"
+                        >
+                          {article.title}
+                        </Link>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="py-8 text-center text-sm text-jepang-muted">
+                      Belum ada artikel
+                    </li>
+                  )}
+                </ul>
+              </div>
             ))}
           </div>
         </div>

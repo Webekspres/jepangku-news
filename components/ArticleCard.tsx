@@ -5,13 +5,13 @@ import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-interface Article {
+export interface Article {
   id: string;
   slug: string;
   title: string;
-  excerpt?: string;
-  coverImageUrl?: string;
-  cover_image_url?: string;
+  excerpt?: string | null;
+  coverImageUrl?: string | null;
+  cover_image_url?: string | null;
   viewCount?: number;
   view_count?: number;
   isHot?: boolean;

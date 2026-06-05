@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import Image from "next/image";
 
 function LoginForm() {
   const { login } = useAuth();
@@ -45,10 +46,15 @@ function LoginForm() {
           <CardHeader className="text-center pb-2">
             <Link
               href="/"
-              className="font-heading font-black text-3xl tracking-tighter"
+              className="font-heading font-black tracking-tighter"
             >
-              <span className="text-jepang-red">Jepang</span>
-              <span className="text-foreground">ku</span>
+              <Image
+                src="/assets/images/logo/Logo-01.svg"
+                alt="Jepangku Logo"
+                width={180}
+                height={18}
+                className="mx-auto"
+              />
             </Link>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mt-2">
               Selamat datang kembali! Silakan masuk untuk melanjutkan.
