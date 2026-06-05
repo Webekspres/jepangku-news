@@ -214,6 +214,7 @@ export default function PollDetailPage() {
                 src={poll!.thumbnailUrl}
                 alt={poll!.title}
                 fill
+                sizes="(max-width: 768px) 100vw, 1200px"
                 className="object-cover"
                 priority
               />
@@ -271,6 +272,7 @@ export default function PollDetailPage() {
                               src={q.imageUrl}
                               alt={q.questionText}
                               fill
+                              sizes="(max-width: 768px) 100vw, 800px"
                               className="object-cover"
                             />
                           </div>
@@ -308,6 +310,7 @@ export default function PollDetailPage() {
                                     src={opt.imageUrl}
                                     alt={opt.optionText}
                                     fill
+                                    sizes="(max-width: 768px) 100vw, 400px"
                                     className="object-cover"
                                   />
                                 </div>

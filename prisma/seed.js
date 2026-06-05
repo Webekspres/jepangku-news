@@ -1,7 +1,9 @@
 const { PrismaClient } = require("@prisma/client");
+const { PrismaNeon } = require("@prisma/adapter-neon");
 const bcrypt = require("bcryptjs");
 
-const prisma = new PrismaClient();
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 // ---------------------------------------------------------------------------
 // DATA
@@ -28,6 +30,19 @@ const SAMPLE_POLLS = require("./seeder/data/polls.js");
 // ---------------------------------------------------------------------------
 
 const SAMPLE_USERS = require("./seeder/data/users.js");
+const { COMMENTS_DATA } = require("./seeder/data/comments.js");
+const { REACTIONS_DATA } = require("./seeder/data/reactions.js");
+const {
+  ARTICLE_VIEWS_CONFIG,
+  buildViewsForArticle,
+} = require("./seeder/data/article-views.js");
+const { ARTICLE_SHARES_DATA } = require("./seeder/data/article-shares.js");
+const { ARTICLE_REVISIONS_DATA } = require("./seeder/data/article-revisions.js");
+const { FILES_DATA } = require("./seeder/data/files.js");
+const {
+  USER_ACTIVITY_CONFIG,
+  EXTRA_POINT_ACTIVITIES,
+} = require("./seeder/data/user-activities.js");
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -39,6 +54,16 @@ function createSlug(base) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
   return `${clean}-${Math.random().toString(36).substring(2, 8)}`;
+}
+
+function daysAgo(n, extraHours = 0) {
+  return new Date(
+    Date.now() - n * 24 * 60 * 60 * 1000 - extraHours * 60 * 60 * 1000,
+  );
+}
+
+async function resolveUserByEmail(email) {
+  return prisma.user.findUnique({ where: { email } });
 }
 
 // ---------------------------------------------------------------------------
@@ -456,26 +481,11 @@ async function main() {
     const randInt = (min, max) =>
       Math.floor(Math.random() * (max - min + 1)) + min;
 
-    // Helper: date within last N days
-    const daysAgo = (n) => new Date(Date.now() - n * 24 * 60 * 60 * 1000);
-
-    // Per-user activity config — controls how "active" each user is
-    // Maps to SAMPLE_USERS order: budi, siti, andi, dewi, rizky, maya, fajar, lina
-    const activityConfig = [
-      { quizzes: 2, polls: 2, bookmarks: 3, loginDays: 5, extraPoints: 50 }, // budi
-      { quizzes: 3, polls: 3, bookmarks: 5, loginDays: 7, extraPoints: 120 }, // siti
-      { quizzes: 4, polls: 4, bookmarks: 8, loginDays: 7, extraPoints: 300 }, // andi (top)
-      { quizzes: 3, polls: 3, bookmarks: 6, loginDays: 6, extraPoints: 180 }, // dewi
-      { quizzes: 2, polls: 2, bookmarks: 4, loginDays: 5, extraPoints: 80 }, // rizky
-      { quizzes: 1, polls: 2, bookmarks: 3, loginDays: 4, extraPoints: 40 }, // maya
-      { quizzes: 4, polls: 3, bookmarks: 7, loginDays: 7, extraPoints: 220 }, // fajar
-      { quizzes: 1, polls: 1, bookmarks: 2, loginDays: 3, extraPoints: 20 }, // lina
-    ];
-
     for (let uIdx = 0; uIdx < allUsers.length; uIdx++) {
       const user = allUsers[uIdx];
       const cfg =
-        activityConfig[uIdx] || activityConfig[activityConfig.length - 1];
+        USER_ACTIVITY_CONFIG[uIdx] ||
+        USER_ACTIVITY_CONFIG[USER_ACTIVITY_CONFIG.length - 1];
 
       // ── a. Daily Login Rewards ────────────────────────────────────────
       for (let d = 0; d < cfg.loginDays; d++) {
@@ -674,45 +684,14 @@ async function main() {
       );
 
       // ── e. Extra point transactions (article reads, shares, etc.) ─────
-      const extraActivities = [
-        {
-          activityType: "article_read",
-          sourceType: "article",
-          points: 1,
-          description: "Read an article",
-        },
-        {
-          activityType: "article_shared",
-          sourceType: "article",
-          points: 3,
-          description: "Shared an article",
-        },
-        {
-          activityType: "profile_updated",
-          sourceType: "profile",
-          points: 5,
-          description: "Updated profile",
-        },
-        {
-          activityType: "article_read",
-          sourceType: "article",
-          points: 1,
-          description: "Read an article",
-        },
-        {
-          activityType: "article_read",
-          sourceType: "article",
-          points: 1,
-          description: "Read an article",
-        },
-      ];
-
       let remainingExtra = cfg.extraPoints;
       let actIdx = 0;
       while (remainingExtra > 0 && actIdx < 20) {
-        const act = extraActivities[actIdx % extraActivities.length];
+        const act = EXTRA_POINT_ACTIVITIES[actIdx % EXTRA_POINT_ACTIVITIES.length];
         const pts = Math.min(act.points, remainingExtra);
         const articleId = allArticles[actIdx % allArticles.length]?.id;
+        const occurredAt = daysAgo(randInt(0, 6));
+
         await prisma.pointTransaction.create({
           data: {
             userId: user.id,
@@ -721,9 +700,29 @@ async function main() {
             sourceId: act.sourceType === "article" ? articleId : null,
             points: pts,
             description: act.description,
-            occurredAt: daysAgo(randInt(0, 6)),
+            occurredAt,
           },
         });
+
+        if (act.activityType === "article_shared" && articleId) {
+          const existingShare = await prisma.articleShare.findUnique({
+            where: { userId_articleId: { userId: user.id, articleId } },
+          });
+          if (!existingShare) {
+            await prisma.articleShare.create({
+              data: {
+                userId: user.id,
+                articleId,
+                shareMethod: "copy-link",
+                pointsAwarded: pts,
+                isPointAwarded: true,
+                sharedAt: occurredAt,
+                createdAt: occurredAt,
+              },
+            });
+          }
+        }
+
         remainingExtra -= pts;
         actIdx++;
       }
@@ -734,6 +733,272 @@ async function main() {
 
     console.log("✅ All user activities seeded.");
   }
+
+  // ── 10. Article Shares (dedicated seed data) ───────────────────────────
+  const publishedArticles = await prisma.article.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { publishedAt: "desc" },
+    select: { id: true, title: true },
+    take: 40,
+  });
+
+  for (const shareSpec of ARTICLE_SHARES_DATA) {
+    const user = await resolveUserByEmail(shareSpec.author_email);
+    const article = publishedArticles[shareSpec.article_index];
+    if (!user || !article) continue;
+
+    const existing = await prisma.articleShare.findUnique({
+      where: { userId_articleId: { userId: user.id, articleId: article.id } },
+    });
+    if (existing) continue;
+
+    const sharedAt = daysAgo(shareSpec.days_ago);
+    await prisma.articleShare.create({
+      data: {
+        userId: user.id,
+        articleId: article.id,
+        shareMethod: shareSpec.share_method,
+        pointsAwarded: shareSpec.points_awarded,
+        isPointAwarded: shareSpec.is_point_awarded,
+        sharedAt,
+        createdAt: sharedAt,
+      },
+    });
+  }
+  console.log("✅ Article shares seeded.");
+
+  // ── 11. Article Views (analytics time series) ──────────────────────────
+  const viewsArticleSlice = publishedArticles.slice(
+    0,
+    ARTICLE_VIEWS_CONFIG.articleCount,
+  );
+  const allUsersForViews = await prisma.user.findMany({
+    where: { role: "USER" },
+    select: { id: true },
+    take: 8,
+  });
+
+  let totalViewsSeeded = 0;
+  for (let aIdx = 0; aIdx < viewsArticleSlice.length; aIdx++) {
+    const article = viewsArticleSlice[aIdx];
+    const existingViewCount = await prisma.articleView.count({
+      where: { articleId: article.id },
+    });
+    if (existingViewCount > 0) continue;
+
+    const viewSpecs = buildViewsForArticle(aIdx, article.id);
+    for (const v of viewSpecs) {
+      const viewedAt = daysAgo(v.days_ago, v.hours_ago);
+      const userId =
+        v.user_slot !== null ? allUsersForViews[v.user_slot]?.id ?? null : null;
+
+      await prisma.articleView.create({
+        data: {
+          articleId: article.id,
+          userId,
+          visitorKey: v.visitor_key,
+          viewedAt,
+          createdAt: viewedAt,
+        },
+      });
+      totalViewsSeeded++;
+    }
+  }
+  console.log(`✅ Article views seeded (${totalViewsSeeded} records).`);
+
+  // ── 12. Article Revisions ──────────────────────────────────────────────
+  const userArticles = await prisma.article.findMany({
+    where: { author: { role: "USER" } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      excerpt: true,
+      content: true,
+      coverImageUrl: true,
+      categoryId: true,
+      status: true,
+    },
+    take: 30,
+  });
+
+  for (const revSpec of ARTICLE_REVISIONS_DATA) {
+    const article = userArticles[revSpec.target_index];
+    if (!article) continue;
+
+    const editor = await resolveUserByEmail(revSpec.editor_email);
+    if (!editor) continue;
+
+    const existing = await prisma.articleRevision.findUnique({
+      where: {
+        articleId_revisionNumber: {
+          articleId: article.id,
+          revisionNumber: revSpec.revision_number,
+        },
+      },
+    });
+    if (existing) continue;
+
+    const createdAt = daysAgo(revSpec.days_ago);
+    await prisma.articleRevision.create({
+      data: {
+        articleId: article.id,
+        revisionNumber: revSpec.revision_number,
+        editorId: editor.id,
+        changeNote: revSpec.change_note,
+        title: article.title + revSpec.title_suffix,
+        excerpt: article.excerpt,
+        content: article.content,
+        coverImageUrl: article.coverImageUrl,
+        categoryId: article.categoryId,
+        status: article.status,
+        createdAt,
+      },
+    });
+  }
+  console.log("✅ Article revisions seeded.");
+
+  // ── 13. Files ──────────────────────────────────────────────────────────
+  for (const fileSpec of FILES_DATA) {
+    const email =
+      fileSpec.user_email === "admin@jepangku.com"
+        ? adminEmail
+        : fileSpec.user_email;
+    const user = await resolveUserByEmail(email);
+    if (!user) continue;
+
+    const existing = await prisma.file.findFirst({
+      where: { storagePath: fileSpec.storage_path },
+    });
+    if (existing) continue;
+
+    await prisma.file.create({
+      data: {
+        storagePath: fileSpec.storage_path,
+        originalFilename: fileSpec.original_filename,
+        contentType: fileSpec.content_type,
+        size: fileSpec.size,
+        userId: user.id,
+        isDeleted: fileSpec.is_deleted || false,
+      },
+    });
+  }
+  console.log("✅ Files seeded.");
+
+  // ── 14. Comments ───────────────────────────────────────────────────────
+  const activePolls = await prisma.poll.findMany({
+    where: { status: "ACTIVE" },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  const activeQuizzes = await prisma.quiz.findMany({
+    where: { status: "ACTIVE" },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+
+  const commentKeyToId = {};
+  const visibleCommentIds = [];
+
+  for (const cSpec of COMMENTS_DATA) {
+    const user = await resolveUserByEmail(cSpec.author_email);
+    if (!user) continue;
+
+    let targetId = null;
+    if (cSpec.target_type === "ARTICLE") {
+      targetId = publishedArticles[cSpec.target_index]?.id;
+    } else if (cSpec.target_type === "POLL") {
+      targetId = activePolls[cSpec.target_index]?.id;
+    } else if (cSpec.target_type === "QUIZ") {
+      targetId = activeQuizzes[cSpec.target_index]?.id;
+    }
+    if (!targetId) continue;
+
+    const existing = await prisma.comment.findFirst({
+      where: {
+        userId: user.id,
+        targetType: cSpec.target_type,
+        targetId,
+        content: cSpec.content,
+      },
+    });
+    if (existing) {
+      commentKeyToId[cSpec.key] = existing.id;
+      if (existing.status === "VISIBLE" && !existing.deletedAt) {
+        visibleCommentIds.push(existing.id);
+      }
+      continue;
+    }
+
+    const parentId = cSpec.parent_key
+      ? commentKeyToId[cSpec.parent_key] || null
+      : null;
+    const createdAt = daysAgo(cSpec.days_ago);
+
+    const created = await prisma.comment.create({
+      data: {
+        targetType: cSpec.target_type,
+        targetId,
+        userId: user.id,
+        parentId,
+        content: cSpec.content,
+        status: cSpec.status,
+        deletedAt: cSpec.deleted ? createdAt : null,
+        createdAt,
+        updatedAt: createdAt,
+      },
+    });
+
+    commentKeyToId[cSpec.key] = created.id;
+    if (created.status === "VISIBLE" && !created.deletedAt) {
+      visibleCommentIds.push(created.id);
+    }
+  }
+  console.log(`✅ Comments seeded (${Object.keys(commentKeyToId).length}).`);
+
+  // ── 15. Reactions ──────────────────────────────────────────────────────
+  let reactionsSeeded = 0;
+  for (const rSpec of REACTIONS_DATA) {
+    const user = await resolveUserByEmail(rSpec.author_email);
+    if (!user) continue;
+
+    let targetId = null;
+    if (rSpec.target_type === "ARTICLE") {
+      targetId = publishedArticles[rSpec.target_index]?.id;
+    } else if (rSpec.target_type === "POLL") {
+      targetId = activePolls[rSpec.target_index]?.id;
+    } else if (rSpec.target_type === "QUIZ") {
+      targetId = activeQuizzes[rSpec.target_index]?.id;
+    } else if (rSpec.target_type === "COMMENT") {
+      targetId = visibleCommentIds[rSpec.target_index];
+    }
+    if (!targetId) continue;
+
+    const existing = await prisma.reaction.findUnique({
+      where: {
+        targetType_targetId_userId: {
+          targetType: rSpec.target_type,
+          targetId,
+          userId: user.id,
+        },
+      },
+    });
+    if (existing) continue;
+
+    const createdAt = daysAgo(rSpec.days_ago);
+    await prisma.reaction.create({
+      data: {
+        targetType: rSpec.target_type,
+        targetId,
+        userId: user.id,
+        type: rSpec.type,
+        createdAt,
+        updatedAt: createdAt,
+      },
+    });
+    reactionsSeeded++;
+  }
+  console.log(`✅ Reactions seeded (${reactionsSeeded}).`);
 
   console.log("\n🎉 Seeding complete!");
 }

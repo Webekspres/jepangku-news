@@ -1,11 +1,8 @@
+const { IMAGES } = require("./images.js");
+
 const QUIZ_TYPE = "trivia";
 
-const THUMBNAILS = [
-  "https://images.unsplash.com/photo-1578632767115-351597cf2477?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
-  "https://images.unsplash.com/photo-1545569310-29ddd0a82dac?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
-  "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
-  "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?crop=entropy&cs=srgb&fm=jpg&q=85&w=1200",
-];
+const THUMBNAILS = IMAGES.quizThumbnails;
 
 const TOPICS = [
   "Anime Klasik",

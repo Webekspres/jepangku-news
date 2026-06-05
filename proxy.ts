@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+/** Hanya rute profil milik sendiri yang wajib login; `/profile/[username]` publik. */
+function isPrivateProfileRoute(pathname: string): boolean {
+  return pathname === '/profile' || pathname.startsWith('/profile/edit');
+}
+
 const PROTECTED_ROUTES = [
-  '/profile',
   '/my-articles',
   '/submit-article',
   '/edit-article',
@@ -40,7 +44,9 @@ export function proxy(request: NextRequest) {
   }
 
   const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
-  const isProtectedRoute = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
+  const isProtectedRoute =
+    PROTECTED_ROUTES.some((r) => pathname.startsWith(r)) ||
+    isPrivateProfileRoute(pathname);
 
   if (!isAdminRoute && !isProtectedRoute) {
     return NextResponse.next();

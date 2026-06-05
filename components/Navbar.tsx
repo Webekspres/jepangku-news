@@ -34,12 +34,32 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
   const [topVisible, setTopVisible] = useState(true);
   const [bottomVisible, setBottomVisible] = useState(true);
 
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const authUser = isAuthUser(user) ? user : null;
+
+  const topVisibleRef = useRef(true);
+  const bottomVisibleRef = useRef(true);
+  const scrollAccumulator = useRef(0);
+  const scrollDirection = useRef<"up" | "down" | null>(null);
+
+  const updateTopVisible = (visible: boolean) => {
+    if (topVisibleRef.current !== visible) {
+      topVisibleRef.current = visible;
+      setTopVisible(visible);
+    }
+  };
+
+  const updateBottomVisible = (visible: boolean) => {
+    if (bottomVisibleRef.current !== visible) {
+      bottomVisibleRef.current = visible;
+      setBottomVisible(visible);
+    }
+  };
 
   const navLinks = [
     { path: "/", label: "Beranda" },
@@ -50,51 +70,76 @@ export default function Navbar() {
     { path: "/leaderboard", label: "Peringkat" },
   ];
 
-useEffect(() => {
-  const TOP_THRESHOLD = 5;
-  const SAFE_ZONE = 24;
-  const DELTA_THRESHOLD = 6;
+  useEffect(() => {
+    const updateNavbar = () => {
+      const currentY = window.scrollY || window.pageYOffset;
+      const deltaY = currentY - lastScrollY.current;
 
-  const updateNavbar = () => {
-    const currentY = window.scrollY || window.pageYOffset;
-    const deltaY = currentY - lastScrollY.current;
-
-    const isAtTop = currentY <= TOP_THRESHOLD;
-    const isInTopSafeZone = currentY <= SAFE_ZONE;
-
-    setTopVisible(isAtTop);
-
-    if (isAtTop) {
-      setBottomVisible(true);
-    } else if (!isInTopSafeZone) {
-      if (deltaY > DELTA_THRESHOLD) {
-        setBottomVisible(false);
+      // Determine step direction
+      let stepDirection: "up" | "down" | null = null;
+      if (deltaY > 0) {
+        stepDirection = "down";
+      } else if (deltaY < 0) {
+        stepDirection = "up";
       }
 
-      if (deltaY < -DELTA_THRESHOLD) {
-        setBottomVisible(true);
+      // Accumulate scroll distance in the same direction
+      if (stepDirection !== null) {
+        if (scrollDirection.current !== stepDirection) {
+          scrollDirection.current = stepDirection;
+          scrollAccumulator.current = deltaY;
+        } else {
+          scrollAccumulator.current += deltaY;
+        }
       }
-    }
 
-    lastScrollY.current = currentY;
-    ticking.current = false;
-  };
+      // 1. Hysteresis for Top Spacer (black bar, height ~20px)
+      if (topVisibleRef.current) {
+        if (currentY > 40) {
+          updateTopVisible(false);
+        }
+      } else {
+        if (currentY <= 5) {
+          updateTopVisible(true);
+        }
+      }
 
-  const onScroll = () => {
-    if (!ticking.current) {
-      window.requestAnimationFrame(updateNavbar);
-      ticking.current = true;
-    }
-  };
+      // 2. Cumulative Hysteresis/Buffer for Bottom Spacer (red bar, height ~40px)
+      const isAtTop = currentY <= 5;
+      const isInTopSafeZone = currentY <= 40;
 
-  updateNavbar();
+      if (isAtTop) {
+        updateBottomVisible(true);
+      } else if (!isInTopSafeZone) {
+        // We use a 50px threshold. Since the bottom spacer height change is 40px,
+        // this 50px threshold is larger than the layout shift, completely breaking
+        // any infinite vibration/jitter loops.
+        if (scrollDirection.current === "down" && scrollAccumulator.current > 50) {
+          updateBottomVisible(false);
+        } else if (scrollDirection.current === "up" && scrollAccumulator.current < -50) {
+          updateBottomVisible(true);
+        }
+      }
 
-  window.addEventListener("scroll", onScroll, { passive: true });
+      lastScrollY.current = currentY;
+      ticking.current = false;
+    };
 
-  return () => {
-    window.removeEventListener("scroll", onScroll);
-  };
-}, []);
+    const onScroll = () => {
+      if (!ticking.current) {
+        window.requestAnimationFrame(updateNavbar);
+        ticking.current = true;
+      }
+    };
+
+    updateNavbar();
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -117,7 +162,7 @@ useEffect(() => {
       <div
         data-testid="header-top-spacer"
         className={`w-full overflow-hidden transition-all duration-300 ease-out ${
-          topVisible ? "h-5 opacity-100" : "h-0 opacity-0"
+          topVisible ? "h-7 opacity-100" : "h-0 opacity-0"
         }`}
         style={{ backgroundColor: "var(--color-jepang-black)" }}
       />

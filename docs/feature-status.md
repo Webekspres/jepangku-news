@@ -38,30 +38,8 @@ signifikan pada fitur.
 
 ### 💬 Engagement & Sosial — *Fase A (portal): komentar & like; Fase E (Core): notifikasi & follow*
 
-[x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
-[x] **Reaction / like artikel** — sistem reaksi polimorfik (`Reaction`, target ARTICLE/POLL/QUIZ/COMMENT). Konten: 9 reaksi (Love, Lol, Cute, Win, WTF, OMG, Geeky, Scary, Fail) dengan bar di atas kolom komentar; komentar: jempol naik/turun. Satu reaksi aktif per user per target (klik = toggle/ganti), tanpa poin, rate limit 30/menit
 [ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
 [ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
-
-### 🔍 Search & Discovery — *Fase A (portal)*
-
-[x] **Dedicated search result page** — `/search?q=...` + `GET /api/search` dengan hasil artikel + quiz + poll sekaligus; Navbar & hero search mengarah ke `/search`
-[x] **Trending articles discovery** — halaman `/trending` (grid + pagination, sort `weeklyViewCount`); homepage sidebar pakai algoritma yang sama + link "Lihat Semua"
-[x] **Related tags di halaman artikel** — tag ditampilkan di detail artikel, klik → `/articles?tag=<slug>`
-[x] **Popular / trending tags** — `GET /api/tags/popular` (agregasi `articleTag`), komponen `PopularTags` di `/articles`, halaman `/explore` + nav "Jelajahi"
-
-### 👤 Profile & Discovery Author — *Fase A (portal)*
-
-[ ] **Author profile publik** — halaman `/profile/[username]` yang bisa dilihat user lain: bio, artikel published, statistik publik
-[ ] **Statistik penulis** — total artikel published, total views, total bookmark diterima
-
-### 📈 Analytics Konten — *Fase A (portal)*
-
-[ ] **View analytics per artikel** — grafik views per hari/minggu, unique visitor vs total views
-[ ] **Content performance report** — artikel dengan views, bookmark, share tertinggi dalam periode tertentu
-[ ] **Admin: lihat statistik per kategori** — berapa artikel, views, engagement per kategori
-[ ] **Statistik detail per quiz di admin** — berapa user sudah attempt, distribusi skor, pass rate
-[ ] **Statistik detail per poll di admin** — breakdown votasi per opsi, tren waktu
 
 ### 🔐 Auth Lanjutan — *Fase B/C (ditangani Clerk)*
 
@@ -109,11 +87,11 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ### Fase A — Sekarang (stabilkan portal)
 
-1. Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring
-2. Engagement portal: komentar artikel, reaction/like
-3. Profil publik author + statistik penulis
+1. ~~Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring~~ *(selesai)*
+2. ~~Engagement portal: komentar artikel, reaction/like~~ *(selesai)*
+3. ~~Profil publik author + statistik penulis~~ *(selesai)*
 4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
-5. Analytics konten: view analytics, content performance, statistik kategori/quiz/poll
+5. ~~Analytics konten: view analytics, content performance, statistik kategori/quiz/poll~~ *(selesai)*
 6. Soft launch: konten artikel + 9 halaman statis
 
 ### Fase B–C — Menunggu Core Service
@@ -129,59 +107,101 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ---
 
-## 📦 Checklist Halaman (File-by-File)
+## 🚀 Soft Launch Checklist
 
-### Belum Ada
+**Target:** 30–50 artikel + 9 halaman statis untuk terlihat hidup, aktif, dan kredibel sejak hari pertama.
+
+**Rincian per Kategori:**
+
+| Kategori          | Jumlah Artikel | Status      |
+| ----------------- | -------------- | ----------- |
+| News              | 6–10           | ⏳ Persiapan |
+| Travel            | 6–8            | ⏳ Persiapan |
+| Culture           | 4–6            | ⏳ Persiapan |
+| Entertainment     | 6–10           | ⏳ Persiapan |
+| Lifestyle         | 4–6            | ⏳ Persiapan |
+| Work in Japan     | 3–5            | ⏳ Persiapan |
+| Study in Japan    | 3–5            | ⏳ Persiapan |
+| Review Produk     | 3–5            | ⏳ Persiapan |
+| Event             | 3–5            | ⏳ Persiapan |
+| **Total Artikel** | **38–60**      | ⏳ Persiapan |
+
+**Halaman Statis (9 item):**
+
+[ ] About
+[ ] Contact
+[ ] Advertise
+[ ] Media Partner
+[ ] Career
+[ ] Internship
+[ ] Privacy Policy
+[ ] Terms of Service
+[ ] Disclaimer
+
+**Struktur Artikel per Kategori:**
+
+Setiap kategori mempunyai guideline struktur konten yang berbeda:
+
+- **News**: Judul fakta, lead, detail, latar belakang, dampak, kutipan, kesimpulan
+- **Travel**: Judul + daya tarik, lead, akses, harga, aktivitas, tips
+- **Culture**: Judul tradisi, lead, sejarah, makna, cara masyarakat, relevansi
+- **Entertainment**: Judul, lead, sinopsis, highlight, fakta menarik, jadwal rilis
+- **Lifestyle**: Judul tren, lead, penjelasan, contoh, tips, kesimpulan
+- **Work in Japan**: Judul peluang, lead, syarat, gaji, cara apply, tips interview
+- **Study in Japan**: Judul panduan, lead, jenis sekolah, biaya, cara apply, tips
+- **Review Produk**: Judul produk, lead, deskripsi, kelebihan, kekurangan, harga, kesimpulan
+- **Event**: Judul event + tahun, lead, info dasar, highlight, suasana, tips
+
+**Persiapan Konten:**
+
+[ ] Riset topik dan sumber untuk setiap kategori
+[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
+[ ] Penyuntingan dan quality check
+[ ] Pengumpulan/pembuatan thumbnail/cover image
+[ ] Konfigurasi kategori dan tag di admin
+[ ] Publikasi artikel secara bertahap atau sekaligus
+[ ] Setup halaman statis
+[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
+
+**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
+
+---
+
+## 📦 Checklist Halaman (File-by-File) — Belum Ada / Belum Selesai
 
 [ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
-[ ] `app/(public)/profile/[username]/page.tsx` — profil publik author
 [ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
 [ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
 [ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin
 
-### Public
-
-[x] `app/(public)/page.tsx` — homepage (featured slider, trending, polls/quiz, leaderboard, kategori)
-[x] `app/(public)/articles/page.tsx` — articles list (search, filter kategori, tag, sort)
-[x] `app/(public)/articles/[slug]/page.tsx` — article detail (read complete, bookmark, share, related)
-[x] `app/(public)/polls/page.tsx` — polls list
-[x] `app/(public)/polls/[slug]/page.tsx` — poll detail (vote, hasil)
-[x] `app/(public)/quizzes/page.tsx` — quizzes list
-[x] `app/(public)/quizzes/[slug]/page.tsx` — quiz detail (attempt, hasil langsung)
-[x] `app/(public)/leaderboard/page.tsx` — leaderboard mingguan
-
-### User
-
-[x] `app/(user)/bookmarks/page.tsx` — list artikel yang di-bookmark
-[x] `app/(user)/my-articles/page.tsx` — list artikel user + status + riwayat review
-[x] `app/(user)/points/page.tsx` — riwayat transaksi poin lengkap
-[x] `app/(user)/profile/page.tsx` — halaman profil (stats, recent points, quick actions)
-[x] `app/(user)/profile/edit/page.tsx` — edit profil (avatar, name, bio, username cooldown)
-[x] `app/(user)/submit-article/page.tsx` — submit artikel (RichTextEditor, upload, kategori, tag)
-[x] `app/(user)/edit-article/[id]/page.tsx` — edit artikel (pre-populate, same flow)
-
-### Admin
-
-[x] `app/(admin)/admin/page.tsx` — dashboard (stats, quick actions, pending preview)
-[x] `app/(admin)/admin/homepage/page.tsx` — manage featured/hot artikel (full functional)
-[x] `app/(admin)/admin/tags/page.tsx` — CRUD tag
-[x] `app/(admin)/admin/users/page.tsx` — list + search + filter + update role/status user
-[x] `app/(admin)/admin/users/[id]/page.tsx` — detail user (stats + poin + artikel)
-[x] `app/(admin)/admin/articles/page.tsx` — list artikel admin (filter status)
-[x] `app/(admin)/admin/articles/review/page.tsx` — review queue (approve/reject dengan catatan)
-[x] `app/(admin)/admin/categories/page.tsx` — CRUD kategori (toggle aktif, guard hapus)
-[x] `app/(admin)/admin/quizzes/page.tsx` — list quiz (filter, aktivasi, hapus)
-[x] `app/(admin)/admin/quizzes/create/page.tsx` — buat quiz (multi-question builder)
-[x] `app/(admin)/admin/quizzes/[id]/edit/page.tsx` — edit quiz
-[x] `app/(admin)/admin/polls/page.tsx` — list poll (filter, tutup, aktivasi, hapus)
-[x] `app/(admin)/admin/polls/create/page.tsx` — buat poll (multi-question builder)
-[x] `app/(admin)/admin/polls/[id]/edit/page.tsx` — edit poll
-[x] `app/(admin)/admin/articles/create/page.tsx` — admin buat artikel
-[x] `app/(admin)/admin/articles/[id]/edit/page.tsx` — admin edit artikel
-
 ---
 
 ## ✅ Sudah Diimplementasi (Verified)
+
+### 💬 Engagement & Sosial — *Fase A (portal)*
+
+[x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
+[x] **Reaction / like artikel** — sistem reaksi polimorfik (`Reaction`, target ARTICLE/POLL/QUIZ/COMMENT). Konten: 9 reaksi (Love, Lol, Cute, Win, WTF, OMG, Geeky, Scary, Fail) dengan bar di atas kolom komentar; komentar: jempol naik/turun. Satu reaksi aktif per user per target (klik = toggle/ganti), tanpa poin, rate limit 30/menit
+
+### 🔍 Search & Discovery — *Fase A (portal)*
+
+[x] **Dedicated search result page** — `/search?q=...` + `GET /api/search` dengan hasil artikel + quiz + poll sekaligus; Navbar & hero search mengarah ke `/search`
+[x] **Trending articles discovery** — halaman `/trending` (grid + pagination, sort `weeklyViewCount`); homepage sidebar pakai algoritma yang sama + link "Lihat Semua"
+[x] **Related tags di halaman artikel** — tag ditampilkan di detail artikel, klik → `/articles?tag=<slug>`
+[x] **Popular / trending tags** — `GET /api/tags/popular` (agregasi `articleTag`), komponen `PopularTags` di `/articles`, halaman `/explore` + nav "Jelajahi"
+
+### 👤 Profile & Discovery Author — *Fase A (portal)*
+
+[x] **Author profile publik** — `/profile/[username]` + `GET /api/profile/[username]` (hanya user `active`, tanpa email/poin); bio, avatar, artikel published, `AuthorProfileCard` di artikel (bawah reaction, atas komentar); `AuthorLink` di artikel/komentar/leaderboard
+[x] **Statistik penulis** — agregat publik: total artikel published, total views, total bookmark diterima (di profil publik & API)
+
+### 📈 Analytics Konten — *Fase A (portal)*
+
+[x] **View analytics per artikel** — `article_views` time-series + `/admin/analytics/articles/[id]` (grafik harian, total vs unique visitors, periode 7/30/90 hari)
+[x] **Content performance report** — `/admin/analytics/content` ranking views/bookmark/share per periode + link ke detail grafik
+[x] **Admin: lihat statistik per kategori** — `/admin/analytics/categories` tabel + chart views & engagement per kategori
+[x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
+[x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
 
 ### 🔐 Auth & Akun
 
@@ -366,65 +386,42 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
 [x] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
 
----
+### 📦 Checklist Halaman (File-by-File) — Sudah Selesai
 
-## 🚀 Soft Launch Checklist
-
-**Target:** 30–50 artikel + 9 halaman statis untuk terlihat hidup, aktif, dan kredibel sejak hari pertama.
-
-**Rincian per Kategori:**
-
-| Kategori          | Jumlah Artikel | Status      |
-| ----------------- | -------------- | ----------- |
-| News              | 6–10           | ⏳ Persiapan |
-| Travel            | 6–8            | ⏳ Persiapan |
-| Culture           | 4–6            | ⏳ Persiapan |
-| Entertainment     | 6–10           | ⏳ Persiapan |
-| Lifestyle         | 4–6            | ⏳ Persiapan |
-| Work in Japan     | 3–5            | ⏳ Persiapan |
-| Study in Japan    | 3–5            | ⏳ Persiapan |
-| Review Produk     | 3–5            | ⏳ Persiapan |
-| Event             | 3–5            | ⏳ Persiapan |
-| **Total Artikel** | **38–60**      | ⏳ Persiapan |
-
-**Halaman Statis (9 item):**
-
-[ ] About
-[ ] Contact
-[ ] Advertise
-[ ] Media Partner
-[ ] Career
-[ ] Internship
-[ ] Privacy Policy
-[ ] Terms of Service
-[ ] Disclaimer
-
-**Struktur Artikel per Kategori:**
-
-Setiap kategori mempunyai guideline struktur konten yang berbeda:
-
-- **News**: Judul fakta, lead, detail, latar belakang, dampak, kutipan, kesimpulan
-- **Travel**: Judul + daya tarik, lead, akses, harga, aktivitas, tips
-- **Culture**: Judul tradisi, lead, sejarah, makna, cara masyarakat, relevansi
-- **Entertainment**: Judul, lead, sinopsis, highlight, fakta menarik, jadwal rilis
-- **Lifestyle**: Judul tren, lead, penjelasan, contoh, tips, kesimpulan
-- **Work in Japan**: Judul peluang, lead, syarat, gaji, cara apply, tips interview
-- **Study in Japan**: Judul panduan, lead, jenis sekolah, biaya, cara apply, tips
-- **Review Produk**: Judul produk, lead, deskripsi, kelebihan, kekurangan, harga, kesimpulan
-- **Event**: Judul event + tahun, lead, info dasar, highlight, suasana, tips
-
-**Persiapan Konten:**
-
-[ ] Riset topik dan sumber untuk setiap kategori
-[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
-[ ] Penyuntingan dan quality check
-[ ] Pengumpulan/pembuatan thumbnail/cover image
-[ ] Konfigurasi kategori dan tag di admin
-[ ] Publikasi artikel secara bertahap atau sekaligus
-[ ] Setup halaman statis
-[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
-
-**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
+[x] `app/(public)/profile/[username]/page.tsx` — profil publik author (bio, stats, artikel published)
+[x] `GET /api/profile/[username]` — profil & artikel publik penulis
+[x] `components/AuthorProfileCard.tsx` + `AuthorLink.tsx` — kartu penulis & link ke profil
+[x] `app/(public)/page.tsx` — homepage (featured slider, trending, polls/quiz, leaderboard, kategori)
+[x] `app/(public)/articles/page.tsx` — articles list (search, filter kategori, tag, sort)
+[x] `app/(public)/articles/[slug]/page.tsx` — article detail (read complete, bookmark, share, related)
+[x] `app/(public)/polls/page.tsx` — polls list
+[x] `app/(public)/polls/[slug]/page.tsx` — poll detail (vote, hasil)
+[x] `app/(public)/quizzes/page.tsx` — quizzes list
+[x] `app/(public)/quizzes/[slug]/page.tsx` — quiz detail (attempt, hasil langsung)
+[x] `app/(public)/leaderboard/page.tsx` — leaderboard mingguan
+[x] `app/(user)/bookmarks/page.tsx` — list artikel yang di-bookmark
+[x] `app/(user)/my-articles/page.tsx` — list artikel user + status + riwayat review
+[x] `app/(user)/points/page.tsx` — riwayat transaksi poin lengkap
+[x] `app/(user)/profile/page.tsx` — halaman profil (stats, recent points, quick actions)
+[x] `app/(user)/profile/edit/page.tsx` — edit profil (avatar, name, bio, username cooldown)
+[x] `app/(user)/submit-article/page.tsx` — submit artikel (RichTextEditor, upload, kategori, tag)
+[x] `app/(user)/edit-article/[id]/page.tsx` — edit artikel (pre-populate, same flow)
+[x] `app/(admin)/admin/page.tsx` — dashboard (stats, quick actions, pending preview)
+[x] `app/(admin)/admin/homepage/page.tsx` — manage featured/hot artikel (full functional)
+[x] `app/(admin)/admin/tags/page.tsx` — CRUD tag
+[x] `app/(admin)/admin/users/page.tsx` — list + search + filter + update role/status user
+[x] `app/(admin)/admin/users/[id]/page.tsx` — detail user (stats + poin + artikel)
+[x] `app/(admin)/admin/articles/page.tsx` — list artikel admin (filter status)
+[x] `app/(admin)/admin/articles/review/page.tsx` — review queue (approve/reject dengan catatan)
+[x] `app/(admin)/admin/categories/page.tsx` — CRUD kategori (toggle aktif, guard hapus)
+[x] `app/(admin)/admin/quizzes/page.tsx` — list quiz (filter, aktivasi, hapus)
+[x] `app/(admin)/admin/quizzes/create/page.tsx` — buat quiz (multi-question builder)
+[x] `app/(admin)/admin/quizzes/[id]/edit/page.tsx` — edit quiz
+[x] `app/(admin)/admin/polls/page.tsx` — list poll (filter, tutup, aktivasi, hapus)
+[x] `app/(admin)/admin/polls/create/page.tsx` — buat poll (multi-question builder)
+[x] `app/(admin)/admin/polls/[id]/edit/page.tsx` — edit poll
+[x] `app/(admin)/admin/articles/create/page.tsx` — admin buat artikel
+[x] `app/(admin)/admin/articles/[id]/edit/page.tsx` — admin edit artikel
 
 ---
 

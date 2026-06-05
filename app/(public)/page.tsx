@@ -11,6 +11,7 @@ import PollQuizCardSkeleton from "@/components/skeletons/PollQuizCardSkeleton";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import CategoryCardSkeleton from "@/components/skeletons/CategoryCardSkeleton";
 import SectionHeader from "@/components/SectionHeader";
+import AuthorLink from "@/components/AuthorLink";
 import {
   ArrowRight,
   Trophy,
@@ -563,10 +564,15 @@ export default function HomePage() {
                     {entry.displayName?.charAt(0).toUpperCase() || "J"}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold">{entry.displayName}</p>
-                    <p className="text-xs text-jepang-muted font-mono">
+                    <AuthorLink username={entry.username} className="font-semibold block">
+                      {entry.displayName}
+                    </AuthorLink>
+                    <AuthorLink
+                      username={entry.username}
+                      className="text-xs text-jepang-muted font-mono block"
+                    >
                       @{entry.username}
-                    </p>
+                    </AuthorLink>
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-black text-xl text-jepang-red">

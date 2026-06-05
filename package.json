@@ -12,8 +12,8 @@
     "@aws-sdk/client-s3": "^3.500.0",
     "@hookform/resolvers": "5.0.1",
     "@neondatabase/serverless": "^1.1.0",
-    "@prisma/adapter-neon": "6",
-    "@prisma/client": "6",
+    "@prisma/adapter-neon": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@radix-ui/react-accordion": "1.2.8",
     "@radix-ui/react-alert-dialog": "1.1.11",
     "@radix-ui/react-aspect-ratio": "1.1.4",
@@ -90,12 +90,9 @@
     "@types/sanitize-html": "^2.16.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "prisma": "6",
+    "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "bun prisma/seed.js"
   },
   "ignoreScripts": [
     "sharp",
