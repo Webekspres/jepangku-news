@@ -27,7 +27,7 @@ export default function Footer() {
               alt="Jepangku"
               width={160}
               height={48}
-              className="h-40 mb-4"
+              className="h-40 w-auto mb-4"
             />
             <p className="text-sm text-zinc-400 leading-relaxed">
               Portal media interaktif bertema Jepang untuk pembaca Indonesia.

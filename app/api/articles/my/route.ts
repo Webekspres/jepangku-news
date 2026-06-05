@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
+import { Prisma, ArticleStatus } from '@prisma/client';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const shouldPaginate = Boolean(pageParam || limitParam);
 
   const where: Prisma.ArticleWhereInput = { authorId: user.id };
-  if (status) where.status = status;
+  if (status) where.status = status as ArticleStatus;
 
   const include = {
     category: { select: { name: true, slug: true } },

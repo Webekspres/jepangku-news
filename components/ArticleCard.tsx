@@ -25,11 +25,13 @@ interface Article {
 interface ArticleCardProps {
   article: Article;
   variant?: "default" | "featured" | "compact";
+  priority?: boolean;
 }
 
 export default function ArticleCard({
   article,
   variant = "default",
+  priority = false,
 }: ArticleCardProps) {
   const coverUrl = article.coverImageUrl || article.cover_image_url;
   const viewCount = article.viewCount ?? article.view_count ?? 0;
@@ -37,10 +39,8 @@ export default function ArticleCard({
 
   if (variant === "featured") {
     return (
-      <Link
-        href={`/articles/${article.slug}`}
+      <div
         className="group block relative h-115 md:h-140 overflow-hidden"
-        data-testid={`article-featured-${article.slug}`}
       >
         {coverUrl && (
           <div className="absolute inset-0">
@@ -50,6 +50,7 @@ export default function ArticleCard({
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
               className="object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-300"
+              priority={priority}
             />
           </div>
         )}
@@ -64,7 +65,13 @@ export default function ArticleCard({
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
           <h2 className="font-heading font-black text-3xl md:text-5xl tracking-tighter mb-3 group-hover:text-jepang-red transition-colors">
-            {article.title}
+            <Link
+              href={`/articles/${article.slug}`}
+              className="after:absolute after:inset-0 after:z-10"
+              data-testid={`article-featured-${article.slug}`}
+            >
+              {article.title}
+            </Link>
           </h2>
           {article.excerpt && (
             <p className="text-zinc-300 text-base md:text-lg max-w-2xl line-clamp-2">
@@ -73,7 +80,7 @@ export default function ArticleCard({
           )}
           <div className="flex items-center gap-4 mt-4 text-xs text-zinc-400 font-mono uppercase tracking-wider">
             {article.author && (
-              <span>
+              <span className="relative z-20">
                 OLEH{" "}
                 <AuthorLink username={article.author.username} className="hover:text-white">
                   {article.author.name}
@@ -85,7 +92,7 @@ export default function ArticleCard({
             </span>
           </div>
         </div>
-      </Link>
+      </div>
     );
   }
 
@@ -105,6 +112,7 @@ export default function ArticleCard({
                 fill
                 sizes="80px"
                 className="object-cover"
+                priority={priority}
               />
             </div>
           ) : (
@@ -131,12 +139,8 @@ export default function ArticleCard({
   }
 
   return (
-    <Link
-      href={`/articles/${article.slug}`}
-      className="group block"
-      data-testid={`article-card-${article.slug}`}
-    >
-      <Card className="group h-full bg-white border border-jepang-border hover:border-jepang-black transition-all duration-200">
+    <div className="group block relative h-full">
+      <Card className="group h-full bg-white border border-jepang-border hover:border-jepang-black transition-all duration-200 relative">
         {coverUrl ? (
           <div className="relative aspect-16/10 overflow-hidden bg-jepang-off-white">
             <Image
@@ -145,6 +149,7 @@ export default function ArticleCard({
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
+              priority={priority}
             />
           </div>
         ) : (
@@ -160,14 +165,20 @@ export default function ArticleCard({
             {isHot && <Badge variant="red">HOT</Badge>}
           </div>
           <h3 className="font-heading font-bold text-xl tracking-tight mb-2 group-hover:text-jepang-red transition-colors line-clamp-2">
-            {article.title}
+            <Link
+              href={`/articles/${article.slug}`}
+              className="after:absolute after:inset-0 after:z-10"
+              data-testid={`article-card-${article.slug}`}
+            >
+              {article.title}
+            </Link>
           </h3>
           {article.excerpt && (
             <p className="text-sm text-jepang-muted line-clamp-2 mb-4">
               {article.excerpt}
             </p>
           )}
-          <div className="pt-3 border-t border-jepang-border flex items-center justify-between text-xs text-jepang-muted font-mono uppercase tracking-wider">
+          <div className="pt-3 border-t border-jepang-border flex items-center justify-between text-xs text-jepang-muted font-mono uppercase tracking-wider relative z-20">
             <AuthorLink username={article.author?.username} className="hover:text-jepang-red">
               {article.author?.name || "Jepangku"}
             </AuthorLink>
@@ -177,6 +188,6 @@ export default function ArticleCard({
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </div>
   );
 }
