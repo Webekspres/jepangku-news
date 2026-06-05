@@ -44,6 +44,7 @@ export default function Navbar() {
   const navLinks = [
     { path: "/", label: "Beranda" },
     { path: "/articles", label: "Artikel" },
+    { path: "/explore", label: "Jelajahi" },
     { path: "/quizzes", label: "Kuis" },
     { path: "/polls", label: "Polling" },
     { path: "/leaderboard", label: "Peringkat" },
@@ -105,7 +106,7 @@ useEffect(() => {
 
     if (!searchQuery.trim()) return;
 
-    router.push(`/articles?search=${encodeURIComponent(searchQuery.trim())}`);
+    router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery("");
     setSearchOpen(false);
     setMobileOpen(false);

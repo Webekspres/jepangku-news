@@ -9,6 +9,7 @@ import { Filter, Search, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "@/components/SectionHeader";
+import PopularTags from "@/components/PopularTags";
 
 function ArticleListContent() {
   const searchParams = useSearchParams();
@@ -224,6 +225,8 @@ function ArticleListContent() {
                   )}
             </div>
           )}
+
+          <PopularTags limit={12} title="Tag Populer" className="py-4 border-t border-jepang-border" />
 
           <div className="flex gap-2 items-center">
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted">

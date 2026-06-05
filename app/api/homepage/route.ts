@@ -22,7 +22,7 @@ export async function GET() {
     }),
     db.article.findMany({
       where: { status: 'PUBLISHED', visibility: 'public' },
-      orderBy: { viewCount: 'desc' },
+      orderBy: { weeklyViewCount: 'desc' },
       take: 4,
       include: {
         author: { select: { name: true, username: true } },

@@ -13,6 +13,7 @@ import {
   Calendar,
   ArrowLeft,
   Award,
+  Tag as TagIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -199,6 +200,25 @@ export default function ArticleDetailPage() {
               </>
             )}
           </div>
+
+          {!isLoading && article.tags?.length > 0 && (
+            <div
+              className="flex flex-wrap items-center gap-2 mb-4"
+              data-testid="article-tags"
+            >
+              <TagIcon size={14} strokeWidth={1.5} className="text-jepang-muted shrink-0" />
+              {article.tags.map((t: { id: string; name: string; slug: string }) => (
+                <Link
+                  key={t.id}
+                  href={`/articles?tag=${t.slug}`}
+                  className="text-xs font-mono uppercase tracking-wider border border-jepang-border px-2.5 py-1 hover:border-foreground hover:bg-foreground hover:text-white transition-colors"
+                  data-testid={`article-tag-${t.slug}`}
+                >
+                  #{t.name}
+                </Link>
+              ))}
+            </div>
+          )}
 
           <h1
             className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6 leading-[1.05]"

@@ -50,7 +50,7 @@ export default function HomePage() {
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!heroSearch.trim()) return;
-    router.push(`/articles?search=${encodeURIComponent(heroSearch.trim())}`);
+    router.push(`/search?q=${encodeURIComponent(heroSearch.trim())}`);
   };
 
   useEffect(() => {
@@ -315,13 +315,22 @@ export default function HomePage() {
               )}
             </div>
             <div className="bg-white border border-jepang-border p-5">
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
-                <TrendingUp
-                  size={18}
-                  strokeWidth={1.5}
-                  className="text-jepang-red"
-                />
-                <h3 className="small-caps">Sedang Tren Sekarang</h3>
+              <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-jepang-border">
+                <div className="flex items-center gap-2">
+                  <TrendingUp
+                    size={18}
+                    strokeWidth={1.5}
+                    className="text-jepang-red"
+                  />
+                  <h3 className="small-caps">Sedang Tren Sekarang</h3>
+                </div>
+                <Link
+                  href="/trending"
+                  className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors"
+                  data-testid="view-all-trending"
+                >
+                  Lihat Semua →
+                </Link>
               </div>
                 <div className="space-y-0">
                   {trending.slice(0, 4).map((article: any, idx: number) => (
@@ -341,7 +350,7 @@ export default function HomePage() {
                           {article.title}
                         </Link>
                         <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                          {article.viewCount || 0} dilihat
+                          {article.weeklyViewCount || 0} dilihat minggu ini
                         </p>
                       </div>
                     </div>

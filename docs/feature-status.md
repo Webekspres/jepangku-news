@@ -45,10 +45,10 @@ signifikan pada fitur.
 
 ### 🔍 Search & Discovery — *Fase A (portal)*
 
-[ ] **Dedicated search result page** — `/search?q=...` dengan hasil artikel + quiz + poll sekaligus
-[ ] **Trending articles discovery** — halaman atau section khusus trending (bukan hanya sort param)
-[ ] **Related tags di halaman artikel** — klik tag langsung filter artikel dengan tag tersebut
-[ ] **Popular / trending tags** — tampilan tag populer di sidebar atau halaman explore
+[x] **Dedicated search result page** — `/search?q=...` + `GET /api/search` dengan hasil artikel + quiz + poll sekaligus; Navbar & hero search mengarah ke `/search`
+[x] **Trending articles discovery** — halaman `/trending` (grid + pagination, sort `weeklyViewCount`); homepage sidebar pakai algoritma yang sama + link "Lihat Semua"
+[x] **Related tags di halaman artikel** — tag ditampilkan di detail artikel, klik → `/articles?tag=<slug>`
+[x] **Popular / trending tags** — `GET /api/tags/popular` (agregasi `articleTag`), komponen `PopularTags` di `/articles`, halaman `/explore` + nav "Jelajahi"
 
 ### 👤 Profile & Discovery Author — *Fase A (portal)*
 
@@ -112,7 +112,7 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 1. Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring
 2. Engagement portal: komentar artikel, reaction/like
 3. Profil publik author + statistik penulis
-4. Search & discovery: dedicated search page, trending, related/popular tags
+4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
 5. Analytics konten: view analytics, content performance, statistik kategori/quiz/poll
 6. Soft launch: konten artikel + 9 halaman statis
 
@@ -191,6 +191,12 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] `GET /api/auth/me`: validasi JWT, return data user bersih
 [x] Daily login points: `checkDailyLogin()` dipanggil tiap login, +3 poin per hari via `DailyLoginReward` table
 [x] Username change cooldown 14 hari (field `usernameChangedAt`, enforced di API + UI profile edit)
+
+### 🔍 Search & Discovery — API
+
+[x] `GET /api/search?q=`: pencarian lintas artikel + kuis + polling (title/excerpt/content)
+[x] `GET /api/tags/popular`: tag diurutkan jumlah artikel (`articleTag` groupBy)
+[x] `GET /api/homepage`: trending sidebar memakai `weeklyViewCount` (konsisten dengan `sort=trending`)
 
 ### 📰 Artikel — Publik & User
 
@@ -321,15 +327,18 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ### 🌐 Halaman Publik
 
-[x] Homepage: featured article slider auto-advance, trending sidebar, hero search, latest articles grid, polls + quiz CTA, leaderboard preview, kategori grid
-[x] `app/(public)/articles/page.tsx`: search box, filter kategori, filter tag (toggle panel via URL param `?tag=`), sort latest/popular/trending, pagination
-[x] `app/(public)/articles/[slug]/page.tsx`: read complete detection, bookmark toggle, share tracking, related articles, tags
+[x] Homepage: featured article slider auto-advance, trending sidebar (`weeklyViewCount`), hero search → `/search`, latest articles grid, polls + quiz CTA, leaderboard preview, kategori grid
+[x] `app/(public)/articles/page.tsx`: search box, filter kategori, filter tag (toggle panel via URL param `?tag=`), sort latest/popular/trending, pagination, tag populer
+[x] `app/(public)/articles/[slug]/page.tsx`: read complete detection, bookmark toggle, share tracking, related articles, tag klikabel → filter artikel
+[x] `app/(public)/search/page.tsx`: hasil gabungan artikel + kuis + polling dari `GET /api/search`
+[x] `app/(public)/trending/page.tsx`: discovery artikel tren mingguan dengan pagination
+[x] `app/(public)/explore/page.tsx`: hub tag populer, kategori, link trending
 [x] `app/(public)/polls/page.tsx`: list polling
 [x] `app/(public)/polls/[slug]/page.tsx`: detail polling, vote, hasil persentase
 [x] `app/(public)/quizzes/page.tsx`: list quiz
 [x] `app/(public)/quizzes/[slug]/page.tsx`: detail quiz, submit jawaban, hasil langsung
 [x] `app/(public)/leaderboard/page.tsx`: weekly leaderboard
-[x] Search icon di Navbar (desktop + mobile) redirect ke `/articles?search=...`
+[x] Search icon di Navbar (desktop + mobile) redirect ke `/search?q=...`
 [x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
 
 ### 🔧 Utilities & Infrastruktur
