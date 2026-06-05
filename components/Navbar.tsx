@@ -113,14 +113,15 @@ useEffect(() => {
   };
 
   return (
-    <header className="sticky top-0 z-50" data-testid="main-navbar-wrapper">
-      <div
-        data-testid="header-top-spacer"
-        className={`w-full overflow-hidden transition-all duration-300 ease-out ${
-          topVisible ? "h-5 opacity-100" : "h-0 opacity-0"
-        }`}
-        style={{ backgroundColor: "var(--color-jepang-black)" }}
-      />
+    <div className="relative h-[124px] w-full" data-testid="navbar-layout-wrapper">
+      <header className="fixed top-0 left-0 right-0 z-50" data-testid="main-navbar-wrapper">
+        <div
+          data-testid="header-top-spacer"
+          className={`w-full overflow-hidden transition-all duration-300 ease-out ${
+            topVisible ? "h-5 opacity-100" : "h-0 opacity-0"
+          }`}
+          style={{ backgroundColor: "var(--color-jepang-black)" }}
+        />
 
       <div
         data-testid="main-navbar"
@@ -445,6 +446,7 @@ useEffect(() => {
           </div>
         </div>
       )}
-    </header>
+      </header>
+    </div>
   );
 }
