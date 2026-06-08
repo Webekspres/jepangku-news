@@ -1,27 +1,27 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS deps
+FROM oven/bun:1 AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-FROM node:20-alpine AS builder
+FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# NEXT_PUBLIC_* are baked in at build time (Next.js)
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npx prisma generate
-RUN npm run build
+
+RUN bunx prisma generate
+RUN bun run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3001
@@ -36,6 +36,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 USER nextjs
 EXPOSE 3001
