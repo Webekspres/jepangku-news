@@ -15,18 +15,26 @@ signifikan pada fitur.
 - Stabilkan portal lebih dulu (Fase A): hardening + user-facing + soft launch
 - Lengkapi workflow artikel, quiz, polling, poin, dan leaderboard
 - Jangan bangun fitur auth/poin/badge versi portal yang akan digantikan Core Service
-- Shared auth (Clerk) / Core Service / multi-app / LMS dikerjakan pada Fase B–E
+- **Auth bridge:** integrasi Clerk di portal dulu; tabel `users` / poin tetap di DB news sampai Core siap (Fase C)
+- Cutover penuh ke Core Service (user/poin global, FK `clerk_id`) setelah gap Core ditutup
 
 ---
 
 ## 🚧 Belum Diimplementasi
 
-### 🔐 Auth & Akun — *Fase B/C (ditangani Clerk)*
+### 🔐 Auth & Akun — *Fase B/C (Clerk bridge — portal dulu)*
 
-[ ] **Email verification** — kirim email konfirmasi saat register, validasi token sebelum akun aktif
-[ ] **Forgot password / password reset** — form request reset, kirim email link, form set password baru
-[ ] **OAuth login** — login via Google/sosial media (opsional, sesuai arah ekosistem)
-[ ] **Session management UI** — user bisa lihat dan revoke session aktif
+[ ] **Integrasi Clerk di portal** — `@clerk/nextjs`, halaman sign-in/sign-up, `middleware.ts` proteksi route user/admin
+[ ] **Kolom `clerk_id` di DB portal** — migration `users.clerk_id` (unique, nullable); jangkar ke identitas global
+[ ] **JIT user provisioning** — upsert/find `users` by `clerk_id` saat session Clerk aktif (tidak bergantung Core webhook)
+[ ] **Refactor `lib/auth.ts`** — `getCurrentUser()` / `getCurrentAdmin()` dari session Clerk + lookup DB portal
+[ ] **Abstraction session user** — fitur berita hanya bergantung helper auth, bukan bcrypt/JWT/Clerk langsung
+[ ] **Feature flag auth** — `AUTH_PROVIDER=local|clerk` untuk rollback saat migrasi
+[ ] **Deprecate auth lokal** — matikan route login/register JWT + bcrypt setelah Clerk stabil
+[ ] **Email verification** — ditangani Clerk (bukan portal)
+[ ] **Forgot password / password reset** — ditangani Clerk
+[ ] **OAuth login** — ditangani Clerk (Google/sosial media)
+[ ] **Session management UI** — ditangani Clerk (bukan portal)
 
 ### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
 
@@ -40,13 +48,6 @@ signifikan pada fitur.
 
 [ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
 [ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
-
-### 🔐 Auth Lanjutan — *Fase B/C (ditangani Clerk)*
-
-[ ] **Email verification** — sudah tercantum di bagian Auth & Akun di atas
-[ ] **Forgot password / password reset**
-[ ] **OAuth login** — Google/sosial media
-[ ] **Session management UI** — lihat & revoke session aktif
 
 ### 🏆 Poin, Leaderboard & Badge — *Fase E (Core Service)*
 
@@ -67,10 +68,14 @@ signifikan pada fitur.
 [ ] **Point transaction summary di admin** — total poin per periode, breakdown by activity type
 [ ] **User growth tracking** — grafik registrasi user per hari/minggu
 
-### 🌐 Ekosistem & Infrastruktur — *Fase B/D/E*
+### 🌐 Ekosistem & Infrastruktur — *Fase B/C/D/E*
 
-[ ] **Jepangku Core Service** — user/profil/poin/role/badge/membership/notifikasi global (Fase B)
-[ ] **Shared auth (Clerk)** — authentication terpusat untuk semua app (Fase B/C)
+[ ] **Shadow Core token** — opsional `POST /api/v1/auth/token` (non-blocking); validasi integrasi, bukan dependency login
+[ ] **Cutover auth ke Core JWT** — tukar session Clerk → Core JWT untuk claims XP/role saat Core siap
+[ ] **Migrasi FK portal → `clerk_id`** — `author_id`, `user_id`, dll. mengacu Clerk ID (= Core `users.id`)
+[ ] **Ganti `awardPoints()` → Core API** — `POST /api/v1/gamification/award` + activity types portal + idempotency key
+[ ] **Hapus tabel user/poin lokal** — `users`, `user_profiles`, `point_transactions`, `daily_login_rewards` setelah migrasi (Fase C)
+[ ] **Jepangku Core Service — siap penuh** — username/profil extended, daily login global, spend poin, riwayat transaksi (koordinasi tim Core)
 [ ] **LMS integration** — `kursus.jepangku.com` dengan shared user dan poin (Fase D)
 [ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student` (Fase E)
 [ ] **Membership & payment** — plan, subscription, payment global (Fase E)
@@ -79,39 +84,9 @@ signifikan pada fitur.
 [ ] **CI/CD pipeline** — otomasi deploy ke Vercel / VPS (Fase E)
 [ ] **Mobile app** — React Native atau PWA (Fase E)
 
----
+### 🚀 Soft Launch — *Fase A*
 
-## ⏱️ Prioritas Pengerjaan Berikutnya
-
-Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Ringkasnya:
-
-### Fase A — Sekarang (stabilkan portal)
-
-1. ~~Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring~~ *(selesai)*
-2. ~~Engagement portal: komentar artikel, reaction/like~~ *(selesai)*
-3. ~~Profil publik author + statistik penulis~~ *(selesai)*
-4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
-5. ~~Analytics konten: view analytics, content performance, statistik kategori/quiz/poll~~ *(selesai)*
-6. Soft launch: konten artikel + 9 halaman statis
-
-### Fase B–C — Menunggu Core Service
-
-1. Bangun Jepangku Core Service + integrasi Clerk
-2. Migrasi user/profil/poin/file ke Core
-3. Refactor portal jadi consumer Core (auth Clerk, poin via Core API, FK `core_user_id`)
-
-### Fase D–E — Ekosistem
-
-1. Bangun LMS (`kursus.jepangku.com`)
-2. Badge, leaderboard global, notifikasi, membership/payment, admin pusat
-
----
-
-## 🚀 Soft Launch Checklist
-
-**Target:** 30–50 artikel + 9 halaman statis untuk terlihat hidup, aktif, dan kredibel sejak hari pertama.
-
-**Rincian per Kategori:**
+**Target:** 30–50 artikel + konten siap rilis publik.
 
 | Kategori          | Jumlah Artikel | Status      |
 | ----------------- | -------------- | ----------- |
@@ -126,7 +101,61 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 | Event             | 3–5            | ⏳ Persiapan |
 | **Total Artikel** | **38–60**      | ⏳ Persiapan |
 
-**Halaman Informasi (9 item, dinamis via admin RTE):**
+[ ] Riset topik dan sumber untuk setiap kategori
+[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
+[ ] Penyuntingan dan quality check
+[ ] Pengumpulan/pembuatan thumbnail/cover image
+[ ] Konfigurasi kategori dan tag di admin
+[ ] Publikasi artikel secara bertahap atau sekaligus
+[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
+
+**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
+
+### 📦 Checklist Halaman — Belum Ada / Belum Selesai
+
+[ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
+[ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
+[ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
+[ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin
+
+---
+
+## ⏱️ Prioritas Pengerjaan Berikutnya
+
+Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Ringkasnya:
+
+### Fase A — Sekarang (stabilkan portal)
+
+1. ~~Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring~~ *(selesai)*
+2. ~~Engagement portal: komentar artikel, reaction/like~~ *(selesai)*
+3. ~~Profil publik author + statistik penulis~~ *(selesai)*
+4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
+5. ~~Analytics konten: view analytics, content performance, statistik kategori/quiz/poll~~ *(selesai)*
+6. Soft launch: konten artikel (halaman statis sudah selesai)
+
+### Fase B — Auth bridge (portal dulu, Core belum wajib)
+
+1. Integrasi Clerk + kolom `clerk_id` + JIT provisioning di DB portal
+2. Refactor `lib/auth.ts`; feature flag `AUTH_PROVIDER`
+3. Opsional: shadow call Core `/auth/token` (non-blocking)
+4. Lanjut fitur domain berita; **poin & `users` tetap lokal**
+
+### Fase C — Cutover Core (menunggu Core siap)
+
+1. Migrasi user/profil/poin ke Core; FK `clerk_id`
+2. Ganti `awardPoints()` → Core API; hapus tabel user/poin lokal
+3. Deprecate auth JWT lokal sepenuhnya
+
+### Fase D–E — Ekosistem
+
+1. Bangun LMS (`kursus.jepangku.com`)
+2. Badge, leaderboard global, notifikasi, membership/payment, admin pusat
+
+---
+
+## ✅ Sudah Diimplementasi (Verified)
+
+### 🚀 Soft Launch — Halaman Statis
 
 [x] About
 [x] Contact
@@ -137,46 +166,6 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] Privacy Policy
 [x] Terms of Service
 [x] Disclaimer
-
-**Struktur Artikel per Kategori:**
-
-Setiap kategori mempunyai guideline struktur konten yang berbeda:
-
-- **News**: Judul fakta, lead, detail, latar belakang, dampak, kutipan, kesimpulan
-- **Travel**: Judul + daya tarik, lead, akses, harga, aktivitas, tips
-- **Culture**: Judul tradisi, lead, sejarah, makna, cara masyarakat, relevansi
-- **Entertainment**: Judul, lead, sinopsis, highlight, fakta menarik, jadwal rilis
-- **Lifestyle**: Judul tren, lead, penjelasan, contoh, tips, kesimpulan
-- **Work in Japan**: Judul peluang, lead, syarat, gaji, cara apply, tips interview
-- **Study in Japan**: Judul panduan, lead, jenis sekolah, biaya, cara apply, tips
-- **Review Produk**: Judul produk, lead, deskripsi, kelebihan, kekurangan, harga, kesimpulan
-- **Event**: Judul event + tahun, lead, info dasar, highlight, suasana, tips
-
-**Persiapan Konten:**
-
-[ ] Riset topik dan sumber untuk setiap kategori
-[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
-[ ] Penyuntingan dan quality check
-[ ] Pengumpulan/pembuatan thumbnail/cover image
-[ ] Konfigurasi kategori dan tag di admin
-[ ] Publikasi artikel secara bertahap atau sekaligus
-[ ] Setup halaman statis
-[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
-
-**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
-
----
-
-## 📦 Checklist Halaman (File-by-File) — Belum Ada / Belum Selesai
-
-[ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
-[ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
-[ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
-[ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin
-
----
-
-## ✅ Sudah Diimplementasi (Verified)
 
 ### 💬 Engagement & Sosial — *Fase A (portal)*
 
@@ -203,7 +192,7 @@ Setiap kategori mempunyai guideline struktur konten yang berbeda:
 [x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
 [x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
 
-### 🔐 Auth & Akun
+### 🔐 Auth & Akun — *sementara lokal (akan diganti Clerk bridge)*
 
 [x] Register: validasi uniqueness email/username, bcrypt hash, JWT cookie (access 15m + refresh 7d), seed DB otomatis
 [x] Login: mendukung email atau username, cek status banned, JWT cookie
@@ -386,7 +375,7 @@ Setiap kategori mempunyai guideline struktur konten yang berbeda:
 [x] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
 [x] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
 
-### 📦 Checklist Halaman (File-by-File) — Sudah Selesai
+### 📦 Checklist Halaman — Sudah Selesai
 
 [x] `app/(public)/profile/[username]/page.tsx` — profil publik author (bio, stats, artikel published)
 [x] `GET /api/profile/[username]` — profil & artikel publik penulis
