@@ -32,9 +32,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bunx prisma generate
+      - uses: actions/checkout@v4
 
       - name: Resolve image tag
         id: meta
