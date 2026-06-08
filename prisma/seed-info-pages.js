@@ -1,10 +1,8 @@
 require("dotenv/config");
-const { PrismaClient } = require("@prisma/client");
-const { PrismaNeon } = require("@prisma/adapter-neon");
 const { INFO_PAGES_DATA } = require("./seeder/data/info-pages.js");
+const { createPrismaClient } = require("./create-client.js");
 
-const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = createPrismaClient();
 
 async function main() {
   for (const page of INFO_PAGES_DATA) {
