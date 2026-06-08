@@ -54,6 +54,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
+          target: runner
           push: true
           build-args: |
             NEXT_PUBLIC_APP_URL=https://portalinfo.jepangku.com
@@ -120,17 +121,37 @@ jobs:
           export DEPLOY_PATH="/opt/jepangku-staging"
           export PORTAL_IMAGE_TAG="staging"
           export HEALTH_URL="http://127.0.0.1:3011/"
+
+          set -euo pipefail
           cd "$DEPLOY_PATH"
-          docker compose pull portal-berita
-          docker compose up -d portal-berita
+
           set -a
           source .env
           set +a
 
+          # 1) Migrate first
           docker run --rm \
             --network jepangku_staging_net \
             -e DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@jepangku_staging_db:5432/stg_jepangku_portal" \
             ghcr.io/webekspres/jepangku-news:migrate-staging
+
+          # 2) Pull + start app (runner image)
+          docker compose pull portal-berita
+          docker compose up -d --force-recreate portal-berita
+
+          # 3) Wait for Next.js
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3011/ >/dev/null 2>&1; then
+              echo "Health OK"
+              break
+            fi
+            [ "$i" -eq 30 ] && { echo "Health check failed"; exit 1; }
+            echo "Waiting for portal... ($i/30)"
+            sleep 3
+          done
+
+          echo "Deploy OK: portal-berita @ staging"
+
           curl -fsS "$HEALTH_URL"
           echo "Deploy OK: portal-berita @ ${PORTAL_IMAGE_TAG}"
           REMOTE
