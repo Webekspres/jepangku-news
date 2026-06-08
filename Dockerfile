@@ -49,6 +49,14 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
+# --- migrate only (full Prisma CLI; not used at runtime) ---
+FROM oven/bun:1 AS migrator
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY prisma ./prisma
+COPY prisma.config.ts package.json bun.lock ./
+ENTRYPOINT ["bunx", "prisma", "migrate", "deploy"]
+
 USER nextjs
 EXPOSE 3001
 

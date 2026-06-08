@@ -64,6 +64,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:migrate-staging
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy-staging:
     needs: build
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -113,11 +123,14 @@ jobs:
           cd "$DEPLOY_PATH"
           docker compose pull portal-berita
           docker compose up -d portal-berita
-          for i in $(seq 1 30); do
-            if docker compose exec -T portal-berita npx prisma migrate deploy; then break; fi
-            [ "$i" -eq 30 ] && exit 1
-            sleep 2
-          done
+          set -a
+          source .env
+          set +a
+
+          docker run --rm \
+            --network jepangku_staging_net \
+            -e DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@jepangku_staging_db:5432/stg_jepangku_portal" \
+            ghcr.io/webekspres/jepangku-news:migrate-staging
           curl -fsS "$HEALTH_URL"
           echo "Deploy OK: portal-berita @ ${PORTAL_IMAGE_TAG}"
           REMOTE
