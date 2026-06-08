@@ -30,11 +30,19 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Validate Clerk build secret
+        run: |
+          if [ -z "${{ secrets.CLERK_PUBLISHABLE_KEY }}" ]; then
+            echo "::error::CLERK_PUBLISHABLE_KEY is empty. Add it to the staging environment secrets."
+            exit 1
+          fi
 
       - name: Resolve image tag
         id: meta
