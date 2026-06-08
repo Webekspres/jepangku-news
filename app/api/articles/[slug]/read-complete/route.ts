@@ -18,7 +18,7 @@ export async function POST(
     return NextResponse.json({ awarded: false, points: 0, reason: 'not_authenticated' });
   }
 
-  const blocked = enforceRateLimit(request, 'read-complete', {
+  const blocked = await enforceRateLimit(request, 'read-complete', {
     max: 30,
     windowMs: 60_000,
     identifier: user.id,

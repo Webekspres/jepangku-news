@@ -13,7 +13,7 @@ export async function POST(
     const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-    const blockedResponse = enforceRateLimit(request, 'poll-vote', {
+    const blockedResponse = await enforceRateLimit(request, 'poll-vote', {
       max: 6,
       windowMs: 60_000,
       message: 'Too many vote attempts. Please slow down.',

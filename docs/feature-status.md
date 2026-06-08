@@ -22,68 +22,6 @@ signifikan pada fitur.
 
 ## 🚧 Belum Diimplementasi
 
-### 🔐 Auth & Akun — *Fase B/C (Clerk bridge — portal dulu)*
-
-[x] **Integrasi Clerk di portal** — `@clerk/nextjs`, halaman `/sign-in` & `/sign-up`, `proxy.ts` proteksi route user/admin (Clerk) + fallback JWT lokal
-[x] **Kolom `clerk_id` di DB portal** — migration `users.clerk_id` (unique, nullable); `password_hash` nullable untuk akun Clerk-only
-[x] **JIT user provisioning** — upsert/find `users` by `clerk_id` (link by email jika ada); sync via `lib/auth/clerk-user.ts`
-[x] **Refactor `lib/auth.ts`** — `getCurrentUser()` / `getCurrentAdmin()` dual path: Clerk session + lookup DB portal, atau JWT lokal
-[x] **Abstraction session user** — tipe `SessionUser` (`lib/auth/types.ts`); API route tetap pakai helper auth
-[x] **Feature flag auth** — `AUTH_PROVIDER=local|clerk` + `NEXT_PUBLIC_AUTH_PROVIDER` (rollback ke JWT lokal)
-[x] **Deprecate auth lokal** — `/login` & `/register` redirect ke `/sign-in` & `/sign-up`; API login/register disabled (410)
-[x] **Email verification** — Clerk
-[x] **Forgot password / password reset** — Clerk
-[x] **OAuth login** — Clerk (konfigurasi di Clerk Dashboard)
-[x] **Session management UI** — Clerk User Profile / Account
-
-### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
-
-[~] **Rate limiting** — in-memory (tanpa Redis): login, register, submit/update artikel, vote, share, comment, quiz attempt, upload, read-complete, bookmark; log saat 429. *Defer pre-launch:* Redis/Upstash untuk multi-instance Vercel
-[~] **Input sanitasi HTML** — artikel (write + read), komentar, profil, quiz/poll admin; whitelist img tanpa `data:` URI. *Defer:* migrasi sanitasi ulang konten lama di DB
-[~] **Image moderation** — validasi magic bytes + MIME + ukuran (min/max); moderasi AI opsional via env; rate limit upload. *Defer:* wajibkan layanan moderasi di production
-[~] **Monitoring & alerting** — `captureException` + webhook opsional (`MONITORING_WEBHOOK_URL`); `GET /api/health` untuk uptime checker. *Defer:* Sentry SDK + alert channel terpusat
-[~] **Logging structured** — JSON console via `logger` + `proxy.ts` log semua `/api/*` (requestId, method, path, IP); log rate limit & moderasi. *Defer:* log drain / file persistence
-
-### 💬 Engagement & Sosial — *Fase A (portal): komentar & like; Fase E (Core): notifikasi & follow*
-
-[ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
-[ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
-
-### 🏆 Poin, Leaderboard & Badge — *Fase E (Core Service)*
-
-[ ] **Monthly leaderboard** — rolling window 30 hari
-[ ] **All-time leaderboard** — total poin sepanjang waktu
-[ ] **Filter leaderboard by app** — `source_app = news` vs `all`
-[ ] **Global leaderboard** — gabungan poin dari semua app (`source_app = all`)
-[ ] **Badge / level pada leaderboard** — indikasi visual pencapaian user
-[ ] **Monthly / all-time quiz leaderboard per quiz**
-[ ] **Export riwayat poin** — download CSV transaksi poin milik user
-[ ] **Riwayat aktivitas lengkap** — `core_activity_logs` viewer (`/activity`)
-
-### 🛡️ Admin Monitoring & Audit — *Fase E (Core Service)*
-
-[ ] **Activity audit log** — log semua aksi admin: siapa approve apa, siapa reject apa, kapan
-[ ] **Monitor leaderboard di admin** — tampilan leaderboard dari sisi admin
-[ ] **Monitor point transactions di admin** — semua transaksi poin, filter by user/tipe/periode
-[ ] **Point transaction summary di admin** — total poin per periode, breakdown by activity type
-[ ] **User growth tracking** — grafik registrasi user per hari/minggu
-
-### 🌐 Ekosistem & Infrastruktur — *Fase B/C/D/E*
-
-[ ] **Shadow Core token** — opsional `POST /api/v1/auth/token` (non-blocking); validasi integrasi, bukan dependency login
-[ ] **Cutover auth ke Core JWT** — tukar session Clerk → Core JWT untuk claims XP/role saat Core siap
-[ ] **Migrasi FK portal → `clerk_id`** — `author_id`, `user_id`, dll. mengacu Clerk ID (= Core `users.id`)
-[ ] **Ganti `awardPoints()` → Core API** — `POST /api/v1/gamification/award` + activity types portal + idempotency key
-[ ] **Hapus tabel user/poin lokal** — `users`, `user_profiles`, `point_transactions`, `daily_login_rewards` setelah migrasi (Fase C)
-[ ] **Jepangku Core Service — siap penuh** — username/profil extended, daily login global, spend poin, riwayat transaksi (koordinasi tim Core)
-[ ] **LMS integration** — `kursus.jepangku.com` dengan shared user dan poin (Fase D)
-[ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student` (Fase E)
-[ ] **Membership & payment** — plan, subscription, payment global (Fase E)
-[ ] **Admin pusat** — admin lintas aplikasi (Fase E)
-[ ] **Multi-app deployment** — subdomain production per app (Fase E)
-[ ] **CI/CD pipeline** — otomasi deploy ke Vercel / VPS (Fase E)
-[ ] **Mobile app** — React Native atau PWA (Fase E)
-
 ### 🚀 Soft Launch — *Fase A*
 
 **Target:** 30–50 artikel + konten siap rilis publik.
@@ -111,12 +49,63 @@ signifikan pada fitur.
 
 **Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
 
+### ⚙️ Keamanan & Kualitas — Defer *pre-launch / production*
+
+[~] **Image moderation AI wajib di production** — set `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY` (HTTP API generik; bisa wrapper AWS Rekognition, Google Vision, Sightengine, dll.)
+[~] **Konfigurasi Redis/Upstash di production** — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` sebelum go-live multi-instance Vercel
+[ ] **Backfill sanitasi konten lama di DB** — re-sanitize artikel/info page yang sudah ada sebelum sanitasi diterapkan
+[ ] **Sentry SDK + alert channel terpusat** — ganti/extend monitoring webhook-only
+[ ] **Log drain / file persistence** — export log dari Vercel ke storage terpusat
+
 ### 📦 Checklist Halaman — Belum Ada / Belum Selesai
 
 [ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
 [ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
 [ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
 [ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin
+
+### 🌐 Ekosistem & Cutover Core — *Fase B/C*
+
+[ ] **Shadow Core token** — opsional `POST /api/v1/auth/token` (non-blocking); validasi integrasi, bukan dependency login
+[ ] **Cutover auth ke Core JWT** — tukar session Clerk → Core JWT untuk claims XP/role saat Core siap
+[ ] **Migrasi FK portal → `clerk_id`** — `author_id`, `user_id`, dll. mengacu Clerk ID (= Core `users.id`)
+[ ] **Ganti `awardPoints()` → Core API** — `POST /api/v1/gamification/award` + activity types portal + idempotency key
+[ ] **Hapus tabel user/poin lokal** — `users`, `user_profiles`, `point_transactions`, `daily_login_rewards` setelah migrasi (Fase C)
+[ ] **Jepangku Core Service — siap penuh** — username/profil extended, daily login global, spend poin, riwayat transaksi (koordinasi tim Core)
+
+### 💬 Engagement & Sosial — *Fase E (Core Service)*
+
+[ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
+[ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
+
+### 🏆 Poin, Leaderboard & Badge — *Fase E (Core Service)*
+
+[ ] **Monthly leaderboard** — rolling window 30 hari
+[ ] **All-time leaderboard** — total poin sepanjang waktu
+[ ] **Filter leaderboard by app** — `source_app = news` vs `all`
+[ ] **Global leaderboard** — gabungan poin dari semua app (`source_app = all`)
+[ ] **Badge / level pada leaderboard** — indikasi visual pencapaian user
+[ ] **Monthly / all-time quiz leaderboard per quiz**
+[ ] **Export riwayat poin** — download CSV transaksi poin milik user
+[ ] **Riwayat aktivitas lengkap** — `core_activity_logs` viewer (`/activity`)
+
+### 🛡️ Admin Monitoring & Audit — *Fase E (Core Service)*
+
+[ ] **Activity audit log** — log semua aksi admin: siapa approve apa, siapa reject apa, kapan
+[ ] **Monitor leaderboard di admin** — tampilan leaderboard dari sisi admin
+[ ] **Monitor point transactions di admin** — semua transaksi poin, filter by user/tipe/periode
+[ ] **Point transaction summary di admin** — total poin per periode, breakdown by activity type
+[ ] **User growth tracking** — grafik registrasi user per hari/minggu
+
+### 🌐 Ekosistem Lanjutan — *Fase D/E*
+
+[ ] **LMS integration** — `kursus.jepangku.com` dengan shared user dan poin (Fase D)
+[ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student` (Fase E)
+[ ] **Membership & payment** — plan, subscription, payment global (Fase E)
+[ ] **Admin pusat** — admin lintas aplikasi (Fase E)
+[ ] **Multi-app deployment** — subdomain production per app (Fase E)
+[ ] **CI/CD pipeline** — otomasi deploy ke Vercel / VPS (Fase E)
+[ ] **Mobile app** — React Native atau PWA (Fase E)
 
 ---
 
@@ -126,7 +115,7 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ### Fase A — Sekarang (stabilkan portal)
 
-1. ~~Hardening: sanitasi HTML, rate limiting, image moderation, logging, monitoring~~ *(selesai)*
+1. ~~Hardening: sanitasi HTML, rate limiting (Redis/Upstash + fallback), image validation, logging, monitoring~~ *(selesai — defer prod: AI moderation, Sentry, log drain)*
 2. ~~Engagement portal: komentar artikel, reaction/like~~ *(selesai)*
 3. ~~Profil publik author + statistik penulis~~ *(selesai)*
 4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
@@ -135,8 +124,8 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ### Fase B — Auth bridge (portal dulu, Core belum wajib)
 
-1. Integrasi Clerk + kolom `clerk_id` + JIT provisioning di DB portal
-2. Refactor `lib/auth.ts`; feature flag `AUTH_PROVIDER`
+1. ~~Integrasi Clerk + kolom `clerk_id` + JIT provisioning di DB portal~~ *(selesai)*
+2. ~~Refactor `lib/auth.ts`; feature flag `AUTH_PROVIDER`~~ *(selesai)*
 3. Opsional: shadow call Core `/auth/token` (non-blocking)
 4. Lanjut fitur domain berita; **poin & `users` tetap lokal**
 
@@ -167,33 +156,28 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] Terms of Service
 [x] Disclaimer
 
-### 💬 Engagement & Sosial — *Fase A (portal)*
+### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
 
-[x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
-[x] **Reaction / like artikel** — sistem reaksi polimorfik (`Reaction`, target ARTICLE/POLL/QUIZ/COMMENT). Konten: 9 reaksi (Love, Lol, Cute, Win, WTF, OMG, Geeky, Scary, Fail) dengan bar di atas kolom komentar; komentar: jempol naik/turun. Satu reaksi aktif per user per target (klik = toggle/ganti), tanpa poin, rate limit 30/menit
+[x] **Rate limiting** — `lib/rate-limit.ts` + `lib/rate-limit-store.ts`: backend Upstash REST / `REDIS_URL` / in-memory fallback otomatis; endpoint: submit/update artikel, vote, share, comment, reaction, quiz attempt, upload, read-complete, bookmark; log 429 + fallback saat Redis error. Rate limit auth via Clerk (bukan API login/register lokal)
+[x] **Input sanitasi HTML** — `sanitize-html` via `lib/sanitizer.ts`: write + read artikel, komentar plain-text, profil, quiz/poll admin, info pages; whitelist tag/atribut; img hanya `http`/`https` (tanpa `data:` URI)
+[x] **Image moderation (validasi file)** — `lib/image-moderation.ts`: magic bytes JPEG/PNG/GIF/WebP, cek MIME vs isi file, ukuran 100 B–10 MB; dipanggil di `POST /api/upload`
+[x] **Image moderation (AI opsional)** — HTTP generik `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY`; payload base64; reject jika `decision: reject` atau `moderation: unsafe`; tanpa env = skip (warn di prod)
+[x] **Monitoring & alerting** — `lib/monitoring.ts`: `captureException` + webhook opsional `MONITORING_WEBHOOK_URL`; `GET /api/health` cek koneksi DB
+[x] **Logging structured** — `lib/logger.ts` JSON console + `proxy.ts` log semua `/api/*` (requestId, method, path, IP); log rate limit, moderasi, exception
 
-### 🔍 Search & Discovery — *Fase A (portal)*
+### 🔐 Auth & Akun — *Clerk bridge + fallback JWT lokal (Fase B portal)*
 
-[x] **Dedicated search result page** — `/search?q=...` + `GET /api/search` dengan hasil artikel + quiz + poll sekaligus; Navbar & hero search mengarah ke `/search`
-[x] **Trending articles discovery** — halaman `/trending` (grid + pagination, sort `weeklyViewCount`); homepage sidebar pakai algoritma yang sama + link "Lihat Semua"
-[x] **Related tags di halaman artikel** — tag ditampilkan di detail artikel, klik → `/articles?tag=<slug>`
-[x] **Popular / trending tags** — `GET /api/tags/popular` (agregasi `articleTag`), komponen `PopularTags` di `/articles`, halaman `/explore` + nav "Jelajahi"
-
-### 👤 Profile & Discovery Author — *Fase A (portal)*
-
-[x] **Author profile publik** — `/profile/[username]` + `GET /api/profile/[username]` (hanya user `active`, tanpa email/poin); bio, avatar, artikel published, `AuthorProfileCard` di artikel (bawah reaction, atas komentar); `AuthorLink` di artikel/komentar/leaderboard
-[x] **Statistik penulis** — agregat publik: total artikel published, total views, total bookmark diterima (di profil publik & API)
-
-### 📈 Analytics Konten — *Fase A (portal)*
-
-[x] **View analytics per artikel** — `article_views` time-series + `/admin/analytics/articles/[id]` (grafik harian, total vs unique visitors, periode 7/30/90 hari)
-[x] **Content performance report** — `/admin/analytics/content` ranking views/bookmark/share per periode + link ke detail grafik
-[x] **Admin: lihat statistik per kategori** — `/admin/analytics/categories` tabel + chart views & engagement per kategori
-[x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
-[x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
-
-### 🔐 Auth & Akun — *Clerk bridge + fallback JWT lokal*
-
+[x] **Integrasi Clerk di portal** — `@clerk/nextjs`, halaman `/sign-in` & `/sign-up`, `proxy.ts` proteksi route user/admin (Clerk) + fallback JWT lokal
+[x] **Kolom `clerk_id` di DB portal** — migration `users.clerk_id` (unique, nullable); `password_hash` nullable untuk akun Clerk-only
+[x] **JIT user provisioning** — upsert/find `users` by `clerk_id` (link by email jika ada); sync via `lib/auth/clerk-user.ts`
+[x] **Refactor `lib/auth.ts`** — `getCurrentUser()` / `getCurrentAdmin()` dual path: Clerk session + lookup DB portal, atau JWT lokal
+[x] **Abstraction session user** — tipe `SessionUser` (`lib/auth/types.ts`); API route tetap pakai helper auth
+[x] **Feature flag auth** — `AUTH_PROVIDER=local|clerk` + `NEXT_PUBLIC_AUTH_PROVIDER` (rollback ke JWT lokal)
+[x] **Deprecate auth lokal** — `/login` & `/register` redirect ke `/sign-in` & `/sign-up`; API login/register disabled (410)
+[x] **Email verification** — Clerk
+[x] **Forgot password / password reset** — Clerk
+[x] **OAuth login** — Clerk (konfigurasi di Clerk Dashboard)
+[x] **Session management UI** — Clerk User Profile / Account
 [x] `@clerk/nextjs` + `ClerkProvider` (saat `AUTH_PROVIDER=clerk`)
 [x] Halaman `/sign-in`, `/sign-up` (Clerk UI); `/login`, `/register` redirect ke Clerk bila perlu
 [x] `users.clerk_id` + JIT provisioning (`lib/auth/clerk-user.ts`)
@@ -207,13 +191,7 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] Daily login points: `checkDailyLogin()` saat login/provisi Clerk
 [x] Username change cooldown 14 hari (field `usernameChangedAt`, enforced di API + UI profile edit)
 
-### 🔍 Search & Discovery — API
-
-[x] `GET /api/search?q=`: pencarian lintas artikel + kuis + polling (title/excerpt/content)
-[x] `GET /api/tags/popular`: tag diurutkan jumlah artikel (`articleTag` groupBy)
-[x] `GET /api/homepage`: trending sidebar memakai `weeklyViewCount` (konsisten dengan `sort=trending`)
-
-### 📰 Artikel — Publik & User
+### 📰 Artikel — Publik, User & Admin
 
 [x] `GET /api/articles`: search (title, excerpt, content), filter kategori (by slug), filter tag, sort (latest/popular/trending), pagination
 [x] `GET /api/articles/[slug]`: increment view count, related articles by category, tags resolved
@@ -231,6 +209,20 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] `components/ui/article-activity-modal.tsx`: modal gabungan riwayat revisi + review untuk penulis
 [x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
 [x] Scroll detection di halaman detail artikel — trigger saat user sampai akhir konten
+[x] **Admin: create artikel langsung dari panel** — `admin/articles/create`, `POST /api/admin/articles` (publish langsung / draft / antrian review)
+[x] **Admin: edit artikel published** — `admin/articles/[id]/edit`, slug published tidak berubah otomatis saat judul diedit
+[x] **Admin: archive artikel** — status `ARCHIVED` dari form edit + bulk archive
+[x] **Admin: bulk action artikel** — checkbox di list + `POST /api/admin/articles/bulk` (approve/reject/archive/delete)
+[x] **Admin: export data CSV/JSON** — `GET /api/admin/articles/export` (artikel; mengikuti filter aktif)
+[x] **Admin artikel: filter + sort lengkap** — filter author, kategori, tanggal, search, sort latest/oldest/popular/published
+[x] **Pagination di my-articles** — saat ini list mungkin tanpa pagination jika artikel banyak
+[x] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
+[x] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
+[x] `app/(user)/submit-article`: RichTextEditor, image upload, pilih kategori/tag, simpan sebagai draft atau submit untuk review
+[x] `app/(user)/edit-article/[id]`: pre-populate form dari API, flow submit sama dengan create
+[x] `app/(user)/my-articles`: filter by status, preview catatan penolakan, aksi edit/submit/hapus, modal riwayat review
+[x] `app/(public)/articles/page.tsx`: search box, filter kategori, filter tag (toggle panel via URL param `?tag=`), sort latest/popular/trending, pagination, tag populer
+[x] `app/(public)/articles/[slug]/page.tsx`: read complete detection, bookmark toggle, share tracking, related articles, tag klikabel → filter artikel
 
 ### 🧩 Quiz
 
@@ -255,9 +247,12 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] `POST /api/bookmarks/[articleId]`: bookmark artikel, soft-delete aware (restore jika pernah di-bookmark), +1 poin (hanya sekali)
 [x] `DELETE /api/bookmarks/[articleId]`: soft-delete (set `deletedAt`), decrement `bookmarkCount`
 [x] Poin bookmark tidak diberikan ulang jika user hapus lalu bookmark ulang artikel yang sama
+[x] `app/(user)/bookmarks`: list artikel yang di-bookmark
 
-### 💬 Komentar
+### 💬 Engagement & Sosial — *Fase A (portal)*
 
+[x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
+[x] **Reaction / like artikel** — sistem reaksi polimorfik (`Reaction`, target ARTICLE/POLL/QUIZ/COMMENT). Konten: 9 reaksi (Love, Lol, Cute, Win, WTF, OMG, Geeky, Scary, Fail) dengan bar di atas kolom komentar; komentar: jempol naik/turun. Satu reaksi aktif per user per target (klik = toggle/ganti), tanpa poin, rate limit 30/menit
 [x] Model `Comment` polimorfik (`targetType` ARTICLE/POLL/QUIZ + `targetId`), thread 1 level via `parentId`, soft-delete (`deletedAt`), moderasi (`status` VISIBLE/HIDDEN)
 [x] `GET /api/comments?targetType=&targetId=`: thread publik (komentar HIDDEN/terhapus jadi placeholder bila punya balasan tampil)
 [x] `POST /api/comments`: auth required, validasi + sanitasi plain-text (maks 1000), rate limit 10/menit, verifikasi target ada, +2 poin sekali per target via `awardPoints()`
@@ -267,17 +262,43 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] `components/CommentSection.tsx`: komponen reusable (form, balasan, edit, hapus, kontrol moderasi admin inline) — terpasang di halaman detail artikel, polling, kuis
 [x] `app/(admin)/admin/comments/page.tsx`: halaman moderasi + tautan di dashboard admin
 
-### 🏆 Leaderboard & Poin
+### 🏆 Leaderboard & Poin — *Portal (mingguan)*
 
 [x] `GET /api/leaderboard/weekly`: rolling window 7 hari, group by userId, resolve display name dari profile
 [x] `GET /api/points/my`: return 100 transaksi poin terakhir milik user
 [x] Halaman leaderboard mingguan publik
 [x] Halaman points user dengan riwayat transaksi lengkap + ikon per tipe aktivitas
+[x] `app/(user)/points`: riwayat transaksi poin lengkap
 
-### 📤 Upload
+### 🔍 Search & Discovery — *Fase A (portal)*
 
-[x] `POST /api/upload`: auth required, validasi tipe image + max 10MB, upload ke Cloudflare R2 (graceful fallback jika unconfigured), simpan record ke tabel `File`
-[x] `lib/r2.ts`: S3Client wrapper, `uploadToR2`, `deleteFromR2`, `getSignedUrlR2`, fallback path jika unconfigured
+[x] **Dedicated search result page** — `/search?q=...` + `GET /api/search` dengan hasil artikel + quiz + poll sekaligus; Navbar & hero search mengarah ke `/search`
+[x] **Trending articles discovery** — halaman `/trending` (grid + pagination, sort `weeklyViewCount`); homepage sidebar pakai algoritma yang sama + link "Lihat Semua"
+[x] **Related tags di halaman artikel** — tag ditampilkan di detail artikel, klik → `/articles?tag=<slug>`
+[x] **Popular / trending tags** — `GET /api/tags/popular` (agregasi `articleTag`), komponen `PopularTags` di `/articles`, halaman `/explore` + nav "Jelajahi"
+[x] `GET /api/search?q=`: pencarian lintas artikel + kuis + polling (title/excerpt/content)
+[x] `GET /api/tags/popular`: tag diurutkan jumlah artikel (`articleTag` groupBy)
+[x] `GET /api/homepage`: trending sidebar memakai `weeklyViewCount` (konsisten dengan `sort=trending`)
+[x] `app/(public)/search/page.tsx`: hasil gabungan artikel + kuis + polling dari `GET /api/search`
+[x] `app/(public)/trending/page.tsx`: discovery artikel tren mingguan dengan pagination
+[x] `app/(public)/explore/page.tsx`: hub tag populer, kategori, link trending
+[x] Search icon di Navbar (desktop + mobile) redirect ke `/search?q=...`
+[x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
+
+### 👤 Profile & Discovery Author — *Fase A (portal)*
+
+[x] **Author profile publik** — `/profile/[username]` + `GET /api/profile/[username]` (hanya user `active`, tanpa email/poin); bio, avatar, artikel published, `AuthorProfileCard` di artikel (bawah reaction, atas komentar); `AuthorLink` di artikel/komentar/leaderboard
+[x] **Statistik penulis** — agregat publik: total artikel published, total views, total bookmark diterima (di profil publik & API)
+[x] `app/(public)/profile/[username]/page.tsx` — profil publik author (bio, stats, artikel published)
+[x] `components/AuthorProfileCard.tsx` + `AuthorLink.tsx` — kartu penulis & link ke profil
+
+### 📈 Analytics Konten — *Fase A (portal)*
+
+[x] **View analytics per artikel** — `article_views` time-series + `/admin/analytics/articles/[id]` (grafik harian, total vs unique visitors, periode 7/30/90 hari)
+[x] **Content performance report** — `/admin/analytics/content` ranking views/bookmark/share per periode + link ke detail grafik
+[x] **Admin: lihat statistik per kategori** — `/admin/analytics/categories` tabel + chart views & engagement per kategori
+[x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
+[x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
 
 ### 👤 Profile User
 
@@ -285,16 +306,14 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] Halaman profil: stats dari API, recent points, quick actions
 [x] Edit profil: avatar upload, name/username (dengan cooldown 14 hari), displayName, bio
 [x] Avatar upload terintegrasi profile edit
-
-### 📄 Halaman User
-
-[x] `app/(user)/submit-article`: RichTextEditor, image upload, pilih kategori/tag, simpan sebagai draft atau submit untuk review
-[x] `app/(user)/edit-article/[id]`: pre-populate form dari API, flow submit sama dengan create
-[x] `app/(user)/my-articles`: filter by status, preview catatan penolakan, aksi edit/submit/hapus, modal riwayat review
-[x] `app/(user)/bookmarks`: list artikel yang di-bookmark
-[x] `app/(user)/points`: riwayat transaksi poin lengkap
 [x] `app/(user)/profile`: halaman profil user
 [x] `app/(user)/profile/edit`: form edit profil
+
+### 📤 Upload
+
+[x] `POST /api/upload`: auth required, validasi tipe image + max 10MB, `validateImageBuffer` + `moderateImage`, upload ke Cloudflare R2 (graceful fallback jika unconfigured), simpan record ke tabel `File`
+[x] `lib/r2.ts`: S3Client wrapper, `uploadToR2`, `deleteFromR2`, `getSignedUrlR2`, fallback path jika unconfigured
+[x] `lib/image-moderation.ts`: validasi magic bytes/MIME/ukuran + moderasi AI opsional via env
 
 ### 🛡️ Admin — API
 
@@ -343,22 +362,19 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 ### 🌐 Halaman Publik
 
 [x] Homepage: featured article slider auto-advance, trending sidebar (`weeklyViewCount`), hero search → `/search`, latest articles grid, polls + quiz CTA, leaderboard preview, kategori grid
-[x] `app/(public)/articles/page.tsx`: search box, filter kategori, filter tag (toggle panel via URL param `?tag=`), sort latest/popular/trending, pagination, tag populer
-[x] `app/(public)/articles/[slug]/page.tsx`: read complete detection, bookmark toggle, share tracking, related articles, tag klikabel → filter artikel
-[x] `app/(public)/search/page.tsx`: hasil gabungan artikel + kuis + polling dari `GET /api/search`
-[x] `app/(public)/trending/page.tsx`: discovery artikel tren mingguan dengan pagination
-[x] `app/(public)/explore/page.tsx`: hub tag populer, kategori, link trending
+[x] `app/(public)/page.tsx` — homepage (featured slider, trending, polls/quiz, leaderboard, kategori)
 [x] `app/(public)/polls/page.tsx`: list polling
 [x] `app/(public)/polls/[slug]/page.tsx`: detail polling, vote, hasil persentase
 [x] `app/(public)/quizzes/page.tsx`: list quiz
 [x] `app/(public)/quizzes/[slug]/page.tsx`: detail quiz, submit jawaban, hasil langsung
 [x] `app/(public)/leaderboard/page.tsx`: weekly leaderboard
-[x] Search icon di Navbar (desktop + mobile) redirect ke `/search?q=...`
-[x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
 
 ### 🔧 Utilities & Infrastruktur
 
 [x] `lib/auth.ts` + `lib/auth/*`: Clerk bridge, JWT lokal, `SessionUser`, feature flag
+[x] `lib/rate-limit.ts` + `lib/rate-limit-store.ts`: rate limit Upstash / Redis / in-memory + fallback
+[x] `lib/sanitizer.ts`: sanitasi HTML, plain-text, media URL
+[x] `lib/monitoring.ts` + `lib/logger.ts`: exception capture, webhook, structured JSON log
 [x] `lib/points.ts`: `awardPoints()` dengan idempotency via unique constraint + race condition handling
 [x] `lib/slug.ts`: `createSlug` (user content) dan `createAdminSlug` (admin content)
 [x] `lib/article-tags.ts`: `syncArticleTags`, `resolveCategoryId`
@@ -368,18 +384,6 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] `components/ui/confirm-modal.tsx` + `useConfirm` hook: reusable confirm dialog
 [x] `components/ui/review-history-modal.tsx` + `useReviewHistory` hook: modal riwayat review artikel
 [x] `RichTextEditor` component: digunakan di submit/edit article
-
-### 📰 Artikel — Admin & Workflow
-
-[x] **Admin: create artikel langsung dari panel** — `admin/articles/create`, `POST /api/admin/articles` (publish langsung / draft / antrian review)
-[x] **Admin: edit artikel published** — `admin/articles/[id]/edit`, slug published tidak berubah otomatis saat judul diedit
-[x] **Admin: archive artikel** — status `ARCHIVED` dari form edit + bulk archive
-[x] **Admin: bulk action artikel** — checkbox di list + `POST /api/admin/articles/bulk` (approve/reject/archive/delete)
-[x] **Admin: export data CSV/JSON** — `GET /api/admin/articles/export` (artikel; mengikuti filter aktif)
-[x] **Admin artikel: filter + sort lengkap** — filter author, kategori, tanggal, search, sort latest/oldest/popular/published
-[x] **Pagination di my-articles** — saat ini list mungkin tanpa pagination jika artikel banyak
-[x] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
-[x] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
 
 ### 📦 Checklist Halaman — Sudah Selesai
 

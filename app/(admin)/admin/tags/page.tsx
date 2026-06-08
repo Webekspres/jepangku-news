@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Tag as TagIcon } from "lucide-react";
+import { Plus, Trash2, Tag as TagIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -83,13 +83,6 @@ export default function AdminTagsPage() {
       <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             MANAJEMEN TAG
           </p>

@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
 import {
   FileText,
   Users,
@@ -12,11 +11,6 @@ import {
   MessageSquare,
   Eye,
   CheckSquare,
-  Tag,
-  Home,
-  LayoutGrid,
-  BarChart3,
-  FileType,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -24,19 +18,12 @@ import SectionHeader from "@/components/SectionHeader";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [pendingArticles, setPendingArticles] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!loading && (!user || (user as any).role !== "ADMIN")) {
-      router.push("/");
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
-    if (!user || (user as any).role !== "ADMIN") return;
+    if (!user) return;
 
     Promise.all([
       fetch("/api/admin/stats").then((r) => r.json()),
@@ -46,8 +33,6 @@ export default function AdminDashboard() {
       setPendingArticles(Array.isArray(p) ? p.slice(0, 5) : []);
     });
   }, [user]);
-
-  if (loading || !user || (user as any).role !== "ADMIN") return null;
 
   const statCards = [
     {
@@ -191,72 +176,6 @@ export default function AdminDashboard() {
               Tambah polling atau voting
             </p>
           </Link>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
-          {[
-            {
-              href: "/admin/users",
-              icon: Users,
-              label: "Kelola Pengguna",
-              testid: "action-manage-users",
-            },
-            {
-              href: "/admin/tags",
-              icon: Tag,
-              label: "Kelola Tag",
-              testid: "action-manage-tags",
-            },
-            {
-              href: "/admin/categories",
-              icon: LayoutGrid,
-              label: "Kelola Kategori",
-              testid: "action-manage-categories",
-            },
-            {
-              href: "/admin/homepage",
-              icon: Home,
-              label: "Pengaturan Beranda",
-              testid: "action-manage-homepage",
-            },
-            {
-              href: "/admin/comments",
-              icon: MessageSquare,
-              label: "Moderasi Komentar",
-              testid: "action-manage-comments",
-            },
-            {
-              href: "/admin/articles",
-              icon: FileText,
-              label: "Semua Artikel",
-              testid: "action-manage-articles",
-            },
-            {
-              href: "/admin/analytics",
-              icon: BarChart3,
-              label: "Analytics Konten",
-              testid: "action-analytics",
-            },
-            {
-              href: "/admin/info-pages",
-              icon: FileType,
-              label: "Halaman Informasi",
-              testid: "action-manage-info-pages",
-            },
-          ].map(({ href, icon: Icon, label, testid }) => (
-            <Link
-              key={href}
-              href={href}
-              className="border border-jepang-border hover:border-foreground p-4 transition-colors flex flex-col items-center text-center"
-              data-testid={testid}
-            >
-              <Icon size={20} strokeWidth={1.5} className="mb-2" />
-
-              <p className="text-xs font-bold uppercase tracking-wider">
-                {label}
-              </p>
-            </Link>
-          ))}
         </div>
 
         <Card className="border border-foreground">

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const blocked = enforceRateLimit(request, 'upload', {
+  const blocked = await enforceRateLimit(request, 'upload', {
     max: 20,
     windowMs: 60 * 60 * 1000,
     identifier: user.id,

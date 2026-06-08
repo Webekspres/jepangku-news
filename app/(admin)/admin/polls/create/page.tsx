@@ -270,10 +270,10 @@ export default function AdminCreatePoll() {
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
-            href="/admin"
+            href="/admin/polls"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
           >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
+            <ArrowLeft size={14} /> Kembali ke Daftar Polling
           </Link>
           <h1 className="font-heading font-black text-4xl tracking-tighter">
             Buat Polling / Voting

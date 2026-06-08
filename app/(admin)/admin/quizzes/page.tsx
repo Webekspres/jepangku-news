@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Pencil, Zap, Trash2, BarChart2 } from "lucide-react";
+import { Plus, Pencil, Zap, Trash2, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -114,13 +114,6 @@ export default function AdminQuizzesPage() {
       <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
           <div className="flex items-center justify-between gap-4">
             <h1 className="font-heading font-black text-4xl tracking-tighter">
               Semua Kuis

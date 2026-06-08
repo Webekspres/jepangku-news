@@ -15,7 +15,7 @@ export async function POST(
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const blocked = enforceRateLimit(request, 'article-share', {
+  const blocked = await enforceRateLimit(request, 'article-share', {
     max: 10,
     windowMs: 60 * 60 * 1000,
     identifier: user.id,

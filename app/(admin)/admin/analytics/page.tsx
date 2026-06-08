@@ -56,8 +56,7 @@ export default function AnalyticsHubPage() {
     <AdminPageShell
       title="Analytics Konten"
       subtitle="Pusat laporan performa portal. Pilih jenis laporan di bawah — setiap halaman punya navigasi tab yang sama agar tidak tersesat."
-      backHref="/admin"
-      backLabel="Kembali ke Dasbor"
+      label="Analytics"
     >
       <div className="mb-6 flex items-center gap-2 text-jepang-muted">
         <BarChart3 size={18} className="text-jepang-red" />

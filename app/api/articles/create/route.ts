@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const blockedResponse = enforceRateLimit(request, 'submit-article', {
+  const blockedResponse = await enforceRateLimit(request, 'submit-article', {
     max: 6,
     windowMs: 60_000,
     message: 'Too many article submissions. Please take a short break before trying again.',

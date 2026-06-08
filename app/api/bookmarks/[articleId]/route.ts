@@ -10,7 +10,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const blocked = enforceRateLimit(request, 'bookmark', {
+  const blocked = await enforceRateLimit(request, 'bookmark', {
     max: 20,
     windowMs: 60_000,
     identifier: user.id,

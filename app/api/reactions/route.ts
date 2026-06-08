@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Akun Anda tidak dapat memberi reaksi' }, { status: 403 });
   }
 
-  const limited = enforceRateLimit(request, 'reaction-toggle', {
+  const limited = await enforceRateLimit(request, 'reaction-toggle', {
     max: 30,
     windowMs: 60_000,
     identifier: user.id,

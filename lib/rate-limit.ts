@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from './logger';
-
-type RateLimitRecord = {
-  count: number;
-  resetAt: number;
-};
-
-const rateLimitStore = new Map<string, RateLimitRecord>();
+import { consumeRateLimit } from './rate-limit-store';
 
 function getIpAddress(request: NextRequest) {
   const forwarded = request.headers.get('x-forwarded-for');
@@ -22,24 +16,21 @@ function getIpAddress(request: NextRequest) {
   return 'unknown';
 }
 
-export function enforceRateLimit(
+export async function enforceRateLimit(
   request: NextRequest,
   keyPrefix: string,
-  options: { max: number; windowMs: number; message?: string; identifier?: string }
-): NextResponse | null {
+  options: { max: number; windowMs: number; message?: string; identifier?: string },
+): Promise<NextResponse | null> {
   const identifier = options.identifier || getIpAddress(request);
   const key = `${keyPrefix}:${identifier}`;
-  const now = Date.now();
-  const existing = rateLimitStore.get(key);
 
-  if (!existing || existing.resetAt <= now) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + options.windowMs });
-    return null;
-  }
+  const result = await consumeRateLimit(key, {
+    max: options.max,
+    windowMs: options.windowMs,
+  });
 
-  const nextCount = existing.count + 1;
-  if (nextCount > options.max) {
-    const retryAfterSeconds = Math.ceil((existing.resetAt - now) / 1000);
+  if (!result.allowed) {
+    const retryAfterSeconds = result.retryAfterSeconds ?? 60;
     logger.warn('rate_limit.exceeded', {
       keyPrefix,
       identifier,
@@ -59,6 +50,5 @@ export function enforceRateLimit(
     );
   }
 
-  rateLimitStore.set(key, { count: nextCount, resetAt: existing.resetAt });
   return null;
 }

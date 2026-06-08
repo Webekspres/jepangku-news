@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Pencil, ExternalLink } from "lucide-react";
+import { FileText, Pencil, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -42,13 +42,6 @@ export default function AdminInfoPagesPage() {
       />
 
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <Button variant="outline" asChild className="mb-8">
-          <Link href="/admin">
-            <ArrowLeft size={14} strokeWidth={1.5} className="mr-1" />
-            Kembali ke Dashboard
-          </Link>
-        </Button>
-
         <div className="border border-jepang-border bg-white">
           <div className="px-5 py-4 border-b border-jepang-border flex items-center gap-3">
             <FileText size={18} strokeWidth={1.5} />

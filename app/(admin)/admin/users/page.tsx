@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Users, Shield, User } from "lucide-react";
+import { Search, Users, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -111,14 +111,6 @@ export default function AdminUsersPage() {
       <ConfirmModal {...confirmProps} />
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-            data-testid="back-to-admin"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             MANAJEMEN PENGGUNA
           </p>

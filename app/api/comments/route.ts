@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Akun Anda tidak dapat berkomentar' }, { status: 403 });
   }
 
-  const limited = enforceRateLimit(request, 'comment-create', {
+  const limited = await enforceRateLimit(request, 'comment-create', {
     max: 10,
     windowMs: 60_000,
     identifier: user.id,

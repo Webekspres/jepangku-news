@@ -17,7 +17,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const article = await db.article.findFirst({ where: { slug } });
   if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
 
-  const blockedResponse = enforceRateLimit(request, 'article-update', {
+  const blockedResponse = await enforceRateLimit(request, 'article-update', {
     max: 6,
     windowMs: 60_000,
     message: 'Too many article update attempts. Please wait a moment.',

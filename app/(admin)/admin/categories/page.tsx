@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Plus,
   Pencil,
   Trash2,
@@ -202,13 +201,6 @@ export default function AdminCategoriesPage() {
       {/* Page header */}
       <section className="border-b-2 border-foreground bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             MANAJEMEN KATEGORI
           </p>
