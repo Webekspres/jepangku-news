@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth, isAuthUser } from "@/contexts/AuthContext";
+import { useAuth, isAuthUser, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
 import {
   Menu,
   X,
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -184,7 +184,7 @@ export default function Navbar() {
                 alt="Jepangku Berita"
                 width={140}
                 height={48}
-                className="h-50 w-50"
+                className="h-10 w-auto"
                 priority
               />
             </Link>
@@ -356,7 +356,7 @@ export default function Navbar() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </>
-              ) : user === false ? (
+              ) : !loading && user === false ? (
                 <div className="hidden items-center gap-2 md:flex">
                   <Button
                     variant="ghost"
@@ -364,11 +364,11 @@ export default function Navbar() {
                     asChild
                     data-testid="navbar-login-btn"
                   >
-                    <Link href="/login">Masuk</Link>
+                    <Link href={getAuthLoginPath()}>Masuk</Link>
                   </Button>
 
                   <Button size="sm" asChild data-testid="navbar-register-btn">
-                    <Link href="/register">Daftar</Link>
+                    <Link href={getAuthRegisterPath()}>Daftar</Link>
                   </Button>
                 </div>
               ) : null}
@@ -461,7 +461,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {user === false && (
+            {!loading && user === false && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">
                 <Button
                   variant="outline"
@@ -470,7 +470,7 @@ export default function Navbar() {
                   className="flex-1"
                   data-testid="mobile-login-btn"
                 >
-                  <Link href="/login" onClick={() => setMobileOpen(false)}>
+                  <Link href={getAuthLoginPath()} onClick={() => setMobileOpen(false)}>
                     Masuk
                   </Link>
                 </Button>
@@ -481,7 +481,7 @@ export default function Navbar() {
                   className="flex-1"
                   data-testid="mobile-register-btn"
                 >
-                  <Link href="/register" onClick={() => setMobileOpen(false)}>
+                  <Link href={getAuthRegisterPath()} onClick={() => setMobileOpen(false)}>
                     Daftar
                   </Link>
                 </Button>

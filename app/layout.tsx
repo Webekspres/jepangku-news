@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ClerkProvider } from '@clerk/nextjs';
 import ClientProviders from '@/components/ClientProviders';
 import './globals.css';
 
@@ -24,11 +25,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className="h-full">
-      <body className="min-h-full flex flex-col">
-        <ClientProviders>
-          {children}
-        </ClientProviders>
-      </body>
+      <ClerkProvider>
+        <body className="min-h-full flex flex-col">
+          <ClientProviders>{children}</ClientProviders>
+        </body>
+      </ClerkProvider>
     </html>
   );
 }

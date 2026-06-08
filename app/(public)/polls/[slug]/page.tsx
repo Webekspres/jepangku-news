@@ -99,7 +99,7 @@ export default function PollDetailPage() {
   const handleSubmitAll = async () => {
     if (!user) {
       toast.error("Silakan masuk untuk memberikan suara");
-      router.push("/login");
+      router.push("/sign-in");
       return;
     }
 
@@ -381,7 +381,7 @@ export default function PollDetailPage() {
             <div className="mt-8">
               {!user ? (
                 <div className="border border-jepang-border p-4 text-center">
-                  <Link href="/login" className="text-jepang-red font-bold text-sm">
+                  <Link href="/sign-in" className="text-jepang-red font-bold text-sm">
                     MASUK UNTUK MEMBERIKAN SUARA DAN DAPATKAN +{poll!.pointsReward} POIN
                   </Link>
                 </div>

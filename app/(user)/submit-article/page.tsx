@@ -103,7 +103,7 @@ export default function SubmitArticlePage() {
 
   // Redirect if not logged in
   useEffect(() => {
-    if (user === false) router.replace("/login");
+    if (user === false) router.replace("/sign-in");
   }, [user, router]);
 
   useEffect(() => {

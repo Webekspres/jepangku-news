@@ -44,6 +44,10 @@ const {
   EXTRA_POINT_ACTIVITIES,
 } = require("./seeder/data/user-activities.js");
 const { INFO_PAGES_DATA } = require("./seeder/data/info-pages.js");
+const {
+  CLERK_TEST_ADMIN_EMAIL,
+  LEGACY_EMAIL_MIGRATIONS,
+} = require("./seeder/data/clerk-test-emails.js");
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -74,8 +78,25 @@ async function resolveUserByEmail(email) {
 async function main() {
   console.log("🌱 Starting seed...");
 
+  for (const { from, to } of LEGACY_EMAIL_MIGRATIONS) {
+    const legacyUser = await prisma.user.findUnique({ where: { email: from } });
+    if (!legacyUser) continue;
+
+    const targetTaken = await prisma.user.findUnique({ where: { email: to } });
+    if (targetTaken && targetTaken.id !== legacyUser.id) {
+      console.warn(`⚠️  Skip email migration ${from} → ${to}: target already exists`);
+      continue;
+    }
+
+    await prisma.user.update({
+      where: { id: legacyUser.id },
+      data: { email: to },
+    });
+    console.log(`✅ Migrated user email: ${from} → ${to}`);
+  }
+
   // ── 1. Admin user ──────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@jepangku.com";
+  const adminEmail = process.env.ADMIN_EMAIL || CLERK_TEST_ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD || "JepangkuAdmin2025!";
 
   let admin = await prisma.user.findUnique({ where: { email: adminEmail } });
@@ -862,7 +883,7 @@ async function main() {
   // ── 13. Files ──────────────────────────────────────────────────────────
   for (const fileSpec of FILES_DATA) {
     const email =
-      fileSpec.user_email === "admin@jepangku.com"
+      fileSpec.user_email === CLERK_TEST_ADMIN_EMAIL
         ? adminEmail
         : fileSpec.user_email;
     const user = await resolveUserByEmail(email);

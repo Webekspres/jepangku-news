@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, getAuthLoginPath } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ export default function ProtectedRoute({
     if (user === null) return; // still loading
 
     if (user === false) {
-      router.replace("/login");
+      router.replace(getAuthLoginPath());
       return;
     }
 

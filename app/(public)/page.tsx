@@ -199,7 +199,7 @@ export default function HomePage() {
           </div>
           <div className="mt-6 hidden md:flex justify-end">
             <Link
-              href="/register"
+              href="/sign-up"
               className="jepang-btn-primary"
               data-testid="hero-register-btn cursor-pointer"
             >
@@ -491,7 +491,7 @@ export default function HomePage() {
         </form>
         <div className="mt-4 hidden md:flex justify-end">
           <Link
-            href="/register"
+            href="/sign-up"
             className="jepang-btn-primary"
             data-testid="hero-register-btn"
           >

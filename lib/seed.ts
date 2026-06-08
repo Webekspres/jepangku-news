@@ -1,5 +1,4 @@
 import { db } from './db';
-import { hashPassword } from './auth';
 
 const CATEGORIES = [
   { name: 'Anime', slug: 'anime', color: '#D90429' },
@@ -21,18 +20,16 @@ export async function seedDatabase() {
   seeded = true;
 
   try {
-    // Seed admin user
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@jepangku.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'JepangkuAdmin2025!';
+    const adminEmail = (
+      process.env.ADMIN_EMAIL || 'admin+clerk_test@jepangku.com'
+    ).toLowerCase();
 
     const existingAdmin = await db.user.findUnique({ where: { email: adminEmail } });
     if (!existingAdmin) {
-      const hashed = await hashPassword(adminPassword);
       await db.user.create({
         data: {
           email: adminEmail,
           username: 'admin',
-          passwordHash: hashed,
           name: 'Admin Jepangku',
           role: 'ADMIN',
           status: 'active',
@@ -42,10 +39,9 @@ export async function seedDatabase() {
           },
         },
       });
-      console.log('Admin user seeded:', adminEmail);
+      console.log('Admin user seeded (Clerk):', adminEmail);
     }
 
-    // Seed categories
     for (let i = 0; i < CATEGORIES.length; i++) {
       const cat = CATEGORIES[i];
       const existing = await db.category.findUnique({ where: { slug: cat.slug } });

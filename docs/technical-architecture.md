@@ -68,16 +68,12 @@ Digunakan untuk media seperti cover image dan file upload. R2 dipilih karena kom
 
 ## 🔐 Authentication
 
-### Model
+Portal memakai **Clerk only** — tidak ada login JWT lokal.
 
-- `USER`
-- `ADMIN`
-
-### Implementasi
-
-- Login menggunakan email/username + password
-- JWT disimpan dalam cookie HTTP-only
-- Route protection untuk area user dan admin
+- Sign-in: `/sign-in` · Sign-up: `/sign-up`
+- `/login` dan `/register` redirect ke Clerk
+- Session → JIT sync ke tabel `users` portal (`clerk_id`, profil, poin)
+- Admin seed: `admin+clerk_test@jepangku.com` — login Clerk dengan email yang sama (OTP dev: `424242`) untuk mempertahankan role `ADMIN`
 
 ## 🧭 Deployment
 

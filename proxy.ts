@@ -1,3 +1,4 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 /** Hanya rute profil milik sendiri yang wajib login; `/profile/[username]` publik. */
@@ -5,14 +6,15 @@ function isPrivateProfileRoute(pathname: string): boolean {
   return pathname === '/profile' || pathname.startsWith('/profile/edit');
 }
 
-const PROTECTED_ROUTES = [
-  '/my-articles',
-  '/submit-article',
-  '/edit-article',
-  '/bookmarks',
-  '/points',
-];
-const ADMIN_ROUTES = ['/admin'];
+const CLERK_PROTECTED_ROUTES = createRouteMatcher([
+  '/my-articles(.*)',
+  '/submit-article(.*)',
+  '/edit-article(.*)',
+  '/bookmarks(.*)',
+  '/points(.*)',
+  '/profile/edit(.*)',
+  '/admin(.*)',
+]);
 
 function getClientIp(request: NextRequest) {
   return (
@@ -22,77 +24,49 @@ function getClientIp(request: NextRequest) {
   );
 }
 
-export function proxy(request: NextRequest) {
+function logApiRequest(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const requestId = crypto.randomUUID();
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message: 'api.request',
+      requestId,
+      method: request.method,
+      path: pathname + search,
+      ip: getClientIp(request),
+    }),
+  );
+  const response = NextResponse.next();
+  response.headers.set('x-request-id', requestId);
+  return response;
+}
+
+export default clerkMiddleware(async (auth, request) => {
+  const { pathname, search } = request.nextUrl;
 
   if (pathname.startsWith('/api/')) {
-    console.log(
-      JSON.stringify({
-        timestamp: new Date().toISOString(),
-        level: 'info',
-        message: 'api.request',
-        requestId,
-        method: request.method,
-        path: pathname + search,
-        ip: getClientIp(request),
-      }),
-    );
-    const response = NextResponse.next();
-    response.headers.set('x-request-id', requestId);
-    return response;
+    return logApiRequest(request);
   }
 
-  const isAdminRoute = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
-  const isProtectedRoute =
-    PROTECTED_ROUTES.some((r) => pathname.startsWith(r)) ||
+  const needsAuth =
+    CLERK_PROTECTED_ROUTES(request) ||
     isPrivateProfileRoute(pathname);
 
-  if (!isAdminRoute && !isProtectedRoute) {
-    return NextResponse.next();
-  }
-
-  const token = request.cookies.get('access_token')?.value;
-
-  if (!token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('from', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  if (pathname === '/login' || pathname === '/register') {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
-  if (isAdminRoute) {
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) throw new Error('Invalid token');
-      const payload = JSON.parse(
-        atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')),
-      );
-      if (payload.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-    } catch {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('from', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  if (needsAuth) {
+    const signInUrl = new URL('/sign-in', request.url);
+    signInUrl.searchParams.set('redirect_url', pathname + search);
+    await auth.protect({ unauthenticatedUrl: signInUrl.href });
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
-    '/api/:path*',
-    '/profile/:path*',
-    '/my-articles/:path*',
-    '/submit-article/:path*',
-    '/edit-article/:path*',
-    '/bookmarks/:path*',
-    '/points/:path*',
-    '/admin/:path*',
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+    '/__clerk/(.*)',
   ],
 };

@@ -1,11 +1,11 @@
 'use client';
 
-import { AuthProvider } from '@/contexts/AuthContext';
+import { ClerkAuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'sonner';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
+    <ClerkAuthProvider>
       {children}
       <Toaster
         position="top-right"
@@ -18,6 +18,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       />
-    </AuthProvider>
+    </ClerkAuthProvider>
   );
 }
