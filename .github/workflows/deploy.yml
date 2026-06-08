@@ -59,6 +59,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_APP_URL=https://portalinfo.jepangku.com
             NEXT_PUBLIC_API_URL=https://portalinfo.jepangku.com/api
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
           tags: |
             ${{ steps.meta.outputs.image }}:staging
             ${{ steps.meta.outputs.image }}:sha-${{ github.sha }}
