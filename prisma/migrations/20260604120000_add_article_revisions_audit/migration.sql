@@ -1,4 +1,4 @@
--- AlterTable (idempotent — columns may exist from prior db push)
+-- AlterTable (idempotent - columns may exist from prior db push)
 ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "last_edited_by_id" TEXT;
 ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "last_edited_at" TIMESTAMP(3);
 
