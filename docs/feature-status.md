@@ -24,17 +24,17 @@ signifikan pada fitur.
 
 ### 🔐 Auth & Akun — *Fase B/C (Clerk bridge — portal dulu)*
 
-[ ] **Integrasi Clerk di portal** — `@clerk/nextjs`, halaman sign-in/sign-up, `middleware.ts` proteksi route user/admin
-[ ] **Kolom `clerk_id` di DB portal** — migration `users.clerk_id` (unique, nullable); jangkar ke identitas global
-[ ] **JIT user provisioning** — upsert/find `users` by `clerk_id` saat session Clerk aktif (tidak bergantung Core webhook)
-[ ] **Refactor `lib/auth.ts`** — `getCurrentUser()` / `getCurrentAdmin()` dari session Clerk + lookup DB portal
-[ ] **Abstraction session user** — fitur berita hanya bergantung helper auth, bukan bcrypt/JWT/Clerk langsung
-[ ] **Feature flag auth** — `AUTH_PROVIDER=local|clerk` untuk rollback saat migrasi
-[ ] **Deprecate auth lokal** — matikan route login/register JWT + bcrypt setelah Clerk stabil
-[ ] **Email verification** — ditangani Clerk (bukan portal)
-[ ] **Forgot password / password reset** — ditangani Clerk
-[ ] **OAuth login** — ditangani Clerk (Google/sosial media)
-[ ] **Session management UI** — ditangani Clerk (bukan portal)
+[x] **Integrasi Clerk di portal** — `@clerk/nextjs`, halaman `/sign-in` & `/sign-up`, `proxy.ts` proteksi route user/admin (Clerk) + fallback JWT lokal
+[x] **Kolom `clerk_id` di DB portal** — migration `users.clerk_id` (unique, nullable); `password_hash` nullable untuk akun Clerk-only
+[x] **JIT user provisioning** — upsert/find `users` by `clerk_id` (link by email jika ada); sync via `lib/auth/clerk-user.ts`
+[x] **Refactor `lib/auth.ts`** — `getCurrentUser()` / `getCurrentAdmin()` dual path: Clerk session + lookup DB portal, atau JWT lokal
+[x] **Abstraction session user** — tipe `SessionUser` (`lib/auth/types.ts`); API route tetap pakai helper auth
+[x] **Feature flag auth** — `AUTH_PROVIDER=local|clerk` + `NEXT_PUBLIC_AUTH_PROVIDER` (rollback ke JWT lokal)
+[x] **Deprecate auth lokal** — `/login` & `/register` redirect ke `/sign-in` & `/sign-up`; API login/register disabled (410)
+[x] **Email verification** — Clerk
+[x] **Forgot password / password reset** — Clerk
+[x] **OAuth login** — Clerk (konfigurasi di Clerk Dashboard)
+[x] **Session management UI** — Clerk User Profile / Account
 
 ### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
 
@@ -192,13 +192,19 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 [x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
 [x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
 
-### 🔐 Auth & Akun — *sementara lokal (akan diganti Clerk bridge)*
+### 🔐 Auth & Akun — *Clerk bridge + fallback JWT lokal*
 
-[x] Register: validasi uniqueness email/username, bcrypt hash, JWT cookie (access 15m + refresh 7d), seed DB otomatis
-[x] Login: mendukung email atau username, cek status banned, JWT cookie
-[x] Logout: clear cookie
-[x] `GET /api/auth/me`: validasi JWT, return data user bersih
-[x] Daily login points: `checkDailyLogin()` dipanggil tiap login, +3 poin per hari via `DailyLoginReward` table
+[x] `@clerk/nextjs` + `ClerkProvider` (saat `AUTH_PROVIDER=clerk`)
+[x] Halaman `/sign-in`, `/sign-up` (Clerk UI); `/login`, `/register` redirect ke Clerk bila perlu
+[x] `users.clerk_id` + JIT provisioning (`lib/auth/clerk-user.ts`)
+[x] `SessionUser` abstraction; `getCurrentUser()` / `getCurrentAdmin()` dual provider
+[x] `AUTH_PROVIDER` / `NEXT_PUBLIC_AUTH_PROVIDER` feature flag
+[x] `proxy.ts`: proteksi route + logging API (Clerk `auth.protect` atau cookie JWT lokal)
+[x] Register: validasi uniqueness email/username, bcrypt hash, JWT cookie (mode `local`)
+[x] Login: mendukung email atau username, cek status banned, JWT cookie (mode `local`)
+[x] Logout: clear cookie (local) / Clerk `signOut` (clerk)
+[x] `GET /api/auth/me`: session user (Clerk JIT atau JWT)
+[x] Daily login points: `checkDailyLogin()` saat login/provisi Clerk
 [x] Username change cooldown 14 hari (field `usernameChangedAt`, enforced di API + UI profile edit)
 
 ### 🔍 Search & Discovery — API
@@ -352,7 +358,7 @@ Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Rin
 
 ### 🔧 Utilities & Infrastruktur
 
-[x] `lib/auth.ts`: bcrypt, JWT create/verify, `getCurrentUser`, `getCurrentAdmin`, cookie set/clear
+[x] `lib/auth.ts` + `lib/auth/*`: Clerk bridge, JWT lokal, `SessionUser`, feature flag
 [x] `lib/points.ts`: `awardPoints()` dengan idempotency via unique constraint + race condition handling
 [x] `lib/slug.ts`: `createSlug` (user content) dan `createAdminSlug` (admin content)
 [x] `lib/article-tags.ts`: `syncArticleTags`, `resolveCategoryId`

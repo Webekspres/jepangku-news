@@ -1,6 +1,8 @@
+const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
+
 const SAMPLE_USERS = [
   {
-    email: "budi.santoso@gmail.com",
+    email: CLERK_TEST_SAMPLE_USER_EMAIL,
     username: "budisantoso",
     name: "Budi Santoso",
     displayName: "Budi ✨",

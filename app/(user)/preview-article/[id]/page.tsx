@@ -132,7 +132,7 @@ export default function PreviewArticlePage() {
 
   useEffect(() => {
     if (user === false) {
-      router.replace("/login");
+      router.replace("/sign-in");
       return;
     }
     if (user === null) return;

@@ -3,8 +3,10 @@
  * target_index = urutan artikel milik user (bukan admin) yang published/pending.
  */
 
+const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
+
 const EDITORS = [
-  "budi.santoso@gmail.com",
+  CLERK_TEST_SAMPLE_USER_EMAIL,
   "siti.rahayu@gmail.com",
   "andi.wijaya@gmail.com",
   "dewi.kusuma@gmail.com",

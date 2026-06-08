@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth, isAuthUser } from "@/contexts/AuthContext";
+import { useAuth, isAuthUser, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
 
 export default function Footer() {
   const { user, loading, logout } = useAuth();
@@ -222,7 +222,7 @@ export default function Footer() {
                 <>
                   <li>
                     <Link
-                      href="/login"
+                      href={getAuthLoginPath()}
                       className="hover:text-jepang-red transition-colors"
                     >
                       Masuk
@@ -230,7 +230,7 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/register"
+                      href={getAuthRegisterPath()}
                       className="hover:text-jepang-red transition-colors"
                     >
                       Daftar

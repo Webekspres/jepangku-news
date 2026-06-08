@@ -70,9 +70,10 @@ enum ReactionType {
 
 model User {
   id               String            @id @default(uuid())
+  clerkId          String?           @unique @map("clerk_id")
   email            String            @unique
   username         String            @unique
-  passwordHash     String            @map("password_hash")
+  passwordHash     String?           @map("password_hash")
   name             String
   role             Role              @default(USER)
   avatarUrl        String?           @map("avatar_url")

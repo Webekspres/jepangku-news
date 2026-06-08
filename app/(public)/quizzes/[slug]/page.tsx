@@ -41,7 +41,7 @@ export default function QuizDetailPage() {
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Silakan masuk untuk mengirim kuis");
-      router.push("/login");
+      router.push("/sign-in");
       return;
     }
     if (Object.keys(answers).length !== quiz.questions.length) {
@@ -231,7 +231,7 @@ export default function QuizDetailPage() {
               <p className="text-sm">
                 ⚠️{" "}
                 <Link
-                  href="/login"
+                  href="/sign-in"
                   className="text-jepang-red font-bold underline"
                 >
                   Masuk

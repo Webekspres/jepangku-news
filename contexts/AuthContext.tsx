@@ -1,20 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useClerk, useAuth as useClerkSession } from '@clerk/nextjs';
+import type { SessionUser } from '@/lib/auth/types';
 
-export interface AuthUser {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  avatarUrl: string | null;
-  totalPoints: number;
-  status: string;
-  createdAt: string;
-}
+export type AuthUser = SessionUser;
 
-// null = loading, false = not authenticated, AuthUser = authenticated
 type UserState = AuthUser | null | false;
 
 interface AuthContextType {
@@ -28,17 +19,20 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
+  const { signOut } = useClerk();
+  const { isLoaded, isSignedIn } = useClerkSession();
   const [user, setUser] = useState<UserState>(null);
   const [loading, setLoading] = useState(true);
+  const fetchIdRef = useRef(0);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
+  const checkAuth = useCallback(async () => {
+    const fetchId = ++fetchIdRef.current;
 
-  const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me', { cache: 'no-store' });
+      if (fetchId !== fetchIdRef.current) return;
+
       if (res.ok) {
         const data = await res.json();
         setUser(data as AuthUser);
@@ -46,48 +40,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(false);
       }
     } catch {
+      if (fetchId !== fetchIdRef.current) return;
       setUser(false);
     } finally {
+      if (fetchId === fetchIdRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      setUser(false);
       setLoading(false);
+      return;
     }
+
+    setLoading(true);
+    void checkAuth();
+  }, [isLoaded, isSignedIn, checkAuth]);
+
+  const login = async (): Promise<AuthUser> => {
+    window.location.href = '/sign-in';
+    throw new Error('Redirecting to Clerk sign-in');
   };
 
-  const login = async (email: string, password: string): Promise<AuthUser> => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Masuk gagal');
-    }
-    const data = await res.json() as AuthUser;
-    setUser(data);
-    return data;
+  const register = async (): Promise<AuthUser> => {
+    window.location.href = '/sign-up';
+    throw new Error('Redirecting to Clerk sign-up');
   };
 
-  const register = async (formData: { name: string; username: string; email: string; password: string }): Promise<AuthUser> => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Pendaftaran gagal');
-    }
-    const data = await res.json() as AuthUser;
-    setUser(data);
-    return data;
-  };
-
-  const logout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch { /* ignore */ }
+  const logout = useCallback(async () => {
+    await signOut({ redirectUrl: '/' });
     setUser(false);
-  };
+  }, [signOut]);
 
   const refreshUser = async () => {
     try {
@@ -100,7 +88,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -108,10 +98,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error('useAuth must be used within ClerkAuthProvider');
   return ctx;
 }
 
 export function isAuthUser(user: UserState): user is AuthUser {
   return user !== null && user !== false;
+}
+
+export function getAuthLoginPath(): string {
+  return '/sign-in';
+}
+
+export function getAuthRegisterPath(): string {
+  return '/sign-up';
 }

@@ -2,9 +2,10 @@
 // It has been replaced with a generator to create ~300+ highly varied seeded articles.
 
 const { IMAGES } = require("./images.js");
+const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
 
 const AUTHORS = [
-  { email: "budi.santoso@gmail.com", displayName: "Budi" },
+  { email: CLERK_TEST_SAMPLE_USER_EMAIL, displayName: "Budi" },
   { email: "siti.rahayu@gmail.com", displayName: "Siti" },
   { email: "andi.wijaya@gmail.com", displayName: "Andi" },
   { email: "dewi.kusuma@gmail.com", displayName: "Dewi" },

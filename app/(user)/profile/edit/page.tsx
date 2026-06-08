@@ -54,7 +54,7 @@ export default function EditProfilePage() {
   // Redirect jika belum login
   useEffect(() => {
     if (user === false) {
-      router.replace("/login");
+      router.replace("/sign-in");
     }
   }, [user, router]);
 

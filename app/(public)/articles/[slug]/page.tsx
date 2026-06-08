@@ -105,7 +105,7 @@ export default function ArticleDetailPage() {
   const handleBookmark = async () => {
     if (!user) {
       toast.error("Silakan masuk untuk menyimpan artikel");
-      router.push("/login");
+      router.push("/sign-in");
       return;
     }
     try {

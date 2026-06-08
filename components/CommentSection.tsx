@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useAuth, isAuthUser } from "@/contexts/AuthContext";
+import { useAuth, isAuthUser, getAuthLoginPath } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   MessageSquare,
@@ -551,7 +551,7 @@ export default function CommentSection({
         </div>
       ) : (
         <div className="mb-8 border border-jepang-border p-4 text-center">
-          <Link href="/login" className="text-jepang-red font-bold text-sm">
+          <Link href={getAuthLoginPath()} className="text-jepang-red font-bold text-sm">
             MASUK UNTUK BERKOMENTAR DAN DAPATKAN POIN
           </Link>
         </div>

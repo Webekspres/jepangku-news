@@ -2,8 +2,10 @@
  * Data share artikel — beragam metode dan user.
  */
 
+const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
+
 const AUTHORS = [
-  "budi.santoso@gmail.com",
+  CLERK_TEST_SAMPLE_USER_EMAIL,
   "siti.rahayu@gmail.com",
   "andi.wijaya@gmail.com",
   "dewi.kusuma@gmail.com",
