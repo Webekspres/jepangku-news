@@ -71,7 +71,9 @@ interface LeaderboardEntry {
   displayName: string;
   username: string;
   avatarUrl?: string | null;
-  weeklyPoints: number;
+  totalXp: number;
+  currentPoints?: number;
+  period?: 'all-time';
 }
 
 interface CategoryArticle {
@@ -660,7 +662,7 @@ export default function HomePage() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-black text-xl text-jepang-red">
-                      {entry.weeklyPoints}
+                      {entry.totalXp}
                     </p>
                     <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
                       POIN

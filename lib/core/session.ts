@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { exchangeClerkToken } from './auth';
 import { CoreApiError } from './client';
 import { isCoreApiConfigured } from './config';
+import { isCoreJwtVerifyConfigured, verifyCoreJwtToken } from './verify-jwt';
 
 export const CORE_SESSION_COOKIE = 'core_session';
 const CORE_SESSION_MAX_AGE = 7 * 24 * 60 * 60;
@@ -21,6 +22,14 @@ export type CoreJwtClaims = {
   };
 };
 
+function parseVerifiedPayload(payload: unknown): CoreJwtClaims | null {
+  if (!payload || typeof payload !== 'object' || !('sub' in payload)) return null;
+  const sub = (payload as { sub: unknown }).sub;
+  if (typeof sub !== 'string' || !sub) return null;
+  return payload as CoreJwtClaims;
+}
+
+/** @deprecated Use verified claims via getCoreJwtClaims — decode-only without signature check. */
 export function decodeCoreJwtClaims(token: string): CoreJwtClaims | null {
   try {
     const parts = token.split('.');
@@ -34,9 +43,26 @@ export function decodeCoreJwtClaims(token: string): CoreJwtClaims | null {
   }
 }
 
-function isTokenExpired(claims: CoreJwtClaims): boolean {
-  if (!claims.exp) return false;
-  return claims.exp * 1000 <= Date.now() + 60_000;
+async function verifyAndParseClaims(token: string): Promise<CoreJwtClaims | null> {
+  if (isCoreJwtVerifyConfigured()) {
+    try {
+      const payload = await verifyCoreJwtToken(token);
+      return parseVerifiedPayload(payload);
+    } catch (error) {
+      logger.warn('core.session.verify.failed', {
+        message: error instanceof Error ? error.message : 'unknown',
+      });
+      return null;
+    }
+  }
+
+  const claims = decodeCoreJwtClaims(token);
+  if (claims) {
+    logger.warn('core.session.verify.skipped', {
+      reason: 'CORE_JWT_PUBLIC_KEY not configured — using decode-only',
+    });
+  }
+  return claims;
 }
 
 export async function getCoreSessionToken(): Promise<string | null> {
@@ -47,9 +73,7 @@ export async function getCoreSessionToken(): Promise<string | null> {
 export async function getCoreJwtClaims(): Promise<CoreJwtClaims | null> {
   const token = await getCoreSessionToken();
   if (!token) return null;
-  const claims = decodeCoreJwtClaims(token);
-  if (!claims || isTokenExpired(claims)) return null;
-  return claims;
+  return verifyAndParseClaims(token);
 }
 
 export function coreSessionCookieOptions() {
@@ -70,7 +94,7 @@ export async function establishCoreSession(clerkSessionToken: string): Promise<C
     const { token } = await exchangeClerkToken(clerkSessionToken);
     const jar = await cookies();
     jar.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
-    return decodeCoreJwtClaims(token);
+    return verifyAndParseClaims(token);
   } catch (error) {
     const meta =
       error instanceof CoreApiError

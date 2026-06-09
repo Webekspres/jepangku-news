@@ -27,8 +27,5 @@ export type SessionUser = {
 export const CORE_ADMIN_ROLES = ['NEWS_EDITOR', 'CORE_ADMIN'] as const;
 
 export function hasNewsAdminAccess(user: SessionUser): boolean {
-  if (user.coreRoles.some((r) => (CORE_ADMIN_ROLES as readonly string[]).includes(r))) {
-    return true;
-  }
-  return user.role === 'ADMIN';
+  return user.coreRoles.some((r) => (CORE_ADMIN_ROLES as readonly string[]).includes(r));
 }

@@ -30,6 +30,7 @@ export {
   buildNewsIdempotencyKey,
 } from './activity-map';
 
+export { isCoreJwtVerifyConfigured, verifyCoreJwtToken } from './verify-jwt';
 export type { CoreJwtClaims } from './session';
 export type {
   CoreAwardXpInput,

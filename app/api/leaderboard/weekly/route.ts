@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { fetchCoreLeaderboard } from '@/lib/core/users';
 import { isCoreApiConfigured } from '@/lib/core/config';
 
+/** Global XP leaderboard from Core (no weekly filter in Core API yet). */
 export async function GET() {
   if (isCoreApiConfigured()) {
     try {
@@ -23,9 +24,10 @@ export async function GET() {
             displayName: profile?.displayName || portalUser?.username || entry.name,
             username: portalUser?.username || '',
             avatarUrl: portalUser?.avatarUrl || entry.imageUrl,
-            weeklyPoints: entry.totalXp,
             totalXp: entry.totalXp,
             currentPoints: entry.currentPoints,
+            /** Weekly leaderboard pending Core API — use global rank for now */
+            period: 'all-time' as const,
           };
         }),
       );

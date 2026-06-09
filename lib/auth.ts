@@ -61,14 +61,14 @@ export async function withCoreSessionCookie(
   if (existing) return response;
 
   const { exchangeClerkToken } = await import('@/lib/core/auth');
-  const { coreSessionCookieOptions, decodeCoreJwtClaims, CORE_SESSION_COOKIE } = await import(
-    '@/lib/core/session'
-  );
+  const { coreSessionCookieOptions, CORE_SESSION_COOKIE } = await import('@/lib/core/session');
 
   try {
+    const jar = await import('next/headers').then((m) => m.cookies());
+    if (jar.get(CORE_SESSION_COOKIE)?.value) return response;
+
     const { token } = await exchangeClerkToken(clerkSessionToken);
     response.cookies.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
-    decodeCoreJwtClaims(token);
   } catch {
     // Non-fatal — portal session still valid via Clerk
   }

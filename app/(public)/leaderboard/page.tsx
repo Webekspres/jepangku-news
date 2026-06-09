@@ -120,7 +120,7 @@ export default function LeaderboardPage() {
                               #{realIdx}
                             </p>
                             <p className="text-xs font-mono">
-                              {entry.weeklyPoints} POIN
+                              {entry.totalXp} XP
                             </p>
                           </div>
                         </div>
@@ -165,7 +165,7 @@ export default function LeaderboardPage() {
                       <div className="text-right">
                         <p className="font-mono font-black text-xl text-jepang-red flex items-center gap-1">
                           <Award size={14} strokeWidth={1.5} />{" "}
-                          {entry.weeklyPoints}
+                          {entry.totalXp}
                         </p>
                         <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
                           POIN

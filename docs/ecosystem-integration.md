@@ -99,38 +99,20 @@ news:daily_login:{YYYY-MM-DD}:{clerkId}
 
 ---
 
-## 4. Kondisi News saat ini vs target
+## 4. Kondisi News saat ini (Fase 3 + Fase 1 selesai di kode)
 
-```mermaid
-flowchart LR
-  subgraph now [Sekarang]
-    Clerk1[Clerk]
-    News1[News]
-    NewsDB1[(News DB users UUID + poin lokal)]
-    Clerk1 --> News1 --> NewsDB1
-  end
+| Aspek | Status |
+| :--- | :--- |
+| Login | Clerk ✅ |
+| User table | `users.id` = Clerk ID ✅ |
+| FK konten | → Clerk ID ✅ |
+| Poin / XP | Core `gamification/award` only ✅ |
+| Core client | `lib/core/` + `CORE_*` env ✅ |
+| Core JWT | Verify signature via `jose` (Fase 1) ✅ |
+| Admin gate | `NEWS_EDITOR` / `CORE_ADMIN` dari Core JWT ✅ |
+| Leaderboard | Global XP dari Core (`period: all-time`) ✅ |
 
-  subgraph target [Target Fase 3]
-    Clerk2[Clerk]
-    News2[News]
-    Core2[Core]
-    NewsDB2[(News DB domain only)]
-    CoreDB2[(Core DB)]
-    Clerk2 --> News2
-    Clerk2 -->|webhook| Core2
-    News2 -->|auth/token + award| Core2
-    Core2 --> CoreDB2
-    News2 --> NewsDB2
-  end
-```
-
-| Aspek | Sekarang | Target |
-| :--- | :--- | :--- |
-| Login | Clerk ✅ | Clerk ✅ |
-| User table | `users.id` UUID + `clerk_id` | Minimal profile keyed by Clerk ID |
-| FK konten | → UUID lokal | → Clerk ID |
-| Poin | `lib/points.ts` lokal | Core `gamification/award` |
-| Core client | Belum ada | `lib/core/` + env `CORE_*` |
+Sisa operasional: QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` dari Core (`bun run jwt:sync-public-key-to-clients`).
 
 ---
 

@@ -11,7 +11,9 @@ interface LeaderboardEntry {
   displayName: string;
   username: string;
   avatarUrl: string | null;
-  weeklyPoints: number;
+  totalXp: number;
+  currentPoints: number;
+  period: 'all-time';
 }
 
 interface PollResponse {
@@ -89,7 +91,9 @@ async function fetchLeaderboardData(): Promise<LeaderboardEntry[]> {
           displayName: profile?.displayName || user?.name || entry.name,
           username: user?.username || '',
           avatarUrl: user?.avatarUrl || entry.imageUrl,
-          weeklyPoints: entry.totalXp,
+          totalXp: entry.totalXp,
+          currentPoints: entry.currentPoints,
+          period: 'all-time' as const,
         };
       }),
     );
