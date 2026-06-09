@@ -20,28 +20,6 @@ export async function seedDatabase() {
   seeded = true;
 
   try {
-    const adminEmail = (
-      process.env.ADMIN_EMAIL || 'admin+clerk_test@jepangku.com'
-    ).toLowerCase();
-
-    const existingAdmin = await db.user.findUnique({ where: { email: adminEmail } });
-    if (!existingAdmin) {
-      await db.user.create({
-        data: {
-          email: adminEmail,
-          username: 'admin',
-          name: 'Admin Jepangku',
-          role: 'ADMIN',
-          status: 'active',
-          totalPoints: 0,
-          profile: {
-            create: { displayName: 'Admin Jepangku' },
-          },
-        },
-      });
-      console.log('Admin user seeded (Clerk):', adminEmail);
-    }
-
     for (let i = 0; i < CATEGORIES.length; i++) {
       const cat = CATEGORIES[i];
       const existing = await db.category.findUnique({ where: { slug: cat.slug } });

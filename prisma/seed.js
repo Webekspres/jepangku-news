@@ -1,5 +1,8 @@
-const bcrypt = require("bcryptjs");
 const { createPrismaClient } = require("./create-client.js");
+const {
+  fetchClerkUsersByEmail,
+  resolvePortalUserId,
+} = require("./seeder/clerk-resolve.js");
 
 const prisma = createPrismaClient();
 
@@ -93,18 +96,20 @@ async function main() {
     console.log(`✅ Migrated user email: ${from} → ${to}`);
   }
 
-  // ── 1. Admin user ──────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL || CLERK_TEST_ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD || "JepangkuAdmin2025!";
+  const clerkByEmail = await fetchClerkUsersByEmail();
 
-  let admin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  // ── 1. Admin user (portal profile; Clerk ID = users.id) ───────────────
+  const adminEmail = process.env.ADMIN_EMAIL || CLERK_TEST_ADMIN_EMAIL;
+  const adminId =
+    clerkByEmail.get(adminEmail.toLowerCase()) || "seed_admin_jepangku";
+
+  let admin = await prisma.user.findUnique({ where: { id: adminId } });
   if (!admin) {
-    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     admin = await prisma.user.create({
       data: {
+        id: adminId,
         email: adminEmail,
         username: "admin",
-        passwordHash: hashedPassword,
         name: "Admin Jepangku",
         role: "ADMIN",
         status: "active",
@@ -116,32 +121,27 @@ async function main() {
         },
       },
     });
-    console.log(`✅ Created admin: ${adminEmail}`);
+    console.log(`✅ Created admin: ${adminEmail} (${adminId})`);
   } else {
     console.log(`⏭  Admin already exists: ${adminEmail}`);
   }
 
-  // ── 2. Sample users ────────────────────────────────────────────────────
-  const defaultUserPassword = "UserJepangku2025!";
-  const hashedUserPassword = await bcrypt.hash(defaultUserPassword, 10);
-
+  // ── 2. Sample users (Clerk ID or seed_* for dev content) ─────────────
   for (const userData of SAMPLE_USERS) {
-    const existing = await prisma.user.findUnique({
-      where: { email: userData.email },
-    });
+    const userId = resolvePortalUserId(userData, clerkByEmail);
+    const existing = await prisma.user.findUnique({ where: { id: userId } });
     if (existing) {
       console.log(`⏭  User exists: ${userData.email}`);
       continue;
     }
     await prisma.user.create({
       data: {
+        id: userId,
         email: userData.email,
         username: userData.username,
-        passwordHash: hashedUserPassword,
         name: userData.name,
         role: "USER",
         status: "active",
-        totalPoints: userData.totalPoints,
         profile: {
           create: {
             displayName: userData.displayName,
@@ -150,7 +150,7 @@ async function main() {
         },
       },
     });
-    console.log(`✅ Created user: ${userData.email}`);
+    console.log(`✅ Created user: ${userData.email} (${userId})`);
   }
 
   // ── 3. Categories ──────────────────────────────────────────────────────
@@ -507,38 +507,7 @@ async function main() {
         USER_ACTIVITY_CONFIG[uIdx] ||
         USER_ACTIVITY_CONFIG[USER_ACTIVITY_CONFIG.length - 1];
 
-      // ── a. Daily Login Rewards ────────────────────────────────────────
-      for (let d = 0; d < cfg.loginDays; d++) {
-        const rewardDate = new Date(daysAgo(d));
-        const dateStr = rewardDate.toISOString().split("T")[0]; // YYYY-MM-DD
-
-        const existingLogin = await prisma.dailyLoginReward.findFirst({
-          where: { userId: user.id, rewardDate: dateStr },
-        });
-        if (existingLogin) continue;
-
-        const loginPoints = 5;
-        const tx = await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "daily_login",
-            sourceType: "login",
-            points: loginPoints,
-            description: `Daily login reward - ${dateStr}`,
-            occurredAt: rewardDate,
-          },
-        });
-        await prisma.dailyLoginReward.create({
-          data: {
-            userId: user.id,
-            rewardDate: dateStr,
-            pointsAwarded: loginPoints,
-            pointTransactionId: tx.id,
-          },
-        });
-      }
-
-      // ── b. Quiz Attempts ──────────────────────────────────────────────
+      // ── a. Quiz Attempts ──────────────────────────────────────────────
       const quizzesToAttempt = allQuizzes.slice(0, cfg.quizzes);
       for (const quiz of quizzesToAttempt) {
         const existingAttempt = await prisma.quizAttempt.findFirst({
@@ -598,18 +567,6 @@ async function main() {
           });
         }
 
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "quiz_completed",
-            sourceType: "quiz",
-            sourceId: quiz.id,
-            points: pointsAwarded,
-            description: `Completed quiz: ${quiz.title} (${correctCount}/${questions.length} correct)`,
-            occurredAt: attemptDate,
-          },
-        });
-
         console.log(
           `  ✅ Quiz attempt: ${user.email} → "${quiz.title}" (${correctCount}/${questions.length})`,
         );
@@ -654,18 +611,6 @@ async function main() {
           data: { voteCount: { increment: 1 } },
         });
 
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "poll_voted",
-            sourceType: "poll",
-            sourceId: poll.id,
-            points: poll.pointsReward,
-            description: `Voted on poll: ${poll.title}`,
-            occurredAt: voteDate,
-          },
-        });
-
         console.log(`  ✅ Poll vote: ${user.email} → "${poll.title}"`);
       }
 
@@ -687,23 +632,12 @@ async function main() {
           },
         });
 
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "article_bookmarked",
-            sourceType: "article",
-            sourceId: article.id,
-            points: 2,
-            description: "Bookmarked an article",
-            occurredAt: bookmarkDate,
-          },
-        });
       }
       console.log(
         `  ✅ Bookmarks: ${user.email} → ${articlesToBookmark.length} articles`,
       );
 
-      // ── e. Extra point transactions (article reads, shares, etc.) ─────
+      // ── e. Article shares (tanpa ledger poin lokal — XP di Core) ─────
       let remainingExtra = cfg.extraPoints;
       let actIdx = 0;
       while (remainingExtra > 0 && actIdx < 20) {
@@ -711,18 +645,6 @@ async function main() {
         const pts = Math.min(act.points, remainingExtra);
         const articleId = allArticles[actIdx % allArticles.length]?.id;
         const occurredAt = daysAgo(randInt(0, 6));
-
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: act.activityType,
-            sourceType: act.sourceType,
-            sourceId: act.sourceType === "article" ? articleId : null,
-            points: pts,
-            description: act.description,
-            occurredAt,
-          },
-        });
 
         if (act.activityType === "article_shared" && articleId) {
           const existingShare = await prisma.articleShare.findUnique({
@@ -746,9 +668,7 @@ async function main() {
         remainingExtra -= pts;
         actIdx++;
       }
-      console.log(
-        `  ✅ Extra transactions: ${user.email} → ~${cfg.extraPoints} pts`,
-      );
+      console.log(`  ✅ Extra shares: ${user.email}`);
     }
 
     console.log("✅ All user activities seeded.");

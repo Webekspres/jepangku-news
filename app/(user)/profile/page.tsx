@@ -92,7 +92,7 @@ export default function ProfilePage() {
           <div className="bg-jepang-red text-white p-6 border border-jepang-red">
             <Award size={32} strokeWidth={1.5} className="mb-3" />
             <p className="font-mono font-black text-4xl">
-              {(user as any).totalPoints || 0}
+              {user?.totalPoints || 0}
             </p>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] mt-1">
               TOTAL POIN

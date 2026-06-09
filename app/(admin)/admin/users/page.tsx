@@ -258,7 +258,7 @@ export default function AdminUsersPage() {
                     </TableCell>
 
                     <TableCell className="font-mono font-bold text-jepang-red">
-                      {user.totalPoints || 0}
+                      {user.totalPoints ?? '—'}
                     </TableCell>
 
                     <TableCell className="font-mono">

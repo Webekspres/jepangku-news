@@ -69,28 +69,24 @@ enum ReactionType {
 }
 
 model User {
-  id               String            @id @default(uuid())
-  clerkId          String?           @unique @map("clerk_id")
+  /// Clerk User ID — same as jepangku-core users.id (global identity anchor)
+  id               String            @id
   email            String            @unique
   username         String            @unique
-  passwordHash     String?           @map("password_hash")
   name             String
   role             Role              @default(USER)
   avatarUrl        String?           @map("avatar_url")
   status           String            @default("active") // "active", "inactive", "banned"
-  totalPoints      Int               @default(0) @map("total_points")
   usernameChangedAt DateTime?        @map("username_changed_at")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   lastLoginAt      DateTime?         @map("last_login_at")
-  
+
   profile          UserProfile?
   articles         Article[]
   bookmarks        Bookmark[]
   quizAttempts     QuizAttempt[]
   pollVotes        PollVote[]
-  pointTransactions PointTransaction[]
-  dailyLoginRewards DailyLoginReward[]
   files            File[]
   articleShares    ArticleShare[]
   articlesLastEdited Article[]       @relation("ArticleLastEditor")
@@ -128,7 +124,7 @@ model Category {
   sortOrder   Int       @default(0) @map("sort_order")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
-  
+
   articles    Article[]
 
   @@map("categories")
@@ -140,7 +136,7 @@ model Tag {
   name      String
   slug      String       @unique
   createdAt DateTime     @default(now()) @map("created_at")
-  
+
   articles  ArticleTag[]
 
   @@map("tags")
@@ -444,38 +440,6 @@ model PollVote {
 
   @@unique([pollId, questionId, userId])
   @@map("poll_votes")
-}
-
-model PointTransaction {
-  id           String   @id @default(uuid())
-  userId       String   @map("user_id")
-  sourceApp    String   @default("news") @map("source_app")
-  activityType String   @map("activity_type")
-  sourceType   String   @map("source_type")
-  sourceId     String?  @map("source_id")
-  points       Int
-  description  String?
-  occurredAt   DateTime @default(now()) @map("occurred_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, sourceApp, activityType, sourceType, sourceId])
-  @@map("point_transactions")
-}
-
-model DailyLoginReward {
-  id                 String   @id @default(uuid())
-  userId             String   @map("user_id")
-  sourceApp          String   @default("news") @map("source_app")
-  rewardDate         String   @map("reward_date") // YYYY-MM-DD
-  pointsAwarded      Int      @map("points_awarded")
-  pointTransactionId String   @map("point_transaction_id")
-  createdAt          DateTime @default(now()) @map("created_at")
-
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("daily_login_rewards")
 }
 
 model File {

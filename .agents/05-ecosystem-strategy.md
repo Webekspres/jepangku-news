@@ -1,9 +1,19 @@
 # Arah Pengembangan Project Jepangku
 
-> **Dokumen arah utama** untuk fase pasca-MVP. Rencana pengerjaan berfase (Fase A–E) yang
-> mengeksekusi strategi ini ada di `docs/development-roadmap.md`. Konteks: `.agents/01-mvp-scope.md`
-> (scope MVP), `.agents/03-database-erd.md` (schema saat ini), `.agents/04-project-steering.md`
-> (prioritas).
+> **⚠️ Spesifikasi teknis integrasi Core (v2):** Jangan implementasi API/schema dari bagian **8–12**
+> dokumen ini tanpa membaca pemetaan v1→v2. Kontrak canonical:
+>
+> - [`docs/ecosystem-integration.md`](../docs/ecosystem-integration.md) — cutover Portal Berita
+> - [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md) — ekosistem 3 app
+> - [`jepangku-core/docs/API.md`](../../jepangku-core/docs/API.md) — endpoint HTTP
+>
+> Bagian **1–7** dan **13–15** tetap valid sebagai **visi produk**. Bagian **8–12** mendeskripsikan
+> desain **v1** (`core_*`, `GET /me`, `POST /points/earn`) — digantikan oleh schema v2 di repo Core
+> (`users.id` = Clerk ID, `POST /api/v1/gamification/award`).
+
+> **Dokumen arah utama** untuk fase pasca-MVP. Rencana pengerjaan berfase (Fase 0–E) ada di
+> `docs/development-roadmap.md`. Konteks: `.agents/01-mvp-scope.md` (scope MVP),
+> `.agents/03-database-erd.md` (schema portal saat ini), `.agents/04-project-steering.md` (prioritas).
 
 ## 1. Gambaran Umum Project Jepangku
 

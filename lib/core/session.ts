@@ -1,0 +1,98 @@
+import { cookies } from 'next/headers';
+import { logger } from '@/lib/logger';
+import { exchangeClerkToken } from './auth';
+import { CoreApiError } from './client';
+import { isCoreApiConfigured } from './config';
+
+export const CORE_SESSION_COOKIE = 'core_session';
+const CORE_SESSION_MAX_AGE = 7 * 24 * 60 * 60;
+
+export type CoreJwtClaims = {
+  sub: string;
+  email?: string;
+  name?: string;
+  picture?: string;
+  exp?: number;
+  jepangku?: {
+    totalXp: number;
+    currentPoints: number;
+    level: number;
+    roles: string[];
+  };
+};
+
+export function decodeCoreJwtClaims(token: string): CoreJwtClaims | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+    const json = Buffer.from(padded, 'base64').toString('utf8');
+    return JSON.parse(json) as CoreJwtClaims;
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(claims: CoreJwtClaims): boolean {
+  if (!claims.exp) return false;
+  return claims.exp * 1000 <= Date.now() + 60_000;
+}
+
+export async function getCoreSessionToken(): Promise<string | null> {
+  const jar = await cookies();
+  return jar.get(CORE_SESSION_COOKIE)?.value ?? null;
+}
+
+export async function getCoreJwtClaims(): Promise<CoreJwtClaims | null> {
+  const token = await getCoreSessionToken();
+  if (!token) return null;
+  const claims = decodeCoreJwtClaims(token);
+  if (!claims || isTokenExpired(claims)) return null;
+  return claims;
+}
+
+export function coreSessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    maxAge: CORE_SESSION_MAX_AGE,
+    path: '/',
+  };
+}
+
+/** Exchange Clerk session for Core JWT and persist in httpOnly cookie. */
+export async function establishCoreSession(clerkSessionToken: string): Promise<CoreJwtClaims | null> {
+  if (!isCoreApiConfigured()) return null;
+
+  try {
+    const { token } = await exchangeClerkToken(clerkSessionToken);
+    const jar = await cookies();
+    jar.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
+    return decodeCoreJwtClaims(token);
+  } catch (error) {
+    const meta =
+      error instanceof CoreApiError
+        ? { code: error.code, status: error.status, message: error.message }
+        : { message: error instanceof Error ? error.message : 'unknown' };
+    logger.warn('core.session.establish.failed', meta);
+    return null;
+  }
+}
+
+/** Refresh Core session after gamification award (claims may be stale). */
+export async function refreshCoreSession(clerkSessionToken: string): Promise<void> {
+  await establishCoreSession(clerkSessionToken);
+}
+
+/** Refresh Core JWT for the current Clerk session (server-only). */
+export async function refreshCurrentUserCoreSession(): Promise<void> {
+  const { auth } = await import('@clerk/nextjs/server');
+  const authState = await auth();
+  if (!authState.isAuthenticated) return;
+  const clerkToken = await authState.getToken();
+  if (clerkToken) {
+    await refreshCoreSession(clerkToken);
+  }
+}

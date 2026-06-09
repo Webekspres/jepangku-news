@@ -1,108 +1,82 @@
-import { db } from './db';
-import { Prisma } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { refreshCurrentUserCoreSession } from '@/lib/core/session';
+import {
+  awardXp,
+  buildNewsIdempotencyKey,
+  CORE_APPLICATION_PORTAL,
+  CoreApiError,
+  isCoreAwardConfigured,
+  toCoreActivityType,
+} from '@/lib/core';
 
+/**
+ * Award XP/points via jepangku-core (single source of truth).
+ * `userId` must be the Clerk User ID (= portal users.id).
+ */
 export async function awardPoints(
   userId: string,
   activityType: string,
   sourceType: string,
   sourceId: string | null,
   points: number,
-  description?: string
+  _description?: string,
 ): Promise<boolean> {
+  if (points <= 0) return false;
+
+  const coreActivity = toCoreActivityType(activityType);
+  if (!coreActivity) {
+    logger.warn('core.award.skip_unknown_activity', { activityType });
+    return false;
+  }
+
+  if (!isCoreAwardConfigured()) {
+    logger.warn('core.award.not_configured', { activityType, userId });
+    return false;
+  }
+
+  const idempotencyKey = buildNewsIdempotencyKey(
+    activityType,
+    userId,
+    sourceId ?? sourceType,
+  );
+
   try {
-    // Quick check to avoid extra work
-    const existing = await db.pointTransaction.findFirst({
-      where: {
-        userId,
-        sourceApp: 'news',
-        activityType,
-        sourceType,
-        ...(sourceId ? { sourceId } : {}),
-      },
+    const result = await awardXp({
+      userId,
+      application: CORE_APPLICATION_PORTAL,
+      activityType: coreActivity,
+      xpGained: points,
+      pointsGained: points,
+      sourceRefId: sourceId ?? undefined,
+      idempotencyKey,
     });
 
-    if (existing) return false;
+    logger.info('core.award.ok', {
+      userId,
+      activityType,
+      coreActivity,
+      points,
+      idempotent: result.idempotent,
+      currentPoints: result.user.currentPoints,
+    });
 
-    // Neon HTTP adapter tidak mendukung interactive transaction, jadi operasi
-    // dijalankan berurutan. Unique constraint pada pointTransaction mencegah
-    // duplikasi/race; user.totalPoints di-increment setelah transaksi tercatat.
-    try {
-      await db.pointTransaction.create({
-        data: {
-          userId,
-          sourceApp: 'news',
-          activityType,
-          sourceType,
-          sourceId: sourceId ?? null,
-          points,
-          description: description ?? null,
-          occurredAt: new Date(),
-        },
-      });
-    } catch (e) {
-      // Handle unique constraint violation (race condition)
-      if ((e as any)?.code === 'P2002' || (e as any)?.code === '23505') {
-        // Duplicate detected, treat as already awarded
-        return false;
-      }
-      throw e;
+    if (!result.idempotent) {
+      await refreshCurrentUserCoreSession();
     }
 
-    await db.user.update({
-      where: { id: userId },
-      data: { totalPoints: { increment: points } },
-    });
-
-    return true;
-  } catch (e) {
-    console.error('Error awarding points:', e);
+    return !result.idempotent;
+  } catch (error) {
+    const meta =
+      error instanceof CoreApiError
+        ? { userId, activityType, code: error.code, status: error.status, message: error.message }
+        : { userId, activityType, message: error instanceof Error ? error.message : 'unknown' };
+    logger.warn('core.award.failed', meta);
     return false;
   }
 }
 
+/** Daily login reward — idempotent via Core idempotency key per calendar day. */
 export async function checkDailyLogin(userId: string): Promise<boolean> {
-  try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-
-    const existing = await db.dailyLoginReward.findFirst({
-      where: { userId, sourceApp: 'news', rewardDate: today },
-    });
-
-    if (existing) return false;
-
-    const points = 3;
-
-    const transaction = await db.pointTransaction.create({
-      data: {
-        userId,
-        sourceApp: 'news',
-        activityType: 'daily_login',
-        sourceType: 'system',
-        sourceId: null,
-        points,
-        description: 'Daily login reward',
-        occurredAt: new Date(),
-      },
-    });
-
-    await db.user.update({
-      where: { id: userId },
-      data: { totalPoints: { increment: points } },
-    });
-
-    await db.dailyLoginReward.create({
-      data: {
-        userId,
-        sourceApp: 'news',
-        rewardDate: today,
-        pointsAwarded: points,
-        pointTransactionId: transaction.id,
-      },
-    });
-
-    return true;
-  } catch (e) {
-    console.error('Error checking daily login:', e);
-    return false;
-  }
+  const today = new Date().toISOString().split('T')[0];
+  return awardPoints(userId, 'daily_login', 'system', today, 3);
 }

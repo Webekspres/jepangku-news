@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
+import { isCoreApiConfigured } from '@/lib/core/config';
+import { fetchCoreLeaderboard } from '@/lib/core/users';
 
 // Type definitions
 interface LeaderboardEntry {
@@ -66,32 +68,34 @@ interface HomepageResponse {
   categories: CategoryWithArticles[];
 }
 
-// Helper function to fetch leaderboard data
-async function fetchLeaderboardData(
-  leaderboard: Array<{ userId: string; _sum: { points: number | null } }>
-): Promise<LeaderboardEntry[]> {
-  return Promise.all(
-    leaderboard.map(async (entry, idx) => {
-      const user = await db.user.findUnique({
-        where: { id: entry.userId },
-        select: { name: true, username: true, avatarUrl: true },
-      });
+async function fetchLeaderboardData(): Promise<LeaderboardEntry[]> {
+  if (!isCoreApiConfigured()) return [];
 
-      const profile = await db.userProfile.findUnique({
-        where: { userId: entry.userId },
-        select: { displayName: true },
-      });
-
-      return {
-        rank: idx + 1,
-        userId: entry.userId,
-        displayName: profile?.displayName || user?.name || 'Unknown',
-        username: user?.username || '',
-        avatarUrl: user?.avatarUrl || null,
-        weeklyPoints: entry._sum.points || 0,
-      };
-    })
-  );
+  try {
+    const { items } = await fetchCoreLeaderboard(10, 0);
+    return Promise.all(
+      items.map(async (entry) => {
+        const user = await db.user.findUnique({
+          where: { id: entry.id },
+          select: { name: true, username: true, avatarUrl: true },
+        });
+        const profile = await db.userProfile.findUnique({
+          where: { userId: entry.id },
+          select: { displayName: true },
+        });
+        return {
+          rank: entry.rank,
+          userId: entry.id,
+          displayName: profile?.displayName || user?.name || entry.name,
+          username: user?.username || '',
+          avatarUrl: user?.avatarUrl || entry.imageUrl,
+          weeklyPoints: entry.totalXp,
+        };
+      }),
+    );
+  } catch {
+    return [];
+  }
 }
 
 // Helper function to fetch categories with articles
@@ -118,10 +122,7 @@ async function fetchCategoriesWithArticles(
 }
 
 export async function GET(): Promise<NextResponse<HomepageResponse>> {
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  const [featuredArticles, articles, trending, polls, quizzes, leaderboard, categories] = await Promise.all([
+  const [featuredArticles, articles, trending, polls, quizzes, categories] = await Promise.all([
     db.article.findMany({
       where: { isFeatured: true, status: 'PUBLISHED', visibility: 'public' },
       orderBy: { publishedAt: 'desc' },
@@ -163,20 +164,13 @@ export async function GET(): Promise<NextResponse<HomepageResponse>> {
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { questions: true } } },
     }),
-    db.pointTransaction.groupBy({
-      by: ['userId'],
-      where: { sourceApp: 'news', occurredAt: { gte: sevenDaysAgo } },
-      _sum: { points: true },
-      orderBy: { _sum: { points: 'desc' } },
-      take: 10,
-    }),
     db.category.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
     }),
   ]);
 
-  const leaderboardData = await fetchLeaderboardData(leaderboard);
+  const leaderboardData = await fetchLeaderboardData();
   const categoriesWithArticles = await fetchCategoriesWithArticles(categories);
 
   const response: HomepageResponse = {

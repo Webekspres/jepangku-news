@@ -1,38 +1,39 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { fetchCoreLeaderboard } from '@/lib/core/users';
+import { isCoreApiConfigured } from '@/lib/core/config';
 
 export async function GET() {
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - 7);
+  if (isCoreApiConfigured()) {
+    try {
+      const { items } = await fetchCoreLeaderboard(10, 0);
+      const leaderboard = await Promise.all(
+        items.map(async (entry) => {
+          const portalUser = await db.user.findUnique({
+            where: { id: entry.id },
+            select: { username: true, avatarUrl: true },
+          });
+          const profile = await db.userProfile.findUnique({
+            where: { userId: entry.id },
+            select: { displayName: true },
+          });
+          return {
+            rank: entry.rank,
+            userId: entry.id,
+            displayName: profile?.displayName || portalUser?.username || entry.name,
+            username: portalUser?.username || '',
+            avatarUrl: portalUser?.avatarUrl || entry.imageUrl,
+            weeklyPoints: entry.totalXp,
+            totalXp: entry.totalXp,
+            currentPoints: entry.currentPoints,
+          };
+        }),
+      );
+      return NextResponse.json(leaderboard);
+    } catch {
+      // Fall through to empty if Core unavailable
+    }
+  }
 
-  const grouped = await db.pointTransaction.groupBy({
-    by: ['userId'],
-    where: { sourceApp: 'news', occurredAt: { gte: weekStart } },
-    _sum: { points: true },
-    orderBy: { _sum: { points: 'desc' } },
-    take: 10,
-  });
-
-  const leaderboard = await Promise.all(
-    grouped.map(async (entry: { userId: string; _sum: { points: number | null } }, idx: number) => {
-      const user = await db.user.findUnique({
-        where: { id: entry.userId },
-        select: { name: true, username: true, avatarUrl: true },
-      });
-      const profile = await db.userProfile.findUnique({
-        where: { userId: entry.userId },
-        select: { displayName: true },
-      });
-      return {
-        rank: idx + 1,
-        userId: entry.userId,
-        displayName: profile?.displayName || user?.name || 'Unknown',
-        username: user?.username || '',
-        avatarUrl: user?.avatarUrl || null,
-        weeklyPoints: entry._sum.points || 0,
-      };
-    })
-  );
-
-  return NextResponse.json(leaderboard);
+  return NextResponse.json([]);
 }

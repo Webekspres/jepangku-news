@@ -166,13 +166,12 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  const { passwordHash, ...clean } = updatedUser as any;
   return NextResponse.json({
-    ...clean,
-    createdAt: clean.createdAt.toISOString(),
-    updatedAt: clean.updatedAt.toISOString(),
-    lastLoginAt: clean.lastLoginAt?.toISOString() ?? null,
-    usernameChangedAt: clean.usernameChangedAt?.toISOString() ?? null,
+    ...updatedUser,
+    createdAt: updatedUser.createdAt.toISOString(),
+    updatedAt: updatedUser.updatedAt.toISOString(),
+    lastLoginAt: updatedUser.lastLoginAt?.toISOString() ?? null,
+    usernameChangedAt: updatedUser.usernameChangedAt?.toISOString() ?? null,
   });
   } catch (e) {
     await captureException(e, { route: 'user-profile-patch' });

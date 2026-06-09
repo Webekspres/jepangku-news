@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import {
   Award,
   BookOpen,
@@ -44,7 +44,7 @@ export default function PointsHistoryPage() {
     fetch("/api/points/my")
       .then((r) => r.json())
       .then((d) => {
-        setTransactions(Array.isArray(d) ? d : []);
+        setTransactions(Array.isArray(d?.transactions) ? d.transactions : []);
         setLoading(false);
       });
   }, []);
@@ -62,7 +62,7 @@ export default function PointsHistoryPage() {
             </h1>
             <div className="text-right">
               <p className="font-mono font-black text-5xl md:text-7xl">
-                {(user as any)?.totalPoints || 0}
+                {isAuthUser(user) ? user.totalPoints : 0}
               </p>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
                 TOTAL POIN

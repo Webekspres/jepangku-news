@@ -255,12 +255,12 @@ export default function Navbar() {
                         {authUser.avatarUrl ? (
                           <img
                             src={authUser.avatarUrl}
-                            alt={authUser.name}
+                            alt={authUser.displayName}
                             className="h-9 w-9 border border-foreground object-cover"
                           />
                         ) : (
                           <div className="flex h-9 w-9 items-center justify-center border border-foreground bg-foreground text-sm font-bold text-white">
-                            {authUser.name?.charAt(0).toUpperCase()}
+                            {authUser.displayName?.charAt(0).toUpperCase()}
                           </div>
                         )}
                       </button>
@@ -273,7 +273,7 @@ export default function Navbar() {
                     >
                       <DropdownMenuLabel>
                         <p className="text-sm font-semibold normal-case tracking-normal">
-                          {authUser.name}
+                          {authUser.displayName}
                         </p>
                         <p className="font-mono text-xs font-normal text-jepang-muted">
                           @{authUser.username}

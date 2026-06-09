@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { fetchCoreUserProfile } from '@/lib/core/users';
 import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -12,23 +13,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     where: { id },
     select: {
       id: true, name: true, username: true, email: true,
-      role: true, status: true, totalPoints: true,
+      role: true, status: true,
       avatarUrl: true, createdAt: true, updatedAt: true,
     },
   });
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-  const [articles, transactions, bookmarkCount, quizAttempts, pollVotes] = await Promise.all([
+  const coreProfile = await fetchCoreUserProfile(id);
+
+  const [articles, bookmarkCount, quizAttempts, pollVotes] = await Promise.all([
     db.article.findMany({
       where: { authorId: id },
       orderBy: { createdAt: 'desc' },
       take: 20,
       include: { category: { select: { name: true, slug: true } } },
-    }),
-    db.pointTransaction.findMany({
-      where: { userId: id },
-      orderBy: { occurredAt: 'desc' },
-      take: 20,
     }),
     db.bookmark.count({ where: { userId: id, deletedAt: null } }),
     db.quizAttempt.count({ where: { userId: id } }),
@@ -36,9 +34,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   ]);
 
   return NextResponse.json({
-    user,
+    user: {
+      ...user,
+      totalPoints: coreProfile?.currentPoints ?? 0,
+      totalXp: coreProfile?.totalXp ?? 0,
+      currentLevel: coreProfile?.currentLevel ?? 1,
+    },
     articles,
-    recentTransactions: transactions,
+    recentTransactions: [],
     stats: { bookmarkCount, quizAttempts, pollVotes, articleCount: articles.length },
   });
 }
@@ -51,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const body = await request.json();
   const { role, status } = body;
 
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
   if (role && ['USER', 'ADMIN'].includes(role.toUpperCase())) updateData.role = role.toUpperCase();
   if (status && ['active', 'inactive', 'banned'].includes(status)) updateData.status = status;
 

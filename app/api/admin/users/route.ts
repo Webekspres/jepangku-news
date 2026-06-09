@@ -26,13 +26,17 @@ export async function GET(request: NextRequest) {
     take: 500,
     select: {
       id: true, name: true, username: true, email: true,
-      role: true, status: true, totalPoints: true,
+      role: true, status: true,
       avatarUrl: true, createdAt: true,
       _count: { select: { articles: true } },
     },
   });
 
   return NextResponse.json(
-    users.map((u: typeof users[number]) => ({ ...u, articleCount: u._count.articles }))
+    users.map((u: typeof users[number]) => ({
+      ...u,
+      articleCount: u._count.articles,
+      totalPoints: null,
+    })),
   );
 }

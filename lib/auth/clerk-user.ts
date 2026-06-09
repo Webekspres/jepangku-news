@@ -1,5 +1,7 @@
 import type { User } from '@clerk/backend';
+import type { User as DbUser } from '@prisma/client';
 import { db } from '@/lib/db';
+import type { CoreJwtClaims } from '@/lib/core/session';
 import { checkDailyLogin } from '@/lib/points';
 import { toSessionUser } from './session';
 import type { SessionUser } from './types';
@@ -43,7 +45,44 @@ async function generateUniqueUsername(clerkUser: User, email: string): Promise<s
   return `user_${clerkUser.id.replace(/[^a-z0-9]/gi, '').slice(-8).toLowerCase()}`;
 }
 
-async function linkOrCreateLocalUser(clerkUser: User): Promise<SessionUser> {
+async function sessionUserFor(
+  user: DbUser,
+  coreClaims?: CoreJwtClaims | null,
+): Promise<SessionUser> {
+  const profile = await db.userProfile.findUnique({
+    where: { userId: user.id },
+    select: { displayName: true },
+  });
+  return toSessionUser(user, {
+    profileDisplayName: profile?.displayName,
+    coreClaims,
+  });
+}
+
+async function loginSyncData(
+  clerkUser: User,
+  email: string,
+  currentAvatarUrl: string | null,
+  extra: Record<string, unknown> = {},
+) {
+  const profile = await db.userProfile.findUnique({
+    where: { userId: clerkUser.id },
+    select: { displayName: true },
+  });
+
+  return {
+    email,
+    avatarUrl: clerkUser.imageUrl ?? currentAvatarUrl,
+    lastLoginAt: new Date(),
+    ...(profile?.displayName ? { name: profile.displayName } : {}),
+    ...extra,
+  };
+}
+
+async function linkOrCreateLocalUser(
+  clerkUser: User,
+  coreClaims?: CoreJwtClaims | null,
+): Promise<SessionUser> {
   const clerkId = clerkUser.id;
   const email = primaryEmail(clerkUser);
 
@@ -51,42 +90,25 @@ async function linkOrCreateLocalUser(clerkUser: User): Promise<SessionUser> {
     throw new Error('Clerk user has no email address');
   }
 
-  const byClerkId = await db.user.findUnique({ where: { clerkId } });
-  if (byClerkId) {
-    if (byClerkId.status === 'banned') {
+  const byId = await db.user.findUnique({ where: { id: clerkId } });
+  if (byId) {
+    if (byId.status === 'banned') {
       throw new Error('Account is banned');
     }
     const updated = await db.user.update({
-      where: { id: byClerkId.id },
-      data: {
-        email,
-        name: displayName(clerkUser, email),
-        avatarUrl: clerkUser.imageUrl ?? byClerkId.avatarUrl,
-        lastLoginAt: new Date(),
-      },
+      where: { id: clerkId },
+      data: await loginSyncData(clerkUser, email, byId.avatarUrl),
     });
     await checkDailyLogin(updated.id);
     const fresh = await db.user.findUnique({ where: { id: updated.id } });
-    return toSessionUser(fresh ?? updated);
+    return sessionUserFor(fresh ?? updated, coreClaims);
   }
 
   const byEmail = await db.user.findUnique({ where: { email } });
   if (byEmail) {
-    if (byEmail.status === 'banned') {
-      throw new Error('Account is banned');
-    }
-    const updated = await db.user.update({
-      where: { id: byEmail.id },
-      data: {
-        clerkId,
-        name: displayName(clerkUser, email),
-        avatarUrl: clerkUser.imageUrl ?? byEmail.avatarUrl,
-        lastLoginAt: new Date(),
-      },
-    });
-    await checkDailyLogin(updated.id);
-    const fresh = await db.user.findUnique({ where: { id: updated.id } });
-    return toSessionUser(fresh ?? updated);
+    throw new Error(
+      'Email already linked to a different account. Run phase 3 migration or contact support.',
+    );
   }
 
   const username = await generateUniqueUsername(clerkUser, email);
@@ -94,14 +116,13 @@ async function linkOrCreateLocalUser(clerkUser: User): Promise<SessionUser> {
 
   const created = await db.user.create({
     data: {
-      clerkId,
+      id: clerkId,
       email,
       username,
       name,
       avatarUrl: clerkUser.imageUrl,
       role: 'USER',
       status: 'active',
-      totalPoints: 0,
       lastLoginAt: new Date(),
       profile: {
         create: { displayName: name },
@@ -110,16 +131,21 @@ async function linkOrCreateLocalUser(clerkUser: User): Promise<SessionUser> {
   });
 
   await checkDailyLogin(created.id);
-  const fresh = await db.user.findUnique({ where: { id: created.id } });
-  return toSessionUser(fresh ?? created);
+  return sessionUserFor(created, coreClaims);
 }
 
-export async function ensureLocalUserFromClerk(clerkUser: User): Promise<SessionUser> {
-  return linkOrCreateLocalUser(clerkUser);
+export async function ensureLocalUserFromClerk(
+  clerkUser: User,
+  coreClaims?: CoreJwtClaims | null,
+): Promise<SessionUser> {
+  return linkOrCreateLocalUser(clerkUser, coreClaims);
 }
 
-export async function getSessionUserByClerkId(clerkId: string): Promise<SessionUser | null> {
-  const user = await db.user.findUnique({ where: { clerkId } });
+export async function getSessionUserByClerkId(
+  clerkId: string,
+  coreClaims?: CoreJwtClaims | null,
+): Promise<SessionUser | null> {
+  const user = await db.user.findUnique({ where: { id: clerkId } });
   if (!user || user.status === 'banned') return null;
-  return toSessionUser(user);
+  return sessionUserFor(user, coreClaims);
 }
