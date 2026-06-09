@@ -3,7 +3,7 @@
 Panduan integrasi **Jepangku News** dengan **Jepangku Core Service** dan **Clerk**.
 Kontrak teknis canonical ada di repo Core: [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md) dan [`jepangku-core/docs/API.md`](../../jepangku-core/docs/API.md).
 
-**Fase dokumentasi:** 0 (selaras kontrak) · **Prioritas implementasi:** Core + News dulu, LMS nanti
+**Fase dokumentasi:** 0 ✅ · **Implementasi kode:** Fase 1 + 3 ✅ (News & LMS) · **QA production:** ⏳
 
 ---
 
@@ -126,44 +126,41 @@ Sisa operasional: QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` dari Core (`bun 
 
 ### Fase 1 — Core siap (repo `jepangku-core`)
 
-- [ ] Core deploy + Clerk webhook aktif
-- [ ] Seed activity types News (§3.4)
-- [ ] Assign `NEWS_EDITOR` untuk admin portal di Core
-- [ ] Verifikasi manual: webhook → `auth/token` → `gamification/award`
+- [x] Kode: Clerk sync, `auth/token`, `gamification/award`, verify script
+- [ ] **Prod:** deploy + Clerk webhook aktif
+- [x] Seed activity types News (§3.4)
+- [x] Assign `NEWS_EDITOR` via `db:sync-clerk`
+- [x] Verifikasi dev: `bun run verify:integration`
 
-### Fase 2 — News bridge (non-breaking)
+### Fase 2 — News bridge
 
-- [ ] Env `CORE_API_URL`, `CORE_SERVICE_TOKEN` di News
-- [ ] Modul `lib/core/` (token exchange, award wrapper)
-- [ ] Shadow call `POST /auth/token` setelah login (log only, non-blocking)
-- [ ] (Opsional) Dual-write poin: lokal + Core paralel
-- [ ] Skrip sync user existing (`clerk_id` → pastikan ada di Core)
+- [x] Env `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*`
+- [x] Modul `lib/core/` (token exchange, award, verify JWT)
+- [x] Core session setelah login Clerk
 
 ### Fase 3 — News cutover
 
-- [ ] Migrasi FK: semua `user_id` / `author_id` → Clerk ID
-- [ ] Ganti `awardPoints()` → Core only
-- [ ] `getCurrentUser()` / admin: Core JWT + role Core
-- [ ] UI poin/leaderboard dari Core API
-- [ ] Hapus `point_transactions`, `daily_login_rewards`, kolom `total_points`
-- [ ] Sederhanakan `users` → profil portal saja (username, bio)
+- [x] FK → Clerk ID (`users.id` = Clerk ID)
+- [x] Award poin via Core only
+- [x] Admin gate: `NEWS_EDITOR` / `CORE_ADMIN`
+- [x] Leaderboard/homepage dari Core (`totalXp`, `all-time`)
+- [x] Hapus ledger poin lokal (`point_transactions`, dll.)
 
 ### Fase 4 — Verifikasi
 
-- [ ] Login → user di Core DB
-- [ ] Aktivitas berita → poin di Core, tidak double
-- [ ] Admin dengan `NEWS_EDITOR` akses panel admin
-- [ ] Update `feature-status.md`
+- [x] Dev: login → user di Core DB
+- [x] Dev: aktivitas → poin di Core (idempotent)
+- [ ] **Staging/prod:** E2E manual + `bun run verify:core`
 
-### Fase 5 — LMS (nanti)
+### Fase 5 — LMS
 
-Salin pola Fase 2–3: `User.id` = Clerk ID, `application: LMS`, tanpa `lib/points.ts` lokal.
+- [x] Fase 1 coded — lihat [`jepangku-core/docs/PHASE0-PHASE1.md`](../../jepangku-core/docs/PHASE0-PHASE1.md) & `jepangkuLMS/docs/CORE_INTEGRATION_STATUS.md`
 
 ---
 
 ## 6. Environment variables (News)
 
-Tambahkan ke `.env` saat Fase 2:
+Tambahkan ke `.env.local` (lihat `.env.example`):
 
 ```env
 # Jepangku Core Service (Fase 2+)

@@ -15,7 +15,7 @@ signifikan pada fitur.
 - Stabilkan portal lebih dulu (Fase A): hardening + user-facing + soft launch
 - Lengkapi workflow artikel, quiz, polling, poin, dan leaderboard
 - Jangan bangun fitur auth/poin/badge versi portal yang akan digantikan Core Service
-- **Auth bridge:** integrasi Clerk di portal ✅; cutover Core (Fase B–C) — lihat [`ecosystem-integration.md`](./ecosystem-integration.md)
+- **Auth bridge:** Clerk ✅; integrasi Core Fase 1+3 **coded** ✅ — lihat [`ecosystem-integration.md`](./ecosystem-integration.md) §4
 - **Fase 0 dokumentasi** ✅ — kontrak v2 selaras dengan `jepangku-core/docs/ECOSYSTEM.md`
 - **Penyatuan shared auth** — checklist lengkap di bawah § [Penyatuan Shared Auth & Core Service](#-penyatuan-shared-auth--core-service)
 
@@ -225,18 +225,15 @@ Endpoint yang **wajib** dialihkan ke Core (gunakan `clerkId` + idempotency key):
 
 Checklist lengkap step-by-step: **[§ Penyatuan Shared Auth & Core Service](#-penyatuan-shared-auth--core-service)** di atas.
 
-Ringkas — belum dikerjakan (env manual + Fase 2.3+):
+Ringkas — sisa operasional:
 
-[ ] Fase 1: Core env (`JWT_PRIVATE_KEY`, `CORE_SERVICE_TOKEN`) + webhook Clerk
-[ ] Fase 2: env News (`CORE_API_URL`, `CORE_SHADOW_ENABLED`) — lihat [`penyatuan-next-steps.md`](./penyatuan-next-steps.md)
-[ ] Fase 2.3–2.4: sync user + dual-write poin
-[ ] Fase 3: migrasi FK Clerk ID + cutover poin/auth/UI
-[ ] Fase 4: verifikasi end-to-end
+[ ] **Prod:** Core deploy + Clerk webhook + sync `CORE_JWT_PUBLIC_KEY` production
+[ ] Fase 4: verifikasi E2E staging/prod (`bun run verify:core`)
 
-Sudah selesai di kode:
+Sudah selesai di kode (dev):
 
-[x] Fase 1: seed + sync Clerk + NEWS_EDITOR + smoke award
-[x] Fase 2.1–2.4: `lib/core/*`, shadow, dual-write poin
+[x] Fase 1–3: Core client, JWT verify, cutover poin, admin gate, leaderboard Core
+[x] Env dev: `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*` — lihat [`ecosystem-integration.md`](./ecosystem-integration.md) §6
 
 **Langkah berikutnya (Fase 3 — cutover):**
 
@@ -603,7 +600,7 @@ Detail per file: [§ Penyatuan Shared Auth](#-penyatuan-shared-auth--core-servic
 
 - `docs/README.md` — indeks dokumentasi News
 - `docs/ecosystem-integration.md` — kontrak cutover & keputusan arsitektur v2
-- `docs/penyatuan-next-steps.md` — **env manual & urutan task berikutnya**
+- `jepangku-core/docs/PHASE0-PHASE1.md` — runbook integrasi lintas-repo
 - `jepangku-core/docs/ECOSYSTEM.md` · `jepangku-core/docs/API.md` — spesifikasi Core
 - `docs/development-roadmap.md` — roadmap berfase (Fase 0–E)
 - `docs/technical-architecture.md` — stack & posisi ekosistem

@@ -5,7 +5,7 @@ tercapai. Kontrak integrasi Core v2 ada di `docs/ecosystem-integration.md` dan
 `jepangku-core/docs/ECOSYSTEM.md`. Visi produk jangka panjang: `.agents/05-ecosystem-strategy.md`
 (bagian 8–12 = desain v1 — jangan dipakai untuk implementasi API).
 
-Prinsip utama: **stabilkan portal lebih dulu, selaraskan Core + News, LMS nanti.**
+Prinsip utama: **portal stabil + integrasi Core (Fase 1–3 coded); QA production & LMS polish berikutnya.**
 
 Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 
@@ -30,9 +30,9 @@ Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 | ---- | ----- | ------ |
 | **0** | Selaraskan dokumentasi & kontrak Core v2 | ✅ Selesai |
 | **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | 🔄 Aktif sekarang |
-| **B** | Core production-ready + News bridge (shadow token) | 🔄 Core ada; bridge ⏳ |
-| **C** | Cutover News → consumer Core (FK Clerk ID, poin via API) | ⏳ Menunggu |
-| **D** | Bangun LMS (`kursus.jepangku.com`) — consumer Core dari awal | ⏳ Menunggu |
+| **B** | Core + News bridge (`lib/core/`, JWT exchange) | ✅ Coded · prod ⏳ |
+| **C** | Cutover News → Core (Clerk ID, poin via API) | ✅ Coded · QA ⏳ |
+| **D** | LMS consumer Core | ✅ Fase 1 coded · UI belajar ⏳ |
 | **E** | Fitur ekosistem global (badge, membership, notifikasi, admin pusat) | ⏳ Menunggu |
 
 ---
