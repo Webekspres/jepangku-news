@@ -96,7 +96,7 @@ function RejectArticleModal({
         <DialogPrimitive.Content
           className={cn(
             "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
-            "bg-white border-2 border-foreground p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+            "rounded-xl border border-jepang-border bg-white p-6 shadow-jepang-lg",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
             "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
@@ -443,7 +443,7 @@ export default function AdminArticlesPage() {
         loading={rejectLoading}
       />
 
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <h1 className="font-heading font-black text-4xl tracking-tighter">

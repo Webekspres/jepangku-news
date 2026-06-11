@@ -29,7 +29,7 @@ const STATUS_CONFIG: Record<
 > = {
   DRAFT: {
     label: "DRAF",
-    bannerClass: "bg-jepang-off-white border-b-2 border-foreground text-foreground",
+    bannerClass: "bg-jepang-off-white border-b border-jepang-border text-jepang-navy",
     icon: <Edit size={14} strokeWidth={1.5} />,
     description: "Artikel ini masih berupa draft dan belum dikirim untuk review.",
   },

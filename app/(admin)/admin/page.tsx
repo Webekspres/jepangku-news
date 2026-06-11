@@ -80,7 +80,7 @@ export default function AdminDashboard() {
         label="管理 / ADMIN"
         title="Dashboard Admin"
         subtitle="Kelola portal Jepangku"
-        className="border-b-2 border-foreground bg-foreground text-white"
+        className="border-b border-jepang-border bg-jepang-navy text-white"
         data-testid="admin-dashboard-header"
       />
 

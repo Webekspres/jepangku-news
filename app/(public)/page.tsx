@@ -196,7 +196,7 @@ export default function HomePage() {
           }
           subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
           dark
-          className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
+          className="relative border-b border-jepang-border bg-jepang-navy overflow-hidden"
         >
           <div className="absolute inset-0">
             <div className="asanoha-bg" />
@@ -216,7 +216,7 @@ export default function HomePage() {
         {/* Latest Articles Skeleton */}
         <section className="py-12 bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-black">
+            <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
               <div>
                 <p className="small-caps text-jepang-red mb-1">
                   最新 / TERBARU
@@ -245,7 +245,7 @@ export default function HomePage() {
         <section className="py-12">
           <div className="px-4 mx-auto max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-jepang-black">
+              <div className="bg-white border border-jepang-border">
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border px-6 pt-6">
                   <MessageSquare
                     size={18}
@@ -258,7 +258,7 @@ export default function HomePage() {
                   <PollQuizCardSkeleton />
                 </div>
               </div>
-              <div className="bg-jepang-black text-white border border-jepang-black">
+              <div className="bg-jepang-navy text-white border border-jepang-border">
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-700 px-6 pt-6">
                   <Zap
                     size={18}
@@ -280,7 +280,7 @@ export default function HomePage() {
         {/* Leaderboard Skeleton */}
         <section className="py-12 bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-black">
+            <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
               <div>
                 <p className="small-caps text-jepang-red mb-1">
                   ランキング / PERINGKAT
@@ -302,7 +302,7 @@ export default function HomePage() {
                 SEMUA PERINGKAT <ArrowRight size={14} />
               </Link>
             </div>
-            <div className="bg-white border border-jepang-black">
+            <div className="bg-white border border-jepang-border">
               {[...Array(5)].map((_, idx) => (
                 <LeaderboardRowSkeleton key={idx} />
               ))}
@@ -355,7 +355,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={goPrevFeatured}
-                        className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-jepang-black bg-white text-jepang-black transition-colors hover:bg-jepang-black hover:text-white cursor-pointer"
+                        className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
                         aria-label="Artikel sebelumnya"
                       >
                         <ChevronLeft size={20} strokeWidth={1.5} />
@@ -364,7 +364,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={goNextFeatured}
-                        className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-jepang-black bg-white text-jepang-black transition-colors hover:bg-jepang-black hover:text-white cursor-pointer"
+                        className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
                         aria-label="Artikel berikutnya"
                       >
                         <ChevronRight size={20} strokeWidth={1.5} />
@@ -466,7 +466,7 @@ export default function HomePage() {
         }
         subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
         dark
-        className="relative border-b border-jepang-black bg-jepang-black overflow-hidden"
+        className="relative border-b border-jepang-border bg-jepang-navy overflow-hidden"
       >
         <div className="absolute inset-0">
           <div className="asanoha-bg" />
@@ -508,7 +508,7 @@ export default function HomePage() {
       {/* Latest Articles Grid */}
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-black">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
             <div>
               <p className="small-caps text-jepang-red mb-1">最新 / TERBARU</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
@@ -541,7 +541,7 @@ export default function HomePage() {
       <section className="py-12">
         <div className="px-4 mx-auto max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white border border-jepang-black p-6 hard-shadow-red">
+            <div className="rounded-xl border border-jepang-border bg-white p-6 shadow-jepang">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
                 <MessageSquare
                   size={18}
@@ -576,7 +576,7 @@ export default function HomePage() {
               )}
             </div>
 
-            <div className="bg-jepang-black text-white p-6">
+            <div className="bg-jepang-navy text-white p-6">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-700">
                 <Zap size={18} strokeWidth={1.5} className="text-jepang-red" />
                 <h3 className="small-caps text-jepang-red">
@@ -613,7 +613,7 @@ export default function HomePage() {
       {/* Leaderboard Preview */}
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-black">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
             <div>
               <p className="small-caps text-jepang-red mb-1">
                 ランキング / PERINGKAT
@@ -635,7 +635,7 @@ export default function HomePage() {
               SEMUA PERINGKAT <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="bg-white border border-jepang-black">
+          <div className="bg-white border border-jepang-border">
             {leaderboard.length > 0 ? (
               leaderboard.slice(0, 5).map((entry: LeaderboardEntry, idx: number) => (
                 <div
@@ -687,7 +687,7 @@ export default function HomePage() {
       {/* Categories Grid */}
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-black">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
             <div>
               <p className="small-caps text-jepang-red mb-1">
                 カテゴリ / KATEGORI
@@ -702,7 +702,7 @@ export default function HomePage() {
             {categories.map((cat: any) => (
               <div
                 key={cat.id}
-                className="bg-white border border-jepang-black p-5"
+                className="bg-white border border-jepang-border p-5"
               >
                 <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-jepang-border">
                   <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-jepang-red">

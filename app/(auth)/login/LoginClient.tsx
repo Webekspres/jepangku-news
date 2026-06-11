@@ -41,7 +41,7 @@ function LoginForm() {
       data-testid="login-page"
     >
       <div className="w-full max-w-md">
-        <Card className="border border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <Card>
           <CardHeader className="text-center pb-2">
             <Link
               href="/"

@@ -51,7 +51,7 @@ export default function PointsHistoryPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="points-page">
-      <section className="border-b-2 border-foreground bg-jepang-red text-white">
+      <section className="border-b border-jepang-border bg-jepang-navy text-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-2 opacity-80">
             RIWAYAT POIN

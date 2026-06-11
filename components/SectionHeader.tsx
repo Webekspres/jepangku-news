@@ -27,7 +27,7 @@ export default function SectionHeader({
   return (
     <section
       className={cn(
-        "relative overflow-hidden border-b-2 border-foreground",
+        "relative overflow-hidden border-b border-jepang-border",
         darkMode ? "text-white" : "bg-jepang-off-white text-foreground",
         className,
       )}
@@ -46,7 +46,7 @@ export default function SectionHeader({
               <div className="shrink-0 text-jepang-red">{icon}</div>
             ) : null}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
+              <p className="section-label mb-2">
                 {label}
               </p>
               <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-4">

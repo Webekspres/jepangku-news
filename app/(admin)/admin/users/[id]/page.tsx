@@ -33,7 +33,7 @@ export default function AdminUserDetailPage() {
   if (loading)
     return (
       <div className="min-h-[60vh]">
-        <section className="border-b-2 border-foreground bg-jepang-off-white">
+        <section className="border-b border-jepang-border bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl py-8 flex items-center gap-6">
             <SkeletonAvatar size={64} />
             <div className="flex-1">
@@ -124,7 +124,7 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-user-detail-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
             href="/admin/users"

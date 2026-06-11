@@ -15,7 +15,7 @@ Dalam ekosistem JepangKu, News adalah **aplikasi domain berita** — artikel, qu
 |------|-----------|-------|------------|
 | Framework | Next.js | 16.x | App Router, server components, API routes |
 | UI | React | 19.x | Core rendering dan interaktivitas |
-| CSS | Tailwind CSS | 4.x | Utility-first styling |
+| CSS | Tailwind CSS | 4.x | Utility-first styling; tokens di `app/globals.css` — lihat [design-system.md](./design-system.md) |
 | ORM | Prisma | 6.x | Database client, migrations |
 | Database | PostgreSQL | Neon | Managed cloud database (domain berita) |
 | Storage | Cloudflare R2 | - | S3-compatible object storage |

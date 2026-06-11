@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="profile-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-start gap-6">
             <div className="shrink-0">
@@ -50,10 +50,10 @@ export default function ProfilePage() {
                 <img
                   src={(user as any).avatarUrl}
                   alt={(user as any).name}
-                  className="w-24 h-24 object-cover border-2 border-foreground"
+                  className="w-24 h-24 object-cover rounded-full border border-jepang-border"
                 />
               ) : (
-                <div className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-foreground">
+                <div className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl rounded-full border border-jepang-border">
                   {(user as any).name?.charAt(0).toUpperCase()}
                 </div>
               )}

@@ -118,7 +118,7 @@ export default function LeaderboardPage() {
                             @{entry.username}
                           </AuthorLink>
                           <div
-                            className={`${heights[idx]} ${colors[idx]} ${textColors[idx]} w-full flex flex-col items-center justify-end pb-3 mt-3 border-2 border-foreground`}
+                            className={`${heights[idx]} ${colors[idx]} ${textColors[idx]} w-full flex flex-col items-center justify-end pb-3 mt-3 rounded-t-lg border border-jepang-border`}
                           >
                             <p className="font-mono font-black text-3xl">
                               #{realIdx}

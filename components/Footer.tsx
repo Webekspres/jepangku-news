@@ -16,14 +16,14 @@ export default function Footer() {
 
   return (
     <footer
-      className="bg-jepang-black text-white mt-24"
+      className="bg-jepang-navy mt-24"
       data-testid="main-footer"
     >
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2 md:col-span-1">
           <Image
-              src="/assets/images/logo/Logo-02-dark.svg"
+              src="/assets/images/logo/Logo-02.svg"
               alt="Jepangku"
               width={160}
               height={48}
@@ -35,7 +35,7 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Jelajahi</h4>
+            <h4 className="section-label text-jepang-orange mb-3">Jelajahi</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -72,7 +72,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Kategori</h4>
+            <h4 className="section-label text-jepang-orange mb-3">Kategori</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -109,7 +109,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Informasi</h4>
+            <h4 className="section-label text-jepang-orange mb-3">Informasi</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -186,7 +186,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Akun</h4>
+            <h4 className="section-label text-jepang-orange mb-3">Akun</h4>
             <ul className="space-y-2 text-sm">
               {loading && isSignedIn ? (
                 <>
@@ -257,7 +257,7 @@ export default function Footer() {
               WEBEKSPRES
             </Link>
           </p>
-          <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">
+          <p className="font-japanese text-xs text-zinc-500 tracking-wide">
             日本語ポータル | INDONESIA
           </p>
         </div>

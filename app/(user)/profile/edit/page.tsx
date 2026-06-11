@@ -151,7 +151,7 @@ export default function EditProfilePage() {
   if (loading || user === null) {
     return (
       <div className="bg-white min-h-screen">
-        <section className="border-b-2 border-foreground bg-jepang-off-white">
+        <section className="border-b border-jepang-border bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl py-12">
             <div className="h-4 w-24 bg-jepang-border animate-pulse mb-3" />
             <div className="h-10 w-64 bg-jepang-border animate-pulse" />
@@ -173,7 +173,7 @@ export default function EditProfilePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="edit-profile-page">
       {/* Header */}
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <Link
             href="/profile"
@@ -211,12 +211,12 @@ export default function EditProfilePage() {
                     <img
                       src={form.avatarUrl}
                       alt="Avatar"
-                      className="w-24 h-24 object-cover border-2 border-foreground"
+                      className="w-24 h-24 object-cover rounded-full border border-jepang-border"
                       data-testid="avatar-preview"
                     />
                   ) : (
                     <div
-                      className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-foreground"
+                      className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl rounded-full border border-jepang-border"
                       data-testid="avatar-initial"
                     >
                       {avatarInitial}

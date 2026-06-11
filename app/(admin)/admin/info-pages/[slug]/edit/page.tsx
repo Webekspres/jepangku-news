@@ -115,7 +115,7 @@ export default function AdminEditInfoPage() {
         label="管理 / ADMIN"
         title={`Edit: ${pageLabel}`}
         subtitle={`Slug: /${slug}`}
-        className="border-b-2 border-foreground bg-foreground text-white"
+        className="border-b border-jepang-border bg-jepang-navy text-white"
       />
 
       <div className="px-4 mx-auto max-w-4xl py-12">

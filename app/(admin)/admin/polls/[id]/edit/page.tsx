@@ -270,7 +270,7 @@ export default function AdminEditPollPage() {
   if (fetching) {
     return (
       <div className="bg-white min-h-screen">
-        <section className="border-b-2 border-foreground bg-jepang-off-white">
+        <section className="border-b border-jepang-border bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl py-8">
             <SkeletonBox height="1rem" width="12rem" className="mb-4" />
             <SkeletonBox height="2.5rem" width="16rem" />
@@ -286,7 +286,7 @@ export default function AdminEditPollPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-edit-poll-page">
       {/* Header */}
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link href="/admin/polls"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4">

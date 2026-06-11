@@ -88,7 +88,7 @@ export default function QuizDetailPage() {
         data-testid="quiz-result"
       >
         <div className="max-w-2xl mx-auto px-4">
-          <Card className="border border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <Card>
             <CardContent className="p-8">
               <div className="text-center mb-6">
                 <Award

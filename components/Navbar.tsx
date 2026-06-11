@@ -179,7 +179,7 @@ export default function Navbar() {
         className={`w-full overflow-hidden transition-all duration-300 ease-out ${
           topVisible ? "h-7 opacity-100" : "h-0 opacity-0"
         }`}
-        style={{ backgroundColor: "var(--color-jepang-black)" }}
+        style={{ backgroundColor: "var(--color-jepang-navy)" }}
       />
 
       <div
@@ -209,7 +209,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   href={link.path}
-                  className="text-sm font-semibold uppercase tracking-wider text-foreground transition-colors hover:text-jepang-red"
+                  className="text-sm font-semibold text-jepang-navy transition-colors hover:text-jepang-orange"
                   data-testid={`nav-link-${link.label.toLowerCase()}`}
                 >
                   {link.label}
@@ -249,7 +249,7 @@ export default function Navbar() {
                   </Button>
 
                   <div
-                    className="hidden items-center gap-2 bg-jepang-red px-3 py-2 text-white md:flex"
+                    className="hidden items-center gap-2 rounded-lg bg-jepang-orange px-3 py-2 text-white md:flex"
                     data-testid="user-points-display"
                   >
                     <Award size={14} strokeWidth={1.5} />
@@ -258,8 +258,8 @@ export default function Navbar() {
                       {totalPoints}
                     </span>
 
-                    <span className="text-[10px] uppercase tracking-wider">
-                      POIN
+                    <span className="text-[10px] font-medium tracking-wide">
+                      Poin
                     </span>
                   </div>
 
@@ -273,10 +273,10 @@ export default function Navbar() {
                           <img
                             src={avatarUrl}
                             alt={displayName}
-                            className="h-9 w-9 border border-foreground object-cover"
+                            className="h-9 w-9 rounded-full border border-jepang-border object-cover"
                           />
                         ) : (
-                          <div className="flex h-9 w-9 items-center justify-center border border-foreground bg-foreground text-sm font-bold text-white">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-jepang-navy text-sm font-bold text-white">
                             {displayName.charAt(0).toUpperCase()}
                           </div>
                         )}
@@ -415,13 +415,13 @@ export default function Navbar() {
               placeholder="Cari artikel, topik, atau tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 border border-jepang-border bg-white px-4 py-2.5 text-sm text-foreground focus:border-foreground focus:outline-none"
+              className="flex-1 rounded-lg border border-jepang-border bg-white px-4 py-2.5 text-sm text-jepang-navy focus:border-jepang-navy focus:outline-none"
               data-testid="navbar-search-input"
             />
 
             <button
               type="submit"
-              className="bg-jepang-red px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:bg-jepang-red-hover"
+              className="rounded-lg bg-jepang-orange px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-jepang-orange-hover"
               data-testid="navbar-search-submit"
             >
               Cari
@@ -435,7 +435,7 @@ export default function Navbar() {
         className={`w-full overflow-hidden transition-all duration-500 ease-out ${
           bottomVisible ? "h-10 opacity-100" : "h-0 opacity-0"
         }`}
-        style={{ backgroundColor: "var(--color-jepang-red)" }}
+        style={{ backgroundColor: "var(--color-jepang-orange)" }}
       />
 
       {mobileOpen && (
@@ -453,13 +453,13 @@ export default function Navbar() {
                 placeholder="Cari artikel..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 border border-jepang-border bg-white px-3 py-2 text-sm focus:border-foreground focus:outline-none"
+                className="flex-1 rounded-lg border border-jepang-border bg-white px-3 py-2 text-sm focus:border-jepang-navy focus:outline-none"
                 data-testid="mobile-search-input"
               />
 
               <button
                 type="submit"
-                className="bg-jepang-red px-3 py-2 text-white"
+                className="rounded-lg bg-jepang-orange px-3 py-2 text-white"
                 aria-label="Cari"
               >
                 <Search size={16} strokeWidth={1.5} />
@@ -471,7 +471,7 @@ export default function Navbar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setMobileOpen(false)}
-                className="block py-2 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red"
+                className="block py-2 text-sm font-semibold hover:text-jepang-orange"
                 data-testid={`mobile-nav-${link.label.toLowerCase()}`}
               >
                 {link.label}

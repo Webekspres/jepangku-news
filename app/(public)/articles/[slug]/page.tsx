@@ -426,7 +426,7 @@ export default function ArticleDetailPage() {
         (article.relatedArticles && article.relatedArticles.length > 0)) && (
         <section className="py-12 bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl">
-            <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b-2 border-foreground">
+            <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b border-jepang-border">
               Artikel Terkait
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

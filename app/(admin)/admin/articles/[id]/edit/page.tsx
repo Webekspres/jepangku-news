@@ -237,7 +237,7 @@ export default function AdminEditArticlePage() {
   if (fetching) {
     return (
       <div className="bg-white min-h-screen">
-        <div className="border-b-2 border-foreground bg-jepang-off-white px-4 py-12">
+        <div className="border-b border-jepang-border bg-jepang-off-white px-4 py-12">
           <div className="mx-auto max-w-7xl space-y-3">
             <div className="h-3 w-24 bg-jepang-border animate-pulse" />
             <div className="h-10 w-80 bg-jepang-border animate-pulse" />
@@ -255,7 +255,7 @@ export default function AdminEditArticlePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-article-edit-page">
       <ConfirmModal {...confirmProps} />
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
             href="/admin/articles"

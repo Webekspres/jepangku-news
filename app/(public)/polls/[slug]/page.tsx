@@ -239,10 +239,10 @@ export default function PollDetailPage() {
                   <Card
                     key={q.id}
                     className={cn(
-                      "border shadow-[4px_4px_0px_0px_#000]",
+                      "border",
                       isVoted
-                        ? "border-jepang-red shadow-[4px_4px_0px_0px_#d90429]"
-                        : "border-foreground",
+                        ? "border-jepang-red shadow-jepang"
+                        : "border-jepang-border",
                     )}
                     data-testid={`poll-question-${qIdx}`}
                   >
@@ -394,10 +394,10 @@ export default function PollDetailPage() {
                   disabled={submitting || !allAnswered}
                   className={cn(
                     "w-full py-4 font-heading font-black text-lg tracking-tight transition-colors",
-                    "border-2 border-foreground",
+                    "rounded-lg border",
                     allAnswered && !submitting
-                      ? "bg-foreground text-white hover:bg-jepang-red hover:border-jepang-red"
-                      : "bg-white text-jepang-muted border-jepang-border cursor-not-allowed",
+                      ? "border-jepang-orange bg-jepang-orange text-white hover:bg-jepang-orange-hover hover:border-jepang-orange-hover"
+                      : "border-jepang-border bg-white text-jepang-muted cursor-not-allowed",
                   )}
                   data-testid="submit-votes-btn"
                 >

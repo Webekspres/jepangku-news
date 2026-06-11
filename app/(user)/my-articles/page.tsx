@@ -127,7 +127,7 @@ export default function MyArticlesPage() {
       <ConfirmModal {...confirmProps} />
       <ArticleActivityModal {...activityModalProps} />
 
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-center justify-between">
             <div>

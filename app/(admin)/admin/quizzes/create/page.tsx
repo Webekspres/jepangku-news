@@ -330,7 +330,7 @@ export default function AdminCreateQuiz() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-create-quiz-page">
       {/* Header */}
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <Link
             href="/admin/quizzes"

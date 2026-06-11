@@ -38,7 +38,7 @@ export default function AdminInfoPagesPage() {
         label="管理 / ADMIN"
         title="Halaman Informasi"
         subtitle="Kelola konten halaman About, Contact, Privacy Policy, dan lainnya"
-        className="border-b-2 border-foreground bg-foreground text-white"
+        className="border-b border-jepang-border bg-jepang-navy text-white"
       />
 
       <div className="px-4 mx-auto max-w-7xl py-12">

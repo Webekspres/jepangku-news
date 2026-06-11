@@ -4,21 +4,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jepang-orange/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer",
   {
     variants: {
       variant: {
         default:
-          "border border-jepang-red bg-jepang-red text-white hover:border-jepang-red-hover hover:bg-jepang-red-hover",
+          "border border-jepang-orange bg-jepang-orange text-white hover:border-jepang-orange-hover hover:bg-jepang-orange-hover",
 
         black:
-          "border border-foreground bg-foreground text-white hover:border-jepang-muted hover:bg-jepang-muted",
+          "border border-jepang-navy bg-jepang-navy text-white hover:bg-[#2a2668] hover:border-[#2a2668]",
 
         outline:
-          "border border-foreground bg-white text-foreground hover:border-jepang-red hover:bg-jepang-red hover:text-white",
+          "border border-jepang-border bg-white text-jepang-navy hover:border-jepang-orange hover:bg-jepang-orange hover:text-white",
 
         ghost:
-          "text-foreground hover:bg-jepang-off-white hover:text-jepang-red",
+          "text-jepang-navy hover:bg-jepang-off-white hover:text-jepang-red",
 
         link:
           "text-jepang-red underline-offset-4 hover:underline",
@@ -27,7 +27,7 @@ const buttonVariants = cva(
           "border border-jepang-red bg-jepang-red text-white hover:border-jepang-red-hover hover:bg-jepang-red-hover",
 
         secondary:
-          "border border-jepang-border bg-jepang-off-white text-foreground hover:border-jepang-muted hover:bg-jepang-border",
+          "border border-jepang-border bg-jepang-off-white text-jepang-navy hover:border-jepang-grey hover:bg-jepang-border",
       },
       size: {
         default: "px-6 py-3",

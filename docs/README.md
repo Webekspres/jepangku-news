@@ -6,6 +6,7 @@ Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosy
 
 | Dokumen | Isi |
 | :--- | :--- |
+| [design-system.md](./design-system.md) | **Brand guideline** — warna, tipografi, komponen UI |
 | [ecosystem-integration.md](./ecosystem-integration.md) | Kontrak cutover News ↔ Core, checklist fase |
 | [feature-status.md](./feature-status.md) | **Living doc** — status implementasi + checklist operasional |
 | [development-roadmap.md](./development-roadmap.md) | Roadmap produk berfase |

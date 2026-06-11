@@ -112,7 +112,7 @@ export default function AdminQuizzesPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-quizzes-page">
       <ConfirmModal {...confirmProps} />
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           <div className="flex items-center justify-between gap-4">
             <h1 className="font-heading font-black text-4xl tracking-tighter">

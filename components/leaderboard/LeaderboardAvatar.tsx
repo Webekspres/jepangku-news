@@ -21,7 +21,7 @@ export default function LeaderboardAvatar({
   const initial = displayName?.charAt(0).toUpperCase() || "J";
   const box = cn(
     sizeClass[size],
-    "shrink-0 border-2 border-foreground object-cover",
+    "shrink-0 rounded-full border border-jepang-border object-cover",
     className,
   );
 
@@ -39,7 +39,7 @@ export default function LeaderboardAvatar({
     <div
       className={cn(
         box,
-        "flex items-center justify-center bg-foreground font-bold text-white",
+        "flex items-center justify-center bg-jepang-navy font-bold text-white",
         size === "lg" && "font-heading",
       )}
     >

@@ -18,18 +18,18 @@ export default function AdminPageShell({
 }) {
   return (
     <div data-testid="admin-page-shell">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-8">
           {backHref ? (
             <Link
               href={backHref}
-              className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-jepang-muted hover:text-jepang-orange mb-4"
             >
               <ArrowLeft size={14} /> {backLabel}
             </Link>
           ) : null}
           {label ? (
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
+            <p className="section-label mb-2">
               {label}
             </p>
           ) : null}

@@ -26,7 +26,7 @@ export async function InfoPageServer({ slug }: { slug: InfoPageSlug }) {
         label="情報 / INFO"
         title={page.title}
         subtitle={page.subtitle ?? undefined}
-        className="border-b-2 border-foreground bg-jepang-off-white"
+        className="border-b border-jepang-border bg-jepang-off-white"
       />
 
       <div className="px-4 mx-auto max-w-3xl py-12">
