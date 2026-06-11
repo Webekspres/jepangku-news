@@ -1,19 +1,17 @@
+import type { ServerGetToken } from '@clerk/shared/types';
 import type { NextRequest } from 'next/server';
 
 type TokenAuthState = {
-  getToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
+  getToken: ServerGetToken;
 };
 
-/** Resolve a Clerk session JWT for Core token exchange (fresh, not cached). */
+/** Resolve a Clerk session JWT for Core token exchange. */
 export async function resolveClerkSessionToken(
   authState: TokenAuthState,
   request?: NextRequest,
 ): Promise<string | null> {
-  const fresh = await authState.getToken({ skipCache: true });
-  if (fresh) return fresh;
-
-  const cached = await authState.getToken();
-  if (cached) return cached;
+  const token = await authState.getToken();
+  if (token) return token;
 
   const sessionCookie = request?.cookies.get('__session')?.value;
   if (sessionCookie) return sessionCookie;

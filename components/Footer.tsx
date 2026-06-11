@@ -20,10 +20,10 @@ export default function Footer() {
       data-testid="main-footer"
     >
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-white">
           <div className="col-span-2 md:col-span-1">
           <Image
-              src="/assets/images/logo/Logo-02.svg"
+              src="/assets/images/logo/Logo-02-dark.svg"
               alt="Jepangku"
               width={160}
               height={48}

@@ -72,6 +72,34 @@ async function loginSyncData(
   };
 }
 
+/** Repoint legacy/seed portal user PK to the Clerk ID (FKs use ON UPDATE CASCADE). */
+async function relinkUserToClerkId(
+  legacyUser: DbUser,
+  clerkId: string,
+  clerkUser: User,
+  email: string,
+): Promise<DbUser> {
+  const legacyId = legacyUser.id;
+  if (legacyId === clerkId) return legacyUser;
+
+  console.info(
+    `Clerk JIT: linking portal user ${legacyId} → ${clerkId} (${email})`,
+  );
+
+  return db.$transaction(async (tx) => {
+    // No FK on these columns — update before PK change.
+    await tx.$executeRaw`UPDATE quizzes SET created_by = ${clerkId} WHERE created_by = ${legacyId}`;
+    await tx.$executeRaw`UPDATE polls SET created_by = ${clerkId} WHERE created_by = ${legacyId}`;
+
+    await tx.$executeRaw`UPDATE users SET id = ${clerkId} WHERE id = ${legacyId}`;
+
+    return tx.user.update({
+      where: { id: clerkId },
+      data: await loginSyncData(clerkUser, email, legacyUser.avatarUrl),
+    });
+  });
+}
+
 async function linkOrCreateLocalUser(
   clerkUser: User,
   coreClaims?: CoreJwtClaims | null,
@@ -99,9 +127,12 @@ async function linkOrCreateLocalUser(
 
   const byEmail = await db.user.findUnique({ where: { email } });
   if (byEmail) {
-    throw new Error(
-      'Email already linked to a different account. Run phase 3 migration or contact support.',
-    );
+    if (byEmail.status === 'banned') {
+      throw new Error('Account is banned');
+    }
+    const linked = await relinkUserToClerkId(byEmail, clerkId, clerkUser, email);
+    await checkDailyLogin(linked.id);
+    return sessionUserFor(linked, coreClaims);
   }
 
   const username = await generateUniqueUsername(clerkUser, email);

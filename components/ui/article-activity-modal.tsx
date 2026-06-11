@@ -13,6 +13,7 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThinScrollbar } from "@/components/ui/thin-scrollbar";
 import { Badge } from "@/components/ui/badge";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -122,7 +123,7 @@ export function ArticleActivityModal({
         <DialogPrimitive.Content
           className={cn(
             "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
-            "rounded-xl border border-jepang-border bg-white shadow-jepang-lg",
+            "rounded-lg border border-jepang-border bg-white shadow-jepang-lg",
             "max-h-[85vh] flex flex-col",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
@@ -169,7 +170,7 @@ export function ArticleActivityModal({
             </div>
           )}
 
-          <div className="overflow-y-auto flex-1 p-6">
+          <ThinScrollbar className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -304,7 +305,7 @@ export function ArticleActivityModal({
                 ))}
               </ol>
             )}
-          </div>
+          </ThinScrollbar>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

@@ -12,7 +12,7 @@ Kombinasi warna melambangkan **semangat, kreativitas, kepercayaan, dan keseimban
 | :--- | :--- |
 | Hard shadow `4px 4px 0 #000` | Soft shadow `shadow-jepang` / `shadow-jepang-lg` |
 | `border-2 border-foreground` | `border border-jepang-border` |
-| `border-radius: 0` | `rounded-lg` / `rounded-xl` |
+| `border-radius: 0` | `rounded-lg` / `rounded-lg` |
 | Semua huruf UPPERCASE + tracking lebar | Sentence case, tracking normal |
 | Hitam murni `#0a0a0a` sebagai warna utama | Navy brand `#1E1B57` |
 
@@ -100,7 +100,7 @@ Didefinisikan di `@theme` (`globals.css`):
 
 ### Card
 
-- `rounded-xl border border-jepang-border shadow-sm`
+- `rounded-lg border border-jepang-border shadow-sm`
 - Hover: `hover:shadow-md`
 
 ### Badge

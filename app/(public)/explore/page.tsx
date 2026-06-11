@@ -34,7 +34,7 @@ export default function ExplorePage() {
         <section>
           <Link
             href="/trending"
-            className="group flex items-center justify-between rounded-xl border border-jepang-border p-6 shadow-sm transition-all hover:border-jepang-navy hover:bg-jepang-navy hover:text-white hover:shadow-md"
+            className="group flex items-center justify-between rounded-lg border border-jepang-border p-6 shadow-sm transition-all hover:border-jepang-navy hover:bg-jepang-navy hover:text-white hover:shadow-md"
             data-testid="explore-trending-cta"
           >
             <div className="flex items-center gap-4">

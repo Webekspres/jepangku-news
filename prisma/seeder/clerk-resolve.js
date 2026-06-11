@@ -28,9 +28,9 @@ async function fetchClerkUsersByEmail() {
 }
 
 function resolvePortalUserId(userData, clerkByEmail) {
-  if (userData.id) return userData.id;
   const clerkId = clerkByEmail.get(userData.email.toLowerCase());
   if (clerkId) return clerkId;
+  if (userData.id) return userData.id;
   return `seed_${userData.username}`;
 }
 

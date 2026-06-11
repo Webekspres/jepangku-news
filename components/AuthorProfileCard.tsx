@@ -15,7 +15,7 @@ export default function AuthorProfileCard({ author }: { author: ArticleAuthor })
 
   return (
     <section
-      className="mt-8 flex gap-4 rounded-xl border border-jepang-border p-5 shadow-sm"
+      className="mt-8 flex gap-4 rounded-lg border border-jepang-border p-5 shadow-sm"
       data-testid="author-profile-card"
     >
       {author.avatarUrl ? (

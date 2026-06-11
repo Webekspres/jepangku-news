@@ -76,38 +76,41 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const correctPoints = quiz.correctAnswerPoints * correctAnswers;
   const totalPoints = basePoints + correctPoints;
 
-  await db.quizAttempt.update({
-    where: { id: attempt.id },
-    data: { score, correctAnswers, pointsAwarded: totalPoints },
-  });
-
-  let award = await awardPoints(
+  let lastAward = await awardPoints(
     user.id,
     'quiz_completed',
     'quiz',
     quiz.id,
     basePoints,
-    `Completed quiz: ${quiz.title}`
+    `Completed quiz: ${quiz.title}`,
   );
+  let pointsGranted = lastAward.awarded ? basePoints : 0;
 
   if (correctAnswers > 0) {
-    award = await awardPoints(
+    const correctAward = await awardPoints(
       user.id,
       'quiz_correct_answers',
       'quiz',
       quiz.id,
       correctPoints,
-      `${correctAnswers} correct answers in quiz: ${quiz.title}`
+      `${correctAnswers} correct answers in quiz: ${quiz.title}`,
     );
+    lastAward = correctAward;
+    if (correctAward.awarded) pointsGranted += correctPoints;
   }
+
+  await db.quizAttempt.update({
+    where: { id: attempt.id },
+    data: { score, correctAnswers, pointsAwarded: pointsGranted },
+  });
 
   return NextResponse.json({
     attemptId: attempt.id,
     score,
     correctAnswers,
     totalQuestions,
-    pointsAwarded: totalPoints,
-    ...gamificationFieldsFromAward(award),
+    pointsAwarded: pointsGranted,
+    ...gamificationFieldsFromAward(lastAward),
   });
   } catch (e) {
     await captureException(e, { route: 'quiz-attempt' });

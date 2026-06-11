@@ -1,11 +1,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
 
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  <div className={cn("relative w-full overflow-auto", THIN_SCROLLBAR_CLASS)}>
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}

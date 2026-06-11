@@ -30,6 +30,7 @@ interface PollQuestionData {
   imageUrl: string | null;
   sortOrder: number;
   totalVotes: number;
+  userOptionId?: string | null;
   options: PollOptionData[];
 }
 
@@ -42,26 +43,20 @@ interface PollData {
   pointsReward: number;
   questions: PollQuestionData[];
   totalVotes: number;
+  userHasCompleted?: boolean;
+  userVotedQuestionIds?: string[];
 }
 
-/* ─── Skeleton ───────────────────────────────────────── */
-function QuestionSkeleton() {
-  return (
-    <div className="border border-jepang-border p-5 space-y-4 animate-pulse">
-      <div className="h-5 w-2/3 bg-jepang-border" />
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="border border-jepang-border overflow-hidden">
-          <div className="relative p-4">
-            <div className="absolute inset-0 bg-jepang-border/20" />
-            <div className="relative flex items-center justify-between">
-              <div className="h-4 w-1/2 bg-jepang-border" />
-              <div className="h-4 w-12 bg-jepang-border" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
+function hydrateUserVotes(data: PollData) {
+  const voted = new Set(
+    data.userVotedQuestionIds ??
+      data.questions.filter((q) => q.userOptionId).map((q) => q.id),
   );
+  const selected: Record<string, string> = {};
+  for (const q of data.questions) {
+    if (q.userOptionId) selected[q.id] = q.userOptionId;
+  }
+  return { voted, selected };
 }
 
 /* ─── Page ───────────────────────────────────────────── */
@@ -82,10 +77,13 @@ export default function PollDetailPage() {
   const isLoading = loading && !poll;
 
   const fetchPoll = async () => {
-    const res = await fetch(`/api/polls/${slug}`);
+    const res = await fetch(`/api/polls/${slug}`, { credentials: "include" });
     if (!res.ok) { router.push("/polls"); return; }
     const data: PollData = await res.json();
+    const { voted, selected } = hydrateUserVotes(data);
     setPoll(data);
+    setVotedQuestions(voted);
+    setSelectedVotes(selected);
   };
 
   useEffect(() => {
@@ -156,6 +154,12 @@ export default function PollDetailPage() {
   const anyUnvoted =
     poll?.questions.some((q) => !votedQuestions.has(q.id)) ?? false;
 
+  const pollCompleted =
+    poll?.userHasCompleted ||
+    (poll != null &&
+      poll.questions.length > 0 &&
+      poll.questions.every((q) => votedQuestions.has(q.id)));
+
   return (
     <div className="bg-white min-h-screen" data-testid="poll-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
@@ -168,6 +172,20 @@ export default function PollDetailPage() {
           >
             <ArrowLeft size={14} /> Kembali ke Polls
           </Link>
+
+          {/* Thumbnail */}
+          {!isLoading && poll!.thumbnailUrl && (
+            <div className="relative mb-8 aspect-16/10 overflow-hidden rounded-lg border border-jepang-border bg-jepang-off-white">
+              <Image
+                src={poll!.thumbnailUrl}
+                alt={poll!.title}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+              />
+            </div>
+          )}
 
           {/* Header */}
           <div className="mb-8">
@@ -186,6 +204,16 @@ export default function PollDetailPage() {
                     <Award size={10} strokeWidth={1.5} className="mr-1" />
                     +{poll!.pointsReward} POIN
                   </Badge>
+                  {pollCompleted && user && (
+                    <Badge
+                      variant="outline"
+                      className="border-jepang-red text-jepang-red gap-1"
+                      data-testid="poll-completed-badge"
+                    >
+                      <CheckCircle2 size={10} strokeWidth={2} />
+                      SELESAI
+                    </Badge>
+                  )}
                 </>
               )}
             </div>
@@ -207,29 +235,12 @@ export default function PollDetailPage() {
             )}
           </div>
 
-          {/* Thumbnail */}
-          {isLoading ? (
-            <div className="w-full aspect-video bg-jepang-border animate-pulse mb-8" />
-          ) : poll!.thumbnailUrl ? (
-            <div className="relative w-full aspect-video overflow-hidden mb-8">
-              <Image
-                src={poll!.thumbnailUrl}
-                alt={poll!.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 1200px"
-                className="object-cover"
-                priority
-              />
-            </div>
-          ) : null}
-
           {/* Questions */}
           <div className="space-y-6">
             {isLoading ? (
-              <>
-                <QuestionSkeleton />
-                <QuestionSkeleton />
-              </>
+              <p className="py-8 text-center text-sm text-jepang-muted">
+                Memuat pertanyaan...
+              </p>
             ) : (
               poll!.questions.map((q, qIdx) => {
                 const isVoted = votedQuestions.has(q.id);
@@ -267,14 +278,13 @@ export default function PollDetailPage() {
                           )}
                         </div>
 
-                        {/* Question image */}
                         {q.imageUrl && (
-                          <div className="relative w-full aspect-video overflow-hidden">
+                          <div className="relative ml-8 aspect-video overflow-hidden rounded-md border border-jepang-border bg-jepang-off-white">
                             <Image
                               src={q.imageUrl}
                               alt={q.questionText}
                               fill
-                              sizes="(max-width: 768px) 100vw, 800px"
+                              sizes="(max-width: 768px) 100vw, 640px"
                               className="object-cover"
                             />
                           </div>
@@ -286,6 +296,7 @@ export default function PollDetailPage() {
                         {q.options.map((opt, oIdx) => {
                           const pct = opt.percentage || 0;
                           const isSelected = selected === opt.id;
+                          const isUserChoice = isVoted && isSelected;
                           const showResult = isVoted;
 
                           return (
@@ -293,11 +304,13 @@ export default function PollDetailPage() {
                               key={opt.id}
                               type="button"
                               onClick={() => selectOption(q.id, opt.id)}
-                              disabled={isVoted || submitting}
+                              disabled={isVoted || submitting || pollCompleted}
                               className={cn(
                                 "w-full text-left border transition-colors overflow-hidden",
                                 "disabled:cursor-default",
-                                isVoted
+                                isUserChoice
+                                  ? "border-jepang-red ring-1 ring-jepang-red"
+                                  : isVoted
                                   ? "border-jepang-border opacity-90"
                                   : isSelected
                                   ? "border-foreground"
@@ -305,20 +318,17 @@ export default function PollDetailPage() {
                               )}
                               data-testid={`poll-option-${qIdx}-${oIdx}`}
                             >
-                              {/* Option image */}
                               {opt.imageUrl && (
-                                <div className="relative w-full h-36 overflow-hidden bg-jepang-off-white">
+                                <div className="relative aspect-16/10 w-full border-b border-jepang-border bg-jepang-off-white">
                                   <Image
                                     src={opt.imageUrl}
                                     alt={opt.optionText}
                                     fill
-                                    sizes="(max-width: 768px) 100vw, 400px"
+                                    sizes="(max-width: 768px) 100vw, 640px"
                                     className="object-cover"
                                   />
                                 </div>
                               )}
-
-                              {/* Text + stats */}
                               <div className="relative p-4">
                                 {showResult && (
                                   <Progress
@@ -341,10 +351,17 @@ export default function PollDetailPage() {
                                     <span
                                       className={cn(
                                         "font-semibold text-sm",
-                                        isSelected && !isVoted && "font-bold",
+                                        (isSelected && !isVoted) || isUserChoice
+                                          ? "font-bold"
+                                          : "",
                                       )}
                                     >
                                       {opt.optionText}
+                                      {isUserChoice && (
+                                        <span className="ml-2 text-[10px] font-mono uppercase tracking-wider text-jepang-red">
+                                          Pilihanmu
+                                        </span>
+                                      )}
                                     </span>
                                   </div>
                                   {showResult && (
@@ -379,7 +396,7 @@ export default function PollDetailPage() {
           </div>
 
           {/* Submit button */}
-          {!isLoading && anyUnvoted && (
+          {!isLoading && anyUnvoted && !pollCompleted && (
             <div className="mt-8">
               {!user ? (
                 <div className="border border-jepang-border p-4 text-center">
@@ -391,11 +408,11 @@ export default function PollDetailPage() {
                 <button
                   type="button"
                   onClick={handleSubmitAll}
-                  disabled={submitting || !allAnswered}
+                  disabled={submitting || !allAnswered || pollCompleted}
                   className={cn(
                     "w-full py-4 font-heading font-black text-lg tracking-tight transition-colors",
                     "rounded-lg border",
-                    allAnswered && !submitting
+                    allAnswered && !submitting && !pollCompleted
                       ? "border-jepang-orange bg-jepang-orange text-white hover:bg-jepang-orange-hover hover:border-jepang-orange-hover"
                       : "border-jepang-border bg-white text-jepang-muted cursor-not-allowed",
                   )}
@@ -416,7 +433,7 @@ export default function PollDetailPage() {
           )}
 
           {/* All voted state */}
-          {!isLoading && !anyUnvoted && poll!.questions.length > 0 && (
+          {!isLoading && pollCompleted && poll!.questions.length > 0 && (
             <div className="mt-8 border border-jepang-red p-4 flex items-center gap-3">
               <CheckCircle2 size={20} className="text-jepang-red shrink-0" />
               <div>

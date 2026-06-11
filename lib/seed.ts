@@ -1,17 +1,9 @@
 import { db } from './db';
 
-const CATEGORIES = [
-  { name: 'Anime', slug: 'anime', color: '#D90429' },
-  { name: 'Manga', slug: 'manga', color: '#0A0A0A' },
-  { name: 'Culture', slug: 'culture', color: '#D90429' },
-  { name: 'Travel', slug: 'travel', color: '#0A0A0A' },
-  { name: 'Food', slug: 'food', color: '#D90429' },
-  { name: 'Event', slug: 'event', color: '#0A0A0A' },
-  { name: 'Technology', slug: 'technology', color: '#D90429' },
-  { name: 'Lifestyle', slug: 'lifestyle', color: '#0A0A0A' },
-  { name: 'Education', slug: 'education', color: '#D90429' },
-  { name: 'Fun', slug: 'fun', color: '#0A0A0A' },
-];
+// Keep in sync with prisma/seeder/data/categories.js (single source for DB seed)
+const { CATEGORIES_DATA } = require('../prisma/seeder/data/categories.js') as {
+  CATEGORIES_DATA: { name: string; slug: string; color: string }[];
+};
 
 let seeded = false;
 
@@ -20,8 +12,8 @@ export async function seedDatabase() {
   seeded = true;
 
   try {
-    for (let i = 0; i < CATEGORIES.length; i++) {
-      const cat = CATEGORIES[i];
+    for (let i = 0; i < CATEGORIES_DATA.length; i++) {
+      const cat = CATEGORIES_DATA[i];
       const existing = await db.category.findUnique({ where: { slug: cat.slug } });
       if (!existing) {
         await db.category.create({

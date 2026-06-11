@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminTopbar from '@/components/admin/AdminTopbar';
+import { ThinScrollbar } from '@/components/ui/thin-scrollbar';
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, loading, isLoaded, isSignedIn } = useAuth();
@@ -57,7 +58,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <AdminTopbar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</main>
+        <ThinScrollbar
+          as="main"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
+          {children}
+        </ThinScrollbar>
       </div>
     </div>
   );

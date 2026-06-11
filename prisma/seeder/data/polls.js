@@ -14,8 +14,6 @@ const THUMBNAILS = IMAGES.pollThumbnails;
 const CITY_IMAGES = IMAGES.pollOptionImages.city;
 const FOOD_IMAGES = IMAGES.pollOptionImages.food;
 
-// Indeks poll yang mendapat thumbnail
-const THUMBNAIL_INDICES     = new Set([0, 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32]);
 // Indeks poll yang opsinya punya gambar (hanya city & food)
 const IMAGE_OPTION_INDICES  = new Set([0, 6, 12, 18, 24, 30]);
 // Indeks poll yang punya lebih dari 1 pertanyaan (multi-question)
@@ -151,9 +149,9 @@ const SAMPLE_POLLS = (() => {
     const title        = q1.questionText; // judul poll = pertanyaan pertama
     const firstOpt     = q1.options[0].optionText;
     const slug_base    = `seed-${kind}-${i}-${firstOpt.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-    const thumbnailUrl = THUMBNAIL_INDICES.has(i)
-      ? (THUMBNAILS[kind] || THUMBNAILS.city)[i % (THUMBNAILS[kind] || THUMBNAILS.city).length]
-      : null;
+    const thumbnailUrl = (THUMBNAILS[kind] || THUMBNAILS.city)[
+      i % (THUMBNAILS[kind] || THUMBNAILS.city).length
+    ];
 
     out.push({
       title,

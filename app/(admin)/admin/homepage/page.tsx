@@ -8,6 +8,8 @@ import { Star, Flame, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function AdminHomepagePage() {
@@ -162,7 +164,7 @@ export default function AdminHomepagePage() {
               </CardHeader>
 
               <CardContent className="p-0">
-                <div className="divide-y divide-jepang-border max-h-150 overflow-y-auto">
+                <div className={cn(THIN_SCROLLBAR_CLASS, "divide-y divide-jepang-border max-h-150 overflow-y-auto")}>
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
@@ -310,7 +312,7 @@ export default function AdminHomepagePage() {
               </CardHeader>
 
               <CardContent className="p-0">
-                <div className="divide-y divide-jepang-border max-h-150 overflow-y-auto">
+                <div className={cn(THIN_SCROLLBAR_CLASS, "divide-y divide-jepang-border max-h-150 overflow-y-auto")}>
                   {filtered.map((article: any) => (
                     <div
                       key={article.id}

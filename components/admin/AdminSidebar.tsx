@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { THIN_SCROLLBAR_CLASS } from '@/components/ui/thin-scrollbar';
 import { Input } from '@/components/ui/input';
 import { ADMIN_NAV_GROUPS, isAdminNavActive, type AdminNavGroup } from '@/lib/admin-nav';
 
@@ -69,7 +70,10 @@ export default function AdminSidebar({ onNavigate, className }: AdminSidebarProp
       </div>
 
       {/* Nav groups */}
-      <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi admin">
+      <nav
+        className={cn(THIN_SCROLLBAR_CLASS, 'min-h-0 flex-1 overflow-y-auto px-3 pb-4')}
+        aria-label="Navigasi admin"
+      >
         {filteredGroups.length === 0 ? (
           <p className="px-3 py-2 text-sm text-jepang-muted">Menu tidak ditemukan.</p>
         ) : (

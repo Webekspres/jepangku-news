@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient, currentUser, getAuth } from '@clerk/nextjs/server';
 import type { User } from '@clerk/backend';
+import type { ServerGetToken } from '@clerk/shared/types';
 import { ensureLocalUserFromClerk } from '@/lib/auth/clerk-user';
 import { resolveClerkSessionToken } from '@/lib/auth/clerk-token';
 import { applyCoreGamification } from '@/lib/auth/session';
@@ -25,7 +26,7 @@ export {
 type ClerkAuthState = {
   isAuthenticated: boolean;
   userId: string | null;
-  getToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
+  getToken: ServerGetToken;
 };
 
 function isSessionAuthState(

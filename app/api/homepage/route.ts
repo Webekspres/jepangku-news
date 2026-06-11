@@ -18,17 +18,25 @@ interface LeaderboardEntry {
 
 interface PollResponse {
   id: string;
+  title: string;
+  slug: string;
+  pollType: string;
   questionCount: number;
   totalVotes: number;
 }
 
 interface QuizResponse {
   id: string;
+  title: string;
+  slug: string;
   questionCount: number;
 }
 
 interface PollPayload {
   id: string;
+  title: string;
+  slug: string;
+  pollType: string;
   questions: Array<{
     options: Array<{
       voteCount: number;
@@ -38,6 +46,8 @@ interface PollPayload {
 
 interface QuizPayload {
   id: string;
+  title: string;
+  slug: string;
   _count: {
     questions: number;
   };
@@ -166,6 +176,7 @@ export async function GET(): Promise<NextResponse<HomepageResponse>> {
     db.quiz.findMany({
       where: { status: 'ACTIVE' },
       orderBy: { createdAt: 'desc' },
+      take: 4,
       include: { _count: { select: { questions: true } } },
     }),
     db.category.findMany({
@@ -183,6 +194,9 @@ export async function GET(): Promise<NextResponse<HomepageResponse>> {
     trending,
     polls: polls.map((poll: PollPayload) => ({
       id: poll.id,
+      title: poll.title,
+      slug: poll.slug,
+      pollType: poll.pollType,
       questionCount: poll.questions.length,
       totalVotes: poll.questions.reduce(
         (sum: number, q: typeof poll.questions[number]) =>
@@ -192,6 +206,8 @@ export async function GET(): Promise<NextResponse<HomepageResponse>> {
     })),
     quizzes: quizzes.map((quiz: QuizPayload) => ({
       id: quiz.id,
+      title: quiz.title,
+      slug: quiz.slug,
       questionCount: quiz._count.questions,
     })),
     leaderboard: leaderboardData,

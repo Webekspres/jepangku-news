@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import TrendingArticleSkeleton from "@/components/skeletons/TrendingArticleSkeleton";
-import PollQuizCardSkeleton from "@/components/skeletons/PollQuizCardSkeleton";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import CategoryCardSkeleton from "@/components/skeletons/CategoryCardSkeleton";
 import SectionHeader from "@/components/SectionHeader";
@@ -237,42 +236,6 @@ export default function HomePage() {
               {[...Array(3)].map((_, idx) => (
                 <ArticleCardSkeleton key={idx} />
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Polls + Quiz Skeleton */}
-        <section className="py-12">
-          <div className="px-4 mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-jepang-border">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border px-6 pt-6">
-                  <MessageSquare
-                    size={18}
-                    strokeWidth={1.5}
-                    className="text-jepang-red"
-                  />
-                  <h3 className="small-caps">Poll Aktif</h3>
-                </div>
-                <div className="px-6 pb-6">
-                  <PollQuizCardSkeleton />
-                </div>
-              </div>
-              <div className="bg-jepang-navy text-white border border-jepang-border">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-700 px-6 pt-6">
-                  <Zap
-                    size={18}
-                    strokeWidth={1.5}
-                    className="text-jepang-red"
-                  />
-                  <h3 className="small-caps text-jepang-red">
-                    Uji Pengetahuanmu
-                  </h3>
-                </div>
-                <div className="px-6 pb-6">
-                  <PollQuizCardSkeleton isDark />
-                </div>
-              </div>
             </div>
           </div>
         </section>
@@ -540,26 +503,44 @@ export default function HomePage() {
       {/* Interactive Section: Polls + Quiz */}
       <section className="py-12">
         <div className="px-4 mx-auto max-w-7xl">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+            <div>
+              <p className="section-label mb-1">インタラクティブ / INTERAKTIF</p>
+              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
+                Polling & Kuis
+              </h2>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-jepang-border bg-white p-6 shadow-jepang">
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
+            <div className="rounded-lg border border-jepang-border bg-white p-6 shadow-jepang">
+              <div className="flex items-start gap-3 mb-4 pb-3 border-b border-jepang-border">
                 <MessageSquare
                   size={18}
                   strokeWidth={1.5}
-                  className="text-jepang-red"
+                  className="mt-0.5 shrink-0 text-jepang-red"
                 />
-                <h3 className="small-caps">Poll Aktif</h3>
+                <div className="min-w-0">
+                  <p className="section-label mb-1">Polling</p>
+                  {polls.length > 0 ? (
+                    <h3 className="font-heading font-bold text-xl tracking-tight line-clamp-2">
+                      {polls[0].title}
+                    </h3>
+                  ) : (
+                    <h3 className="font-heading font-bold text-xl tracking-tight">
+                      Poll Aktif
+                    </h3>
+                  )}
+                </div>
               </div>
               {polls.length > 0 ? (
                 <div>
                   <span className="jepang-badge mb-3">
-                    {polls[0].pollType?.toUpperCase()}
+                    {polls[0].pollType?.replace(/_/g, " ")}
                   </span>
-                  <h4 className="font-heading font-bold text-2xl tracking-tight mb-3 mt-3">
-                    {polls[0].title}
-                  </h4>
                   <p className="text-sm text-jepang-muted mb-4">
-                    {polls[0].totalVotes || 0} votes
+                    {polls[0].questionCount || 0} pertanyaan ·{" "}
+                    {polls[0].totalVotes || 0} suara
                   </p>
                   <Link
                     href={`/polls/${polls[0].slug}`}
@@ -576,28 +557,38 @@ export default function HomePage() {
               )}
             </div>
 
-            <div className="bg-jepang-navy text-white p-6">
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-zinc-700">
-                <Zap size={18} strokeWidth={1.5} className="text-jepang-red" />
-                <h3 className="small-caps text-jepang-red">
-                  Uji Pengetahuanmu
-                </h3>
+            <div className="rounded-lg bg-jepang-navy p-6 text-white shadow-jepang">
+              <div className="flex items-start gap-3 mb-4 pb-3 border-b border-white/10">
+                <Zap
+                  size={18}
+                  strokeWidth={1.5}
+                  className="mt-0.5 shrink-0 text-jepang-red"
+                />
+                <div className="min-w-0">
+                  <p className="section-label mb-1">Kuis</p>
+                  {quizzes.length > 0 ? (
+                    <h3 className="font-heading font-bold text-xl tracking-tight line-clamp-2">
+                      {quizzes[0].title}
+                    </h3>
+                  ) : (
+                    <h3 className="font-heading font-bold text-xl tracking-tight">
+                      Uji Pengetahuanmu
+                    </h3>
+                  )}
+                </div>
               </div>
               {quizzes.length > 0 ? (
                 <div>
-                  <span className="jepang-badge-red mb-3">KUIS</span>
-                  <h4 className="font-heading font-bold text-2xl tracking-tight mb-3 mt-3">
-                    {quizzes[0].title}
-                  </h4>
+                  <span className="jepang-badge-red mb-3">Kuis</span>
                   <p className="text-sm text-zinc-400 mb-4">
-                    {quizzes[0].questionCount || 0} pertanyaan • +10 POIN
+                    {quizzes[0].questionCount || 0} pertanyaan · +10 poin
                   </p>
                   <Link
                     href={`/quizzes/${quizzes[0].slug}`}
                     className="jepang-btn-primary inline-block"
                     data-testid="homepage-quiz-cta"
                   >
-                    MULAI KUIS
+                    Mulai Kuis
                   </Link>
                 </div>
               ) : (

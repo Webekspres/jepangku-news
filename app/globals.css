@@ -205,6 +205,30 @@ code {
   font-family: var(--font-japanese);
 }
 
+/* Scrollbar tipis — dipakai via ThinScrollbar atau class .thin-scrollbar */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 27, 87, 0.28) transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(30, 27, 87, 0.22);
+  border-radius: 9999px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(30, 27, 87, 0.38);
+}
+
 .asanoha-bg {
   background-image: url("https://static.prod-images.emergentagent.com/jobs/d6b595d8-148b-4a5c-a6ea-ccdfa2ed4b68/images/d6842d3000c6e9b984d312d02f02aa7f612d8dff19ed10d1965c01e59c1ef899.png");
   background-repeat: repeat;

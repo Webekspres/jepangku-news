@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
-import { ArrowLeft, Award } from "lucide-react";
+import { ArrowLeft, Award, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +27,7 @@ export default function QuizDetailPage() {
   const isLoading = loading && !quiz;
 
   useEffect(() => {
-    fetch(`/api/quizzes/${slug}`)
+    fetch(`/api/quizzes/${slug}`, { credentials: "include" })
       .then((r) => {
         if (!r.ok) {
           router.push("/quizzes");
@@ -34,7 +36,16 @@ export default function QuizDetailPage() {
         return r.json();
       })
       .then((d) => {
-        if (d) setQuiz(d);
+        if (!d) return;
+        setQuiz(d);
+        if (d.userAttempt) {
+          setResult({
+            score: d.userAttempt.score,
+            correctAnswers: d.userAttempt.correctAnswers,
+            totalQuestions: d.userAttempt.totalQuestions,
+            pointsAwarded: d.userAttempt.pointsAwarded,
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, [slug]);
@@ -80,6 +91,8 @@ export default function QuizDetailPage() {
   };
 
   if (!quiz && !loading) return null;
+
+  const quizCompleted = Boolean(quiz?.userHasCompleted || result);
 
   if (result) {
     return (
@@ -167,26 +180,35 @@ export default function QuizDetailPage() {
           >
             <ArrowLeft size={14} /> Kembali ke kuis
           </Link>
-          <div className="mb-8">
-            <Badge variant="red" className="mb-3 inline-block">
-              KUIS
-            </Badge>
-            {isLoading ? (
-            <div className="my-8 -mx-4 md:mx-0">
-              <div className="h-72 w-full bg-jepang-red/10 animate-pulse" />
+
+          {!isLoading && quiz.thumbnailUrl && (
+            <div className="relative mb-8 aspect-16/10 overflow-hidden rounded-lg border border-jepang-border bg-jepang-off-white">
+              <Image
+                src={quiz.thumbnailUrl}
+                alt={quiz.title}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+              />
             </div>
-          ) : (
-            quiz.thumbnailUrl && (
-              <div className="my-8 -mx-4 md:mx-0">
-                <img
-                  src={quiz.thumbnailUrl}
-                  alt={quiz.title}
-                  className="w-full max-h-150 object-cover"
-                />
-              </div>
-            )
           )}
-            <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter mb-3 mt-2">
+
+          <div className="mb-8">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <Badge variant="red">KUIS</Badge>
+              {quizCompleted && user && (
+                <Badge
+                  variant="outline"
+                  className="border-jepang-red text-jepang-red gap-1"
+                  data-testid="quiz-completed-badge"
+                >
+                  <CheckCircle2 size={10} strokeWidth={2} />
+                  SELESAI
+                </Badge>
+              )}
+            </div>
+            <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter mb-3">
               {isLoading ? (
                 <div className="h-12 w-full max-w-3xl bg-jepang-red/10 animate-pulse" />
               ) : (
@@ -277,25 +299,66 @@ export default function QuizDetailPage() {
                       <h3 className="font-heading font-bold text-xl mb-4">
                         {question.questionText}
                       </h3>
+                      {question.imageUrl && (
+                        <div className="relative mb-4 aspect-video overflow-hidden rounded-md border border-jepang-border bg-jepang-off-white">
+                          <Image
+                            src={question.imageUrl}
+                            alt={question.questionText}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 640px"
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
                       <div className="space-y-2">
-                        {question.options?.map((option: any, oIdx: number) => (
+                        {question.options?.map((option: any, oIdx: number) => {
+                          const isSelected =
+                            answers[question.id] === option.id;
+                          return (
                           <button
                             key={option.id}
+                            type="button"
+                            disabled={quizCompleted || submitting}
                             onClick={() =>
                               setAnswers({
                                 ...answers,
                                 [question.id]: option.id,
                               })
                             }
-                            className={`w-full text-left p-4 border transition-colors ${answers[question.id] === option.id ? "border-jepang-red bg-jepang-red text-white" : "border-jepang-border hover:border-foreground"}`}
+                            className={cn(
+                              "disabled:cursor-not-allowed disabled:opacity-60",
+                              "w-full overflow-hidden border text-left transition-colors",
+                              isSelected
+                                ? "border-jepang-red ring-1 ring-jepang-red"
+                                : "border-jepang-border hover:border-foreground",
+                            )}
                             data-testid={`question-${qIdx}-option-${oIdx}`}
                           >
-                            <span className="font-mono font-bold mr-3">
-                              {String.fromCharCode(65 + oIdx)}.
-                            </span>
-                            {option.optionText}
+                            {option.imageUrl && (
+                              <div className="relative aspect-16/10 w-full border-b border-jepang-border bg-jepang-off-white">
+                                <Image
+                                  src={option.imageUrl}
+                                  alt={option.optionText}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, 640px"
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+                            <div
+                              className={cn(
+                                "p-4",
+                                isSelected && "bg-jepang-red text-white",
+                              )}
+                            >
+                              <span className="font-mono font-bold mr-3">
+                                {String.fromCharCode(65 + oIdx)}.
+                              </span>
+                              {option.optionText}
+                            </div>
                           </button>
-                        ))}
+                        );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -313,10 +376,20 @@ export default function QuizDetailPage() {
               </p>
               <Button
                 onClick={handleSubmit}
-                disabled={submitting || !user || isLoading}
+                disabled={
+                  submitting ||
+                  !user ||
+                  isLoading ||
+                  quizCompleted ||
+                  Object.keys(answers).length !== (quiz.questions?.length || 0)
+                }
                 data-testid="submit-quiz-btn"
               >
-                {submitting ? "MENGIRIM JAWABAN..." : "KIRIM JAWABAN"}
+                {quizCompleted
+                  ? "KUIS SELESAI"
+                  : submitting
+                  ? "MENGIRIM JAWABAN..."
+                  : "KIRIM JAWABAN"}
               </Button>
             </div>
           </div>

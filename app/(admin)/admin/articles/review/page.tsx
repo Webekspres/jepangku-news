@@ -8,6 +8,8 @@ import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -225,7 +227,10 @@ export default function AdminReviewArticles() {
                   )}
 
                   <div
-                    className="article-content text-sm max-h-96 overflow-y-auto p-4 bg-jepang-off-white border border-jepang-border mb-6"
+                    className={cn(
+                      THIN_SCROLLBAR_CLASS,
+                      "article-content text-sm max-h-96 overflow-y-auto p-4 bg-jepang-off-white border border-jepang-border mb-6",
+                    )}
                     dangerouslySetInnerHTML={{ __html: selected.content }}
                   />
 

@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className="h-full">
       <ClerkProvider>
-        <body className="min-h-full flex flex-col">
+        <body className="thin-scrollbar min-h-full flex flex-col">
           <ClientProviders>{children}</ClientProviders>
         </body>
       </ClerkProvider>

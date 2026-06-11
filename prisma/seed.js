@@ -1,3 +1,4 @@
+require("dotenv/config");
 const { createPrismaClient } = require("./create-client.js");
 const {
   fetchClerkUsersByEmail,
@@ -129,7 +130,10 @@ async function main() {
   // ── 2. Sample users (Clerk ID or seed_* for dev content) ─────────────
   for (const userData of SAMPLE_USERS) {
     const userId = resolvePortalUserId(userData, clerkByEmail);
-    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    const existing =
+      (await prisma.user.findUnique({ where: { id: userId } })) ||
+      (await prisma.user.findUnique({ where: { email: userData.email } })) ||
+      (await prisma.user.findUnique({ where: { username: userData.username } }));
     if (existing) {
       console.log(`⏭  User exists: ${userData.email}`);
       continue;
@@ -940,7 +944,7 @@ async function main() {
   }
   console.log(`✅ Reactions seeded (${reactionsSeeded}).`);
 
-  // ── Info pages ─────────────────────────────────────────────────────────
+  // ── 16. Info pages ─────────────────────────────────────────────────────
   console.log("📄 Seeding info pages...");
   for (const page of INFO_PAGES_DATA) {
     await prisma.infoPage.upsert({
