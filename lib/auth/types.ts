@@ -1,6 +1,12 @@
 import type { Role } from '@prisma/client';
 
 /** Stable session shape for portal features — independent of auth backend. */
+export type GamificationPatch = {
+  totalPoints?: number;
+  totalXp?: number;
+  currentLevel?: number;
+};
+
 export type SessionUser = {
   /** Clerk User ID (= jepangku-core users.id) */
   id: string;
@@ -13,7 +19,7 @@ export type SessionUser = {
   role: Role;
   avatarUrl: string | null;
   status: string;
-  /** Global points from Core JWT (currentPoints). */
+  /** Global points from Core (`currentPoints` — live API, fallback JWT). */
   totalPoints: number;
   totalXp: number;
   currentLevel: number;

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth, clerkClient, currentUser, getAuth } from '@clerk/nextjs/server';
 import type { User } from '@clerk/backend';
 import { ensureLocalUserFromClerk } from '@/lib/auth/clerk-user';
+import { resolveClerkSessionToken } from '@/lib/auth/clerk-token';
+import { applyCoreGamification } from '@/lib/auth/session';
 import { hasNewsAdminAccess } from '@/lib/auth/types';
 import {
   establishCoreSession,
@@ -23,7 +25,7 @@ export {
 type ClerkAuthState = {
   isAuthenticated: boolean;
   userId: string | null;
-  getToken: () => Promise<string | null>;
+  getToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
 };
 
 function isSessionAuthState(
@@ -43,16 +45,27 @@ function isSessionAuthState(
 async function syncSessionUser(
   authState: ClerkAuthState & { userId: string },
   clerkUser: User,
+  request?: NextRequest,
 ): Promise<SessionUser | null> {
   try {
     let coreClaims = await getCoreJwtClaims();
-    const clerkToken = await authState.getToken();
+    const clerkToken = await resolveClerkSessionToken(authState, request);
+
+    const user = await ensureLocalUserFromClerk(clerkUser, coreClaims);
+
+    // Poin dari Core public API dulu — jangan tunggu exchange JWT (bisa gagal/lambat).
+    let sessionUser = await applyCoreGamification(user, coreClaims);
 
     if (clerkToken && (!coreClaims || coreClaims.sub !== clerkUser.id)) {
-      coreClaims = await establishCoreSession(clerkToken);
+      coreClaims =
+        (await establishCoreSession(clerkToken, { maxAttempts: 1 })) ?? coreClaims;
+      if (coreClaims?.jepangku?.roles?.length) {
+        sessionUser = { ...sessionUser, coreRoles: coreClaims.jepangku.roles };
+      }
+      // Poin tetap dari applyCoreGamification (public API); klaim JWT sering basi.
     }
 
-    return await ensureLocalUserFromClerk(clerkUser, coreClaims);
+    return sessionUser;
   } catch (e) {
     console.error('Clerk JIT user sync failed:', e);
     return null;
@@ -75,10 +88,10 @@ async function authenticateClerkRequest(
   const clerkUser = await client.users.getUser(authState.userId);
   if (!clerkUser) return null;
 
-  const user = await syncSessionUser(authState, clerkUser);
+  const user = await syncSessionUser(authState, clerkUser, request);
   if (!user) return null;
 
-  const clerkToken = await authState.getToken();
+  const clerkToken = await resolveClerkSessionToken(authState, request);
   return { user, clerkToken };
 }
 
@@ -135,10 +148,10 @@ export async function authenticateRequestUser(request: NextRequest): Promise<{
   const clerkUser = await client.users.getUser(authState.userId);
   if (!clerkUser) return null;
 
-  const user = await syncSessionUser(authState, clerkUser);
+  const user = await syncSessionUser(authState, clerkUser, request);
   if (!user) return null;
 
-  const clerkToken = await authState.getToken();
+  const clerkToken = await resolveClerkSessionToken(authState, request);
   return { user, clerkToken };
 }
 
@@ -175,17 +188,13 @@ export async function withCoreSessionCookie(
   const existing = await getCoreSessionToken();
   if (existing) return response;
 
-  const { exchangeClerkToken } = await import('@/lib/core/auth');
-  const { coreSessionCookieOptions, CORE_SESSION_COOKIE } = await import('@/lib/core/session');
+  const claims = await establishCoreSession(clerkSessionToken);
+  if (!claims) return response;
 
-  try {
-    const jar = await import('next/headers').then((m) => m.cookies());
-    if (jar.get(CORE_SESSION_COOKIE)?.value) return response;
-
-    const { token } = await exchangeClerkToken(clerkSessionToken);
+  const token = await getCoreSessionToken();
+  if (token) {
+    const { coreSessionCookieOptions, CORE_SESSION_COOKIE } = await import('@/lib/core/session');
     response.cookies.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
-  } catch {
-    // Non-fatal — portal session still valid via Clerk
   }
 
   return response;

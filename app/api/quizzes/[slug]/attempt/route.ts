@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
@@ -80,8 +81,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     data: { score, correctAnswers, pointsAwarded: totalPoints },
   });
 
-  // Award base points for completing quiz (once per quiz)
-  await awardPoints(
+  let award = await awardPoints(
     user.id,
     'quiz_completed',
     'quiz',
@@ -90,9 +90,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     `Completed quiz: ${quiz.title}`
   );
 
-  // Award correct answer points as a single transaction (once per quiz)
   if (correctAnswers > 0) {
-    await awardPoints(
+    award = await awardPoints(
       user.id,
       'quiz_correct_answers',
       'quiz',
@@ -108,6 +107,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     correctAnswers,
     totalQuestions,
     pointsAwarded: totalPoints,
+    ...gamificationFieldsFromAward(award),
   });
   } catch (e) {
     await captureException(e, { route: 'quiz-attempt' });

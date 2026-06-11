@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
 import { ArrowLeft, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ export default function QuizDetailPage() {
       const data = await fetch(`/api/quizzes/${slug}/attempt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ answers: answerList }),
       }).then((r) => {
         if (!r.ok)
@@ -69,7 +71,7 @@ export default function QuizDetailPage() {
       });
       setResult(data);
       toast.success(`+${data.pointsAwarded} poin didapat!`);
-      refreshUser();
+      await refreshUser(gamificationPatchFromResponse(data));
     } catch (e: any) {
       toast.error(e.message || "Gagal mengirim kuis");
     } finally {

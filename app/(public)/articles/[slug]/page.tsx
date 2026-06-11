@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import {
@@ -97,7 +98,7 @@ export default function ArticleDetailPage() {
       }).then((r) => r.json());
       if (data.awarded) {
         toast.success(`+${data.points} poin untuk membaca!`);
-        refreshUser();
+        await refreshUser(gamificationPatchFromResponse(data));
       }
     } catch {}
   };
@@ -124,7 +125,7 @@ export default function ArticleDetailPage() {
         setIsBookmarked(true);
         if (data.pointsAwarded) {
           toast.success("+1 poin untuk bookmark!");
-          refreshUser();
+          await refreshUser(gamificationPatchFromResponse(data));
         } else toast.success("Artikel disimpan");
       }
     } catch {
@@ -151,7 +152,7 @@ export default function ArticleDetailPage() {
           if (trackResponse.pointsAwarded) {
             toast.success(`Tautan disalin! +${trackResponse.points} poin untuk berbagi!`);
             setHasShared(true);
-            refreshUser();
+            await refreshUser(gamificationPatchFromResponse(trackResponse));
           }
         } catch (error) {
           console.error("Error tracking share:", error);

@@ -9,7 +9,7 @@ import React, {
   useRef,
 } from 'react';
 import { useClerk, useAuth as useClerkSession, useUser } from '@clerk/nextjs';
-import type { SessionUser } from '@/lib/auth/types';
+import type { GamificationPatch, SessionUser } from '@/lib/auth/types';
 
 type ClerkUser = ReturnType<typeof useUser>['user'];
 
@@ -18,8 +18,12 @@ export type AuthUser = SessionUser;
 /** null = loading, false = signed out, AuthUser = profile ready */
 type UserState = AuthUser | null | false;
 
+export type { GamificationPatch } from '@/lib/auth/types';
+
 interface AuthContextType {
   user: UserState;
+  /** Saldo poin untuk UI (profil atau fetch langsung ke Core). */
+  displayPoints: number;
   loading: boolean;
   isLoaded: boolean;
   isSignedIn: boolean;
@@ -27,33 +31,72 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthUser>;
   register: (data: { name: string; username: string; email: string; password: string }) => Promise<AuthUser>;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: (gamification?: GamificationPatch) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const PROFILE_RETRY_DELAYS_MS = [0, 500, 1000, 2000, 3500];
 
-async function fetchPortalProfile(): Promise<SessionUser | null> {
-  const res = await fetch('/api/auth/me', {
-    cache: 'no-store',
-    credentials: 'same-origin',
-  });
+type ClerkGetToken = (options?: { skipCache?: boolean }) => Promise<string | null>;
+
+async function fetchWithClerkSession(
+  path: string,
+  getToken: ClerkGetToken,
+): Promise<Response> {
+  const token = await getToken();
+  const headers: HeadersInit = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return fetch(path, { cache: 'no-store', credentials: 'same-origin', headers });
+}
+
+async function fetchPortalProfile(getToken: ClerkGetToken): Promise<SessionUser | null> {
+  const res = await fetchWithClerkSession('/api/auth/me', getToken);
   if (!res.ok) return null;
   return res.json() as Promise<SessionUser>;
 }
 
+async function fetchGamificationBalance(
+  getToken: ClerkGetToken,
+): Promise<GamificationPatch | null> {
+  const res = await fetchWithClerkSession('/api/user/gamification', getToken);
+  if (!res.ok) return null;
+  return res.json() as Promise<GamificationPatch>;
+}
+
+function mergeGamification(
+  profile: SessionUser,
+  gamification: GamificationPatch | null,
+): SessionUser {
+  if (!gamification || gamification.totalPoints == null) return profile;
+  return {
+    ...profile,
+    totalPoints: gamification.totalPoints,
+    ...(gamification.totalXp != null ? { totalXp: gamification.totalXp } : {}),
+    ...(gamification.currentLevel != null
+      ? { currentLevel: gamification.currentLevel }
+      : {}),
+  };
+}
+
 export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
   const { signOut } = useClerk();
-  const { isLoaded, isSignedIn, userId } = useClerkSession();
-  const { user: clerkUser } = useUser();
+  const { isLoaded, isSignedIn, userId, getToken } = useClerkSession();
+  const { user: clerkUser, isLoaded: clerkUserLoaded } = useUser();
 
   const [profile, setProfile] = useState<SessionUser | null>(null);
+  const [pointsBalance, setPointsBalance] = useState<number | null>(null);
   const [profileSyncing, setProfileSyncing] = useState(false);
   const syncGenRef = useRef(0);
 
+  const applyPointsBalance = useCallback((patch: GamificationPatch | null) => {
+    if (patch?.totalPoints != null) {
+      setPointsBalance(patch.totalPoints);
+    }
+  }, []);
+
   const syncProfile = useCallback(async () => {
-    if (!isSignedIn || !userId) return;
+    if (!isSignedIn || !userId || !clerkUserLoaded || !clerkUser) return;
 
     const generation = ++syncGenRef.current;
     setProfileSyncing(true);
@@ -68,11 +111,16 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
           if (generation !== syncGenRef.current) return;
         }
 
-        const data = await fetchPortalProfile();
+        const [data, gamification] = await Promise.all([
+          fetchPortalProfile(getToken),
+          fetchGamificationBalance(getToken),
+        ]);
         if (generation !== syncGenRef.current) return;
 
+        applyPointsBalance(gamification);
+
         if (data) {
-          setProfile(data);
+          setProfile(mergeGamification(data, gamification));
           return;
         }
       }
@@ -81,20 +129,21 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
         setProfileSyncing(false);
       }
     }
-  }, [isSignedIn, userId]);
+  }, [isSignedIn, userId, clerkUserLoaded, clerkUser, getToken, applyPointsBalance]);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !clerkUserLoaded) return;
 
-    if (!isSignedIn || !userId) {
+    if (!isSignedIn || !userId || !clerkUser) {
       syncGenRef.current += 1;
       setProfile(null);
+      setPointsBalance(null);
       setProfileSyncing(false);
       return;
     }
 
     void syncProfile();
-  }, [isLoaded, isSignedIn, userId, syncProfile]);
+  }, [isLoaded, clerkUserLoaded, isSignedIn, userId, clerkUser, syncProfile]);
 
   const user: UserState = !isLoaded
     ? null
@@ -103,6 +152,9 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
       : profile;
 
   const loading = !isLoaded || (isSignedIn && profileSyncing && !profile);
+
+  const displayPoints =
+    pointsBalance ?? (isAuthUser(profile) ? profile.totalPoints : null) ?? 0;
 
   const login = async (): Promise<AuthUser> => {
     window.location.href = '/sign-in';
@@ -117,6 +169,7 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     syncGenRef.current += 1;
     setProfile(null);
+    setPointsBalance(null);
     setProfileSyncing(false);
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
@@ -124,15 +177,27 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
     await signOut({ redirectUrl: '/' });
   }, [signOut]);
 
-  const refreshUser = useCallback(async () => {
-    if (!isSignedIn || !userId) return;
-    await syncProfile();
-  }, [isSignedIn, userId, syncProfile]);
+  const refreshUser = useCallback(
+    async (gamificationPatch?: GamificationPatch) => {
+      if (!isSignedIn || !userId) return;
+
+      applyPointsBalance(gamificationPatch ?? null);
+      if (gamificationPatch?.totalPoints != null) {
+        setProfile((prev) =>
+          prev ? mergeGamification(prev, gamificationPatch) : prev,
+        );
+      }
+
+      await syncProfile();
+    },
+    [isSignedIn, userId, syncProfile, applyPointsBalance],
+  );
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        displayPoints,
         loading,
         isLoaded,
         isSignedIn: Boolean(isSignedIn),

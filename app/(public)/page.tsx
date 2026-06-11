@@ -13,6 +13,7 @@ import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleto
 import CategoryCardSkeleton from "@/components/skeletons/CategoryCardSkeleton";
 import SectionHeader from "@/components/SectionHeader";
 import AuthorLink from "@/components/AuthorLink";
+import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
 import {
   ArrowRight,
   Trophy,
@@ -70,6 +71,7 @@ interface LeaderboardEntry {
   userId: string;
   displayName: string;
   username: string;
+  profileLinked?: boolean;
   avatarUrl?: string | null;
   totalXp: number;
   currentPoints?: number;
@@ -646,15 +648,19 @@ export default function HomePage() {
                   >
                     #{entry.rank}
                   </span>
-                  <div className="w-10 h-10 bg-jepang-black text-white flex items-center justify-center font-bold">
-                    {entry.displayName?.charAt(0).toUpperCase() || "J"}
-                  </div>
+                  <LeaderboardAvatar
+                    avatarUrl={entry.avatarUrl}
+                    displayName={entry.displayName}
+                  />
                   <div className="flex-1">
-                    <AuthorLink username={entry.username} className="font-semibold block">
+                    <AuthorLink
+                      username={entry.profileLinked ? entry.username : null}
+                      className="font-semibold block"
+                    >
                       {entry.displayName}
                     </AuthorLink>
                     <AuthorLink
-                      username={entry.username}
+                      username={entry.profileLinked ? entry.username : null}
                       className="text-xs text-jepang-muted font-mono block"
                     >
                       @{entry.username}

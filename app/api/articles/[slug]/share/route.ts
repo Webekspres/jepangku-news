@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
@@ -56,7 +57,7 @@ export async function POST(
   });
 
   // Award points - use 5 points for article share
-  const pointsAwarded = await awardPoints(
+  const award = await awardPoints(
     user.id,
     'article_shared',
     'article',
@@ -65,7 +66,7 @@ export async function POST(
     `Shared article: ${article.title}`
   );
 
-  if (pointsAwarded) {
+  if (award.awarded) {
     await db.articleShare.update({
       where: { id: share.id },
       data: { isPointAwarded: true },
@@ -80,8 +81,9 @@ export async function POST(
 
   return NextResponse.json({
     message: 'Share tracked successfully',
-    pointsAwarded,
-    points: pointsAwarded ? 5 : 0,
+    pointsAwarded: award.awarded,
+    points: award.awarded ? 5 : 0,
+    ...gamificationFieldsFromAward(award),
   });
   } catch (e) {
     await captureException(e, { route: 'article-share' });

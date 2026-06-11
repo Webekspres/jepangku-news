@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
@@ -38,7 +39,7 @@ export async function POST(
   }
 
   // Award points — awardPoints handles anti-duplicate internally
-  const awarded = await awardPoints(
+  const award = await awardPoints(
     user.id,
     'article_read',
     'article',
@@ -48,9 +49,10 @@ export async function POST(
   );
 
   return NextResponse.json({
-    awarded,
-    points: awarded ? READ_POINTS : 0,
-    reason: awarded ? 'points_awarded' : 'already_awarded',
+    awarded: award.awarded,
+    points: award.awarded ? READ_POINTS : 0,
+    reason: award.awarded ? 'points_awarded' : 'already_awarded',
+    ...gamificationFieldsFromAward(award),
   });
   } catch (e) {
     await captureException(e, { route: 'read-complete' });

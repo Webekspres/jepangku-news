@@ -83,46 +83,88 @@ class RedisUrlRateLimitStore implements RateLimitStore {
   private client: RedisClientType | null = null;
   private connecting: Promise<RedisClientType> | null = null;
 
+  private resetClient(): void {
+    const stale = this.client;
+    this.client = null;
+    this.connecting = null;
+    if (!stale) return;
+    try {
+      if (stale.isOpen) {
+        void stale.quit().catch(() => {
+          try {
+            stale.destroy();
+          } catch {
+            // ignore closed client cleanup
+          }
+        });
+      }
+    } catch {
+      // ignore closed client cleanup
+    }
+  }
+
   private async getClient(): Promise<RedisClientType> {
     if (this.client?.isOpen) {
       return this.client;
     }
 
+    if (this.client && !this.client.isOpen) {
+      this.resetClient();
+    }
+
     if (!this.connecting) {
       this.connecting = (async () => {
-        const client = createClient({ url: process.env.REDIS_URL });
-        client.on('error', (err) => {
-          logger.warn('rate_limit.redis_client_error', {
-            error: err instanceof Error ? err.message : String(err),
-          });
+        const client = createClient({
+          url: process.env.REDIS_URL,
+          socket: {
+            reconnectStrategy: (retries) => (retries > 3 ? false : Math.min(retries * 200, 1000)),
+          },
         });
+
+        client.on('error', (err) => {
+          const message = err instanceof Error ? err.message : String(err);
+          logger.warn('rate_limit.redis_client_error', { error: message });
+          if (message.includes('Socket closed') || message.includes('ECONNREFUSED')) {
+            this.resetClient();
+          }
+        });
+
         await client.connect();
+        await client.ping();
         this.client = client as RedisClientType;
         return this.client;
-      })();
+      })().catch((err) => {
+        this.resetClient();
+        throw err;
+      });
     }
 
     return this.connecting;
   }
 
   async consume(key: string, { max, windowMs }: RateLimitConsumeOptions): Promise<RateLimitConsumeResult> {
-    const client = await this.getClient();
-    const redisKey = `ratelimit:${key}`;
+    try {
+      const client = await this.getClient();
+      const redisKey = `ratelimit:${key}`;
 
-    const count = (await client.eval(INCR_WITH_EXPIRE_LUA, {
-      keys: [redisKey],
-      arguments: [String(windowMs)],
-    })) as number;
+      const count = (await client.eval(INCR_WITH_EXPIRE_LUA, {
+        keys: [redisKey],
+        arguments: [String(windowMs)],
+      })) as number;
 
-    if (count > max) {
-      const ttlMs = await client.pTTL(redisKey);
-      return {
-        allowed: false,
-        retryAfterSeconds: Math.ceil(Math.max(ttlMs, 1000) / 1000),
-      };
+      if (count > max) {
+        const ttlMs = await client.pTTL(redisKey);
+        return {
+          allowed: false,
+          retryAfterSeconds: Math.ceil(Math.max(ttlMs, 1000) / 1000),
+        };
+      }
+
+      return { allowed: true };
+    } catch (err) {
+      this.resetClient();
+      throw err;
     }
-
-    return { allowed: true };
   }
 }
 

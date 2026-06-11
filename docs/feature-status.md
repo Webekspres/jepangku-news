@@ -12,141 +12,62 @@ signifikan pada fitur.
 
 ## 🎯 Tujuan Utama
 
-- Stabilkan portal lebih dulu (Fase A): hardening + user-facing + soft launch
+- Stabilkan portal lebih dulu: selesaikan bug, fitur, dan integrasi Core — soft launch konten ditunda
 - Lengkapi workflow artikel, quiz, polling, poin, dan leaderboard
 - Jangan bangun fitur auth/poin/badge versi portal yang akan digantikan Core Service
 - **Auth bridge:** Clerk ✅; integrasi Core Fase 1+3 **coded** ✅ — lihat [`ecosystem-integration.md`](./ecosystem-integration.md) §4
 - **Fase 0 dokumentasi** ✅ — kontrak v2 selaras dengan `jepangku-core/docs/ECOSYSTEM.md`
-- **Penyatuan shared auth** — checklist lengkap di bawah § [Penyatuan Shared Auth & Core Service](#-penyatuan-shared-auth--core-service)
+- **Penyatuan shared auth** — sisa pekerjaan di [§ Belum Diimplementasi](#-belum-diimplementasi); selesai di [§ Sudah Diimplementasi](#-sudah-diimplementasi-verified)
 
 ---
 
-## 🔗 Penyatuan Shared Auth & Core Service
+## ⏱️ Prioritas Pengerjaan Berikutnya
 
-Checklist operasional untuk menyatukan **Clerk + Core + News** menjadi satu identitas & poin global.
-Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API: `jepangku-core/docs/API.md`.
+Fokus saat ini: **bug, fitur, dan integrasi** — bukan konten soft launch. Detail checklist di [§ Belum Diimplementasi](#-belum-diimplementasi).
 
-**Target akhir:** login Clerk → user di Core → News pakai Clerk ID sebagai FK → poin via Core API.
+### Sekarang — bug & fitur portal
 
-**Prasyarat sudah ada:** Clerk di portal ✅ · Core service (kode) ✅ · dokumentasi Fase 0 ✅
+1. **Core & cutover** — Fase 1 operasional (deploy, Clerk webhook) + Fase 4 verifikasi QA (`bun run verify:core`); lihat [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14)
+2. **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log; lihat [§ Halaman](#-halaman--belum-ada--belum-selesai)
+3. **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain; lihat [§ Keamanan](#️-keamanan--kualitas--pre-launch--production)
+4. **Gap Core** — endpoint riwayat transaksi user (memblok riwayat `/points` penuh); lihat [§ Gap Core](#gap-core--koordinasi-tidak-memblok-cutover-minimal)
 
-### Ringkasan fase
+Portal user-facing utama (artikel, quiz, poll, komentar, search, analytics) sudah selesai di kode — sisa pekerjaan di atas.
+
+### Berikutnya — Fase E *(setelah Core API siap)*
+
+1. Riwayat aktivitas, leaderboard lanjutan, notifikasi, admin monitoring — lihat [§ Fase E](#-engagement--sosial--fase-e-core-service) di bawah
+2. Ekosistem LMS & payment — lihat [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de)
+
+### Ditunda — soft launch konten
+
+Konten 30+ artikel **tidak diprioritaskan** untuk sementara; lihat [§ Soft Launch](#-soft-launch--fase-a-ditunda) saat siap rilis publik.
+
+---
+
+## 🚧 Belum Diimplementasi
+
+### 🔗 Core & Cutover — Sisa Operasional *(Fase 1–4)*
+
+Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API: `jepangku-core/docs/API.md` · **Target:** login Clerk → user di Core → News pakai Clerk ID sebagai FK → poin via Core API.
 
 | Fase | Fokus | Repo utama | Status |
 | ---- | ----- | ---------- | ------ |
-| **1** | Core siap melayani News | `jepangku-core` | 🔄 lokal OK; webhook prod ⏳ |
-| **2** | News bridge (non-breaking) | `jepangku-news` | ✅ selesai (digantikan Fase 3) |
-| **3** | Cutover penuh | `jepangku-news` | 🔄 kode ✅; jalankan migrasi DB |
+| **1** | Core siap melayani News | `jepangku-core` | 🔄 lokal OK; deploy prod + webhook ⏳ |
+| **2** | News bridge | `jepangku-news` | ✅ selesai |
+| **3** | Cutover penuh | `jepangku-news` | ✅ kode + migrasi lokal selesai |
 | **4** | Verifikasi & cleanup | keduanya | ⏳ |
 
----
+#### Fase 1 — Core *(koordinasi tim Core)*
 
-### Fase 1 — Core siap melayani News *(koordinasi tim Core)*
-
-[x] **DATABASE_URL lokal** — `postgresql://root:root@localhost:5432/jepangku_core` di `jepangku-core/.env`
 [~] **Deploy Core** — staging/prod; lokal `bun run start` + `GET /health` OK
 [ ] **Clerk webhook** — endpoint production/ngrok ke `POST /api/v1/auth/webhooks/clerk`
-[x] **Satu Clerk Application** — News & Core `CLERK_SECRET_KEY` selaras
-[x] **Seed activity types News** di Core (`prisma/seed.ts`):
-  - `ARTICLE_SHARED`, `ARTICLE_BOOKMARKED`, `POLL_VOTED`, `COMMENT_CREATED`, `NEWS_QUIZ_COMPLETED`
-  - `READ_ARTICLE`, `DAILY_LOGIN` sudah ada
-  - Jalankan: `cd jepangku-core && bun run db:seed`
-[x] **Role admin portal** — `bun run db:sync-clerk` assign `NEWS_EDITOR` untuk `admin+clerk_test@jepangku.com`
-[x] **Smoke test lokal:**
-  1. `bun run db:sync-clerk` — 4 user Clerk → Core DB
-  2. `POST /api/v1/gamification/award` — OK (+2 XP admin)
-  3. Shadow token — aktif saat login News (`CORE_SHADOW_ENABLED`)
 
----
+#### Fase 2 — Sisa bridge
 
-### Fase 2 — News bridge *(non-breaking, portal tetap jalan)*
+[ ] **Kebijakan akun legacy** — user tanpa Clerk ID (JWT lama): force re-login Clerk atau hapus
 
-#### 2.1 Konfigurasi & client Core
-
-[x] **Env News** — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_SHADOW_ENABLED`, `CORE_DUAL_WRITE_ENABLED`
-[x] **`lib/core/client.ts`** — fetch wrapper ke Core (timeout, error typing, base URL dari env)
-[x] **`lib/core/auth.ts`** — `exchangeClerkToken(clerkSession)` → `POST /api/v1/auth/token`
-[x] **`lib/core/gamification.ts`** — `awardXp({ userId: clerkId, application: 'PORTAL_BERITA', … })`
-[x] **`lib/core/types.ts`** — tipe response token, award, profil
-[x] **`lib/core/activity-map.ts`** — mapping aktivitas portal → Core + idempotency key helper
-[x] **`lib/core/index.ts`** — re-export publik modul Core
-[x] **`lib/core/config.ts`** — env helpers + feature flag shadow
-
-#### 2.2 Shadow integration (validasi tanpa memutus login)
-
-[x] **Hook setelah login/JIT** — `lib/auth.ts`: panggil `shadowExchangeCoreToken` non-blocking
-[x] **Log hasil shadow** — `lib/core/shadow.ts`: `core.shadow.token.ok` / `.failed`
-[x] **Feature flag** — `CORE_SHADOW_ENABLED=true` (+ `CORE_API_URL`)
-
-#### 2.3 Sync user existing
-
-[x] **Skrip sync** — `jepangku-core`: `bun run db:sync-clerk` (Clerk → Core + `NEWS_EDITOR`)
-[ ] **Kebijakan akun legacy** — user tanpa `clerk_id` (JWT lama): force re-login Clerk atau hapus
-
-#### 2.4 Dual-write poin *(opsional, disarankan sebelum cutover)*
-
-[x] **`lib/core/dual-write.ts`** + **`lib/points.ts`** — setelah write lokal, mirror ke Core `gamification/award`
-[x] **Mapping activity** — `lib/core/activity-map.ts`
-[x] **`userId` award** — resolve `clerkId` dari DB portal
-[x] **Log mismatch** — `core.dual_write.ok` / `core.dual_write.failed` via `logger`
-[x] **Feature flag** — `CORE_DUAL_WRITE_ENABLED=true`
-
----
-
-### Fase 3 — Cutover penuh ke Core
-
-#### 3.1 Migrasi database — FK user → Clerk ID
-
-[x] **Audit FK** — semua kolom `user_id` / `author_id` di schema
-[x] **Migration Prisma** — `20260609120000_phase3_core_cutover`: repoint FK → `clerk_id`, `users.id` = Clerk ID
-[x] **Jalankan migrasi** — `cd jepangku-news && npx prisma migrate deploy` (lokal OK 2026-06-09)
-[x] **Schema target** — `users.id` = Clerk ID; `clerk_id`, `total_points`, `password_hash` dihapus
-
-#### 3.2 Auth & session
-
-[x] **Core JWT** — httpOnly cookie `core_session` via `lib/core/session.ts` + `/api/auth/me`
-[x] **Refactor `getCurrentUser()`** — Core JWT claims + profil portal lokal
-[x] **Refactor `getCurrentAdmin()`** — `hasNewsAdminAccess()` (`NEWS_EDITOR` / `CORE_ADMIN` + fallback `Role.ADMIN`)
-[x] **Hapus duplikasi** — tidak ada lagi increment poin lokal
-[x] **`SessionUser.totalPoints`** — dari Core JWT `jepangku.currentPoints`
-
-#### 3.3 Poin — ganti semua `awardPoints()` lokal
-
-Endpoint yang **wajib** dialihkan ke Core (gunakan `clerkId` + idempotency key):
-
-| File | Aktivitas lokal | Core `activityType` |
-| ---- | ----------------- | ------------------- |
-| `app/api/articles/[slug]/read-complete/route.ts` | `article_read` | `READ_ARTICLE` |
-| `app/api/articles/[slug]/share/route.ts` | `article_shared` | `ARTICLE_SHARED` |
-| `app/api/bookmarks/[articleId]/route.ts` | `article_bookmarked` | `ARTICLE_BOOKMARKED` |
-| `app/api/quizzes/[slug]/attempt/route.ts` | `quiz_completed`, `quiz_correct_answers` | `NEWS_QUIZ_COMPLETED` (+ bonus jika perlu key terpisah) |
-| `app/api/polls/[slug]/vote/route.ts` | `poll_voted` | `POLL_VOTED` |
-| `app/api/comments/route.ts` | `comment_created` | `COMMENT_CREATED` |
-| `lib/auth/clerk-user.ts` → daily login | `daily_login` | `DAILY_LOGIN` |
-
-[x] **Implementasi** — `lib/points.ts` → wrapper `awardXp()` Core only
-[x] **Hapus dual-write** — `lib/core/dual-write.ts`, `shadow.ts` dihapus
-
-#### 3.4 UI & API yang baca poin lokal
-
-[x] **`components/Navbar.tsx`** — poin dari `SessionUser.totalPoints` (Core JWT)
-[x] **`app/(user)/profile/page.tsx`** — stats poin dari Core
-[x] **`app/(user)/points/page.tsx`** — saldo Core; riwayat kosong sampai Core ledger API
-[x] **`app/api/points/my/route.ts`** — saldo dari Core `/users/me`
-[x] **`app/api/leaderboard/weekly/route.ts`** — `GET /api/v1/leaderboard` Core
-[x] **`app/api/homepage/route.ts`** — leaderboard global Core
-[x] **Admin users** — detail user: poin dari Core `fetchCoreUserProfile`
-
-#### 3.5 Hapus schema & kode obsolete
-
-[x] **Drop tabel** — `point_transactions`, `daily_login_rewards` (migration)
-[x] **Drop kolom** — `users.total_points`, `users.password_hash`, `users.clerk_id`
-[x] **`lib/points.ts`** — thin wrapper Core
-[x] **Update seed** — `lib/seed.ts` tanpa user/poin lokal
-
----
-
-### Fase 4 — Verifikasi penyatuan
+#### Fase 4 — Verifikasi penyatuan
 
 [ ] **Registrasi baru** — user Clerk → webhook Core → login News → Core JWT valid
 [ ] **Aktivitas poin** — baca artikel, share, bookmark, quiz, poll, komentar → satu entri di `gamification_logs` Core, tidak double
@@ -157,89 +78,32 @@ Endpoint yang **wajib** dialihkan ke Core (gunakan `clerkId` + idempotency key):
 [ ] **Staging end-to-end** — checklist QA sebelum production cutover
 [ ] **Update dokumen ini** — tandai item selesai; sync `ecosystem-integration.md` §5
 
----
+#### Production cutover
 
-### Fase 5 — LMS *(nanti, salin pola News pasca Fase 3)*
+[ ] **Prod:** Core deploy + Clerk webhook + sync `CORE_JWT_PUBLIC_KEY` production
+[ ] Verifikasi E2E staging/prod — `bun run verify:core`
 
-[ ] Scaffold LMS dengan `@clerk/nextjs` + Clerk app sama
-[ ] `User.id` = Clerk ID di DB LMS — **tanpa** duplikasi user global
-[ ] `lib/core/` dari News — `application: LMS`
-[ ] Tidak buat `lib/points.ts` lokal
-
----
-
-### Gap Core — koordinasi (tidak memblok cutover minimal)
+#### Gap Core — koordinasi *(tidak memblok cutover minimal)*
 
 [ ] Username global di Core — **sementara tetap News DB**
 [ ] Profil extended (bio) di Core — **sementara tetap `user_profiles` News**
 [ ] Endpoint riwayat transaksi user — **sementara tampilkan snapshot JWT di `/points`**
 [ ] Spend poin, membership, notifikasi — Fase E
 
----
-
-## 🚧 Belum Diimplementasi
-
-### 🚀 Soft Launch — *Fase A*
-
-**Target:** 30–50 artikel + konten siap rilis publik.
-
-| Kategori          | Jumlah Artikel | Status      |
-| ----------------- | -------------- | ----------- |
-| News              | 6–10           | ⏳ Persiapan |
-| Travel            | 6–8            | ⏳ Persiapan |
-| Culture           | 4–6            | ⏳ Persiapan |
-| Entertainment     | 6–10           | ⏳ Persiapan |
-| Lifestyle         | 4–6            | ⏳ Persiapan |
-| Work in Japan     | 3–5            | ⏳ Persiapan |
-| Study in Japan    | 3–5            | ⏳ Persiapan |
-| Review Produk     | 3–5            | ⏳ Persiapan |
-| Event             | 3–5            | ⏳ Persiapan |
-| **Total Artikel** | **38–60**      | ⏳ Persiapan |
-
-[ ] Riset topik dan sumber untuk setiap kategori
-[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
-[ ] Penyuntingan dan quality check
-[ ] Pengumpulan/pembuatan thumbnail/cover image
-[ ] Konfigurasi kategori dan tag di admin
-[ ] Publikasi artikel secara bertahap atau sekaligus
-[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
-
-**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
-
-### ⚙️ Keamanan & Kualitas — Defer *pre-launch / production*
-
-[~] **Image moderation AI wajib di production** — set `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY` (HTTP API generik; bisa wrapper AWS Rekognition, Google Vision, Sightengine, dll.)
-[~] **Konfigurasi Redis/Upstash di production** — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` sebelum go-live multi-instance Vercel
-[ ] **Backfill sanitasi konten lama di DB** — re-sanitize artikel/info page yang sudah ada sebelum sanitasi diterapkan
-[ ] **Sentry SDK + alert channel terpusat** — ganti/extend monitoring webhook-only
-[ ] **Log drain / file persistence** — export log dari Vercel ke storage terpusat
-
-### 📦 Checklist Halaman — Belum Ada / Belum Selesai
+### 📦 Halaman — Belum Ada / Belum Selesai
 
 [ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
 [ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
 [ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
 [ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin
 
-### 🌐 Ekosistem & Cutover Core — *Fase 1–4*
+### ⚙️ Keamanan & Kualitas — *pre-launch / production*
 
-Checklist lengkap step-by-step: **[§ Penyatuan Shared Auth & Core Service](#-penyatuan-shared-auth--core-service)** di atas.
-
-Ringkas — sisa operasional:
-
-[ ] **Prod:** Core deploy + Clerk webhook + sync `CORE_JWT_PUBLIC_KEY` production
-[ ] Fase 4: verifikasi E2E staging/prod (`bun run verify:core`)
-
-Sudah selesai di kode (dev):
-
-[x] Fase 1–3: Core client, JWT verify, cutover poin, admin gate, leaderboard Core
-[x] Env dev: `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*` — lihat [`ecosystem-integration.md`](./ecosystem-integration.md) §6
-
-**Langkah berikutnya (Fase 3 — cutover):**
-
-[ ] Migrasi FK user → Clerk ID di Prisma News
-[ ] Core JWT wajib + hapus poin lokal
-[ ] UI poin/leaderboard dari Core
+[~] **Image moderation AI wajib di production** — set `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY` (HTTP API generik; bisa wrapper AWS Rekognition, Google Vision, Sightengine, dll.)
+[~] **Konfigurasi Redis/Upstash di production** — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` sebelum go-live multi-instance Vercel
+[ ] **Backfill sanitasi konten lama di DB** — re-sanitize artikel/info page yang sudah ada sebelum sanitasi diterapkan
+[ ] **Sentry SDK + alert channel terpusat** — ganti/extend monitoring webhook-only
+[ ] **Log drain / file persistence** — export log dari Vercel ke storage terpusat
 
 ### 💬 Engagement & Sosial — *Fase E (Core Service)*
 
@@ -268,6 +132,7 @@ Sudah selesai di kode (dev):
 ### 🌐 Ekosistem Lanjutan — *Fase D/E*
 
 [ ] **LMS integration** — `kursus.jepangku.com` dengan shared user dan poin (Fase D)
+[ ] Scaffold LMS — `@clerk/nextjs` + Clerk app sama; `User.id` = Clerk ID; `lib/core/` dari News (`application: LMS`); tanpa `lib/points.ts` lokal
 [ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student` (Fase E)
 [ ] **Membership & payment** — plan, subscription, payment global (Fase E)
 [ ] **Admin pusat** — admin lintas aplikasi (Fase E)
@@ -275,46 +140,65 @@ Sudah selesai di kode (dev):
 [ ] **CI/CD pipeline** — otomasi deploy ke Vercel / VPS (Fase E)
 [ ] **Mobile app** — React Native atau PWA (Fase E)
 
----
+### 🚀 Soft Launch — *Fase A (ditunda)*
 
-## ⏱️ Prioritas Pengerjaan Berikutnya
+**Target:** 30–50 artikel + konten siap rilis publik. **Tidak diprioritaskan** sampai bug, fitur, dan integrasi Core selesai.
 
-Urutan pengerjaan resmi mengikuti **fase** di `docs/development-roadmap.md`. Ringkasnya:
+| Kategori          | Jumlah Artikel | Status      |
+| ----------------- | -------------- | ----------- |
+| News              | 6–10           | ⏳ Persiapan |
+| Travel            | 6–8            | ⏳ Persiapan |
+| Culture           | 4–6            | ⏳ Persiapan |
+| Entertainment     | 6–10           | ⏳ Persiapan |
+| Lifestyle         | 4–6            | ⏳ Persiapan |
+| Work in Japan     | 3–5            | ⏳ Persiapan |
+| Study in Japan    | 3–5            | ⏳ Persiapan |
+| Review Produk     | 3–5            | ⏳ Persiapan |
+| Event             | 3–5            | ⏳ Persiapan |
+| **Total Artikel** | **38–60**      | ⏳ Persiapan |
 
-### Fase A — Sekarang (stabilkan portal)
+[ ] Riset topik dan sumber untuk setiap kategori
+[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
+[ ] Penyuntingan dan quality check
+[ ] Pengumpulan/pembuatan thumbnail/cover image
+[ ] Konfigurasi kategori dan tag di admin
+[ ] Publikasi artikel secara bertahap atau sekaligus
+[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
 
-1. ~~Hardening: sanitasi HTML, rate limiting (Redis/Upstash + fallback), image validation, logging, monitoring~~ *(selesai — defer prod: AI moderation, Sentry, log drain)*
-2. ~~Engagement portal: komentar artikel, reaction/like~~ *(selesai)*
-3. ~~Profil publik author + statistik penulis~~ *(selesai)*
-4. ~~Search & discovery: dedicated search page, trending, related/popular tags~~ *(selesai)*
-5. ~~Analytics konten: view analytics, content performance, statistik kategori/quiz/poll~~ *(selesai)*
-6. Soft launch: konten artikel (halaman statis sudah selesai)
-
-### Fase B — Core bridge *(News, non-breaking)*
-
-1. ~~Integrasi Clerk + kolom `clerk_id` + JIT provisioning~~ *(selesai)*
-2. ~~Refactor `lib/auth.ts`~~ *(selesai — Clerk only)*
-3. **Fase 1 Core** — deploy, webhook, seed activity types (tim Core)
-4. **Fase 2 News** — `lib/core/`, env `CORE_*`, shadow token, (opsional) dual-write poin
-5. Portal tetap jalan; poin masih lokal sampai Fase 3
-
-### Fase C — Cutover Core *(News)*
-
-1. **Fase 3.1** — migrasi FK semua tabel → Clerk ID
-2. **Fase 3.2–3.3** — Core JWT wajib; ganti 7 endpoint `awardPoints()` + daily login
-3. **Fase 3.4–3.5** — UI poin/leaderboard dari Core; hapus `point_transactions` dll.
-4. **Fase 4** — verifikasi QA staging → production
-
-Detail per file: [§ Penyatuan Shared Auth](#-penyatuan-shared-auth--core-service).
-
-### Fase D–E — Ekosistem
-
-1. Bangun LMS (`kursus.jepangku.com`)
-2. Badge, leaderboard global, notifikasi, membership/payment, admin pusat
+**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
 
 ---
 
 ## ✅ Sudah Diimplementasi (Verified)
+
+### 🔗 Penyatuan Shared Auth & Core Service — Fase 2 & 3
+
+Kontrak: [`ecosystem-integration.md`](./ecosystem-integration.md) · Env dev: `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*` — lihat §6.
+
+#### Fase 1 — selesai (lokal)
+
+[x] **DATABASE_URL lokal** — `postgresql://root:root@localhost:5432/jepangku_core` di `jepangku-core/.env`
+[x] **Satu Clerk Application** — News & Core `CLERK_SECRET_KEY` selaras
+[x] **Seed activity types News** di Core (`prisma/seed.ts`): `ARTICLE_SHARED`, `ARTICLE_BOOKMARKED`, `POLL_VOTED`, `COMMENT_CREATED`, `NEWS_QUIZ_COMPLETED`; `READ_ARTICLE`, `DAILY_LOGIN` sudah ada
+[x] **Role admin portal** — `bun run db:sync-clerk` assign `NEWS_EDITOR` untuk `admin+clerk_test@jepangku.com`
+[x] **Smoke test lokal** — sync Clerk, `POST /api/v1/gamification/award`, shadow token (`CORE_SHADOW_ENABLED`)
+
+#### Fase 2 — News bridge
+
+[x] **Env News** — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_SHADOW_ENABLED`, `CORE_DUAL_WRITE_ENABLED`
+[x] **`lib/core/`** — `client.ts`, `auth.ts`, `gamification.ts`, `types.ts`, `activity-map.ts`, `config.ts`, `index.ts`
+[x] **Shadow integration** — hook setelah login/JIT, log `core.shadow.token.*`, feature flag
+[x] **Skrip sync** — `jepangku-core`: `bun run db:sync-clerk` (Clerk → Core + `NEWS_EDITOR`)
+[x] **Dual-write poin** *(historis, pre-cutover)* — `dual-write.ts` + mapping activity + log mismatch
+
+#### Fase 3 — Cutover penuh ke Core
+
+[x] **Migrasi DB** — `20260609120000_phase3_core_cutover`: FK → Clerk ID; `users.id` = Clerk ID; drop `clerk_id`, `total_points`, `password_hash`
+[x] **Core JWT** — cookie `core_session` via `lib/core/session.ts` + `/api/auth/me`
+[x] **Auth refactor** — `getCurrentUser()`, `getCurrentAdmin()` / `hasNewsAdminAccess()`; `SessionUser.totalPoints` dari Core JWT
+[x] **Poin via Core** — 7 endpoint aktivitas + daily login → `awardXp()` only (`lib/points.ts` thin wrapper)
+[x] **UI & API poin** — Navbar, profile, points, leaderboard weekly, homepage, admin user detail dari Core
+[x] **Hapus obsolete** — tabel `point_transactions`, `daily_login_rewards`; dual-write & shadow dihapus; seed tanpa poin lokal
 
 ### 🚀 Soft Launch — Halaman Statis
 

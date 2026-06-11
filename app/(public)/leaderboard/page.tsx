@@ -7,6 +7,7 @@ import { Trophy, Award, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import SectionHeader from "@/components/SectionHeader";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
+import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -98,17 +99,20 @@ export default function LeaderboardPage() {
                               />
                             )}
                           </div>
-                          <div className="w-16 h-16 bg-foreground text-white flex items-center justify-center font-heading font-bold text-2xl border-2 border-foreground mb-2">
-                            {entry.displayName?.charAt(0).toUpperCase() || "J"}
-                          </div>
+                          <LeaderboardAvatar
+                            avatarUrl={entry.avatarUrl}
+                            displayName={entry.displayName}
+                            size="lg"
+                            className="mb-2"
+                          />
                           <AuthorLink
-                            username={entry.username}
+                            username={entry.profileLinked ? entry.username : null}
                             className="font-bold text-sm text-center truncate w-full max-w-30 block"
                           >
                             {entry.displayName}
                           </AuthorLink>
                           <AuthorLink
-                            username={entry.username}
+                            username={entry.profileLinked ? entry.username : null}
                             className="text-xs text-jepang-muted font-mono block"
                           >
                             @{entry.username}
@@ -148,15 +152,19 @@ export default function LeaderboardPage() {
                       >
                         #{entry.rank}
                       </span>
-                      <div className="w-10 h-10 bg-foreground text-white flex items-center justify-center font-bold">
-                        {entry.displayName?.charAt(0).toUpperCase() || "J"}
-                      </div>
+                      <LeaderboardAvatar
+                        avatarUrl={entry.avatarUrl}
+                        displayName={entry.displayName}
+                      />
                       <div className="flex-1 min-w-0">
-                        <AuthorLink username={entry.username} className="font-semibold truncate block">
+                        <AuthorLink
+                          username={entry.profileLinked ? entry.username : null}
+                          className="font-semibold truncate block"
+                        >
                           {entry.displayName}
                         </AuthorLink>
                         <AuthorLink
-                          username={entry.username}
+                          username={entry.profileLinked ? entry.username : null}
                           className="text-xs text-jepang-muted font-mono block"
                         >
                           @{entry.username}

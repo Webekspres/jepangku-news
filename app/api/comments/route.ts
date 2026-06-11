@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
   });
 
   // Poin engagement: sekali per target per user.
-  const pointsAwarded = await awardPoints(
+  const award = await awardPoints(
     user.id,
     'comment_created',
     targetType.toLowerCase(),
@@ -157,8 +158,9 @@ export async function POST(request: NextRequest) {
         userReaction: null,
         replies: [],
       },
-      pointsAwarded,
-      points: pointsAwarded ? COMMENT_POINTS : 0,
+      pointsAwarded: award.awarded,
+      points: award.awarded ? COMMENT_POINTS : 0,
+      ...gamificationFieldsFromAward(award),
     },
     { status: 201 },
   );

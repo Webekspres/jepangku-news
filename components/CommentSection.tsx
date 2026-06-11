@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth, isAuthUser, getAuthLoginPath } from "@/contexts/AuthContext";
+import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
 import {
   MessageSquare,
@@ -158,7 +159,7 @@ export default function CommentSection({
       await load();
       if (data.pointsAwarded) {
         toast.success(`Komentar terkirim! +${data.points} poin`);
-        refreshUser();
+        await refreshUser(gamificationPatchFromResponse(data));
       } else {
         toast.success("Komentar terkirim");
       }
@@ -180,7 +181,7 @@ export default function CommentSection({
       await load();
       if (data.pointsAwarded) {
         toast.success(`Balasan terkirim! +${data.points} poin`);
-        refreshUser();
+        await refreshUser(gamificationPatchFromResponse(data));
       } else {
         toast.success("Balasan terkirim");
       }

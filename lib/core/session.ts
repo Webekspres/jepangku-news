@@ -50,7 +50,7 @@ async function verifyAndParseClaims(token: string): Promise<CoreJwtClaims | null
       return parseVerifiedPayload(payload);
     } catch (error) {
       logger.warn('core.session.verify.failed', {
-        message: error instanceof Error ? error.message : 'unknown',
+        errorMessage: error instanceof Error ? error.message : 'unknown',
       });
       return null;
     }
@@ -91,23 +91,62 @@ export function coreSessionCookieOptions() {
   };
 }
 
-/** Exchange Clerk session for Core JWT and persist in httpOnly cookie. */
-export async function establishCoreSession(clerkSessionToken: string): Promise<CoreJwtClaims | null> {
-  if (!isCoreApiConfigured()) return null;
+const CORE_SESSION_RETRY_ATTEMPTS = 3;
+const CORE_SESSION_RETRY_BASE_MS = 350;
 
-  try {
-    const { token } = await exchangeClerkToken(clerkSessionToken);
-    const jar = await cookies();
-    jar.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
-    return verifyAndParseClaims(token);
-  } catch (error) {
-    const meta =
-      error instanceof CoreApiError
-        ? { code: error.code, status: error.status, message: error.message }
-        : { message: error instanceof Error ? error.message : 'unknown' };
-    logger.warn('core.session.establish.failed', meta);
-    return null;
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+type EstablishCoreSessionOptions = {
+  maxAttempts?: number;
+};
+
+/** Exchange Clerk session for Core JWT and persist in httpOnly cookie. */
+export async function establishCoreSession(
+  clerkSessionToken: string,
+  options: EstablishCoreSessionOptions = {},
+): Promise<CoreJwtClaims | null> {
+  if (!isCoreApiConfigured()) return null;
+  if (!clerkSessionToken?.trim()) return null;
+
+  const maxAttempts = Math.max(1, options.maxAttempts ?? CORE_SESSION_RETRY_ATTEMPTS);
+  let lastError: unknown = null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    if (attempt > 0) {
+      await sleep(CORE_SESSION_RETRY_BASE_MS * attempt);
+    }
+
+    try {
+      const { token } = await exchangeClerkToken(clerkSessionToken);
+      const jar = await cookies();
+      jar.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
+      return verifyAndParseClaims(token);
+    } catch (error) {
+      lastError = error;
+      const retryable =
+        error instanceof CoreApiError &&
+        (error.code === 'INVALID_SESSION' || error.code === 'USER_NOT_FOUND') &&
+        attempt < maxAttempts - 1;
+
+      if (retryable) continue;
+      break;
+    }
   }
+
+  const meta =
+    lastError instanceof CoreApiError
+      ? {
+          code: lastError.code,
+          status: lastError.status,
+          errorMessage: lastError.message,
+        }
+      : {
+          errorMessage: lastError instanceof Error ? lastError.message : 'unknown',
+        };
+  logger.warn('core.session.establish.failed', meta);
+  return null;
 }
 
 /** Refresh Core session after gamification award (claims may be stale). */
@@ -120,7 +159,8 @@ export async function refreshCurrentUserCoreSession(): Promise<void> {
   const { auth } = await import('@clerk/nextjs/server');
   const authState = await auth();
   if (!authState.isAuthenticated) return;
-  const clerkToken = await authState.getToken();
+  const { resolveClerkSessionToken } = await import('@/lib/auth/clerk-token');
+  const clerkToken = await resolveClerkSessionToken(authState);
   if (clerkToken) {
     await refreshCoreSession(clerkToken);
   }

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
 import { ArrowLeft, BarChart3, Award, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ export default function PollDetailPage() {
       const res = await fetch(`/api/polls/${slug}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ votes: toVote }),
       });
       const data = await res.json();
@@ -124,7 +126,7 @@ export default function PollDetailPage() {
 
       if (data.pointsAwarded > 0) {
         toast.success(`+${data.pointsAwarded} poin untuk voting!`);
-        refreshUser();
+        await refreshUser(gamificationPatchFromResponse(data));
       } else {
         toast.success("Suara berhasil dicatat!");
       }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
@@ -40,12 +41,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   await db.article.update({ where: { id: articleId }, data: { bookmarkCount: { increment: 1 } } });
 
-  const pointsAwarded = await awardPoints(
+  const award = await awardPoints(
     user.id, 'article_bookmarked', 'article', articleId, 1,
     `Bookmarked article: ${article.title}`
   );
 
-  return NextResponse.json({ message: 'Bookmarked', pointsAwarded });
+  return NextResponse.json({
+    message: 'Bookmarked',
+    pointsAwarded: award.awarded,
+    ...gamificationFieldsFromAward(award),
+  });
   } catch (e) {
     await captureException(e, { route: 'bookmark-create' });
     return NextResponse.json({ error: 'Failed to bookmark' }, { status: 500 });

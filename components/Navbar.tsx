@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const { user, logout, loading, isLoaded, isSignedIn, clerkUser } = useAuth();
+  const { user, displayPoints, logout, loading, isLoaded, isSignedIn, clerkUser } = useAuth();
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -54,7 +54,7 @@ export default function Navbar() {
   const displayUsername =
     authUser?.username ?? clerkUser?.username ?? clerkUser?.id?.slice(-8) ?? "user";
   const avatarUrl = authUser?.avatarUrl ?? clerkUser?.imageUrl ?? null;
-  const totalPoints = authUser?.totalPoints ?? 0;
+  const totalPoints = displayPoints;
   const isAdmin = authUser?.role === "ADMIN";
 
   const topVisibleRef = useRef(true);

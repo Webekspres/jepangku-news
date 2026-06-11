@@ -3,7 +3,8 @@ import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { awardPoints } from '@/lib/points';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
+import { awardPoints, type AwardPointsResult } from '@/lib/points';
 
 export async function POST(
   request: NextRequest,
@@ -79,8 +80,14 @@ export async function POST(
 
   // Award poin hanya sekali per poll (saat pertama kali vote)
   const wasFirstVote = existingVotes.length === 0;
+  let award: AwardPointsResult = {
+    awarded: false,
+    currentPoints: null,
+    totalXp: null,
+    currentLevel: null,
+  };
   if (wasFirstVote) {
-    await awardPoints(
+    award = await awardPoints(
       user.id,
       'poll_voted',
       'poll',
@@ -93,6 +100,7 @@ export async function POST(
   return NextResponse.json({
     message: 'Vote recorded',
     pointsAwarded: wasFirstVote ? poll.pointsReward : 0,
+    ...gamificationFieldsFromAward(award),
   });
   } catch (e: unknown) {
     await captureException(e, { route: 'poll-vote' });

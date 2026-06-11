@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import type { CoreJwtClaims } from '@/lib/core/session';
 import { checkDailyLogin } from '@/lib/points';
 import { toSessionUser } from './session';
+import { slugifyUsername } from '@/lib/username';
 import type { SessionUser } from './types';
 
 function primaryEmail(clerkUser: User): string | null {
@@ -18,14 +19,6 @@ function displayName(clerkUser: User, email: string): string {
   if (parts.length > 0) return parts.join(' ');
   if (clerkUser.username) return clerkUser.username;
   return email.split('@')[0] ?? 'User';
-}
-
-function slugifyUsername(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9_]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 24);
 }
 
 async function generateUniqueUsername(clerkUser: User, email: string): Promise<string> {
