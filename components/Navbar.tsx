@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
+import NavbarAuthSkeleton from "@/components/navbar/NavbarAuthSkeleton";
 import {
   Menu,
   X,
@@ -28,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading, isLoaded, isSignedIn, clerkUser } = useAuth();
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,6 +42,20 @@ export default function Navbar() {
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
   const authUser = isAuthUser(user) ? user : null;
+  const showAuthSkeleton = !isLoaded || (isSignedIn && loading);
+  const showGuest = isLoaded && !isSignedIn;
+  const showAuthenticated = Boolean(authUser) || (isSignedIn && !loading && clerkUser);
+
+  const displayName =
+    authUser?.displayName ??
+    clerkUser?.fullName ??
+    clerkUser?.firstName ??
+    "Akun";
+  const displayUsername =
+    authUser?.username ?? clerkUser?.username ?? clerkUser?.id?.slice(-8) ?? "user";
+  const avatarUrl = authUser?.avatarUrl ?? clerkUser?.imageUrl ?? null;
+  const totalPoints = authUser?.totalPoints ?? 0;
+  const isAdmin = authUser?.role === "ADMIN";
 
   const topVisibleRef = useRef(true);
   const bottomVisibleRef = useRef(true);
@@ -216,7 +231,9 @@ export default function Navbar() {
                 )}
               </button>
 
-              {authUser ? (
+              {showAuthSkeleton ? (
+                <NavbarAuthSkeleton />
+              ) : showAuthenticated ? (
                 <>
                   <Button
                     variant="outline"
@@ -238,7 +255,7 @@ export default function Navbar() {
                     <Award size={14} strokeWidth={1.5} />
 
                     <span className="font-mono text-xs font-bold">
-                      {authUser.totalPoints || 0}
+                      {totalPoints}
                     </span>
 
                     <span className="text-[10px] uppercase tracking-wider">
@@ -252,15 +269,15 @@ export default function Navbar() {
                         className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
                         data-testid="user-menu-button"
                       >
-                        {authUser.avatarUrl ? (
+                        {avatarUrl ? (
                           <img
-                            src={authUser.avatarUrl}
-                            alt={authUser.displayName}
+                            src={avatarUrl}
+                            alt={displayName}
                             className="h-9 w-9 border border-foreground object-cover"
                           />
                         ) : (
                           <div className="flex h-9 w-9 items-center justify-center border border-foreground bg-foreground text-sm font-bold text-white">
-                            {authUser.displayName?.charAt(0).toUpperCase()}
+                            {displayName.charAt(0).toUpperCase()}
                           </div>
                         )}
                       </button>
@@ -273,10 +290,10 @@ export default function Navbar() {
                     >
                       <DropdownMenuLabel>
                         <p className="text-sm font-semibold normal-case tracking-normal">
-                          {authUser.displayName}
+                          {displayName}
                         </p>
                         <p className="font-mono text-xs font-normal text-jepang-muted">
-                          @{authUser.username}
+                          @{displayUsername}
                         </p>
                       </DropdownMenuLabel>
 
@@ -326,7 +343,7 @@ export default function Navbar() {
                         </Link>
                       </DropdownMenuItem>
 
-                      {authUser.role === "ADMIN" && (
+                      {isAdmin && (
                         <>
                           <DropdownMenuSeparator />
 
@@ -356,7 +373,7 @@ export default function Navbar() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </>
-              ) : !loading && user === false ? (
+              ) : showGuest ? (
                 <div className="hidden items-center gap-2 md:flex">
                   <Button
                     variant="ghost"
@@ -461,7 +478,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {!loading && user === false && (
+            {showGuest && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">
                 <Button
                   variant="outline"

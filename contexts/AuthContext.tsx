@@ -1,16 +1,29 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { useClerk, useAuth as useClerkSession } from '@clerk/nextjs';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
+import { useClerk, useAuth as useClerkSession, useUser } from '@clerk/nextjs';
 import type { SessionUser } from '@/lib/auth/types';
+
+type ClerkUser = ReturnType<typeof useUser>['user'];
 
 export type AuthUser = SessionUser;
 
+/** null = loading, false = signed out, AuthUser = profile ready */
 type UserState = AuthUser | null | false;
 
 interface AuthContextType {
   user: UserState;
   loading: boolean;
+  isLoaded: boolean;
+  isSignedIn: boolean;
+  clerkUser: ClerkUser;
   login: (email: string, password: string) => Promise<AuthUser>;
   register: (data: { name: string; username: string; email: string; password: string }) => Promise<AuthUser>;
   logout: () => Promise<void>;
@@ -19,48 +32,77 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const PROFILE_RETRY_DELAYS_MS = [0, 500, 1000, 2000, 3500];
+
+async function fetchPortalProfile(): Promise<SessionUser | null> {
+  const res = await fetch('/api/auth/me', {
+    cache: 'no-store',
+    credentials: 'same-origin',
+  });
+  if (!res.ok) return null;
+  return res.json() as Promise<SessionUser>;
+}
+
 export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
   const { signOut } = useClerk();
-  const { isLoaded, isSignedIn } = useClerkSession();
-  const [user, setUser] = useState<UserState>(null);
-  const [loading, setLoading] = useState(true);
-  const fetchIdRef = useRef(0);
+  const { isLoaded, isSignedIn, userId } = useClerkSession();
+  const { user: clerkUser } = useUser();
 
-  const checkAuth = useCallback(async () => {
-    const fetchId = ++fetchIdRef.current;
+  const [profile, setProfile] = useState<SessionUser | null>(null);
+  const [profileSyncing, setProfileSyncing] = useState(false);
+  const syncGenRef = useRef(0);
+
+  const syncProfile = useCallback(async () => {
+    if (!isSignedIn || !userId) return;
+
+    const generation = ++syncGenRef.current;
+    setProfileSyncing(true);
 
     try {
-      const res = await fetch('/api/auth/me', { cache: 'no-store' });
-      if (fetchId !== fetchIdRef.current) return;
+      for (let attempt = 0; attempt < PROFILE_RETRY_DELAYS_MS.length; attempt += 1) {
+        if (generation !== syncGenRef.current) return;
 
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data as AuthUser);
-      } else {
-        setUser(false);
+        const delay = PROFILE_RETRY_DELAYS_MS[attempt];
+        if (delay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          if (generation !== syncGenRef.current) return;
+        }
+
+        const data = await fetchPortalProfile();
+        if (generation !== syncGenRef.current) return;
+
+        if (data) {
+          setProfile(data);
+          return;
+        }
       }
-    } catch {
-      if (fetchId !== fetchIdRef.current) return;
-      setUser(false);
     } finally {
-      if (fetchId === fetchIdRef.current) {
-        setLoading(false);
+      if (generation === syncGenRef.current) {
+        setProfileSyncing(false);
       }
     }
-  }, []);
+  }, [isSignedIn, userId]);
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (!isSignedIn) {
-      setUser(false);
-      setLoading(false);
+    if (!isSignedIn || !userId) {
+      syncGenRef.current += 1;
+      setProfile(null);
+      setProfileSyncing(false);
       return;
     }
 
-    setLoading(true);
-    void checkAuth();
-  }, [isLoaded, isSignedIn, checkAuth]);
+    void syncProfile();
+  }, [isLoaded, isSignedIn, userId, syncProfile]);
+
+  const user: UserState = !isLoaded
+    ? null
+    : !isSignedIn
+      ? false
+      : profile;
+
+  const loading = !isLoaded || (isSignedIn && profileSyncing && !profile);
 
   const login = async (): Promise<AuthUser> => {
     window.location.href = '/sign-in';
@@ -73,23 +115,33 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = useCallback(async () => {
+    syncGenRef.current += 1;
+    setProfile(null);
+    setProfileSyncing(false);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch { /* ignore */ }
     await signOut({ redirectUrl: '/' });
-    setUser(false);
   }, [signOut]);
 
-  const refreshUser = async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      if (res.ok) {
-        const data = await res.json() as AuthUser;
-        setUser(data);
-      }
-    } catch { /* ignore */ }
-  };
+  const refreshUser = useCallback(async () => {
+    if (!isSignedIn || !userId) return;
+    await syncProfile();
+  }, [isSignedIn, userId, syncProfile]);
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refreshUser }}
+      value={{
+        user,
+        loading,
+        isLoaded,
+        isSignedIn: Boolean(isSignedIn),
+        clerkUser,
+        login,
+        register,
+        logout,
+        refreshUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

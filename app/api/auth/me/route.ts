@@ -1,18 +1,17 @@
-import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser, withCoreSessionCookie } from '@/lib/auth';
+import { authenticateRequestUser, withCoreSessionCookie } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-  const user = await getCurrentUser(request);
-  if (!user) {
+  const result = await authenticateRequestUser(request);
+  if (!result) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const authState = await auth();
-  const clerkToken = await authState.getToken();
-  const response = NextResponse.json(user);
-  if (clerkToken) {
-    return withCoreSessionCookie(response, clerkToken);
+  const response = NextResponse.json(result.user);
+  if (result.clerkToken) {
+    return withCoreSessionCookie(response, result.clerkToken);
   }
   return response;
 }

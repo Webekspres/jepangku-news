@@ -3,10 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth, isAuthUser, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
+import { useAuth, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
 
 export default function Footer() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, isSignedIn } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -187,11 +187,11 @@ export default function Footer() {
           <div>
             <h4 className="small-caps text-jepang-red mb-3">Akun</h4>
             <ul className="space-y-2 text-sm">
-              {loading ? (
+              {loading && isSignedIn ? (
                 <>
                   <li className="h-4 w-24 bg-zinc-800 animate-pulse" />
                 </>
-              ) : isAuthUser(user) ? (
+              ) : isSignedIn ? (
                 <>
                   <li>
                     <Link

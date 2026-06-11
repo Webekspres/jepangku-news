@@ -7,22 +7,27 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminTopbar from '@/components/admin/AdminTopbar';
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && (!user || (user as { role?: string }).role !== 'ADMIN')) {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      router.push('/');
+      return;
+    }
+    if (!loading && user && (user as { role?: string }).role !== 'ADMIN') {
       router.push('/');
     }
-  }, [user, loading, router]);
+  }, [user, loading, isLoaded, isSignedIn, router]);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
 
-  if (loading || !user || (user as { role?: string }).role !== 'ADMIN') {
+  if (!isLoaded || !isSignedIn || loading || !user || (user as { role?: string }).role !== 'ADMIN') {
     return null;
   }
 

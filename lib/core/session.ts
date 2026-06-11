@@ -70,6 +70,11 @@ export async function getCoreSessionToken(): Promise<string | null> {
   return jar.get(CORE_SESSION_COOKIE)?.value ?? null;
 }
 
+export async function clearCoreSessionCookie(): Promise<void> {
+  const jar = await cookies();
+  jar.delete(CORE_SESSION_COOKIE);
+}
+
 export async function getCoreJwtClaims(): Promise<CoreJwtClaims | null> {
   const token = await getCoreSessionToken();
   if (!token) return null;

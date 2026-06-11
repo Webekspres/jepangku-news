@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
+import { clearCoreSessionCookie } from '@/lib/core/session';
 
 export async function POST() {
-  return NextResponse.json({
-    message: 'Use Clerk sign-out on the client',
-    provider: 'clerk',
-  });
+  await clearCoreSessionCookie();
+  return NextResponse.json({ ok: true });
 }
