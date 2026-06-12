@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import SectionHeader from "@/components/SectionHeader";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
+import LeaderboardTableRow, {
+  LeaderboardTableSeparator,
+} from "@/components/leaderboard/LeaderboardTableRow";
 import {
   LEADERBOARD_PERIOD_LABELS,
   LEADERBOARD_PERIOD_SHORT,
@@ -17,6 +20,7 @@ import {
 import type { LeaderboardEntry } from "@/lib/leaderboard/types";
 
 const PERIOD_OPTIONS: LeaderboardPeriod[] = ["weekly", "monthly", "all-time"];
+const LEADERBOARD_TOP_LIMIT = 10;
 
 const PERIOD_SUBTITLES: Record<LeaderboardPeriod, string> = {
   weekly:
@@ -29,16 +33,22 @@ const PERIOD_SUBTITLES: Record<LeaderboardPeriod, string> = {
 export default function LeaderboardPage() {
   const [period, setPeriod] = useState<LeaderboardPeriod>("weekly");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [currentUserEntry, setCurrentUserEntry] =
+    useState<LeaderboardEntry | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadLeaderboard = useCallback(async (selected: LeaderboardPeriod) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/leaderboard?period=${selected}&limit=50`);
+      const res = await fetch(
+        `/api/leaderboard?period=${selected}&limit=${LEADERBOARD_TOP_LIMIT}`,
+      );
       const data = await res.json();
       setLeaderboard(Array.isArray(data?.items) ? data.items : []);
+      setCurrentUserEntry(data?.currentUser ?? null);
     } catch {
       setLeaderboard([]);
+      setCurrentUserEntry(null);
     } finally {
       setLoading(false);
     }
@@ -199,47 +209,28 @@ export default function LeaderboardPage() {
 
               <Card className="border border-foreground">
                 <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                    SEMUA PERINGKAT — {LEADERBOARD_PERIOD_LABELS[period]}
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-center">
+                    TOP {LEADERBOARD_TOP_LIMIT} — {LEADERBOARD_PERIOD_LABELS[period]}
                   </p>
                 </CardHeader>
                 <CardContent className="p-0">
                   {leaderboard.map((entry) => (
-                    <div
+                    <LeaderboardTableRow
                       key={entry.userId}
-                      className={`flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0 ${entry.rank <= 3 ? "bg-jepang-off-white" : ""}`}
-                      data-testid={`leaderboard-entry-${entry.rank}`}
-                    >
-                      <span
-                        className={`font-mono font-black text-2xl w-12 ${entry.rank === 1 ? "text-jepang-red" : "text-foreground"}`}
-                      >
-                        #{entry.rank}
-                      </span>
-                      <LeaderboardAvatar
-                        avatarUrl={entry.avatarUrl}
-                        displayName={entry.displayName}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <AuthorLink
-                          username={entry.profileLinked ? entry.username : null}
-                          className="font-semibold truncate block"
-                        >
-                          {entry.displayName}
-                        </AuthorLink>
-                        <AuthorLink
-                          username={entry.profileLinked ? entry.username : null}
-                          className="text-xs text-jepang-muted font-mono block"
-                        >
-                          @{entry.username}
-                        </AuthorLink>
-                      </div>
-                      <LeaderboardScore
-                        period={period}
-                        periodPoints={entry.periodPoints}
-                        totalPoints={entry.totalPoints}
-                      />
-                    </div>
+                      entry={entry}
+                      period={period}
+                    />
                   ))}
+                  {currentUserEntry ? (
+                    <>
+                      <LeaderboardTableSeparator />
+                      <LeaderboardTableRow
+                        entry={currentUserEntry}
+                        period={period}
+                        isCurrentUser
+                      />
+                    </>
+                  ) : null}
                 </CardContent>
               </Card>
             </>

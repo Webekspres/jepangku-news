@@ -18,4 +18,6 @@ export type LeaderboardResponse = {
   period: LeaderboardPeriod;
   periodLabel: string;
   items: LeaderboardEntry[];
+  /** Set when the viewer is logged in, has points in the period, and is outside `items`. */
+  currentUser?: LeaderboardEntry | null;
 };
