@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
 type UseLazySectionOptions = {
   /** Preload when sentinel is within this margin of the viewport */
@@ -12,7 +12,7 @@ type UseLazySectionOptions = {
 };
 
 type UseLazySectionResult<T> = {
-  sentinelRef: React.RefObject<HTMLDivElement | null>;
+  sentinelRef: RefObject<HTMLDivElement | null>;
   data: T | null;
   isLoading: boolean;
   error: Error | null;
@@ -26,32 +26,44 @@ export function useLazySection<T>(
   const { rootMargin = "400px 0px", immediate = false, disabled = false } =
     options;
 
+  const shouldFetchImmediately =
+    immediate && !disabled && Boolean(endpoint);
+
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [isEnabled, setIsEnabled] = useState(
-    immediate && !disabled && Boolean(endpoint),
-  );
+  const [isEnabled, setIsEnabled] = useState(shouldFetchImmediately);
   const [data, setData] = useState<T | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(shouldFetchImmediately);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (disabled || !endpoint || immediate) return;
 
-    const el = sentinelRef.current;
-    if (!el) return;
+    let observer: IntersectionObserver | null = null;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsEnabled(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin },
-    );
+    const attach = () => {
+      const el = sentinelRef.current;
+      if (!el || observer) return;
 
-    observer.observe(el);
-    return () => observer.disconnect();
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsEnabled(true);
+            observer?.disconnect();
+            observer = null;
+          }
+        },
+        { rootMargin },
+      );
+      observer.observe(el);
+    };
+
+    attach();
+    const frame = requestAnimationFrame(attach);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
   }, [disabled, endpoint, immediate, rootMargin]);
 
   useEffect(() => {

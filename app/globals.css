@@ -75,21 +75,25 @@ code {
   box-shadow: 0 4px 12px rgba(30, 27, 87, 0.08);
 }
 
-.jepang-btn-primary {
-  background: var(--color-jepang-orange);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: inline-block;
-  text-decoration: none;
+@layer components {
+  .jepang-btn-primary {
+    @apply inline-flex flex-row flex-nowrap items-center justify-center gap-2 whitespace-nowrap;
+    background: var(--color-jepang-orange);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-decoration: none;
+  }
 }
-.jepang-btn-primary:hover {
-  background: var(--color-jepang-orange-hover);
+@layer components {
+  .jepang-btn-primary:hover {
+    background: var(--color-jepang-orange-hover);
+  }
 }
 
 .jepang-btn-black {

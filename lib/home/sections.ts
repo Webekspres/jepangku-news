@@ -55,7 +55,7 @@ export const HOME_SECTIONS: HomeSectionConfig[] = [
     wave: 2,
     lazyEndpoint: "/api/home/categories-editorial",
     label: "Kategori Editorial",
-    implemented: false,
+    implemented: true,
   },
   {
     id: "tv",
@@ -63,7 +63,7 @@ export const HOME_SECTIONS: HomeSectionConfig[] = [
     wave: 3,
     lazyEndpoint: "/api/home/tv",
     label: "Jepangku TV",
-    implemented: false,
+    implemented: true,
   },
   {
     id: "ads",

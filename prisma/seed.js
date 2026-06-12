@@ -46,6 +46,7 @@ const {
   EXTRA_POINT_ACTIVITIES,
 } = require("./seeder/data/user-activities.js");
 const { INFO_PAGES_DATA } = require("./seeder/data/info-pages.js");
+const { VIDEOS_DATA } = require("./seeder/data/videos.js");
 const {
   CLERK_TEST_ADMIN_EMAIL,
   LEGACY_EMAIL_MIGRATIONS,
@@ -944,7 +945,46 @@ async function main() {
   }
   console.log(`✅ Reactions seeded (${reactionsSeeded}).`);
 
-  // ── 16. Info pages ─────────────────────────────────────────────────────
+  // ── 16. Jepangku TV videos ─────────────────────────────────────────────
+  console.log("📺 Seeding videos...");
+  let videosSeeded = 0;
+  for (const video of VIDEOS_DATA) {
+    const publishedAt =
+      video.status === "PUBLISHED"
+        ? daysAgo(video.daysAgo ?? 0)
+        : null;
+    const thumbnailUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+
+    await prisma.video.upsert({
+      where: { slug: video.slug },
+      update: {
+        title: video.title,
+        description: video.description,
+        youtubeId: video.youtubeId,
+        thumbnailUrl,
+        status: video.status,
+        isFeatured: video.isFeatured,
+        viewCount: video.viewCount,
+        publishedAt,
+      },
+      create: {
+        title: video.title,
+        slug: video.slug,
+        description: video.description,
+        youtubeId: video.youtubeId,
+        thumbnailUrl,
+        status: video.status,
+        isFeatured: video.isFeatured,
+        viewCount: video.viewCount,
+        publishedAt,
+        createdBy: admin.id,
+      },
+    });
+    videosSeeded++;
+  }
+  console.log(`✅ Videos seeded (${videosSeeded}).`);
+
+  // ── 17. Info pages ─────────────────────────────────────────────────────
   console.log("📄 Seeding info pages...");
   for (const page of INFO_PAGES_DATA) {
     await prisma.infoPage.upsert({

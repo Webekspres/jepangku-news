@@ -36,6 +36,12 @@ enum PollStatus {
   CLOSED
 }
 
+enum VideoStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 enum CommentTargetType {
   ARTICLE
   POLL
@@ -514,4 +520,24 @@ model Reaction {
   @@unique([targetType, targetId, userId])
   @@index([targetType, targetId])
   @@map("reactions")
+}
+
+model Video {
+  id           String      @id @default(uuid())
+  title        String
+  slug         String      @unique
+  description  String?
+  youtubeId    String      @map("youtube_id")
+  thumbnailUrl String?     @map("thumbnail_url")
+  status       VideoStatus @default(DRAFT)
+  isFeatured   Boolean     @default(false) @map("is_featured")
+  viewCount    Int         @default(0) @map("view_count")
+  publishedAt  DateTime?   @map("published_at")
+  createdBy    String?     @map("created_by")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt])
+  @@index([isFeatured, status])
+  @@map("videos")
 }

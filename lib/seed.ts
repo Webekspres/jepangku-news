@@ -5,12 +5,7 @@ const { CATEGORIES_DATA } = require('../prisma/seeder/data/categories.js') as {
   CATEGORIES_DATA: { name: string; slug: string; color: string }[];
 };
 
-let seeded = false;
-
 export async function seedDatabase() {
-  if (seeded) return;
-  seeded = true;
-
   try {
     for (let i = 0; i < CATEGORIES_DATA.length; i++) {
       const cat = CATEGORIES_DATA[i];

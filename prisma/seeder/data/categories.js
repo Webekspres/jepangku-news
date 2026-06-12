@@ -9,6 +9,8 @@ const CATEGORIES_DATA = [
   { name: 'Lifestyle',  slug: 'lifestyle',  color: '#0A0A0A' },
   { name: 'Education',  slug: 'education',  color: '#D90429' },
   { name: 'Fun',        slug: 'fun',        color: '#0A0A0A' },
+  { name: 'Entertainment', slug: 'entertainment', color: '#D90429' },
+  { name: 'Halal In Japan', slug: 'halal-in-japan', color: '#0A0A0A' },
 ];
 
 module.exports = { CATEGORIES_DATA };

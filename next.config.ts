@@ -29,6 +29,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.r2.dev" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "static.prod-images.emergentagent.com" },
+      { protocol: "https", hostname: "img.youtube.com" },
     ],
   },
   allowedDevOrigins: [

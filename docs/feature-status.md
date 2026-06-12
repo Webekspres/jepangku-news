@@ -38,34 +38,36 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 
 **Backend & infra**
 
-[ ] Ekstrak query dari `app/api/homepage/route.ts` → `lib/home/queries/feed.ts`  
-[ ] `GET /api/home/feed` — Wave 1: `featuredArticles`, `trending`, `todayArticles` (timezone Asia/Jakarta)  
-[ ] Hook `hooks/useLazySection.ts` (Intersection Observer + fetch/SWR) *(hook ✅ Fase 0; wiring API Fase 1)*  
-[ ] Komponen `LazySectionSkeleton.tsx` (tinggi fixed, anti-CLS)  
-[ ] Refactor `page.tsx`: hapus satu `loadData()` global; Wave 1 fetch on mount *(struktur section ✅ Fase 0)*
+[x] Ekstrak query dari `app/api/homepage/route.ts` → `lib/home/queries/feed.ts`  
+[x] `GET /api/home/feed` — Wave 1: `featuredArticles`, `trending`, `todayArticles` (timezone Asia/Jakarta)  
+[x] Hook `hooks/useLazySection.ts` — wired Wave 1 (immediate) + Wave 4 (lazy engagement)  
+[x] Komponen `LazySectionSkeleton.tsx` (tinggi fixed, anti-CLS)  
+[x] Refactor `page.tsx`: hapus `loadData()` global; Wave 1 `/api/home/feed` on mount; Wave 4 `/api/home/engagement` lazy  
+[x] `GET /api/home/engagement` — poll, quiz, leaderboard (Wave 4)  
+[x] `/api/homepage` deprecated — delegasi ke shared queries
 
 **Section UI**
 
-[ ] §1 Featured + Trending — polish spacing, pakai data Wave 1 *(struktur ✅ Fase 0)*  
-[ ] §2 Hero ekosistem — headline ekosistem, search horizontal, quick links (Berita · TV · Kursus · Kuis · Poll), CTA auth/guest, `asanoha-bg` *(✅ Fase 0)*  
-[ ] §3 Hari Ini — ganti label “Artikel Terbaru” → `今日 / HARI INI`; fallback jika `< 3` artikel hari ini *(label ✅ Fase 0; query timezone Fase 1)*
+[x] §1 Featured + Trending — polish spacing, section header, carousel dots, grid proporsional  
+[x] §2 Hero ekosistem — CTA auth/guest, quick links + UTM kursus, layout mobile  
+[x] §3 Hari Ini — label + query timezone Jakarta + fallback `< 3` artikel
 
 #### Fase 2 — Kategori editorial *(2–3 hari)*
 
-[ ] Seed kategori: `halal-in-japan`, `entertainment` (`prisma/seeder/data/categories.js`)  
-[ ] Mapping editorial group → slug (Anime Manga, Entertainment, Lifestyle, Culture, Halal) di `lib/home/queries/categories-editorial.ts`  
-[ ] `GET /api/home/categories-editorial` — Wave 2 lazy (sentinel §4)  
-[ ] Komponen `CategoryEditorialSection.tsx` — layout 2 kolom featured + 3 kolom list (referensi Japanese Station)  
-[ ] Keputusan §11 “Jelajahi Kategori” grid — gabung ke §4 atau pindah ke footer explore
+[x] Seed kategori: `halal-in-japan`, `entertainment` (`prisma/seeder/data/categories.js`)  
+[x] Mapping editorial group → slug (Anime Manga, Entertainment, Lifestyle, Culture, Halal) di `lib/home/editorial-groups.ts` + `lib/home/queries/categories-editorial.ts`  
+[x] `GET /api/home/categories-editorial` — Wave 2 lazy (sentinel §4)  
+[x] Komponen `CategoryEditorialSection.tsx` — layout 2 kolom featured + 3 kolom list (referensi Japanese Station)  
+[x] Keputusan §11 “Jelajahi Kategori” grid — **digabung ke §4** (grid lama dihapus Fase 0; explore via `/explore` + link View More per kolom)
 
 #### Fase 3 — Jepangku TV *(3–5 hari)*
 
-[ ] Model Prisma `Video` + migrasi  
-[ ] Admin CRUD `/admin/videos`  
-[ ] `GET /api/videos`, `GET /api/videos/[slug]`  
-[ ] `GET /api/home/tv` — Wave 3 lazy: featured + sidebar 3–4 video  
-[ ] Komponen `JepangkuTvSection.tsx` — embed YouTube lazy-load  
-[ ] Halaman dedicated `/tv` atau `/jepangku-tv` (archive + pagination)
+[x] Model Prisma `Video` + migrasi  
+[x] Admin CRUD `/admin/videos`  
+[x] `GET /api/videos`, `GET /api/videos/[slug]`  
+[x] `GET /api/home/tv` — Wave 3 lazy: featured + sidebar 3–4 video  
+[x] Komponen `JepangkuTvSection.tsx` — embed YouTube lazy-load  
+[x] Halaman dedicated `/tv` atau `/jepangku-tv` (archive + pagination)
 
 #### Fase 4 — Advertisement *(1–2 hari)*
 
@@ -88,10 +90,10 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 
 #### Fase 7 — Engagement bawah fold + migrasi API *(1–2 hari)*
 
-[ ] Ekstrak poll/quiz/leaderboard → `lib/home/queries/engagement.ts`  
-[ ] `GET /api/home/engagement` — Wave 4 lazy (sentinel §9): polls (≤2), quizzes (≤2), leaderboard  
+[ ] Ekstrak poll/quiz/leaderboard → `lib/home/queries/engagement.ts` *(✅)*  
+[ ] `GET /api/home/engagement` — Wave 4 lazy *(✅ wired)*  
 [ ] Komponen `HomeEngagementSection.tsx` — poll/kuis tampil >1 item  
-[ ] Deprecate monolit `GET /api/homepage` — delegasi ke helpers; hapus setelah E2E migrasi  
+[ ] Deprecate monolit `GET /api/homepage` — delegasi ke helpers *(✅); hapus setelah E2E migrasi  
 [ ] Update test E2E homepage ke endpoint wave baru
 
 #### QA sebelum launch jepangku.com
