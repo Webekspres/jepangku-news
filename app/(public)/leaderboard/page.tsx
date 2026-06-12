@@ -70,7 +70,7 @@ export default function LeaderboardPage() {
                 role="tab"
                 aria-selected={period === option}
                 onClick={() => setPeriod(option)}
-                className={`flex-1 min-w-[7rem] px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                className={`flex-1 min-w-28 px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
                   period === option
                     ? "bg-jepang-red text-white"
                     : "text-jepang-muted hover:text-foreground hover:bg-white"
