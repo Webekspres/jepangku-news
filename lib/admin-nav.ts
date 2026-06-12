@@ -16,6 +16,7 @@ import {
   Coins,
   ScrollText,
   Tv,
+  Megaphone,
 } from 'lucide-react';
 
 export type AdminNavItem = {
@@ -51,6 +52,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { href: '/admin/homepage', label: 'Pengaturan Beranda', icon: Home },
       { href: '/admin/info-pages', label: 'Halaman Informasi', icon: FileType },
       { href: '/admin/videos', label: 'Jepangku TV', icon: Tv },
+      { href: '/admin/ads', label: 'Banner & Iklan', icon: Megaphone },
       { href: '/admin/comments', label: 'Moderasi Komentar', icon: MessageSquare },
     ],
   },

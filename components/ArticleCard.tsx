@@ -26,12 +26,15 @@ interface ArticleCardProps {
   article: Article;
   variant?: "default" | "featured" | "compact";
   priority?: boolean;
+  /** Label reaksi dominan (homepage reaksi komunitas) */
+  reactionBadge?: { emoji: string; label: string };
 }
 
 export default function ArticleCard({
   article,
   variant = "default",
   priority = false,
+  reactionBadge,
 }: ArticleCardProps) {
   const coverUrl = article.coverImageUrl || article.cover_image_url;
   const viewCount = article.viewCount ?? article.view_count ?? 0;
@@ -162,6 +165,11 @@ export default function ArticleCard({
         <CardContent className="p-5">
           <div className="flex items-center gap-2 mb-3">
             {article.category && <Badge>{article.category.name}</Badge>}
+            {reactionBadge ? (
+              <Badge variant="red">
+                {reactionBadge.emoji} {reactionBadge.label}
+              </Badge>
+            ) : null}
             {isHot && <Badge variant="red">HOT</Badge>}
           </div>
           <h3 className="font-heading font-bold text-xl tracking-tight mb-2 group-hover:text-jepang-red transition-colors line-clamp-2">

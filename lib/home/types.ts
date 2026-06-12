@@ -79,3 +79,72 @@ export type HomeTvResponse = {
   featuredVideo: PublicVideoSummary | null;
   sidebarVideos: PublicVideoSummary[];
 };
+
+export type PublicAdBanner = {
+  id: string;
+  position: string;
+  title: string | null;
+  imageUrl: string;
+  linkUrl: string | null;
+  altText: string | null;
+};
+
+export type HomeAdResponse = {
+  slot: string;
+  banner: PublicAdBanner | null;
+};
+
+export type LmsTeaserHighlight = {
+  title: string;
+  description: string;
+};
+
+export type LmsTeaserCourse = {
+  slug: string;
+  title: string;
+  level: "N5" | "N4" | "N3" | "N2" | "N1";
+  description: string;
+  thumbnailUrl: string;
+  badge: string;
+  price: string;
+  duration: string;
+  lessons: number;
+  availability: "tersedia" | "segera";
+  availabilityLabel: string;
+  href: string;
+};
+
+export type HomeLmsTeaserResponse = {
+  catalogUrl: string;
+  highlights: LmsTeaserHighlight[];
+  courses: LmsTeaserCourse[];
+};
+
+export type HomeReactionEmojiStat = {
+  type: string;
+  emoji: string;
+  label: string;
+  count: number;
+};
+
+export type HomeReactedArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  coverImageUrl: string | null;
+  category: { name: string; slug: string } | null;
+  author: { name: string; username: string } | null;
+  reactionTotal: number;
+  dominantReaction: string;
+  dominantEmoji: string;
+  dominantLabel: string;
+  reactionCounts: Record<string, number>;
+};
+
+export type HomeReactionsResponse = {
+  period: "week" | "all-time";
+  globalTotal: number;
+  emojiStats: HomeReactionEmojiStat[];
+  articles: HomeReactedArticle[];
+};

@@ -3,9 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play, Tv } from "lucide-react";
-import { useEffect, useState } from "react";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
-import LazyYoutubeEmbed from "@/components/video/LazyYoutubeEmbed";
 import type { HomeTvResponse, PublicVideoSummary } from "@/lib/home/types";
 import { cn } from "@/lib/utils";
 
@@ -36,23 +34,50 @@ function TvSkeleton() {
   );
 }
 
-function SidebarItem({
+function VideoThumbnailLink({
   video,
-  active,
-  onSelect,
+  sizes,
+  playIconSize = 28,
+  playButtonClassName = "h-16 w-16",
 }: {
   video: PublicVideoSummary;
-  active: boolean;
-  onSelect: () => void;
+  sizes: string;
+  playIconSize?: number;
+  playButtonClassName?: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "flex w-full gap-3 p-3 text-left transition-colors border-b border-white/10 last:border-b-0",
-        active ? "bg-white/10" : "hover:bg-white/5",
-      )}
+    <Link
+      href={`/tv/${video.slug}`}
+      className="group relative block aspect-video w-full overflow-hidden bg-jepang-navy"
+      data-testid={`tv-thumbnail-${video.slug}`}
+    >
+      <Image
+        src={video.thumbnailUrl}
+        alt={video.title}
+        fill
+        sizes={sizes}
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
+      />
+      <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span
+          className={cn(
+            "flex items-center justify-center rounded-full bg-jepang-red text-white shadow-lg transition-transform group-hover:scale-110",
+            playButtonClassName,
+          )}
+        >
+          <Play size={playIconSize} fill="currentColor" className="ml-1" />
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function SidebarItem({ video }: { video: PublicVideoSummary }) {
+  return (
+    <Link
+      href={`/tv/${video.slug}`}
+      className="flex w-full gap-3 p-3 text-left transition-colors border-b border-white/10 last:border-b-0 hover:bg-white/5"
       data-testid={`tv-sidebar-${video.slug}`}
     >
       <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-sm bg-black/30">
@@ -77,7 +102,7 @@ function SidebarItem({
           </p>
         ) : null}
       </div>
-    </button>
+    </Link>
   );
 }
 
@@ -86,16 +111,6 @@ export default function JepangkuTvSection({
   loading,
   error,
 }: JepangkuTvSectionProps) {
-  const [activeVideo, setActiveVideo] = useState<PublicVideoSummary | null>(null);
-
-  useEffect(() => {
-    if (data?.featuredVideo) {
-      setActiveVideo(data.featuredVideo);
-    } else {
-      setActiveVideo(null);
-    }
-  }, [data?.featuredVideo?.id]);
-
   if (error) {
     return (
       <section className="py-12">
@@ -142,7 +157,7 @@ export default function JepangkuTvSection({
     );
   }
 
-  const displayVideo = activeVideo ?? data.featuredVideo!;
+  const featuredVideo = data.featuredVideo!;
 
   return (
     <section className="py-12 bg-jepang-off-white" data-testid="jepangku-tv-section">
@@ -167,19 +182,23 @@ export default function JepangkuTvSection({
         <div className="overflow-hidden rounded-lg border border-jepang-border bg-white shadow-jepang">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px]">
             <div className="min-w-0">
-              <LazyYoutubeEmbed
-                key={displayVideo.id}
-                youtubeId={displayVideo.youtubeId}
-                title={displayVideo.title}
-                thumbnailUrl={displayVideo.thumbnailUrl}
+              <VideoThumbnailLink
+                video={featuredVideo}
+                sizes="(max-width: 1024px) 100vw, 66vw"
               />
               <div className="border-t border-jepang-border p-5 md:p-6">
-                <h3 className="font-heading text-xl md:text-2xl font-bold tracking-tight">
-                  {displayVideo.title}
-                </h3>
-                {displayVideo.description ? (
+                <Link
+                  href={`/tv/${featuredVideo.slug}`}
+                  className="group block"
+                  data-testid={`tv-featured-title-${featuredVideo.slug}`}
+                >
+                  <h3 className="font-heading text-xl md:text-2xl font-bold tracking-tight group-hover:text-jepang-red transition-colors">
+                    {featuredVideo.title}
+                  </h3>
+                </Link>
+                {featuredVideo.description ? (
                   <p className="mt-2 text-sm text-jepang-muted line-clamp-2">
-                    {displayVideo.description}
+                    {featuredVideo.description}
                   </p>
                 ) : null}
               </div>
@@ -193,20 +212,9 @@ export default function JepangkuTvSection({
                   </p>
                 </div>
                 <div>
-                  {[data.featuredVideo, ...sidebarVideos]
-                    .filter((v): v is PublicVideoSummary => Boolean(v))
-                    .filter(
-                      (v, idx, arr) => arr.findIndex((x) => x.id === v.id) === idx,
-                    )
-                    .slice(0, 5)
-                    .map((video) => (
-                      <SidebarItem
-                        key={video.id}
-                        video={video}
-                        active={video.id === displayVideo.id}
-                        onSelect={() => setActiveVideo(video)}
-                      />
-                    ))}
+                  {sidebarVideos.slice(0, 5).map((video) => (
+                    <SidebarItem key={video.id} video={video} />
+                  ))}
                 </div>
               </aside>
             ) : null}

@@ -541,3 +541,22 @@ model Video {
   @@index([isFeatured, status])
   @@map("videos")
 }
+
+model AdSlot {
+  id        String    @id @default(uuid())
+  position  String
+  title     String?
+  imageUrl  String    @map("image_url")
+  linkUrl   String?   @map("link_url")
+  altText   String?   @map("alt_text")
+  isActive  Boolean   @default(true) @map("is_active")
+  startAt   DateTime? @map("start_at")
+  endAt     DateTime? @map("end_at")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdBy String?   @map("created_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([position, isActive])
+  @@map("ad_slots")
+}

@@ -1,6 +1,7 @@
 /**
  * Sample Jepangku TV videos — public YouTube embeds (budaya & lifestyle Jepang).
  * Idempotent: seed uses upsert on slug.
+ * YouTube IDs verified via oEmbed API (embeddable & available).
  */
 const VIDEOS_DATA = [
   {
@@ -8,7 +9,7 @@ const VIDEOS_DATA = [
     title: "Panduan Wisata Tokyo untuk Pemula",
     description:
       "Tips perjalanan pertama ke Tokyo — transportasi, akomodasi, dan spot wajib kunjung untuk traveler Indonesia.",
-    youtubeId: "yhe6CZt3Zns",
+    youtubeId: "g92DEa3uLio",
     status: "PUBLISHED",
     isFeatured: true,
     viewCount: 12840,
@@ -19,7 +20,7 @@ const VIDEOS_DATA = [
     title: "Makanan Jalanan Kyoto yang Wajib Dicoba",
     description:
       "Jelajahi pasar tradisional dan street food ikonik Kyoto — dari dango hingga yuba segar.",
-    youtubeId: "9jtU-Pum7eE",
+    youtubeId: "W2E8X7ckRHM",
     status: "PUBLISHED",
     isFeatured: false,
     viewCount: 8650,
@@ -30,7 +31,7 @@ const VIDEOS_DATA = [
     title: "Budaya Onsen: Etika yang Perlu Diketahui",
     description:
       "Panduan singkat tata krama di pemandian air panas Jepang agar pengalamanmu nyaman dan sopan.",
-    youtubeId: "NWesZr5W-nE",
+    youtubeId: "pMvF2F_UEWI",
     status: "PUBLISHED",
     isFeatured: false,
     viewCount: 5420,
@@ -41,7 +42,7 @@ const VIDEOS_DATA = [
     title: "Anime & Manga: Spot Terbaik di Tokyo",
     description:
       "Dari Akihabara hingga Nakano Broadway — rekomendasi untuk penggemar anime dan manga.",
-    youtubeId: "pFogCo2fLkE",
+    youtubeId: "cs_T7z7K9QI",
     status: "PUBLISHED",
     isFeatured: false,
     viewCount: 15320,
@@ -52,7 +53,7 @@ const VIDEOS_DATA = [
     title: "Kehidupan Sehari-hari di Jepang",
     description:
       "Cuplikan rutinitas, kereta, konbini, dan kebiasaan unik masyarakat Jepang modern.",
-    youtubeId: "vUbU9GrANbY",
+    youtubeId: "6tmjXp_AYg0",
     status: "PUBLISHED",
     isFeatured: false,
     viewCount: 22100,
@@ -63,7 +64,7 @@ const VIDEOS_DATA = [
     title: "Festival Musim Panas (Natsu Matsuri) di Jepang",
     description:
       "Suasana matsuri musim panas — yukata, kembang api, dan stan makanan khas festival.",
-    youtubeId: "RrFExplNXr0",
+    youtubeId: "TrnY4qn1ynU",
     status: "PUBLISHED",
     isFeatured: false,
     viewCount: 9870,
@@ -73,7 +74,7 @@ const VIDEOS_DATA = [
     slug: "draft-video-halal-jepang",
     title: "[Draf] Kuliner Halal di Jepang",
     description: "Episode mendatang tentang restoran halal dan tips makan aman di Jepang.",
-    youtubeId: "0jGrgK8MGT8",
+    youtubeId: "afbKIEjuEos",
     status: "DRAFT",
     isFeatured: false,
     viewCount: 0,

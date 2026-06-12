@@ -2,6 +2,7 @@
  * Phase 4 checks for News ↔ Core (server-side, no browser).
  * Run: bun run scripts/verify-core-integration.ts
  */
+export {};
 const coreUrl = process.env.CORE_API_URL ?? "http://localhost:8080";
 const serviceToken = process.env.CORE_SERVICE_TOKEN ?? "";
 

@@ -10,7 +10,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
-    "verify:core": "bun run scripts/verify-core-integration.ts"
+    "verify:core": "bun run scripts/verify-core-integration.ts",
+    "verify:home": "bun run scripts/verify-home-waves.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",

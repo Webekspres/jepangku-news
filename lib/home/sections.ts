@@ -71,7 +71,7 @@ export const HOME_SECTIONS: HomeSectionConfig[] = [
     wave: 3,
     lazyEndpoint: "/api/home/ads?slot=homepage-mid",
     label: "Advertisement",
-    implemented: false,
+    implemented: true,
   },
   {
     id: "lms",
@@ -79,7 +79,7 @@ export const HOME_SECTIONS: HomeSectionConfig[] = [
     wave: 3,
     lazyEndpoint: "/api/home/lms-teaser",
     label: "Belajar Bahasa Jepang",
-    implemented: false,
+    implemented: true,
   },
   {
     id: "reactions",
@@ -87,7 +87,7 @@ export const HOME_SECTIONS: HomeSectionConfig[] = [
     wave: 3,
     lazyEndpoint: "/api/home/reactions",
     label: "Reaksi Komunitas",
-    implemented: false,
+    implemented: true,
   },
   {
     id: "engagement",

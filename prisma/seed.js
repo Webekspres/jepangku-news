@@ -47,6 +47,7 @@ const {
 } = require("./seeder/data/user-activities.js");
 const { INFO_PAGES_DATA } = require("./seeder/data/info-pages.js");
 const { VIDEOS_DATA } = require("./seeder/data/videos.js");
+const { ADS_DATA } = require("./seeder/data/ads.js");
 const {
   CLERK_TEST_ADMIN_EMAIL,
   LEGACY_EMAIL_MIGRATIONS,
@@ -984,7 +985,44 @@ async function main() {
   }
   console.log(`✅ Videos seeded (${videosSeeded}).`);
 
-  // ── 17. Info pages ─────────────────────────────────────────────────────
+  // ── 17. Ad slots ───────────────────────────────────────────────────────
+  console.log("📢 Seeding ad slots...");
+  let adsSeeded = 0;
+  for (const ad of ADS_DATA) {
+    const existing = await prisma.adSlot.findFirst({
+      where: { position: ad.position, title: ad.title },
+    });
+
+    if (existing) {
+      await prisma.adSlot.update({
+        where: { id: existing.id },
+        data: {
+          imageUrl: ad.imageUrl,
+          linkUrl: ad.linkUrl,
+          altText: ad.altText,
+          isActive: ad.isActive,
+          sortOrder: ad.sortOrder,
+        },
+      });
+    } else {
+      await prisma.adSlot.create({
+        data: {
+          position: ad.position,
+          title: ad.title,
+          imageUrl: ad.imageUrl,
+          linkUrl: ad.linkUrl,
+          altText: ad.altText,
+          isActive: ad.isActive,
+          sortOrder: ad.sortOrder,
+          createdBy: admin.id,
+        },
+      });
+    }
+    adsSeeded++;
+  }
+  console.log(`✅ Ad slots seeded (${adsSeeded}).`);
+
+  // ── 18. Info pages ─────────────────────────────────────────────────────
   console.log("📄 Seeding info pages...");
   for (const page of INFO_PAGES_DATA) {
     await prisma.infoPage.upsert({

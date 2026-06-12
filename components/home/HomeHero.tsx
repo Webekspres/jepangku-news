@@ -12,13 +12,14 @@ import {
   isAuthUser,
   useAuth,
 } from "@/contexts/AuthContext";
+import { buildLmsUrl } from "@/lib/lms/constants";
 
 const QUICK_LINKS = [
   { label: "Berita", href: "/articles", external: false },
   { label: "Jepangku TV", href: "/tv", external: false },
   {
     label: "Kursus",
-    href: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=homepage",
+    href: buildLmsUrl("/kursus"),
     external: true,
   },
   { label: "Kuis", href: "/quizzes", external: false },
@@ -53,9 +54,6 @@ export default function HomeHero() {
       dark
       className="relative border-b border-jepang-border bg-jepang-navy overflow-hidden py-10 md:py-14"
     >
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="asanoha-bg" />
-      </div>
 
       <div className="relative flex flex-col gap-5 md:gap-6">
         <nav

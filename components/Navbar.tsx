@@ -14,6 +14,7 @@ import { NavbarLayerThreeSkeleton } from "@/components/navbar/NavbarSkeleton";
 import NavbarSearchOverlay from "@/components/navbar/NavbarSearchOverlay";
 import NavbarNotifications from "@/components/navbar/NavbarNotifications";
 import NavbarCategoryBar from "@/components/navbar/NavbarCategoryBar";
+import NavbarReactionLinks from "@/components/navbar/NavbarReactionLinks";
 import { NAV_LINKS } from "@/components/navbar/nav-config";
 import {
   Menu,
@@ -190,7 +191,8 @@ export default function Navbar() {
           )}
           style={{ backgroundColor: "var(--color-jepang-navy)" }}
         >
-          <div className="mx-auto flex h-10 max-w-7xl items-center justify-end px-4">
+          <div className="mx-auto flex h-10 max-w-7xl items-center justify-between gap-3 px-4">
+            <NavbarReactionLinks />
             {showAuthSkeleton ? (
               <div
                 className="h-7 w-28 animate-pulse rounded-md bg-white/20"

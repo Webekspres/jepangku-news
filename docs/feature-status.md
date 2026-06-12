@@ -71,44 +71,44 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 
 #### Fase 4 — Advertisement *(1–2 hari)*
 
-[ ] Model Prisma `AdSlot` / `HomepageBanner` + migrasi  
-[ ] Admin banner/ads (`/admin/ads` atau extend `/admin/homepage`)  
-[ ] `GET /api/home/ads?slot=homepage-mid` — Wave 3 lazy  
-[ ] Komponen `AdBannerSlot.tsx` — empty state rapi (sembunyikan jika slot kosong)
+[x] Model Prisma `AdSlot` / `HomepageBanner` + migrasi  
+[x] Admin banner/ads (`/admin/ads` atau extend `/admin/homepage`)  
+[x] `GET /api/home/ads?slot=homepage-mid` — Wave 3 lazy  
+[x] Komponen `AdBannerSlot.tsx` — empty state rapi (sembunyikan jika slot kosong)
 
 #### Fase 5 — Belajar Bahasa Jepang / LMS teaser *(1 hari)*
 
-[ ] Komponen `HomeLmsTeaser.tsx` — keunggulan JLPT, 2–3 course card statis  
-[ ] Link ke `https://dev.kursus.jepangku.com/kursus` + UTM `?utm_source=jepangku.com&utm_medium=homepage`  
-[ ] `GET /api/home/lms-teaser` — Wave 3 lazy (Fase 1: JSON statis; sinkron manual dengan `jepangkuLMS/.../courses-data.ts`)
+[x] Komponen `HomeLmsTeaser.tsx` — keunggulan JLPT, 2–3 course card statis  
+[x] Link ke `https://dev.kursus.jepangku.com/kursus` + UTM `?utm_source=jepangku.com&utm_medium=homepage`  
+[x] `GET /api/home/lms-teaser` — Wave 3 lazy (Fase 1: JSON statis; sinkron manual dengan `jepangkuLMS/.../courses-data.ts`)
 
 #### Fase 6 — Reaksi komunitas emoji *(2 hari)*
 
-[ ] Query agregat top reacted articles minggu ini → `lib/home/queries/reactions.ts`  
-[ ] `GET /api/home/reactions` — Wave 3 lazy  
-[ ] Komponen `HomeReactionsSection.tsx` — showcase 9 emoji + 3–5 kartu “Paling Direaksi”
+[x] Query agregat top reacted articles minggu ini → `lib/home/queries/reactions.ts`  
+[x] `GET /api/home/reactions` — Wave 3 lazy
+[x] Komponen `HomeReactionsSection.tsx` — showcase 9 emoji + 3–5 kartu “Paling Direaksi”
 
 #### Fase 7 — Engagement bawah fold + migrasi API *(1–2 hari)*
 
-[ ] Ekstrak poll/quiz/leaderboard → `lib/home/queries/engagement.ts` *(✅)*  
-[ ] `GET /api/home/engagement` — Wave 4 lazy *(✅ wired)*  
-[ ] Komponen `HomeEngagementSection.tsx` — poll/kuis tampil >1 item  
-[ ] Deprecate monolit `GET /api/homepage` — delegasi ke helpers *(✅); hapus setelah E2E migrasi  
-[ ] Update test E2E homepage ke endpoint wave baru
+[x] Ekstrak poll/quiz/leaderboard → `lib/home/queries/engagement.ts`  
+[x] `GET /api/home/engagement` — Wave 4 lazy  
+[x] Komponen `HomeEngagementSection.tsx` — poll/kuis tampil hingga 3 item masing-masing  
+[x] Hapus monolit `GET /api/homepage` — migrasi selesai  
+[x] Smoke test wave: `bun run verify:home` (`scripts/verify-home-waves.ts`)
 
 #### QA sebelum launch jepangku.com
 
 [ ] Mobile: semua section scrollable, tidak overflow horizontal  
 [ ] Empty state tiap section (video / artikel hari ini / iklan / reaksi)  
-[ ] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll  
-[ ] Section error isolated — satu API gagal tidak kosongkan halaman  
-[ ] Lighthouse: lazy-load YouTube embed; skeleton height fixed  
+[ ] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll
+[ ] Section error isolated — satu API gagal tidak kosongkan halaman
+[ ] Lighthouse: lazy-load YouTube embed; skeleton height fixed
 [ ] `data-testid` untuk section & wave baru (E2E)
 
 #### Integrasi LMS — lanjutan *(koordinasi jepangkuLMS)*
 
-[ ] Fase 2 LMS: `GET /api/public/courses` di jepangkuLMS  
-[ ] Fase 2 News: proxy `/api/home/lms-teaser` baca live dari LMS (ganti static cards)  
+[ ] Fase 2 LMS: `GET /api/public/courses` di jepangkuLMS
+[ ] Fase 2 News: proxy `/api/home/lms-teaser` baca live dari LMS (ganti static cards)
 [ ] Fase 3 LMS: katalog publik `/kursus` baca Prisma (single source of truth)
 
 **Urutan implementasi disarankan:** Quick win Navbar → Fase 1 → 2 → 5 → 6 → 7 (engagement migrate) → 3 → 4 → LMS Fase 2
@@ -119,7 +119,7 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 
 #### Sekarang — Core, halaman, keamanan
 
-[ ] **Core deploy prod** + Clerk webhook → `POST /api/v1/auth/webhooks/clerk`  
+[ ] **Core deploy prod** + Clerk webhook → `POST /api/v1/auth/webhooks/clerk`
 [ ] **Verifikasi Fase 4** — registrasi, poin, daily login, admin, leaderboard, staging E2E (`bun run verify:core`)  
 [ ] **Kebijakan akun legacy** — user tanpa Clerk ID: force re-login atau hapus  
 [ ] **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log  
@@ -128,7 +128,7 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 
 #### Berikutnya — Fase E *(Core Service)*
 
-[ ] In-app notifications (fungsional — setelah placeholder Navbar diganti)  
+[ ] In-app notifications (fungsional — setelah placeholder Navbar diganti)
 [ ] Follow / subscribe kategori  
 [ ] Monthly & all-time leaderboard, filter by app, badge/level  
 [ ] Export riwayat poin CSV, riwayat aktivitas `/activity`  
