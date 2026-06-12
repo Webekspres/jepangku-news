@@ -192,8 +192,17 @@ export default function Navbar() {
           style={{ backgroundColor: "var(--color-jepang-navy)" }}
         >
           <div className="mx-auto flex h-10 max-w-7xl items-center justify-between gap-3 px-4">
-            <NavbarReactionLinks />
+            <div className="flex items-center gap-3">
+              <NavbarReactionLinks />
+              <span className="text-sm font-semibold text-white">|</span>
+              {/* Tautan menuju halaman Jepangku TV */}
+              <Link href="/tv-jepangku" className="text-sm font-semibold text-white">
+                TV Jepangku
+              </Link>
+            </div>
+
             {showAuthSkeleton ? (
+      
               <div
                 className="h-7 w-28 animate-pulse rounded-md bg-white/20"
                 data-testid="navbar-layer1-skeleton"

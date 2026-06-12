@@ -124,13 +124,13 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 [ ] **Kebijakan akun legacy** — user tanpa Clerk ID: force re-login atau hapus  
 [ ] **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log  
 [ ] **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain  
-[ ] **Gap Core** — endpoint riwayat transaksi user (riwayat `/points` penuh)
+[ ] **Migrasi poin lokal** — kembalikan `point_transactions`; lepas ketergantungan `awardXp()` / Core leaderboard (lihat § Migrasi poin lokal)
 
 #### Berikutnya — Fase E *(Core Service)*
 
 [ ] In-app notifications (fungsional — setelah placeholder Navbar diganti)
 [ ] Follow / subscribe kategori  
-[ ] Monthly & all-time leaderboard, filter by app, badge/level  
+[ ] Monthly & all-time leaderboard poin (News DB)  
 [ ] Export riwayat poin CSV, riwayat aktivitas `/activity`  
 [ ] Admin activity audit log  
 
@@ -156,7 +156,7 @@ Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS 
 | :--- | :--- | :--- |
 | **Portal Berita** *(repo ini)* | `jepangku.com` | Berita, trending, kategori, interaktif (poll/kuis/reaction) |
 | **LMS Kursus Jepang** | `kursus.jepangku.com` / dev: `dev.kursus.jepangku.com` | Belajar bahasa Jepang, JLPT, sertifikat |
-| **Core Service** | `core.jepangku.com` | Identitas, poin, leaderboard — *tidak ditampilkan sebagai produk terpisah* |
+| **Core Service** | `core.jepangku.com` | Identitas global + XP/level (LMS) — *bukan poin/leaderboard portal* |
 
 **Prinsip UX:**
 
@@ -220,7 +220,7 @@ Menggantikan urutan homepage saat ini (featured → hero → terbaru → poll �
 
 | Masalah monolit `/api/homepage` | Solusi terpisah + lazy |
 | :--- | :--- |
-| 10+ query Prisma + Core leaderboard sekaligus | Hanya query yang section-nya butuh |
+| 10+ query Prisma + agregasi leaderboard sekaligus | Hanya query yang section-nya butuh |
 | Payload JSON besar (artikel + kategori blocks + video + reaksi) | Response kecil per wave; TTFB & parse lebih cepat |
 | User bounce sebelum scroll — query TV/LMS/reaksi sia-sia | Query berat ditunda sampai user scroll |
 | Satu endpoint error → seluruh halaman kosong | Section gagal load independen + retry per section |
@@ -267,7 +267,7 @@ sequenceDiagram
 | | | `GET /api/home/ads?slot=homepage-mid` | 6 | Ringan |
 | | | `GET /api/home/lms-teaser` | 7 | Fase 1 bisa static JSON; Fase 2 proxy LMS |
 | | | `GET /api/home/reactions` | 8 | Agregat reaksi |
-| **4** | sentinel §9 | `GET /api/home/engagement` | 9, 10 | Poll + quiz + leaderboard Core |
+| **4** | sentinel §9 | `GET /api/home/engagement` | 9, 10 | Poll + quiz + leaderboard poin portal |
 
 **Alternatif grouping** *(sesuai usulan scroll §2 → fetch §5–8):*
 
@@ -315,7 +315,7 @@ function useLazySection<T>(endpoint: string, options?: { rootMargin?: string }) 
 | `/api/home/ads` | active slot by position | `s-maxage=60` |
 | `/api/home/lms-teaser` | static / proxy LMS | `s-maxage=600` |
 | `/api/home/reactions` | top reacted articles | `s-maxage=120` |
-| `/api/home/engagement` | polls, quizzes, Core leaderboard | `s-maxage=60` |
+| `/api/home/engagement` | polls, quizzes, leaderboard poin portal | `s-maxage=60` |
 
 **Migrasi dari `/api/homepage` saat ini:**
 
@@ -331,7 +331,7 @@ function useLazySection<T>(endpoint: string, options?: { rootMargin?: string }) 
 | Lebih banyak request HTTP | Wave kecil (4–7 request total); HTTP/2 paralel; cache CDN per endpoint |
 | Konten bawah fold tidak ada di HTML awal (client fetch) | Wave 1 cukup untuk SEO headline; optional **SSR/RSC Wave 1** nanti jika perlu |
 | Flash skeleton saat scroll cepat | `rootMargin` agresif + skeleton height fixed (CLS) |
-| Leaderboard Core lambat | Isolasi di Wave 4 — tidak blok above-the-fold |
+| Leaderboard poin lambat | Isolasi di Wave 4 — query agregasi News DB, bukan Core |
 
 **Kesimpulan:** ✅ **Memungkinkan dan direkomendasikan.** Monolit `/api/homepage` hanya cocok untuk homepage kecil; dengan 10+ section, pola **API terpisah + lazy load per viewport** lebih scalable dan ramah performa.
 
@@ -608,7 +608,7 @@ Refactor `page.tsx`: **tidak ada** satu `fetch('/api/homepage')` global — seti
 
 - Stabilkan portal lebih dulu: selesaikan bug, fitur, dan integrasi Core — soft launch konten ditunda
 - Lengkapi workflow artikel, quiz, polling, poin, dan leaderboard
-- Jangan bangun fitur auth/poin/badge versi portal yang akan digantikan Core Service
+- Identitas lewat Core; poin & leaderboard portal tetap di News DB (Core v2.1 tidak menyimpan poin)
 - **Auth bridge:** Clerk ✅; integrasi Core Fase 1+3 **coded** ✅ — lihat [`ecosystem-integration.md`](./ecosystem-integration.md) §4
 - **Fase 0 dokumentasi** ✅ — kontrak v2 selaras dengan `jepangku-core/docs/ECOSYSTEM.md`
 - **Penyatuan shared auth** — sisa pekerjaan di [§ Belum Diimplementasi](#-belum-diimplementasi); selesai di [§ Sudah Diimplementasi](#-sudah-diimplementasi-verified)
@@ -629,13 +629,13 @@ Mulai dari **Quick win Navbar** → **Fase 1** (feed API + hero + hari ini) → 
 1. **Core & cutover** — Fase 1 operasional (deploy, Clerk webhook) + Fase 4 verifikasi QA (`bun run verify:core`); lihat [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14)
 2. **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log; lihat [§ Halaman](#-halaman--belum-ada--belum-selesai)
 3. **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain; lihat [§ Keamanan](#️-keamanan--kualitas--pre-launch--production)
-4. **Gap Core** — endpoint riwayat transaksi user (memblok riwayat `/points` penuh); lihat [§ Gap Core](#gap-core--koordinasi-tidak-memblok-cutover-minimal)
+4. **Migrasi poin lokal** — selaraskan kode dengan Core v2.1; lihat [§ Migrasi poin lokal](#-migrasi-poin-lokal--leaderboard-portal)
 
 Portal user-facing utama (artikel, quiz, poll, komentar, search, analytics) sudah selesai di kode — sisa pekerjaan di atas + homepage ekosistem.
 
 ### Berikutnya — Fase E *(setelah Core API siap)*
 
-1. Riwayat aktivitas, leaderboard lanjutan, notifikasi, admin monitoring — lihat [§ Fase E](#-engagement--sosial--fase-e-core-service) di bawah
+1. Leaderboard poin lanjutan, notifikasi, admin monitoring — lihat [§ Fase E](#-engagement--sosial--fase-e-portal) di bawah
 2. Ekosistem LMS & payment — lihat [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de)
 
 ### Ditunda — soft launch konten
@@ -648,7 +648,7 @@ Konten 30+ artikel **tidak diprioritaskan** untuk sementara; lihat [§ Soft Laun
 
 ### 🔗 Core & Cutover — Sisa Operasional *(Fase 1–4)*
 
-Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API: `jepangku-core/docs/API.md` · **Target:** login Clerk → user di Core → News pakai Clerk ID sebagai FK → poin via Core API.
+Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API: `jepangku-core/docs/API.md` · **Target:** login Clerk → user di Core → News pakai Clerk ID sebagai FK → **poin di News DB** (Core v2.1 tanpa poin).
 
 | Fase | Fokus | Repo utama | Status |
 | ---- | ----- | ---------- | ------ |
@@ -669,10 +669,10 @@ Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API:
 #### Fase 4 — Verifikasi penyatuan
 
 [ ] **Registrasi baru** — user Clerk → webhook Core → login News → Core JWT valid
-[ ] **Aktivitas poin** — baca artikel, share, bookmark, quiz, poll, komentar → satu entri di `gamification_logs` Core, tidak double
-[ ] **Daily login** — sekali per hari per user di Core
-[ ] **Admin** — akun `NEWS_EDITOR` akses `/admin/*`; non-editor ditolak
-[ ] **Leaderboard** — konsisten dengan saldo Core
+[ ] **Aktivitas poin** — baca artikel, share, bookmark, quiz, poll, komentar → satu entri di `point_transactions` News, tidak double
+[ ] **Daily login** — sekali per hari per user di News DB
+[ ] **Admin** — akun `PORTAL_ADMIN` akses `/admin/*`; non-editor ditolak
+[ ] **Leaderboard** — konsisten dengan agregasi poin News DB (bukan Core XP)
 [ ] **Core down** — keputusan: graceful degrade (baca artikel OK, award queue/retry) — dokumentasikan di runbook
 [ ] **Staging end-to-end** — checklist QA sebelum production cutover
 [ ] **Update dokumen ini** — tandai item selesai; sync `ecosystem-integration.md` §5
@@ -682,12 +682,23 @@ Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API:
 [ ] **Prod:** Core deploy + Clerk webhook + sync `CORE_JWT_PUBLIC_KEY` production
 [ ] Verifikasi E2E staging/prod — `bun run verify:core`
 
-#### Gap Core — koordinasi *(tidak memblok cutover minimal)*
+#### Gap identitas Core — koordinasi *(tidak memblok cutover minimal)*
 
 [ ] Username global di Core — **sementara tetap News DB**
 [ ] Profil extended (bio) di Core — **sementara tetap `user_profiles` News**
-[ ] Endpoint riwayat transaksi user — **sementara tampilkan snapshot JWT di `/points`**
-[ ] Spend poin, membership, notifikasi — Fase E
+[ ] Spend poin, membership, notifikasi — Fase lanjutan
+
+### 🔄 Migrasi poin lokal & leaderboard portal
+
+Selaras **Core v2.1** — poin dan leaderboard **bukan** tanggung jawab Core.
+
+[ ] Schema: kembalikan `point_transactions` (+ optional `daily_login_rewards`) di News DB
+[ ] `lib/points.ts`: tulis ledger lokal; hentikan ketergantungan `awardXp()` untuk aktivitas portal
+[ ] `GET /api/points/my` — baca dari News DB (bukan `currentPoints` JWT/Core)
+[ ] `GET /api/leaderboard/weekly` — agregasi 7 hari dari `point_transactions` (bukan `GET /api/v1/leaderboard`)
+[ ] `lib/home/queries/engagement.ts` — leaderboard preview dari News DB
+[ ] Navbar / profile — saldo poin dari News DB atau cache lokal
+[ ] Update `scripts/verify-core-integration.ts` — pisahkan verifikasi identitas Core vs poin News
 
 ### 📦 Halaman — Belum Ada / Belum Selesai
 
@@ -704,34 +715,33 @@ Kontrak teknis: [`ecosystem-integration.md`](./ecosystem-integration.md) · API:
 [ ] **Sentry SDK + alert channel terpusat** — ganti/extend monitoring webhook-only
 [ ] **Log drain / file persistence** — export log dari Vercel ke storage terpusat
 
-### 💬 Engagement & Sosial — *Fase E (Core Service)*
+### 💬 Engagement & Sosial — *Fase E (portal)*
 
 [ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
 [ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
 
-### 🏆 Poin, Leaderboard & Badge — *Fase E (Core Service)*
+### 🏆 Poin & Leaderboard — *Fase C′ (News DB)*
 
-[ ] **Monthly leaderboard** — rolling window 30 hari
-[ ] **All-time leaderboard** — total poin sepanjang waktu
-[ ] **Filter leaderboard by app** — `source_app = news` vs `all`
-[ ] **Global leaderboard** — gabungan poin dari semua app (`source_app = all`)
-[ ] **Badge / level pada leaderboard** — indikasi visual pencapaian user
-[ ] **Monthly / all-time quiz leaderboard per quiz**
-[ ] **Export riwayat poin** — download CSV transaksi poin milik user
-[ ] **Riwayat aktivitas lengkap** — `core_activity_logs` viewer (`/activity`)
+[ ] **Monthly leaderboard poin** — rolling window 30 hari dari `point_transactions`
+[ ] **All-time leaderboard poin** — total poin portal sepanjang waktu
+[ ] **Monthly / all-time quiz leaderboard per quiz** — agregasi poin per kuis
+[ ] **Export riwayat poin** — download CSV transaksi poin milik user (News DB)
+[ ] **Riwayat aktivitas lengkap** — viewer `/activity` dari ledger News
 
-### 🛡️ Admin Monitoring & Audit — *Fase E (Core Service)*
+> **LMS** (repo terpisah): XP + level dari Core, badge lokal — lihat `jepangkuLMS` & `jepangku-core/docs/API.md`.
+
+### 🛡️ Admin Monitoring & Audit — *Fase E (portal)*
 
 [ ] **Activity audit log** — log semua aksi admin: siapa approve apa, siapa reject apa, kapan
-[ ] **Monitor leaderboard di admin** — tampilan leaderboard dari sisi admin
-[ ] **Monitor point transactions di admin** — semua transaksi poin, filter by user/tipe/periode
+[ ] **Monitor leaderboard di admin** — data dari agregasi poin News DB
+[ ] **Monitor point transactions di admin** — semua transaksi poin News, filter by user/tipe/periode
 [ ] **Point transaction summary di admin** — total poin per periode, breakdown by activity type
 [ ] **User growth tracking** — grafik registrasi user per hari/minggu
 
 ### 🌐 Ekosistem Lanjutan — *Fase D/E*
 
-[ ] **LMS integration** — `kursus.jepangku.com` dengan shared user dan poin (Fase D)
-[ ] Scaffold LMS — `@clerk/nextjs` + Clerk app sama; `User.id` = Clerk ID; `lib/core/` dari News (`application: LMS`); tanpa `lib/points.ts` lokal
+[ ] **LMS integration** — `kursus.jepangku.com` shared user (Clerk/Core); XP+badge di LMS, poin di News (Fase D)
+[ ] Scaffold LMS — `@clerk/nextjs` + Clerk app sama; `User.id` = Clerk ID; `lib/core/` award XP; badge lokal LMS
 [ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student` (Fase E)
 [ ] **Membership & payment** — plan, subscription, payment global (Fase E)
 [ ] **Admin pusat** — admin lintas aplikasi (Fase E)
@@ -779,7 +789,7 @@ Kontrak: [`ecosystem-integration.md`](./ecosystem-integration.md) · Env dev: `C
 [x] **DATABASE_URL lokal** — `postgresql://root:root@localhost:5432/jepangku_core` di `jepangku-core/.env`
 [x] **Satu Clerk Application** — News & Core `CLERK_SECRET_KEY` selaras
 [x] **Seed activity types News** di Core (`prisma/seed.ts`): `ARTICLE_SHARED`, `ARTICLE_BOOKMARKED`, `POLL_VOTED`, `COMMENT_CREATED`, `NEWS_QUIZ_COMPLETED`; `READ_ARTICLE`, `DAILY_LOGIN` sudah ada
-[x] **Role admin portal** — `bun run db:sync-clerk` assign `NEWS_EDITOR` untuk `admin+clerk_test@jepangku.com`
+[x] **Role admin portal** — `bun run db:sync-clerk` assign `PORTAL_ADMIN` (atau legacy `NEWS_EDITOR`) untuk admin test
 [x] **Smoke test lokal** — sync Clerk, `POST /api/v1/gamification/award`, shadow token (`CORE_SHADOW_ENABLED`)
 
 #### Fase 2 — News bridge
@@ -787,7 +797,7 @@ Kontrak: [`ecosystem-integration.md`](./ecosystem-integration.md) · Env dev: `C
 [x] **Env News** — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_SHADOW_ENABLED`, `CORE_DUAL_WRITE_ENABLED`
 [x] **`lib/core/`** — `client.ts`, `auth.ts`, `gamification.ts`, `types.ts`, `activity-map.ts`, `config.ts`, `index.ts`
 [x] **Shadow integration** — hook setelah login/JIT, log `core.shadow.token.*`, feature flag
-[x] **Skrip sync** — `jepangku-core`: `bun run db:sync-clerk` (Clerk → Core + `NEWS_EDITOR`)
+[x] **Skrip sync** — `jepangku-core`: `bun run db:sync-clerk` (Clerk → Core + `PORTAL_ADMIN`)
 [x] **Dual-write poin** *(historis, pre-cutover)* — `dual-write.ts` + mapping activity + log mismatch
 
 #### Fase 3 — Cutover penuh ke Core
@@ -795,8 +805,9 @@ Kontrak: [`ecosystem-integration.md`](./ecosystem-integration.md) · Env dev: `C
 [x] **Migrasi DB** — `20260609120000_phase3_core_cutover`: FK → Clerk ID; `users.id` = Clerk ID; drop `clerk_id`, `total_points`, `password_hash`
 [x] **Core JWT** — cookie `core_session` via `lib/core/session.ts` + `/api/auth/me`
 [x] **Auth refactor** — `getCurrentUser()`, `getCurrentAdmin()` / `hasNewsAdminAccess()`; `SessionUser.totalPoints` dari Core JWT
-[x] **Poin via Core** — 7 endpoint aktivitas + daily login → `awardXp()` only (`lib/points.ts` thin wrapper)
-[x] **UI & API poin** — Navbar, profile, points, leaderboard weekly, homepage, admin user detail dari Core
+[x] **Cutover identitas** — FK Clerk ID, Core JWT, admin gate dari Core roles
+[~] **Poin via Core** — *sementara* `awardXp()` ke Core (pra-v2.1); **target:** ledger `point_transactions` News DB
+[~] **UI & API poin** — UI ada; **target:** saldo/leaderboard dari News DB, bukan Core XP/`currentPoints`
 [x] **Hapus obsolete** — tabel `point_transactions`, `daily_login_rewards`; dual-write & shadow dihapus; seed tanpa poin lokal
 
 ### 🚀 Soft Launch — Halaman Statis
@@ -919,11 +930,11 @@ Kontrak: [`ecosystem-integration.md`](./ecosystem-integration.md) · Env dev: `C
 
 ### 🏆 Leaderboard & Poin — *Portal (mingguan)*
 
-[x] `GET /api/leaderboard/weekly`: rolling window 7 hari, group by userId, resolve display name dari profile
-[x] `GET /api/points/my`: return 100 transaksi poin terakhir milik user
-[x] Halaman leaderboard mingguan publik
-[x] Halaman points user dengan riwayat transaksi lengkap + ikon per tipe aktivitas
-[x] `app/(user)/points`: riwayat transaksi poin lengkap
+[x] Halaman leaderboard mingguan publik (`/leaderboard`)
+[x] Halaman points user (`/points`) + ikon per tipe aktivitas
+[~] `GET /api/leaderboard/weekly` — **sementara** proxy Core XP (`all-time`); **target:** agregasi 7 hari dari `point_transactions` News
+[~] `GET /api/points/my` — **sementara** dari profil Core/JWT; **target:** 100 transaksi terakhir dari News DB
+[~] `lib/points.ts` — **sementara** wrapper `awardXp()` Core; **target:** tulis `point_transactions` lokal
 
 ### 🔍 Search & Discovery — *Fase A (portal)*
 

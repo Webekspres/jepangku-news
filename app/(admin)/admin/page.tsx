@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import SectionHeader from "@/components/SectionHeader";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import DashboardCharts from "@/components/admin/DashboardCharts";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminDashboard() {
@@ -76,55 +77,19 @@ export default function AdminDashboard() {
 
   return (
     <div className="bg-white min-h-screen" data-testid="admin-dashboard">
-      <SectionHeader
-        label="管理 / ADMIN"
-        title="Dashboard Admin"
-        subtitle="Kelola portal Jepangku"
-        className="border-b border-jepang-border bg-jepang-navy text-white"
-        data-testid="admin-dashboard-header"
-      />
-
-      <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-          {!stats
-            ? [1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="p-5 border bg-white">
-                  <SkeletonBox height="1rem" width="30%" className="mb-3" />
-                  <div className="my-3">
-                    <SkeletonBox height="2rem" width="100%" />
-                  </div>
-                  <SkeletonBox height="0.6rem" width="60%" />
-                </div>
-              ))
-            : statCards.map((stat, idx) => {
-                const Icon = stat.icon;
-
-                return (
-                  <Link
-                    key={idx}
-                    href={stat.link}
-                    className={`block p-5 border transition-colors ${
-                      (stat as any).highlight
-                        ? "bg-jepang-red text-white border-jepang-red hover:opacity-90"
-                        : "bg-white border-jepang-border hover:border-foreground"
-                    }`}
-                    data-testid={`stat-${stat.label
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}`}
-                  >
-                    <Icon size={20} strokeWidth={1.5} className="mb-3" />
-
-                    <p className="font-mono font-black text-3xl">
-                      {stat.value}
-                    </p>
-
-                    <p className="text-[10px] uppercase tracking-wider font-bold mt-1">
-                      {stat.label}
-                    </p>
-                  </Link>
-                );
-              })}
-        </div>
+      <div className="w-full px-4 lg:px-6 py-12">
+        <AdminStatCards
+          className="mb-12"
+          loading={!stats}
+          skeletonCount={6}
+          items={statCards.map((stat) => ({
+            label: stat.label,
+            value: stat.value,
+            icon: stat.icon,
+            highlight: stat.highlight,
+            href: stat.link,
+          }))}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
           <Link
@@ -177,6 +142,8 @@ export default function AdminDashboard() {
             </p>
           </Link>
         </div>
+
+        <DashboardCharts charts={stats?.charts ?? null} loading={!stats} />
 
         <Card className="border border-foreground">
           <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3 flex flex-row items-center justify-between">

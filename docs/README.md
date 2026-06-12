@@ -19,7 +19,7 @@ Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosy
 | Runbook integrasi | [`jepangku-core/docs/PHASE0-PHASE1.md`](../../jepangku-core/docs/PHASE0-PHASE1.md) |
 | Kontrak ekosistem | [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md) |
 | HTTP API | [`jepangku-core/docs/API.md`](../../jepangku-core/docs/API.md) |
-| Schema & JWT | [`jepangku-core/docs/README.md`](../../jepangku-core/docs/README.md) |
+| Schema & JWT | [`jepangku-core/docs/SCHEMA_REFERENCE.md`](../../jepangku-core/docs/SCHEMA_REFERENCE.md) (v2.1 — tanpa poin/badge di Core) |
 
 ## Steering produk (`.agents/`)
 

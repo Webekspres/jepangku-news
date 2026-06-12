@@ -9,6 +9,8 @@ type SectionHeaderProps = {
   bgImage?: string;
   dark?: boolean;
   className?: string;
+  /** Lebar penuh tanpa max-w-7xl (mis. halaman admin) */
+  fullWidth?: boolean;
   children?: ReactNode;
 };
 
@@ -20,6 +22,7 @@ export default function SectionHeader({
   bgImage,
   dark = false,
   className,
+  fullWidth = false,
   children,
 }: SectionHeaderProps) {
   const darkMode = bgImage || dark;
@@ -39,7 +42,12 @@ export default function SectionHeader({
         </div>
       ) : null}
 
-      <div className="relative px-4 mx-auto max-w-7xl py-12">
+      <div
+        className={cn(
+          "relative py-12",
+          fullWidth ? "w-full px-4 lg:px-6" : "mx-auto max-w-7xl px-4",
+        )}
+      >
         <div className="flex flex-col gap-4 md:items-start">
           <div className="flex items-start gap-4">
             {icon ? (

@@ -113,7 +113,7 @@ export default function AdminQuizzesPage() {
     <div className="bg-white min-h-screen" data-testid="admin-quizzes-page">
       <ConfirmModal {...confirmProps} />
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <div className="flex items-center justify-between gap-4">
             <h1 className="font-heading font-black text-4xl tracking-tighter">
               Semua Kuis
@@ -127,7 +127,7 @@ export default function AdminQuizzesPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
+      <div className="w-full px-4 lg:px-6 py-8">
         <div className="flex flex-wrap gap-2 mb-6">
           {filters.map((s) => (
             <Button

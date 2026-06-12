@@ -33,15 +33,16 @@ export default function AdminInfoPagesPage() {
   }, []);
 
   return (
-    <div data-testid="admin-info-pages">
+    <div className="w-full px-4 py-8 lg:px-6" data-testid="admin-info-pages">
       <SectionHeader
         label="管理 / ADMIN"
         title="Halaman Informasi"
         subtitle="Kelola konten halaman About, Contact, Privacy Policy, dan lainnya"
         className="border-b border-jepang-border bg-jepang-navy text-white"
+        fullWidth
       />
 
-      <div className="px-4 mx-auto max-w-7xl py-12">
+      <div className="py-12">
         <div className="border border-jepang-border bg-white">
           <div className="px-5 py-4 border-b border-jepang-border flex items-center gap-3">
             <FileText size={18} strokeWidth={1.5} />

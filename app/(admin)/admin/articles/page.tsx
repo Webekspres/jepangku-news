@@ -14,6 +14,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  FileText,
+  Eye,
+  Search,
+  BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -166,10 +171,20 @@ function buildQuery(params: Record<string, string>) {
   return s ? `?${s}` : "";
 }
 
+type ArticleStats = {
+  total: number;
+  pendingReview: number;
+  published: number;
+  rejected: number;
+  archived: number;
+  totalViews: number;
+};
+
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
+  const [stats, setStats] = useState<ArticleStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -181,11 +196,8 @@ export default function AdminArticlesPage() {
 
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [authorFilter, setAuthorFilter] = useState("");
   const [sort, setSort] = useState("latest");
   const [search, setSearch] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
@@ -195,24 +207,28 @@ export default function AdminArticlesPage() {
   const filterQueryString = buildQuery({
     status: statusFilter,
     categoryId: categoryFilter,
-    authorId: authorFilter,
     sort,
     search,
-    dateFrom,
-    dateTo,
   });
 
   const queryString = buildQuery({
     status: statusFilter,
     categoryId: categoryFilter,
-    authorId: authorFilter,
     sort,
     search,
-    dateFrom,
-    dateTo,
     page: String(page),
     limit: String(PER_PAGE),
   });
+
+  const loadStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const data = await fetch("/api/admin/articles/stats").then((r) => r.json());
+      setStats(data);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
 
   const loadArticles = useCallback(async () => {
     setLoading(true);
@@ -228,16 +244,6 @@ export default function AdminArticlesPage() {
     setPage(Number(data?.page || page));
     setTotalPages(Number(data?.totalPages || 1));
     setTotalItems(Number(data?.total || list.length));
-
-    const authorMap = new Map<string, string>();
-    list.forEach((a: any) => {
-      if (a.author?.id) {
-        authorMap.set(a.author.id, a.author.name || a.author.username || a.author.id);
-      }
-    });
-    setAuthors(
-      Array.from(authorMap.entries()).map(([id, name]) => ({ id, name })),
-    );
     setSelected(new Set());
     setLoading(false);
   }, [queryString]);
@@ -247,10 +253,50 @@ export default function AdminArticlesPage() {
   }, [loadArticles]);
 
   useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
+  useEffect(() => {
     fetch("/api/admin/categories")
       .then((r) => r.json())
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
+
+  const applyStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
+
+  const articleStatItems = [
+    {
+      label: "Total Artikel",
+      value: stats?.total ?? 0,
+      icon: FileText,
+      onClick: () => applyStatusFilter(""),
+      testId: "stat-total-artikel",
+    },
+    {
+      label: "Menunggu Review",
+      value: stats?.pendingReview ?? 0,
+      icon: CheckSquare,
+      highlight: true,
+      onClick: () => applyStatusFilter("PENDING_REVIEW"),
+      testId: "stat-menunggu-review",
+    },
+    {
+      label: "Dipublikasikan",
+      value: stats?.published ?? 0,
+      icon: Eye,
+      onClick: () => applyStatusFilter("PUBLISHED"),
+      testId: "stat-dipublikasikan",
+    },
+    {
+      label: "Total Views",
+      value: stats?.totalViews ?? 0,
+      icon: BarChart3,
+      testId: "stat-total-views",
+    },
+  ];
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -304,7 +350,7 @@ export default function AdminArticlesPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
           toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil`);
-          await loadArticles();
+          await Promise.all([loadArticles(), loadStats()]);
         } catch (e: unknown) {
           toast.error(e instanceof Error ? e.message : "Gagal memproses bulk");
         } finally {
@@ -338,7 +384,7 @@ export default function AdminArticlesPage() {
             throw new Error(data.error || "Gagal menyetujui artikel");
           }
           toast.success("Artikel disetujui dan dipublikasikan");
-          await loadArticles();
+          await Promise.all([loadArticles(), loadStats()]);
         } catch (e: unknown) {
           toast.error(e instanceof Error ? e.message : "Gagal menyetujui artikel");
         } finally {
@@ -410,7 +456,7 @@ export default function AdminArticlesPage() {
         toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil ditolak`);
       }
       closeRejectModal();
-      await loadArticles();
+      await Promise.all([loadArticles(), loadStats()]);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Gagal menolak artikel");
     } finally {
@@ -444,7 +490,7 @@ export default function AdminArticlesPage() {
       />
 
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <h1 className="font-heading font-black text-4xl tracking-tighter">
               Semua Artikel
@@ -466,137 +512,83 @@ export default function AdminArticlesPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
-        <Card className="border border-foreground p-4 space-y-4">
+      <div className="w-full px-4 lg:px-6 py-8 space-y-6">
+        <div data-testid="admin-articles-stats">
+          <AdminStatCards
+            loading={statsLoading}
+            skeletonCount={4}
+            gridClassName="grid grid-cols-2 lg:grid-cols-4 gap-4"
+            items={articleStatItems}
+          />
+        </div>
+
+        <Card className="border border-jepang-border p-4 space-y-4">
           <div className="flex flex-wrap gap-2">
             {statusFilters.map((s) => (
               <Button
                 key={s.v}
                 size="sm"
                 variant={statusFilter === s.v ? "black" : "outline"}
-                onClick={() => {
-                  setStatusFilter(s.v);
-                  setPage(1);
-                }}
+                onClick={() => applyStatusFilter(s.v)}
               >
                 {s.l}
               </Button>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Cari judul</Label>
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_200px] gap-3">
+            <div className="relative">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-jepang-muted"
+              />
               <Input
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                placeholder="Judul atau ringkasan..."
+                placeholder="Cari judul atau ringkasan..."
+                className="pl-9"
                 data-testid="admin-article-search"
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Kategori</Label>
-              <Select
-                value={categoryFilter || "_all"}
-                onValueChange={(v) => {
-                  setCategoryFilter(v === "_all" ? "" : v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger data-testid="filter-category">
-                  <SelectValue placeholder="Semua kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_all">Semua kategori</SelectItem>
-                  {categories.map((c: { id: string; name: string }) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Penulis</Label>
-              <Select
-                value={authorFilter || "_all"}
-                onValueChange={(v) => {
-                  setAuthorFilter(v === "_all" ? "" : v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger data-testid="filter-author">
-                  <SelectValue placeholder="Semua penulis" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_all">Semua penulis</SelectItem>
-                  {authors.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Urutkan</Label>
-              <Select
-                value={sort}
-                onValueChange={(v) => {
-                  setSort(v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger data-testid="filter-sort">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="latest">Terbaru dibuat</SelectItem>
-                  <SelectItem value="oldest">Terlama</SelectItem>
-                  <SelectItem value="popular">Paling dilihat</SelectItem>
-                  <SelectItem value="published">Terbaru publish</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Dari tanggal</Label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => {
-                  setDateFrom(e.target.value);
-                  setPage(1);
-                }}
-                data-testid="filter-date-from"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Sampai tanggal</Label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => {
-                  setDateTo(e.target.value);
-                  setPage(1);
-                }}
-                data-testid="filter-date-to"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button
-                variant="black"
-                onClick={() => {
-                  if (page === 1) loadArticles();
-                  else setPage(1);
-                }}
-                data-testid="apply-filters"
-              >
-                Terapkan Filter
-              </Button>
-            </div>
+            <Select
+              value={categoryFilter || "_all"}
+              onValueChange={(v) => {
+                setCategoryFilter(v === "_all" ? "" : v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger data-testid="filter-category">
+                <SelectValue placeholder="Kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Semua kategori</SelectItem>
+                {categories.map((c: { id: string; name: string }) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={sort}
+              onValueChange={(v) => {
+                setSort(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger data-testid="filter-sort">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="latest">Terbaru dibuat</SelectItem>
+                <SelectItem value="oldest">Terlama</SelectItem>
+                <SelectItem value="popular">Paling dilihat</SelectItem>
+                <SelectItem value="published">Terbaru publish</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </Card>
 
@@ -701,7 +693,13 @@ export default function AdminArticlesPage() {
                       />
                     </TableCell>
                     <TableCell className="font-semibold max-w-xs truncate">
-                      {article.title}
+                      <Link
+                        href={`/admin/articles/${article.id}`}
+                        className="hover:text-jepang-red hover:underline"
+                        data-testid={`view-article-${article.id}`}
+                      >
+                        {article.title}
+                      </Link>
                     </TableCell>
                     <TableCell className="text-jepang-muted">
                       {article.author?.name || "-"}

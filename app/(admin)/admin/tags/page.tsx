@@ -82,7 +82,7 @@ export default function AdminTagsPage() {
     <div className="bg-white min-h-screen" data-testid="admin-tags-page">
       <ConfirmModal {...confirmProps} />
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             MANAJEMEN TAG
           </p>
@@ -93,7 +93,7 @@ export default function AdminTagsPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
+      <div className="w-full px-4 lg:px-6 py-8">
         <Card
           className="border border-foreground mb-6"
           data-testid="create-tag-form"

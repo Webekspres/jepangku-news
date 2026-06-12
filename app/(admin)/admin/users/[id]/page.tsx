@@ -34,7 +34,7 @@ export default function AdminUserDetailPage() {
     return (
       <div className="min-h-[60vh]">
         <section className="border-b border-jepang-border bg-jepang-off-white">
-          <div className="px-4 mx-auto max-w-7xl py-8 flex items-center gap-6">
+          <div className="w-full px-4 lg:px-6 py-8 flex items-center gap-6">
             <SkeletonAvatar size={64} />
             <div className="flex-1">
               <SkeletonBox height="1.6rem" width="40%" />
@@ -49,7 +49,7 @@ export default function AdminUserDetailPage() {
           </div>
         </section>
 
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="p-5 border bg-white">
@@ -125,7 +125,7 @@ export default function AdminUserDetailPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-user-detail-page">
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <Link
             href="/admin/users"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
@@ -156,7 +156,7 @@ export default function AdminUserDetailPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
+      <div className="w-full px-4 lg:px-6 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             {

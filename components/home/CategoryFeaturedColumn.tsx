@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import AuthorLink from "@/components/AuthorLink";
 import { formatArticleDate } from "@/lib/home/format-article-date";
 import type { EditorialFeaturedColumn } from "@/lib/home/types";
 import { Clock, User } from "lucide-react";
@@ -63,12 +62,7 @@ export default function CategoryFeaturedColumn({
               {featured.author ? (
                 <span className="inline-flex items-center gap-1">
                   <User size={12} strokeWidth={1.5} />
-                  <AuthorLink
-                    username={featured.author.username}
-                    className="hover:text-white relative z-10"
-                  >
-                    {featured.author.name}
-                  </AuthorLink>
+                  {featured.author.name}
                 </span>
               ) : null}
               <span className="inline-flex items-center gap-1">

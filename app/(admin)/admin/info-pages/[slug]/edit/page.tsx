@@ -101,7 +101,7 @@ export default function AdminEditInfoPage() {
 
   if (!isInfoPageSlug(slug)) {
     return (
-      <div className="px-4 mx-auto max-w-7xl py-12">
+      <div className="w-full px-4 lg:px-6 py-12">
         <p>Halaman tidak ditemukan.</p>
       </div>
     );
@@ -116,9 +116,10 @@ export default function AdminEditInfoPage() {
         title={`Edit: ${pageLabel}`}
         subtitle={`Slug: /${slug}`}
         className="border-b border-jepang-border bg-jepang-navy text-white"
+        fullWidth
       />
 
-      <div className="px-4 mx-auto max-w-4xl py-12">
+      <div className="w-full px-4 lg:px-6 py-12">
         <div className="flex flex-wrap gap-3 mb-8">
           <Button variant="outline" asChild>
             <Link href="/admin/info-pages">

@@ -116,7 +116,7 @@ export default function AdminVideosPage() {
   };
 
   return (
-    <div data-testid="admin-videos-page">
+    <div className="w-full px-4 py-8 lg:px-6" data-testid="admin-videos-page">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <p className="section-label mb-1">Konten</p>

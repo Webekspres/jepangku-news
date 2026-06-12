@@ -8,7 +8,7 @@ import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { THIN_SCROLLBAR_CLASS } from '@/components/ui/thin-scrollbar';
 import { Input } from '@/components/ui/input';
-import { ADMIN_NAV_GROUPS, isAdminNavActive, type AdminNavGroup } from '@/lib/admin-nav';
+import { ADMIN_NAV_GROUPS, getActiveAdminNavHref, type AdminNavGroup } from '@/lib/admin-nav';
 
 type AdminSidebarProps = {
   onNavigate?: () => void;
@@ -32,6 +32,7 @@ export default function AdminSidebar({ onNavigate, className }: AdminSidebarProp
   const [search, setSearch] = useState('');
 
   const filteredGroups = useMemo(() => filterNavGroups(ADMIN_NAV_GROUPS, search), [search]);
+  const activeHref = useMemo(() => getActiveAdminNavHref(pathname), [pathname]);
 
   return (
     <aside
@@ -85,7 +86,7 @@ export default function AdminSidebar({ onNavigate, className }: AdminSidebarProp
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const active = !item.comingSoon && isAdminNavActive(pathname, item.href, item.exact);
+                  const active = !item.comingSoon && item.href === activeHref;
 
                   if (item.comingSoon) {
                     return (

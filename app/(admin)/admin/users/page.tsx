@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
     <div className="bg-white min-h-screen" data-testid="admin-users-page">
       <ConfirmModal {...confirmProps} />
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             MANAJEMEN PENGGUNA
           </p>
@@ -125,7 +125,7 @@ export default function AdminUsersPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
+      <div className="w-full px-4 lg:px-6 py-8">
         <div className="mb-6 space-y-3">
           <form
             onSubmit={(e) => {

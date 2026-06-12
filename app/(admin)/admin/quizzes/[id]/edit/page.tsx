@@ -299,12 +299,12 @@ export default function AdminEditQuizPage() {
     return (
       <div className="bg-white min-h-screen">
         <section className="border-b border-jepang-border bg-jepang-off-white">
-          <div className="px-4 mx-auto max-w-7xl py-8">
+          <div className="w-full px-4 lg:px-6 py-8">
             <SkeletonBox height="1rem" width="12rem" className="mb-4" />
             <SkeletonBox height="2.5rem" width="16rem" />
           </div>
         </section>
-        <div className="px-4 mx-auto max-w-7xl py-8 space-y-4">
+        <div className="w-full px-4 lg:px-6 py-8 space-y-4">
           {[1, 2, 3].map((i) => <SkeletonBox key={i} height="3rem" width="100%" />)}
         </div>
       </div>
@@ -315,7 +315,7 @@ export default function AdminEditQuizPage() {
     <div className="bg-white min-h-screen" data-testid="admin-edit-quiz-page">
       {/* Header */}
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <Link href="/admin/quizzes"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4">
             <ArrowLeft size={14} /> Kembali ke Daftar Kuis
@@ -327,7 +327,7 @@ export default function AdminEditQuizPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8 space-y-8">
+      <div className="w-full px-4 lg:px-6 py-8 space-y-8">
         {/* ── Info Kuis ── */}
         <section className="space-y-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">

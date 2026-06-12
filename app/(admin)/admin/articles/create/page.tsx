@@ -232,7 +232,7 @@ export default function AdminCreateArticlePage() {
       data-testid="admin-article-create-page"
     >
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <Link
             href="/admin/articles"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
@@ -251,7 +251,7 @@ export default function AdminCreateArticlePage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-12">
+      <div className="w-full px-4 lg:px-6 py-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">

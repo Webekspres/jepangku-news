@@ -3,7 +3,51 @@
 Panduan integrasi **Jepangku News** dengan **Jepangku Core Service** dan **Clerk**.
 Kontrak teknis canonical ada di repo Core: [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md) dan [`jepangku-core/docs/API.md`](../../jepangku-core/docs/API.md).
 
-**Fase dokumentasi:** 0 ✅ · **Implementasi kode:** Fase 1 + 3 ✅ (News & LMS) · **QA production:** ⏳
+**Schema Core:** `2.1.0` · **Fase dokumentasi:** 0 ✅ · **Implementasi identitas:** Fase 1 + 3 ✅ · **QA production:** ⏳
+
+---
+
+## 0. Pembagian tanggung jawab (Core v2.1 — wajib dibaca)
+
+Sejak **schema v2.1.0**, `jepangku-core` fokus pada **identitas & akses global**. Gamifikasi **tidak lagi terpusat** — setiap app punya model sendiri.
+
+| Lapisan | Pemilik | Isi |
+| :--- | :--- | :--- |
+| **Identitas global** | Core | `users` (Clerk sync), role app-scoped, JWT (`POST /auth/token`) |
+| **XP + level global** | Core | `total_xp`, `current_level`, `gamification_logs` — dipakai utama **LMS** |
+| **Poin portal** | **News DB** | Ledger poin, saldo, riwayat `/points` — **bukan** di Core |
+| **Leaderboard poin** | **News DB** | Peringkat mingguan/bulanan dari transaksi poin portal |
+| **Badge + progres LMS** | **LMS DB** + Core XP | Badge lokal LMS; XP/level dari Core JWT & `gamification/award` |
+| **Leaderboard XP** | Core API | `GET /api/v1/leaderboard` — ranking XP global (konteks **LMS**, bukan poin berita) |
+
+```mermaid
+flowchart TB
+  subgraph core [jepangku-core]
+    U[users + roles]
+    XP[total_xp + levels + gamification_logs]
+    LBxp[GET /leaderboard — XP global]
+  end
+  subgraph news [jepangku-news]
+    PT[point_transactions]
+    LBpt[leaderboard poin mingguan]
+    Konten[artikel quiz poll]
+  end
+  subgraph lms [jepangkuLMS]
+    Badge[badges lokal]
+    Kursus[courses progress]
+  end
+  Clerk[Clerk] --> core
+  Clerk --> news
+  Clerk --> lms
+  news -->|auth/token users/me| core
+  lms -->|auth/token gamification/award| core
+  news -.->|poin & leaderboard| PT
+  lms -.->|badge display| Badge
+```
+
+**Yang dihapus dari Core (v2.1):** `current_points`, `points_gained`, tabel `badges` / `user_badges`, endpoint `GET /badges`. Lihat [`jepangku-core/docs/API.md` § Breaking changes](../../jepangku-core/docs/API.md).
+
+> **⚠️ Gap implementasi News (Juni 2026):** sebagian kode masih memanggil `awardXp()` ke Core dan leaderboard dari `GET /api/v1/leaderboard` (XP global). Target: poin + leaderboard sepenuhnya di News DB — lihat [`feature-status.md` § Migrasi poin lokal](./feature-status.md#-migrasi-poin-lokal--leaderboard-portal).
 
 ---
 
@@ -56,34 +100,43 @@ Keputusan ini disepakati agar Core dan News selaras sebelum cutover (LMS mengiku
 
 ### 3.2 Data milik siapa
 
-| Data | Pemilik setelah cutover | Sementara (pre-cutover) |
+| Data | Pemilik (v2.1) | Catatan |
 | :--- | :--- | :--- |
-| Email, name, avatar global | Core | Duplikat JIT di News |
-| XP, poin, level | Core | `users.total_points` + `point_transactions` lokal |
-| Username, bio, display name | **News DB** | News DB (Core belum punya field) |
-| Role admin portal | Core (`NEWS_EDITOR`) | Enum `Role.ADMIN` lokal |
-| Artikel, quiz, poll, komentar | News DB | News DB |
+| Email, name, avatar global | **Core** | Sync via Clerk webhook |
+| Role app-scoped | **Core** | JWT `jepangku.roles` grouped per `application` |
+| XP + level global | **Core** | Untuk LMS; News **tidak** menampilkan level Core di leaderboard poin |
+| **Poin portal** | **News DB** | `point_transactions` + saldo — Core tidak menyimpan poin |
+| **Leaderboard poin** | **News DB** | Agregasi dari transaksi poin portal (mingguan/bulanan) |
+| Username, bio, display name | **News DB** | Core belum punya field profil extended |
+| Artikel, quiz, poll, komentar | **News DB** | Domain portal |
+| Badge & achievement LMS | **LMS DB** | Core tidak punya tabel badge (v2.1) |
 
 ### 3.3 Role mapping
 
-| News (lokal) | Core (`roles.code`) |
-| :--- | :--- |
-| `USER` | `STUDENT` (default webhook) |
-| `ADMIN` | `NEWS_EDITOR` (+ `CORE_ADMIN` jika super-admin) |
+Role default di-assign saat **`POST /auth/token`** dengan `application: PORTAL_BERITA` (bukan di webhook Clerk).
 
-### 3.4 Activity types — mapping cutover
-
-| News `lib/points.ts` | Core `activity_types.code` | Status seed Core |
+| News (lokal / UI) | Core (`roles.code`) | Scope |
 | :--- | :--- | :--- |
-| `article_read` | `READ_ARTICLE` | ✅ Ada |
-| `daily_login` | `DAILY_LOGIN` | ✅ Ada |
-| `article_shared` | `ARTICLE_SHARED` | ⏳ Tambah di Core seed |
-| `article_bookmarked` | `ARTICLE_BOOKMARKED` | ⏳ Tambah di Core seed |
-| `quiz_completed` | `NEWS_QUIZ_COMPLETED` | ⏳ Tambah (pisah dari LMS `COMPLETED_QUIZ`) |
-| `poll_voted` | `POLL_VOTED` | ⏳ Tambah di Core seed |
-| `comment_created` | `COMMENT_CREATED` | ⏳ Tambah di Core seed |
+| `USER` | `USER` | `PORTAL_BERITA` |
+| `ADMIN` | `PORTAL_ADMIN` (+ `CORE_ADMIN` jika super-admin) | `PORTAL_BERITA` / global |
 
-Application code untuk semua award News: **`PORTAL_BERITA`**.
+> Kode News lama mungkin masih mereferensikan `NEWS_EDITOR` / `STUDENT` — diganti di seed Core v2.1 menjadi `PORTAL_ADMIN` / `USER` (portal) dan `SISWA` (LMS).
+
+### 3.4 Activity types — poin portal (News DB)
+
+Mapping aktivitas → poin ditulis di **`lib/points.ts`** dan disimpan ke **`point_transactions`** (News DB). Core **tidak** menyimpan transaksi poin.
+
+| News `activityType` | Poin default | Idempotency (News) |
+| :--- | :--- | :--- |
+| `article_read` | +2 | per artikel per user |
+| `daily_login` | +3 | per hari kalender |
+| `article_shared` | +1 | per artikel per user |
+| `article_bookmarked` | +1 | per artikel per user |
+| `quiz_completed` | base + bonus | per attempt |
+| `poll_voted` | +2 | per poll per user |
+| `comment_created` | +2 | per target per user |
+
+> Jika suatu saat News juga memanggil `gamification/award` (XP opsional), gunakan `activity_types` Core dengan `application: PORTAL_BERITA` — terpisah dari ledger poin.
 
 ### 3.5 Idempotency key (News)
 
@@ -99,20 +152,20 @@ news:daily_login:{YYYY-MM-DD}:{clerkId}
 
 ---
 
-## 4. Kondisi News saat ini (Fase 3 + Fase 1 selesai di kode)
+## 4. Kondisi News saat ini
 
-| Aspek | Status |
-| :--- | :--- |
-| Login | Clerk ✅ |
-| User table | `users.id` = Clerk ID ✅ |
-| FK konten | → Clerk ID ✅ |
-| Poin / XP | Core `gamification/award` only ✅ |
-| Core client | `lib/core/` + `CORE_*` env ✅ |
-| Core JWT | Verify signature via `jose` (Fase 1) ✅ |
-| Admin gate | `NEWS_EDITOR` / `CORE_ADMIN` dari Core JWT ✅ |
-| Leaderboard | Global XP dari Core (`period: all-time`) ✅ |
+| Aspek | Status | Catatan v2.1 |
+| :--- | :--- | :--- |
+| Login | Clerk ✅ | |
+| User table | `users.id` = Clerk ID ✅ | |
+| FK konten | → Clerk ID ✅ | |
+| Identitas & role | Core JWT ✅ | `POST /auth/token` + `application: PORTAL_BERITA` |
+| Core client | `lib/core/` + `CORE_*` env ✅ | |
+| Admin gate | Core JWT ✅ | Target: `PORTAL_ADMIN` / `CORE_ADMIN` |
+| **Poin portal** | 🔄 Migrasi | Target: ledger lokal News; kode sementara masih via `awardXp()` Core |
+| **Leaderboard poin** | 🔄 Migrasi | Target: agregasi `point_transactions` News; kode sementara pakai Core XP leaderboard |
 
-Sisa operasional: QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` dari Core (`bun run jwt:sync-public-key-to-clients`).
+Sisa operasional: migrasi poin/leaderboard ke News DB, QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` (`bun run jwt:sync-public-key-to-clients`).
 
 ---
 
@@ -129,7 +182,7 @@ Sisa operasional: QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` dari Core (`bun 
 - [x] Kode: Clerk sync, `auth/token`, `gamification/award`, verify script
 - [ ] **Prod:** deploy + Clerk webhook aktif
 - [x] Seed activity types News (§3.4)
-- [x] Assign `NEWS_EDITOR` via `db:sync-clerk`
+- [x] Assign `PORTAL_ADMIN` via `db:sync-clerk`
 - [x] Verifikasi dev: `bun run verify:integration`
 
 ### Fase 2 — News bridge
@@ -141,15 +194,16 @@ Sisa operasional: QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` dari Core (`bun 
 ### Fase 3 — News cutover
 
 - [x] FK → Clerk ID (`users.id` = Clerk ID)
-- [x] Award poin via Core only
-- [x] Admin gate: `NEWS_EDITOR` / `CORE_ADMIN`
-- [x] Leaderboard/homepage dari Core (`totalXp`, `all-time`)
-- [x] Hapus ledger poin lokal (`point_transactions`, dll.)
+- [x] Admin gate dari Core JWT (`PORTAL_ADMIN` / `CORE_ADMIN` — target v2.1)
+- [x] Hapus kolom `users.total_points` lokal (cutover identitas)
+- [ ] **Migrasi poin** — kembalikan ledger `point_transactions` di News DB (poin tidak di Core)
+- [ ] **Leaderboard poin** — agregasi lokal, bukan `GET /api/v1/leaderboard` Core
 
 ### Fase 4 — Verifikasi
 
 - [x] Dev: login → user di Core DB
-- [x] Dev: aktivitas → poin di Core (idempotent)
+- [x] Dev: identitas & JWT Core valid
+- [ ] Dev: aktivitas → poin di News DB (idempotent) — menggantikan alur `awardXp()` sementara
 - [ ] **Staging/prod:** E2E manual + `bun run verify:core`
 
 ### Fase 5 — LMS
@@ -186,25 +240,41 @@ Implementasi kode: checklist lengkap per file di [`docs/feature-status.md` § Pe
 
 ---
 
-## 8. Referensi cepat API Core
+## 8. Referensi cepat API Core (yang dipakai News)
 
-| Aksi | Request |
-| :--- | :--- |
-| Tukar Clerk → Core JWT | `POST /api/v1/auth/token` + `Authorization: Bearer <clerk_session>` |
-| Profil + poin | `GET /api/v1/users/me` + Bearer Core JWT |
-| Award poin (server) | `POST /api/v1/gamification/award` + Bearer service token |
-| Leaderboard | `GET /api/v1/leaderboard?limit=50` |
+| Aksi | Request | Dipakai News? |
+| :--- | :--- | :--- |
+| Tukar Clerk → Core JWT | `POST /api/v1/auth/token` + body `{ "application": "PORTAL_BERITA" }` | ✅ Wajib |
+| Profil + role | `GET /api/v1/users/me` + Bearer Core JWT | ✅ |
+| Profil publik by ID | `GET /api/v1/users/:id` | Opsional |
+| Award XP (server) | `POST /api/v1/gamification/award` + service token | Opsional — bukan sumber poin portal |
+| Leaderboard XP global | `GET /api/v1/leaderboard` | ❌ Bukan leaderboard poin News |
+
+**Poin & leaderboard portal** → API News sendiri (`/api/points/*`, `/api/leaderboard/*`) dari DB News.
 
 Detail lengkap: [`jepangku-core/docs/API.md`](../../jepangku-core/docs/API.md).
 
 ---
 
-## 9. Gap Core yang tidak memblok cutover News
+## 9. Perbandingan gamifikasi: News vs LMS
 
-| Gap | Keputusan sementara |
+| Aspek | Portal Berita (`jepangku-news`) | LMS (`jepangkuLMS`) |
+| :--- | :--- | :--- |
+| Mata uang utama | **Poin** (lokal) | **XP** (Core) + **Level** (Core) |
+| Ledger | `point_transactions` (News DB) | `gamification_logs` (Core) |
+| Badge | Tidak ada (MVP) | **Lokal** di LMS DB |
+| Leaderboard | Poin mingguan/bulanan (News DB) | XP global via Core atau kustom LMS |
+| Award aktivitas | `awardPoints()` → News DB | `awardXp()` → Core API |
+| JWT claims | Identitas + role; **tanpa** `currentPoints` | `totalXp`, `level`, role `SISWA` |
+
+---
+
+## 10. Gap yang tidak memblok cutover identitas
+
+| Gap | Keputusan |
 | :--- | :--- |
 | Username di Core | Tetap di News DB |
 | Bio / profil extended | Tetap `user_profiles` News |
-| Riwayat transaksi `/points` | Baca dari Core belum ada endpoint — tampilkan snapshot JWT atau tunda UI |
+| Riwayat `/points` | **News DB** — bukan endpoint Core |
 | Spend poin | Tidak dipakai News MVP |
-| Notifikasi, membership | Fase E |
+| Notifikasi, membership | Fase lanjutan |

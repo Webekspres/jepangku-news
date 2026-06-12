@@ -7,7 +7,7 @@ Integrasi ekosistem (Core + Clerk): [`ecosystem-integration.md`](./ecosystem-int
 
 Jepangku News adalah aplikasi **full-stack Next.js** dengan backend API routes dan frontend React dalam satu repository. Strategi ini mempercepat development dan memudahkan deploy awal di Vercel.
 
-Dalam ekosistem JepangKu, News adalah **aplikasi domain berita** — artikel, quiz/poll, komentar — yang mengonsumsi **identitas & gamifikasi global** dari `jepangku-core` setelah cutover (Fase C).
+Dalam ekosistem JepangKu, News adalah **aplikasi domain berita** — artikel, quiz/poll, komentar — yang mengonsumsi **identitas global** dari `jepangku-core` (Clerk ID, role, JWT). **Poin dan leaderboard poin** milik News DB sendiri (Core v2.1 tidak menyimpan poin).
 
 ## 🚀 Stack Utama
 
@@ -20,7 +20,7 @@ Dalam ekosistem JepangKu, News adalah **aplikasi domain berita** — artikel, qu
 | Database | PostgreSQL | Neon | Managed cloud database (domain berita) |
 | Storage | Cloudflare R2 | - | S3-compatible object storage |
 | Auth | Clerk | - | SSO; session → JIT sync lokal (transisi) |
-| Shared identity | jepangku-core | - | XP/poin/role global (Fase B–C) |
+| Shared identity | jepangku-core | - | Identitas + role global; XP/level untuk LMS (bukan poin portal) |
 | Deployment | Vercel | - | Deploy awal, CI/CD mudah |
 
 ## 🧱 Arsitektur Aplikasi
@@ -51,8 +51,8 @@ flowchart LR
 | Data | Lokasi |
 |------|--------|
 | Artikel, quiz berita, poll, komentar, bookmark | News DB |
-| Username, bio (sementara) | News DB |
-| Email, name, avatar global, XP, poin, role | Core DB (target) |
+| Username, bio, **poin**, **leaderboard poin**, `point_transactions` | News DB |
+| Email, name, avatar global, role, XP/level (LMS) | Core DB |
 | Login, password, OAuth | Clerk |
 
 Peta lengkap: [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md).
@@ -69,10 +69,15 @@ Neon dipilih untuk cloud PostgreSQL yang ringan dan managed. Project ini menggun
 - `quizzes`, `polls`, `comments`, `reactions`
 - `users`, `user_profiles` — **transisi**: akan disederhanakan setelah cutover Core (username/bio saja)
 
-### Schema yang pindah ke Core (Fase C)
+### Schema gamifikasi portal (tetap / kembali di News)
 
-- `point_transactions`, `daily_login_rewards`
-- Kolom `users.total_points` — diganti claims Core JWT / API
+- `point_transactions`, `daily_login_rewards` — **sumber kebenaran poin portal** (Core v2.1 tidak punya poin)
+- Kolom `users.total_points` — dihapus saat cutover identitas; saldo poin dihitung dari ledger News
+
+### Yang di Core (bukan poin portal)
+
+- `users`, `roles`, `gamification_logs` — identitas + XP global (utama LMS)
+- Portal hanya konsumsi **auth/token** dan **users/me**; leaderboard poin **tidak** dari `GET /api/v1/leaderboard`
 
 ## 📦 Storage
 
@@ -86,9 +91,8 @@ Portal memakai **Clerk only** — tidak ada login JWT lokal.
 
 - Sign-in: `/sign-in` · Sign-up: `/sign-up`
 - `/login` dan `/register` redirect ke Clerk
-- Session → JIT sync ke tabel `users` portal (`clerk_id`, profil, poin lokal — **transisi**)
-- **Target Fase C:** Clerk session → Core JWT via `POST /api/v1/auth/token`
-- Admin seed: `admin+clerk_test@jepangku.com` — login Clerk dengan email yang sama (OTP dev: `424242`) untuk role `ADMIN` lokal; cutover → Core role `NEWS_EDITOR`
+- Session → Core JWT via `POST /api/v1/auth/token` (`application: PORTAL_BERITA`)
+- Admin seed: `admin+clerk_test@jepangku.com` — OTP dev `424242`; role Core `PORTAL_ADMIN` / `CORE_ADMIN`
 
 Clerk webhook **tidak** di News — user global disinkronkan ke Core via webhook di `jepangku-core`.
 
@@ -97,7 +101,7 @@ Clerk webhook **tidak** di News — user global disinkronkan ke Core via webhook
 | Variable | Kegunaan |
 |----------|----------|
 | `CORE_API_URL` | Base URL Core (`http://localhost:8080`) |
-| `CORE_SERVICE_TOKEN` | Award XP dari API route backend News |
+| `CORE_SERVICE_TOKEN` | Opsional — hanya jika route News memanggil Core `gamification/award` (XP); poin portal ditulis di News DB |
 
 Alur target: lihat [`ecosystem-integration.md`](./ecosystem-integration.md).
 
@@ -122,8 +126,8 @@ Arsitektur saat ini sudah menggunakan atribut `source_app` untuk beberapa model.
 - `app/api/` — backend API endpoint
 - `components/` — reusable UI components
 - `lib/auth/` — Clerk session + JIT user
-- `lib/points.ts` — poin lokal (**diganti Core API** di Fase C)
-- `lib/core/` — client Core (**Fase B**, belum ada)
+- `lib/points.ts` — award poin portal → News DB (`point_transactions`)
+- `lib/core/` — client Core (auth/token, users/me; bukan sumber poin/leaderboard portal)
 - `prisma/schema.prisma` — database model
 
 ## 🔄 Catatan Pengembangan

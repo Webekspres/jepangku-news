@@ -93,7 +93,7 @@ export default function AdminReviewArticles() {
   return (
     <div className="bg-white min-h-screen" data-testid="admin-review-page">
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             ANTRIAN REVIEW
           </p>
@@ -104,7 +104,7 @@ export default function AdminReviewArticles() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
+      <div className="w-full px-4 lg:px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-2">
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] mb-3">

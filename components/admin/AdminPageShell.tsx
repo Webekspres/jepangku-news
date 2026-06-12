@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { ADMIN_CONTENT_CLASS } from '@/lib/admin-layout';
 
 export default function AdminPageShell({
   title,
@@ -19,7 +20,7 @@ export default function AdminPageShell({
   return (
     <div data-testid="admin-page-shell">
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className={`${ADMIN_CONTENT_CLASS} py-8`}>
           {backHref ? (
             <Link
               href={backHref}
@@ -39,7 +40,7 @@ export default function AdminPageShell({
           ) : null}
         </div>
       </section>
-      <div className="px-4 mx-auto max-w-7xl py-8">{children}</div>
+      <div className={`${ADMIN_CONTENT_CLASS} py-8`}>{children}</div>
     </div>
   );
 }

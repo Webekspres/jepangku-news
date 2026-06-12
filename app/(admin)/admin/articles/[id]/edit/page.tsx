@@ -238,12 +238,12 @@ export default function AdminEditArticlePage() {
     return (
       <div className="bg-white min-h-screen">
         <div className="border-b border-jepang-border bg-jepang-off-white px-4 py-12">
-          <div className="mx-auto max-w-7xl space-y-3">
+          <div className="w-full px-4 lg:px-6 space-y-3">
             <div className="h-3 w-24 bg-jepang-border animate-pulse" />
             <div className="h-10 w-80 bg-jepang-border animate-pulse" />
           </div>
         </div>
-        <div className="px-4 mx-auto max-w-7xl py-12 space-y-6">
+        <div className="w-full px-4 lg:px-6 py-12 space-y-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-14 bg-jepang-border animate-pulse" />
           ))}
@@ -256,7 +256,7 @@ export default function AdminEditArticlePage() {
     <div className="bg-white min-h-screen" data-testid="admin-article-edit-page">
       <ConfirmModal {...confirmProps} />
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <Link
             href="/admin/articles"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
@@ -272,7 +272,7 @@ export default function AdminEditArticlePage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-12">
+      <div className="w-full px-4 lg:px-6 py-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">

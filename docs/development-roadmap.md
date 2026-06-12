@@ -15,12 +15,12 @@ Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 
 1. **Stabilitas portal didahulukan.** Selesaikan fitur user-facing dan hardening yang membuat
    portal layak rilis publik (soft launch).
-2. **Jangan bangun yang akan dibuang.** Auth, poin, badge, membership, dan notifikasi versi
-   portal akan digantikan oleh Core Service + Clerk. Hindari membangunnya ulang di portal.
+2. **Jangan duplikasi identitas.** Auth & profil global lewat Clerk + Core; poin/badge **tetap**
+   milik masing-masing app (News = poin, LMS = badge + XP Core).
 3. **Kerjakan yang tetap relevan.** Fitur domain berita (komentar, like, search, tag, analytics
    artikel) tetap milik portal selamanya — aman dikerjakan sekarang.
-4. **Global-ready dipertahankan.** Tetap gunakan `source_app` dan poin berbasis transaksi agar
-   migrasi ke Core mulus.
+4. **Poin berbasis transaksi di News DB.** Core v2.1 tidak menyimpan poin — ledger `point_transactions`
+   adalah sumber kebenaran leaderboard portal.
 
 ---
 
@@ -31,9 +31,10 @@ Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 | **0** | Selaraskan dokumentasi & kontrak Core v2 | ✅ Selesai |
 | **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | 🔄 Aktif sekarang |
 | **B** | Core + News bridge (`lib/core/`, JWT exchange) | ✅ Coded · prod ⏳ |
-| **C** | Cutover News → Core (Clerk ID, poin via API) | ✅ Coded · QA ⏳ |
-| **D** | LMS consumer Core | ✅ Fase 1 coded · UI belajar ⏳ |
-| **E** | Fitur ekosistem global (badge, membership, notifikasi, admin pusat) | ⏳ Menunggu |
+| **C** | Cutover identitas News → Core (Clerk ID, JWT, role) | ✅ Coded · QA ⏳ |
+| **C′** | Migrasi poin + leaderboard portal ke News DB (selaras Core v2.1) | 🔄 Berikutnya |
+| **D** | LMS consumer Core (XP, level, badge lokal) | ✅ Fase 1 coded · UI belajar ⏳ |
+| **E** | Fitur lintas-app (membership, notifikasi, admin pusat) | ⏳ Menunggu |
 
 ---
 
@@ -111,11 +112,10 @@ Detail: `docs/ecosystem-integration.md` §5 Fase 1–2 · API: `jepangku-core/do
 [x] Project Core (Elysia + Prisma + Bun)
 [x] Clerk webhook: `POST /api/v1/auth/webhooks/clerk`
 [x] Core JWT: `POST /api/v1/auth/token`
-[x] Schema v2: `users.id` = Clerk ID, `gamification_logs`, `roles`, `badges`, `levels`
-[x] API: `GET /users/me`, `POST /gamification/award`, `GET /leaderboard`
+[x] Schema v2.1: `users.id` = Clerk ID, `gamification_logs`, `roles`, `levels` (tanpa poin/badge di Core)
+[x] API: `GET /users/me`, `POST /gamification/award` (XP), `GET /leaderboard` (XP global — LMS)
 [ ] Deploy staging/prod + env production
-[ ] Seed activity types News (`ARTICLE_SHARED`, `POLL_VOTED`, `NEWS_QUIZ_COMPLETED`, dll.)
-[ ] Assign role `NEWS_EDITOR` untuk admin portal di Core
+[x] Role portal: `USER`, `PORTAL_ADMIN` (seed Core v2.1)
 
 ### B2. Portal Berita — Clerk bridge (selesai) + Core shadow
 
@@ -125,22 +125,28 @@ Detail: `docs/ecosystem-integration.md` §5 Fase 1–2 · API: `jepangku-core/do
 [ ] Env `CORE_API_URL`, `CORE_SERVICE_TOKEN`
 [ ] Modul `lib/core/` (token exchange, award wrapper)
 [ ] Shadow call `POST /api/v1/auth/token` setelah login (non-blocking)
-[ ] (Opsional) Dual-write poin lokal + Core untuk validasi saldo
+[ ] Dual-write tidak diperlukan — poin hanya di News DB (Core v2.1)
 
 ---
 
-## 🟣 Fase C — Cutover News → Consumer Core
+## 🟣 Fase C — Cutover identitas News → Core
 
-Tujuan: poin & identitas global dari Core; News hanya simpan data domain berita + profil portal (username/bio).
+Tujuan: identitas & role global dari Core; News simpan domain berita + profil portal + **poin lokal**.
 Detail: `docs/ecosystem-integration.md` §5 Fase 3.
 
 [x] Clerk sebagai satu-satunya auth (prasyarat)
-[ ] Migrasi FK: `author_id`, `user_id`, dll. → **Clerk ID** (= Core `users.id`)
-[ ] Ganti `awardPoints()` → `POST /api/v1/gamification/award` (`application: PORTAL_BERITA`)
-[ ] Session: Core JWT wajib (bukan shadow); admin via `jepangku.roles` (`NEWS_EDITOR`)
-[ ] UI poin/leaderboard dari Core API / JWT claims
-[ ] Hapus `point_transactions`, `daily_login_rewards`, `total_points` lokal
-[ ] Sederhanakan `users` → profil portal keyed by Clerk ID (username, bio tetap di News)
+[x] Migrasi FK: `author_id`, `user_id`, dll. → **Clerk ID** (= Core `users.id`)
+[x] Session: Core JWT wajib; admin via `jepangku.roles` (`PORTAL_ADMIN` / `CORE_ADMIN`)
+[x] Hapus `users.total_points` / `clerk_id` lokal (identitas di Core)
+
+## 🟣 Fase C′ — Poin & leaderboard portal (News DB)
+
+Tujuan: selaraskan dengan Core v2.1 — poin **tidak** di Core.
+
+[ ] Kembalikan / aktifkan `point_transactions` + saldo poin di News DB
+[ ] Refactor `awardPoints()` → tulis ledger News (bukan `awardXp()` ke Core)
+[ ] `GET /api/leaderboard/weekly` — agregasi poin News (bukan `GET /api/v1/leaderboard` Core)
+[ ] UI Navbar, `/points`, homepage leaderboard dari saldo & transaksi News
 
 ---
 
@@ -153,8 +159,9 @@ Prasyarat: Fase C News selesai atau pola `lib/core/` terbukti stabil.
 [ ] Prisma LMS: `User.id` = Clerk ID (PK, tanpa duplikasi user global)
 [ ] `lib/core/` — salin pola News
 [ ] Tabel domain: `courses`, `sections`, `lessons`, `enrollments`, `lesson_progress`, `course_quiz_attempts`, `certificates`
-[ ] Award XP: `application: LMS`, `activityType: COMPLETED_LESSON` / `COMPLETED_QUIZ`
-[ ] **Tidak** buat `lib/points.ts` lokal
+[ ] Award XP ke Core: `application: LMS`, `activityType: COMPLETED_LESSON` / `COMPLETED_QUIZ`
+[ ] Badge & display level: **LMS DB** + claims Core JWT (`totalXp`, `level`)
+[ ] Leaderboard LMS: `GET /api/v1/leaderboard` (XP) atau kustom LMS
 
 ---
 
@@ -163,17 +170,13 @@ Prasyarat: Fase C News selesai atau pola `lib/core/` terbukti stabil.
 Tujuan: fitur lintas aplikasi yang hanya mungkin setelah Core berdiri. Membangunnya di portal
 sekarang akan terbuang — karena itu **ditunda sampai Core siap**.
 
-[ ] **Badge / achievement global** — Core `badges`, `user_badges` (sudah ada schema)
-[ ] **Monthly leaderboard** — rolling 30 hari (dari Core)
-[ ] **All-time leaderboard** — total poin sepanjang waktu (dari Core)
-[ ] **Global leaderboard** — gabungan poin semua app (`source_app = all`)
-[ ] **Badge / level pada leaderboard** — indikasi visual pencapaian
+[ ] **Monthly leaderboard poin** — rolling 30 hari (News DB)
+[ ] **All-time leaderboard poin** — total poin portal (News DB)
+[ ] **Export riwayat poin** — CSV dari `point_transactions` News
 [ ] **In-app notifications** — belum ada di Core schema (desain Fase E)
 [ ] **Follow / subscribe kategori** — subscribe + notifikasi artikel baru
-[ ] **Export riwayat poin** — download CSV transaksi poin (dari Core)
-[ ] **Riwayat aktivitas lengkap** (`/activity`) — perlu endpoint/viewer ledger Core (belum ada)
-[ ] **Admin: monitor leaderboard** — dari sisi admin (data Core)
-[ ] **Admin: monitor point transactions** — dari `gamification_logs` Core (endpoint admin belum ada)
+[ ] **Riwayat aktivitas lengkap** (`/activity`) — viewer transaksi poin News
+[ ] **Admin: monitor leaderboard & poin** — dari News DB (bukan Core)
 [ ] **Admin: activity audit log** — audit admin portal (belum di Core)
 [ ] **Membership & payment** — belum ada di Core schema
 [ ] **Super-admin / role hierarchy** — `editor`, `moderator`, `instructor`, `student`
@@ -191,13 +194,13 @@ Beberapa item yang sebelumnya ada di backlog portal **dipindah ke Core** agar ti
 | Item backlog lama | Keputusan baru |
 | ----------------- | -------------- |
 | Email verification, Forgot password, OAuth, Session management UI | **Fase B/C — ditangani Clerk**, bukan portal |
-| Monthly / All-time / Global leaderboard | **Fase E — dari Core** (data poin pindah ke Core) |
-| Badge / level | **Fase E — Core** |
+| Monthly / All-time leaderboard poin | **Fase C′ — News DB** |
+| Badge / level LMS | **LMS DB + Core XP** (bukan News) |
 | In-app notifications | **Fase E — Core** |
 | Follow / subscribe kategori | **Fase E — Core (notifikasi)** |
-| Export riwayat poin | **Fase E — Core** |
-| Riwayat aktivitas lengkap (`/activity`) | **Fase E — Core (`core_activity_logs`)** |
-| Admin: monitor leaderboard & point transactions | **Fase E — Core** |
+| Export riwayat poin | **Fase C′ — News DB** |
+| Riwayat aktivitas lengkap (`/activity`) | **Fase C′/E — News DB** |
+| Admin: monitor leaderboard & point transactions | **Fase C′ — News admin** |
 | Admin: activity audit log | **Fase E — Core** |
 | Komentar, like, profil author, search, tags, analytics artikel | **Fase A — tetap di portal** |
 | Rate limiting, sanitasi HTML, image moderation, monitoring, logging | **Fase A — hardening portal** |

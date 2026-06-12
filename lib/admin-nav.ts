@@ -111,15 +111,30 @@ export function isAdminNavActive(pathname: string, href: string, exact?: boolean
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Semua item nav (flat) */
+function getAllNavItems(): AdminNavItem[] {
+  return ADMIN_NAV_GROUPS.flatMap((g) => g.items);
+}
+
+/** Href menu yang paling spesifik cocok dengan pathname (hindari /admin/articles aktif di /review). */
+export function getActiveAdminNavHref(pathname: string): string | null {
+  let best: AdminNavItem | null = null;
+
+  for (const item of getAllNavItems()) {
+    if (item.comingSoon) continue;
+    if (!isAdminNavActive(pathname, item.href, item.exact)) continue;
+    if (!best || item.href.length > best.href.length) {
+      best = item;
+    }
+  }
+
+  return best?.href ?? null;
+}
+
 export type AdminBreadcrumb = {
   href?: string;
   label: string;
 };
-
-/** Semua item nav (flat) untuk breadcrumb */
-function getAllNavItems(): AdminNavItem[] {
-  return ADMIN_NAV_GROUPS.flatMap((g) => g.items);
-}
 
 function getSubPageLabel(pathname: string, baseHref: string): string {
   const rest = pathname.slice(baseHref.length).replace(/^\//, '');
@@ -136,16 +151,10 @@ export function getAdminBreadcrumbs(pathname: string): AdminBreadcrumb[] {
     return [{ label: 'Dasboard' }];
   }
 
-  let best: AdminNavItem | null = null;
-  for (const item of getAllNavItems()) {
-    if (item.comingSoon) continue;
-    const matches =
-      pathname === item.href ||
-      (item.href !== '/admin' && pathname.startsWith(`${item.href}/`));
-    if (matches && (!best || item.href.length > best.href.length)) {
-      best = item;
-    }
-  }
+  const activeHref = getActiveAdminNavHref(pathname);
+  const best = activeHref
+    ? getAllNavItems().find((item) => item.href === activeHref) ?? null
+    : null;
 
   if (!best) {
     return [{ href: '/admin', label: 'Admin' }, { label: 'Halaman' }];

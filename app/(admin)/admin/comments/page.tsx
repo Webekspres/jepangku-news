@@ -139,7 +139,7 @@ export default function AdminCommentsPage() {
       <ConfirmModal {...confirmProps} />
 
       <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="w-full px-4 lg:px-6 py-8">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
             MODERASI KOMENTAR
           </p>
@@ -150,7 +150,7 @@ export default function AdminCommentsPage() {
         </div>
       </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
+      <div className="w-full px-4 lg:px-6 py-8">
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <div className="flex flex-wrap gap-1">
