@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
-import { isCoreApiConfigured } from "@/lib/core/config";
-import { fetchCoreLeaderboard } from "@/lib/core/users";
+import { fetchLeaderboard } from "@/lib/leaderboard/queries";
 import type {
   HomeEngagementResponse,
   HomeLeaderboardEntry,
@@ -24,35 +23,18 @@ type QuizRow = {
 };
 
 async function fetchLeaderboardData(): Promise<HomeLeaderboardEntry[]> {
-  if (!isCoreApiConfigured()) return [];
-
-  try {
-    const { items } = await fetchCoreLeaderboard(10, 0);
-    return Promise.all(
-      items.map(async (entry) => {
-        const user = await db.user.findUnique({
-          where: { id: entry.id },
-          select: { name: true, username: true, avatarUrl: true },
-        });
-        const profile = await db.userProfile.findUnique({
-          where: { userId: entry.id },
-          select: { displayName: true },
-        });
-        return {
-          rank: entry.rank,
-          userId: entry.id,
-          displayName: profile?.displayName || user?.name || entry.name,
-          username: user?.username || "",
-          avatarUrl: user?.avatarUrl || entry.imageUrl,
-          totalXp: entry.totalXp,
-          currentPoints: entry.currentPoints,
-          period: "all-time" as const,
-        };
-      }),
-    );
-  } catch {
-    return [];
-  }
+  const { items, period, periodLabel } = await fetchLeaderboard("weekly", 10);
+  return items.map((entry) => ({
+    rank: entry.rank,
+    userId: entry.userId,
+    displayName: entry.displayName,
+    username: entry.username,
+    avatarUrl: entry.avatarUrl,
+    periodPoints: entry.periodPoints,
+    totalPoints: entry.totalPoints,
+    period,
+    periodLabel,
+  }));
 }
 
 export async function fetchHomeEngagement(): Promise<HomeEngagementResponse> {
@@ -96,5 +78,7 @@ export async function fetchHomeEngagement(): Promise<HomeEngagementResponse> {
       questionCount: quiz._count.questions,
     })),
     leaderboard,
+    leaderboardPeriod: "weekly",
+    leaderboardPeriodLabel: "Minggu ini",
   };
 }

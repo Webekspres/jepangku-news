@@ -21,18 +21,15 @@ async function main() {
   const health = await fetch(`${coreUrl}/health`);
   record("Core reachable from News env", health.ok, `status=${health.status}`);
 
-  const leaderboard = await fetch(`${coreUrl}/api/v1/leaderboard?limit=3`);
-  record(
-    "Leaderboard API",
-    leaderboard.ok,
-    leaderboard.ok ? `status=${leaderboard.status}` : await leaderboard.text(),
+  const newsLeaderboard = await fetch(
+    "http://localhost:3000/api/leaderboard?period=weekly&limit=3",
   );
-
-  const newsPoints = await fetch("http://localhost:3000/api/leaderboard/weekly");
   record(
-    "News /api/leaderboard/weekly",
-    newsPoints.ok,
-    newsPoints.ok ? `status=${newsPoints.status}` : "News dev server not running on :3000",
+    "News /api/leaderboard (portal points)",
+    newsLeaderboard.ok,
+    newsLeaderboard.ok
+      ? `status=${newsLeaderboard.status}`
+      : "News dev server not running on :3000",
   );
 
   const newsHealth = await fetch("http://localhost:3000/api/health").catch(() => null);
@@ -45,13 +42,10 @@ async function main() {
   console.log("\n--- Manual checks (browser) ---");
   console.log("1. Sign up / login at http://localhost:3000/sign-in");
   console.log("2. Cookie core_session should appear after login");
-  console.log("3. Navbar shows points from Core");
-  console.log("4. Read article → gamification_logs in Core");
-  console.log("5. Admin with NEWS_EDITOR → /admin accessible");
-  console.log("\n--- Clerk webhook (Step 2) ---");
-  console.log("Dashboard → Webhooks → POST https://<core-host>/api/v1/auth/webhooks/clerk");
-  console.log("Events: user.created, user.updated, user.deleted");
-  console.log("Secret → CLERK_WEBHOOK_SECRET in jepangku-core only");
+  console.log("3. Navbar shows points from News DB (point_transactions)");
+  console.log("4. Read article → row in point_transactions");
+  console.log("5. /leaderboard tabs: weekly, monthly, all-time");
+  console.log("6. Admin with PORTAL_ADMIN → /admin accessible");
 
   const failed = checks.filter((c) => !c.ok).length;
   console.log(`\nAutomated: ${checks.length - failed}/${checks.length} passed`);

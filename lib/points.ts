@@ -1,13 +1,6 @@
+import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
-import { refreshCurrentUserCoreSession } from '@/lib/core/session';
-import {
-  awardXp,
-  buildNewsIdempotencyKey,
-  CORE_APPLICATION_PORTAL,
-  CoreApiError,
-  isCoreAwardConfigured,
-  toCoreActivityType,
-} from '@/lib/core';
+import { db } from '@/lib/db';
 
 export type AwardPointsResult = {
   awarded: boolean;
@@ -23,8 +16,25 @@ const EMPTY_AWARD: AwardPointsResult = {
   currentLevel: null,
 };
 
+const SOURCE_APP = 'news';
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
+  );
+}
+
+/** Sum of all portal point transactions for a user. */
+export async function getUserPointBalance(userId: string): Promise<number> {
+  const result = await db.pointTransaction.aggregate({
+    where: { userId, sourceApp: SOURCE_APP },
+    _sum: { points: true },
+  });
+  return result._sum.points ?? 0;
+}
+
 /**
- * Award XP/points via jepangku-core (single source of truth).
+ * Award portal points — stored in News DB (`point_transactions`).
  * `userId` must be the Clerk User ID (= portal users.id).
  */
 export async function awardPoints(
@@ -33,80 +43,74 @@ export async function awardPoints(
   sourceType: string,
   sourceId: string | null,
   points: number,
-  _description?: string,
+  description?: string,
 ): Promise<AwardPointsResult> {
   if (points <= 0) return EMPTY_AWARD;
 
-  const coreActivity = toCoreActivityType(activityType);
-  if (!coreActivity) {
-    logger.warn('core.award.skip_unknown_activity', { activityType });
-    return EMPTY_AWARD;
-  }
-
-  if (!isCoreAwardConfigured()) {
-    logger.warn('core.award.not_configured', { activityType, userId });
-    return EMPTY_AWARD;
-  }
-
-  const idempotencyKey = buildNewsIdempotencyKey(
-    activityType,
-    userId,
-    sourceId ?? sourceType,
-  );
-
   try {
-    const result = await awardXp({
-      userId,
-      application: CORE_APPLICATION_PORTAL,
-      activityType: coreActivity,
-      xpGained: points,
-      pointsGained: points,
-      sourceRefId: sourceId ?? undefined,
-      idempotencyKey,
+    await db.pointTransaction.create({
+      data: {
+        userId,
+        sourceApp: SOURCE_APP,
+        activityType,
+        sourceType,
+        sourceId,
+        points,
+        description: description ?? null,
+      },
     });
 
-    logger.info('core.award.ok', {
+    const currentPoints = await getUserPointBalance(userId);
+
+    logger.info('points.award.ok', {
       userId,
       activityType,
-      coreActivity,
       points,
-      idempotent: result.idempotent,
-      currentPoints: result.user.currentPoints,
+      currentPoints,
     });
 
-    if (!result.idempotent) {
-      await refreshCurrentUserCoreSession();
-    }
-
     return {
-      awarded: !result.idempotent,
-      currentPoints: result.user.currentPoints,
-      totalXp: result.user.totalXp,
-      currentLevel: result.user.currentLevel,
+      awarded: true,
+      currentPoints,
+      totalXp: null,
+      currentLevel: null,
     };
   } catch (error) {
-    const meta =
-      error instanceof CoreApiError
-        ? {
-            userId,
-            activityType,
-            code: error.code,
-            status: error.status,
-            errorMessage: error.message,
-          }
-        : {
-            userId,
-            activityType,
-            errorMessage: error instanceof Error ? error.message : 'unknown',
-          };
-    logger.warn('core.award.failed', meta);
+    if (isUniqueViolation(error)) {
+      const currentPoints = await getUserPointBalance(userId);
+      return { awarded: false, currentPoints, totalXp: null, currentLevel: null };
+    }
+
+    logger.warn('points.award.failed', {
+      userId,
+      activityType,
+      errorMessage: error instanceof Error ? error.message : 'unknown',
+    });
     return EMPTY_AWARD;
   }
 }
 
-/** Daily login reward — idempotent via Core idempotency key per calendar day. */
+/** Daily login reward — idempotent via unique constraint per calendar day. */
 export async function checkDailyLogin(userId: string): Promise<boolean> {
   const today = new Date().toISOString().split('T')[0];
   const result = await awardPoints(userId, 'daily_login', 'system', today, 3);
   return result.awarded;
+}
+
+/** Recent point transactions for a user. */
+export async function getUserPointTransactions(userId: string, limit = 100) {
+  return db.pointTransaction.findMany({
+    where: { userId, sourceApp: SOURCE_APP },
+    orderBy: { occurredAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      activityType: true,
+      sourceType: true,
+      sourceId: true,
+      points: true,
+      description: true,
+      occurredAt: true,
+    },
+  });
 }

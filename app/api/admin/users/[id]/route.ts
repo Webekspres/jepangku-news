@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
-import { fetchCoreUserProfile } from '@/lib/core/users';
 import { db } from '@/lib/db';
+import { getUserPointBalance, getUserPointTransactions } from '@/lib/points';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
@@ -19,9 +19,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-  const coreProfile = await fetchCoreUserProfile(id);
-
-  const [articles, bookmarkCount, quizAttempts, pollVotes] = await Promise.all([
+  const [totalPoints, recentTransactions, articles, bookmarkCount, quizAttempts, pollVotes] =
+    await Promise.all([
+    getUserPointBalance(id),
+    getUserPointTransactions(id, 20),
     db.article.findMany({
       where: { authorId: id },
       orderBy: { createdAt: 'desc' },
@@ -36,12 +37,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return NextResponse.json({
     user: {
       ...user,
-      totalPoints: coreProfile?.currentPoints ?? 0,
-      totalXp: coreProfile?.totalXp ?? 0,
-      currentLevel: coreProfile?.currentLevel ?? 1,
+      totalPoints,
     },
     articles,
-    recentTransactions: [],
+    recentTransactions: recentTransactions.map((tx: (typeof recentTransactions)[number]) => ({
+      id: tx.id,
+      activityType: tx.activityType,
+      points: tx.points,
+      description: tx.description,
+      occurredAt: tx.occurredAt.toISOString(),
+    })),
     stats: { bookmarkCount, quizAttempts, pollVotes, articleCount: articles.length },
   });
 }

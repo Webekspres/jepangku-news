@@ -32,15 +32,18 @@ export type HomeLeaderboardEntry = {
   displayName: string;
   username: string;
   avatarUrl: string | null;
-  totalXp: number;
-  currentPoints: number;
-  period: "all-time";
+  periodPoints: number;
+  totalPoints: number;
+  period: "weekly" | "monthly" | "all-time";
+  periodLabel: string;
 };
 
 export type HomeEngagementResponse = {
   polls: HomePollSummary[];
   quizzes: HomeQuizSummary[];
   leaderboard: HomeLeaderboardEntry[];
+  leaderboardPeriod: "weekly" | "monthly" | "all-time";
+  leaderboardPeriodLabel: string;
 };
 
 export type EditorialFeaturedColumn = {

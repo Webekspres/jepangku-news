@@ -20,7 +20,8 @@ const ACTIVITY_ICONS: Record<string, any> = {
   article_bookmarked: Bookmark,
   quiz_completed: Zap,
   quiz_correct_answer: Award,
-  poll_joined: MessageSquare,
+  poll_voted: MessageSquare,
+  comment_created: MessageSquare,
   daily_login: LogIn,
   article_shared: Share2,
 };
@@ -30,7 +31,8 @@ const ACTIVITY_LABELS: Record<string, string> = {
   article_bookmarked: "Artikel di-Bookmark",
   quiz_completed: "Kuis Selesai",
   quiz_correct_answer: "Jawaban Benar Kuis",
-  poll_joined: "Vote di Polling",
+  poll_voted: "Vote di Polling",
+  comment_created: "Komentar",
   daily_login: "Login Harian",
   article_shared: "Artikel Dibagikan",
 };

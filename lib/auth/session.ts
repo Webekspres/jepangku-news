@@ -1,58 +1,51 @@
 import type { User } from '@prisma/client';
-import { isCoreApiConfigured } from '@/lib/core/config';
 import { getCoreSessionToken } from '@/lib/core/session';
 import type { CoreJwtClaims } from '@/lib/core/session';
-import { fetchCoreUserMe, fetchCoreUserProfile } from '@/lib/core/users';
+import { fetchCoreUserMe } from '@/lib/core/users';
+import { getUserPointBalance } from '@/lib/points';
 import type { SessionUser } from './types';
 
-function gamificationFromClaims(coreClaims?: CoreJwtClaims | null): Pick<
-  SessionUser,
-  'totalPoints' | 'totalXp' | 'currentLevel' | 'coreRoles'
-> {
-  const jepangku = coreClaims?.jepangku;
-  return {
-    totalPoints: jepangku?.currentPoints ?? 0,
-    totalXp: jepangku?.totalXp ?? 0,
-    currentLevel: jepangku?.level ?? 1,
-    coreRoles: jepangku?.roles ?? [],
-  };
+function rolesFromClaims(coreClaims?: CoreJwtClaims | null): string[] {
+  return coreClaims?.jepangku?.roles ?? [];
 }
 
-/** Resolve live gamification stats from Core (leaderboard uses the same source). */
+function flattenCoreRoles(
+  roles: string[] | { global?: string[]; byApplication?: Record<string, string[]> },
+): string[] {
+  if (Array.isArray(roles)) return roles;
+  return [
+    ...(roles.global ?? []),
+    ...Object.values(roles.byApplication ?? {}).flat(),
+  ];
+}
+
+/** Attach portal point balance (News DB) and Core roles from JWT/API. */
 export async function applyCoreGamification(
   user: SessionUser,
   coreClaims?: CoreJwtClaims | null,
 ): Promise<SessionUser> {
-  if (!isCoreApiConfigured()) {
-    return { ...user, ...gamificationFromClaims(coreClaims) };
-  }
+  const [totalPoints, coreJwt] = await Promise.all([
+    getUserPointBalance(user.id),
+    getCoreSessionToken(),
+  ]);
 
-  // Public profile = same data as leaderboard; no Core JWT required.
-  const profile = await fetchCoreUserProfile(user.id);
-  if (profile) {
-    return {
-      ...user,
-      totalPoints: profile.currentPoints,
-      totalXp: profile.totalXp,
-      currentLevel: profile.currentLevel,
-    };
-  }
-
-  const coreJwt = await getCoreSessionToken();
+  let coreRoles = rolesFromClaims(coreClaims);
   if (coreJwt) {
     const me = await fetchCoreUserMe(coreJwt);
-    if (me) {
-      return {
-        ...user,
-        totalPoints: me.currentPoints,
-        totalXp: me.totalXp,
-        currentLevel: me.currentLevel,
-        coreRoles: me.roles.length > 0 ? me.roles : user.coreRoles,
-      };
+    if (me?.roles) {
+      coreRoles = flattenCoreRoles(
+        me.roles as string[] | { global?: string[]; byApplication?: Record<string, string[]> },
+      );
     }
   }
 
-  return { ...user, ...gamificationFromClaims(coreClaims) };
+  return {
+    ...user,
+    totalPoints,
+    totalXp: coreClaims?.jepangku?.totalXp ?? user.totalXp ?? 0,
+    currentLevel: coreClaims?.jepangku?.level ?? user.currentLevel ?? 1,
+    coreRoles: coreRoles.length > 0 ? coreRoles : user.coreRoles,
+  };
 }
 
 export function toSessionUser(
@@ -74,10 +67,10 @@ export function toSessionUser(
     role: user.role,
     avatarUrl: user.avatarUrl,
     status: user.status,
-    totalPoints: jepangku?.currentPoints ?? 0,
+    totalPoints: 0,
     totalXp: jepangku?.totalXp ?? 0,
     currentLevel: jepangku?.level ?? 1,
-    coreRoles: jepangku?.roles ?? [],
+    coreRoles: rolesFromClaims(coreClaims),
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
     lastLoginAt: user.lastLoginAt?.toISOString() ?? null,

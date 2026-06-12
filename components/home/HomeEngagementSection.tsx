@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import AuthorLink from "@/components/AuthorLink";
 import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
+import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
@@ -257,7 +258,7 @@ export default function HomeEngagementSection({
               <p className="small-caps text-jepang-red mb-1">ランキング / PERINGKAT</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
                 <Trophy size={32} strokeWidth={1.5} className="text-jepang-red" />
-                Papan Peringkat Mingguan
+                Papan Peringkat {data.leaderboardPeriodLabel}
               </h2>
             </div>
             <Link
@@ -268,6 +269,9 @@ export default function HomeEngagementSection({
               SEMUA PERINGKAT <ArrowRight size={14} />
             </Link>
           </div>
+          <p className="text-xs text-jepang-muted mb-3 text-center md:text-left">
+            Format: poin minggu ini / total poin
+          </p>
           <div className="bg-white border border-jepang-border">
             {leaderboard.length > 0 ? (
               leaderboard.map((entry, idx) => (
@@ -301,14 +305,11 @@ export default function HomeEngagementSection({
                       </AuthorLink>
                     ) : null}
                   </div>
-                  <div className="text-right">
-                    <p className="font-mono font-black text-xl text-jepang-red">
-                      {entry.totalXp}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                      POIN
-                    </p>
-                  </div>
+                  <LeaderboardScore
+                    period={entry.period}
+                    periodPoints={entry.periodPoints}
+                    totalPoints={entry.totalPoints}
+                  />
                 </div>
               ))
             ) : (

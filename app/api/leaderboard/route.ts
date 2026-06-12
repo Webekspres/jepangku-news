@@ -2,26 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import { parseLeaderboardPeriod } from '@/lib/leaderboard/period';
 
-/** Back-compat: `/weekly` accepts `?period=monthly|all-time` or defaults to weekly. */
 export async function GET(request: NextRequest) {
   const period = parseLeaderboardPeriod(
-    request.nextUrl.searchParams.get('period') ?? 'weekly',
+    request.nextUrl.searchParams.get('period'),
   );
   const limitParam = request.nextUrl.searchParams.get('limit');
   const limit = Math.min(Math.max(Number(limitParam ?? 10) || 10, 1), 50);
 
   const data = await fetchLeaderboard(period, limit);
 
-  return NextResponse.json(
-    data.items.map((entry) => ({
-      ...entry,
-      totalXp: entry.totalPoints,
-      currentPoints: entry.totalPoints,
-    })),
-    {
-      headers: {
-        'Cache-Control': 's-maxage=60, stale-while-revalidate=120',
-      },
+  return NextResponse.json(data, {
+    headers: {
+      'Cache-Control': 's-maxage=60, stale-while-revalidate=120',
     },
-  );
+  });
 }

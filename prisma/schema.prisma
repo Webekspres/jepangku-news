@@ -102,8 +102,29 @@ model User {
   reactions          Reaction[]
   articleViews       ArticleView[]
   infoPagesUpdated   InfoPage[]      @relation("InfoPageEditor")
+  pointTransactions  PointTransaction[]
 
   @@map("users")
+}
+
+model PointTransaction {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  sourceApp    String   @default("news") @map("source_app")
+  activityType String   @map("activity_type")
+  sourceType   String   @map("source_type")
+  sourceId     String?  @map("source_id")
+  points       Int
+  description  String?
+  occurredAt   DateTime @default(now()) @map("occurred_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceApp, activityType, sourceType, sourceId], map: "point_transactions_user_activity_unique")
+  @@index([userId, occurredAt(sort: Desc)])
+  @@index([occurredAt])
+  @@map("point_transactions")
 }
 
 model UserProfile {

@@ -1,36 +1,95 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AuthorLink from "@/components/AuthorLink";
-import { Trophy, Award, Crown } from "lucide-react";
+import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
+import { Trophy, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import SectionHeader from "@/components/SectionHeader";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
+import {
+  LEADERBOARD_PERIOD_LABELS,
+  LEADERBOARD_PERIOD_SHORT,
+  type LeaderboardPeriod,
+} from "@/lib/leaderboard/period";
+import type { LeaderboardEntry } from "@/lib/leaderboard/types";
+
+const PERIOD_OPTIONS: LeaderboardPeriod[] = ["weekly", "monthly", "all-time"];
+
+const PERIOD_SUBTITLES: Record<LeaderboardPeriod, string> = {
+  weekly:
+    "Peringkat berdasarkan poin yang dikumpulkan minggu kalender ini (Sen–Min, WIB). Format: poin periode / total.",
+  monthly:
+    "Peringkat berdasarkan poin bulan kalender ini. Format: poin periode / total.",
+  "all-time": "Peringkat berdasarkan total poin portal sepanjang waktu.",
+};
 
 export default function LeaderboardPage() {
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [period, setPeriod] = useState<LeaderboardPeriod>("weekly");
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/leaderboard/weekly")
-      .then((r) => r.json())
-      .then((d) => {
-        setLeaderboard(Array.isArray(d) ? d : []);
-        setLoading(false);
-      });
+  const loadLeaderboard = useCallback(async (selected: LeaderboardPeriod) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/leaderboard?period=${selected}&limit=50`);
+      const data = await res.json();
+      setLeaderboard(Array.isArray(data?.items) ? data.items : []);
+    } catch {
+      setLeaderboard([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadLeaderboard(period);
+  }, [period, loadLeaderboard]);
 
   return (
     <div className="bg-white min-h-screen" data-testid="leaderboard-page">
       <SectionHeader
         label="ランキング / Peringkat"
-        title="Peringkat Mingguan"
-        subtitle="Performa terbaik minggu ini berdasarkan poin aktivitas."
+        title={`Peringkat ${LEADERBOARD_PERIOD_SHORT[period]}`}
+        subtitle={PERIOD_SUBTITLES[period]}
       />
 
-      <div className="px-4 mx-auto max-w-7xl py-12">
+      <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="max-w-3xl mx-auto mb-8">
+          <div
+            className="flex flex-wrap gap-2 border border-jepang-border p-1 bg-jepang-off-white"
+            role="tablist"
+            aria-label="Periode leaderboard"
+          >
+            {PERIOD_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                role="tab"
+                aria-selected={period === option}
+                onClick={() => setPeriod(option)}
+                className={`flex-1 min-w-[7rem] px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                  period === option
+                    ? "bg-jepang-red text-white"
+                    : "text-jepang-muted hover:text-foreground hover:bg-white"
+                }`}
+                data-testid={`leaderboard-period-${option}`}
+              >
+                {LEADERBOARD_PERIOD_SHORT[option]}
+              </button>
+            ))}
+          </div>
+          {period !== "all-time" ? (
+            <p className="mt-3 text-xs text-jepang-muted text-center">
+              Angka <span className="font-semibold text-jepang-red">kiri</span> ={" "}
+              {LEADERBOARD_PERIOD_LABELS[period].toLowerCase()} · angka{" "}
+              <span className="font-semibold">kanan</span> = total poin
+            </p>
+          ) : null}
+        </div>
+
         <div className="max-w-3xl mx-auto">
           {loading ? (
             <div className="max-w-5xl mx-auto space-y-8">
@@ -44,7 +103,7 @@ export default function LeaderboardPage() {
                     key={idx}
                     className="flex flex-col items-center justify-end h-full animate-pulse"
                   >
-                    <div className="mb-2 h-8 w-8  bg-jepang-red/10" />
+                    <div className="mb-2 h-8 w-8 bg-jepang-red/10" />
                     <div className="w-16 h-16 bg-jepang-red/10 mb-2" />
                     <div className="h-3 w-20 bg-jepang-red/10 mb-1" />
                     <div className="h-2 w-16 bg-jepang-red/10 mb-3" />
@@ -70,7 +129,7 @@ export default function LeaderboardPage() {
               {leaderboard.length >= 3 && (
                 <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8 items-end">
                   {[leaderboard[1], leaderboard[0], leaderboard[2]].map(
-                    (entry: any, idx: number) => {
+                    (entry, idx) => {
                       const positions = [2, 1, 3];
                       const heights = ["h-32", "h-44", "h-28"];
                       const colors = [
@@ -118,14 +177,18 @@ export default function LeaderboardPage() {
                             @{entry.username}
                           </AuthorLink>
                           <div
-                            className={`${heights[idx]} ${colors[idx]} ${textColors[idx]} w-full flex flex-col items-center justify-end pb-3 mt-3 rounded-t-lg border border-jepang-border`}
+                            className={`${heights[idx]} ${colors[idx]} ${textColors[idx]} w-full flex flex-col items-center justify-end pb-3 pt-2 mt-3 rounded-t-lg border border-jepang-border gap-1`}
                           >
                             <p className="font-mono font-black text-3xl">
                               #{realIdx}
                             </p>
-                            <p className="text-xs font-mono">
-                              {entry.totalXp} XP
-                            </p>
+                            <LeaderboardScore
+                              period={period}
+                              periodPoints={entry.periodPoints}
+                              totalPoints={entry.totalPoints}
+                              variant="podium"
+                              inverted={idx === 1}
+                            />
                           </div>
                         </div>
                       );
@@ -137,11 +200,11 @@ export default function LeaderboardPage() {
               <Card className="border border-foreground">
                 <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                    SEMUA PERINGKAT
+                    SEMUA PERINGKAT — {LEADERBOARD_PERIOD_LABELS[period]}
                   </p>
                 </CardHeader>
                 <CardContent className="p-0">
-                  {leaderboard.map((entry: any) => (
+                  {leaderboard.map((entry) => (
                     <div
                       key={entry.userId}
                       className={`flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0 ${entry.rank <= 3 ? "bg-jepang-off-white" : ""}`}
@@ -170,15 +233,11 @@ export default function LeaderboardPage() {
                           @{entry.username}
                         </AuthorLink>
                       </div>
-                      <div className="text-right">
-                        <p className="font-mono font-black text-xl text-jepang-red flex items-center gap-1">
-                          <Award size={14} strokeWidth={1.5} />{" "}
-                          {entry.totalXp}
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                          POIN
-                        </p>
-                      </div>
+                      <LeaderboardScore
+                        period={period}
+                        periodPoints={entry.periodPoints}
+                        totalPoints={entry.totalPoints}
+                      />
                     </div>
                   ))}
                 </CardContent>
@@ -195,7 +254,7 @@ export default function LeaderboardPage() {
                 Belum ada peringkat
               </p>
               <p className="text-jepang-muted">
-                Jadilah yang pertama mengumpulkan poin!
+                Jadilah yang pertama mengumpulkan poin di periode ini!
               </p>
             </div>
           )}
