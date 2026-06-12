@@ -4,22 +4,21 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import TrendingArticleSkeleton from "@/components/skeletons/TrendingArticleSkeleton";
 import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
-import CategoryCardSkeleton from "@/components/skeletons/CategoryCardSkeleton";
-import SectionHeader from "@/components/SectionHeader";
 import AuthorLink from "@/components/AuthorLink";
 import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
+import HomeHero from "@/components/home/HomeHero";
+import HomePlaceholderSection from "@/components/home/HomePlaceholderSection";
+import LazySectionShell from "@/components/home/LazySectionShell";
 import {
   ArrowRight,
   Trophy,
   Zap,
   MessageSquare,
   TrendingUp,
-  Search,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -74,48 +73,29 @@ interface LeaderboardEntry {
   avatarUrl?: string | null;
   totalXp: number;
   currentPoints?: number;
-  period?: 'all-time';
-}
-
-interface CategoryArticle {
-  id: string;
-  title: string;
-  slug: string;
-}
-
-interface CategoryWithArticles extends Category {
-  articles: CategoryArticle[];
+  period?: "all-time";
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [trending, setTrending] = useState<TrendingArticle[]>([]);
   const [polls, setPolls] = useState<Poll[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [categories, setCategories] = useState<CategoryWithArticles[]>([]);
   const [loading, setLoading] = useState(true);
-  const [heroSearch, setHeroSearch] = useState("");
   const [featuredIndex, setFeaturedIndex] = useState(0);
 
   const goPrevFeatured = () => {
     setFeaturedIndex((prev) =>
-      prev === 0 ? featuredArticles.length - 1 : prev - 1
+      prev === 0 ? featuredArticles.length - 1 : prev - 1,
     );
   };
 
   const goNextFeatured = () => {
     setFeaturedIndex((prev) =>
-      prev === featuredArticles.length - 1 ? 0 : prev + 1
+      prev === featuredArticles.length - 1 ? 0 : prev + 1,
     );
-  };
-
-  const handleHeroSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!heroSearch.trim()) return;
-    router.push(`/search?q=${encodeURIComponent(heroSearch.trim())}`);
   };
 
   useEffect(() => {
@@ -127,7 +107,7 @@ export default function HomePage() {
 
     const interval = setInterval(() => {
       setFeaturedIndex((prev) =>
-        prev === featuredArticles.length - 1 ? 0 : prev + 1
+        prev === featuredArticles.length - 1 ? 0 : prev + 1,
       );
     }, 4000);
 
@@ -145,7 +125,6 @@ export default function HomePage() {
       setPolls(Array.isArray(data.polls) ? data.polls : []);
       setQuizzes(Array.isArray(data.quizzes) ? data.quizzes : []);
       setLeaderboard(Array.isArray(data.leaderboard) ? data.leaderboard : []);
-      setCategories(Array.isArray(data.categories) ? data.categories : []);
     } catch (error) {
       console.error("Error loading homepage:", error);
     } finally {
@@ -153,75 +132,188 @@ export default function HomePage() {
     }
   };
 
-  const latestArticles = articles.slice(0, 6);
+  const todayArticles = articles.slice(0, 6);
 
-  if (loading) {
-    return (
-      <div className="bg-white" data-testid="homepage-loading">
-        {/* Featured + Trending Skeleton */}
-        <section className="py-12">
+  return (
+    <div className="bg-white" data-testid="homepage">
+      {/* §1 Featured + Trending — Wave 1 */}
+      <LazySectionShell sectionId="feed">
+        <section className="py-12" aria-labelledby="home-feed-heading">
           <div className="px-4 mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ArticleCardSkeleton variant="featured" />
-              </div>
-              <div className="bg-white border border-jepang-border p-5">
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
-                  <TrendingUp
-                    size={18}
-                    strokeWidth={1.5}
-                    className="text-jepang-red"
-                  />
-                  <h3 className="small-caps">Sedang Tren Sekarang</h3>
+            {loading ? (
+              <div data-testid="homepage-loading">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <ArticleCardSkeleton variant="featured" />
+                  </div>
+                  <div className="bg-white border border-jepang-border p-5">
+                    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-jepang-border">
+                      <TrendingUp
+                        size={18}
+                        strokeWidth={1.5}
+                        className="text-jepang-red"
+                      />
+                      <h3 className="small-caps">Sedang Tren Sekarang</h3>
+                    </div>
+                    <div className="space-y-0">
+                      {[...Array(5)].map((_, idx) => (
+                        <TrendingArticleSkeleton key={idx} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-0">
-                  {[...Array(5)].map((_, idx) => (
-                    <TrendingArticleSkeleton key={idx} />
-                  ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  {featuredArticles.length > 0 ? (
+                    <div className="relative overflow-hidden">
+                      <div
+                        className="flex transition-transform duration-700 ease-in-out"
+                        style={{
+                          transform: `translateX(-${featuredIndex * 100}%)`,
+                        }}
+                      >
+                        {featuredArticles.map((article: Article, idx: number) => (
+                          <div key={article.id} className="w-full shrink-0">
+                            <ArticleCard
+                              article={article}
+                              variant="featured"
+                              priority={idx === 0}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {featuredArticles.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={goPrevFeatured}
+                            className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
+                            aria-label="Artikel sebelumnya"
+                          >
+                            <ChevronLeft size={20} strokeWidth={1.5} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={goNextFeatured}
+                            className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
+                            aria-label="Artikel berikutnya"
+                          >
+                            <ChevronRight size={20} strokeWidth={1.5} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : articles.length > 0 ? (
+                    <ArticleCard
+                      article={articles[0]}
+                      variant="featured"
+                      priority
+                    />
+                  ) : (
+                    <div className="border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
+                      Tidak ada artikel pilihan utama tersedia.
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white border border-jepang-border p-5">
+                  <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-jepang-border">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp
+                        size={18}
+                        strokeWidth={1.5}
+                        className="text-jepang-red"
+                      />
+                      <h3
+                        id="home-feed-heading"
+                        className="small-caps"
+                      >
+                        Sedang Tren Sekarang
+                      </h3>
+                    </div>
+                    <Link
+                      href="/trending"
+                      className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors"
+                      data-testid="view-all-trending"
+                    >
+                      Lihat Semua →
+                    </Link>
+                  </div>
+                  <div className="space-y-0">
+                    {trending.slice(0, 5).map((article: TrendingArticle, idx: number) => {
+                      const thumbnailUrl =
+                        article.coverImageUrl || article.cover_image_url;
+
+                      return (
+                        <div
+                          key={article.id}
+                          className="flex items-center gap-3 py-3 border-b border-jepang-border last:border-b-0"
+                        >
+                          <span className="font-mono font-black text-2xl text-jepang-red">
+                            0{idx + 1}
+                          </span>
+                          <Link
+                            href={`/articles/${article.slug}`}
+                            className="relative shrink-0 overflow-hidden rounded-sm bg-jepang-off-white w-20 h-16"
+                            data-testid={`trending-thumbnail-${article.slug}`}
+                          >
+                            {thumbnailUrl ? (
+                              <Image
+                                src={thumbnailUrl}
+                                alt={article.title}
+                                fill
+                                sizes="80px"
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-[10px] text-jepang-muted uppercase tracking-wider">
+                                Tidak ada gambar
+                              </div>
+                            )}
+                          </Link>
+                          <div className="flex-1 min-w-0">
+                            <Link
+                              href={`/articles/${article.slug}`}
+                              className="font-heading font-bold text-sm hover:text-jepang-red transition-colors line-clamp-2"
+                              data-testid={`trending-${article.slug}`}
+                            >
+                              {article.title}
+                            </Link>
+                            <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
+                              {article.weeklyViewCount || 0} dilihat minggu ini
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {trending.length === 0 && (
+                      <p className="text-sm text-jepang-muted text-center py-8">
+                        Belum ada artikel tren
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
+      </LazySectionShell>
 
-        {/* Hero Banner - Static Content */}
-        <SectionHeader
-          label="日本のポータル / PORTAL JEPANG"
-          title={
-            <>
-              Berita, Budaya &{" "}
-              <span className="text-jepang-red">Hiburan Jepang</span>
-            </>
-          }
-          subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
-          dark
-          className="relative border-b border-jepang-border bg-jepang-navy overflow-hidden"
-        >
-          <div className="absolute inset-0">
-            <div className="asanoha-bg" />
-          </div>
-          <div className="mt-6 hidden md:flex justify-end">
-            <Link
-              href="/sign-up"
-              className="jepang-btn-primary"
-              data-testid="hero-register-btn cursor-pointer"
-            >
-              Gabung Sekarang
-              <ArrowRight className="inline ml-2" size={16} />
-            </Link>
-          </div>
-        </SectionHeader>
+      {/* §2 Hero Ekosistem — static, no API */}
+      <HomeHero />
 
-        {/* Latest Articles Skeleton */}
+      {/* §3 Artikel Hari Ini — Wave 1 */}
+      <LazySectionShell sectionId="today">
         <section className="py-12 bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl">
             <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
               <div>
-                <p className="small-caps text-jepang-red mb-1">
-                  最新 / TERBARU
-                </p>
+                <p className="small-caps text-jepang-red mb-1">今日 / HARI INI</p>
                 <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
-                  Artikel Terbaru
+                  Artikel Hari Ini
                 </h2>
               </div>
               <Link
@@ -232,512 +324,260 @@ export default function HomePage() {
                 Lihat Semua <ArrowRight size={14} />
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(3)].map((_, idx) => (
-                <ArticleCardSkeleton key={idx} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Leaderboard Skeleton */}
-        <section className="py-12 bg-jepang-off-white">
-          <div className="px-4 mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
-              <div>
-                <p className="small-caps text-jepang-red mb-1">
-                  ランキング / PERINGKAT
-                </p>
-                <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
-                  <Trophy
-                    size={32}
-                    strokeWidth={1.5}
-                    className="text-jepang-red"
-                  />{" "}
-                  Papan Peringkat Mingguan
-                </h2>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, idx) => (
+                  <ArticleCardSkeleton key={idx} />
+                ))}
               </div>
-              <Link
-                href="/leaderboard"
-                className="hidden md:inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red transition-colors"
-                data-testid="view-full-leaderboard"
-              >
-                SEMUA PERINGKAT <ArrowRight size={14} />
-              </Link>
-            </div>
-            <div className="bg-white border border-jepang-border">
-              {[...Array(5)].map((_, idx) => (
-                <LeaderboardRowSkeleton key={idx} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Categories Skeleton */}
-        <section className="py-12">
-          <div className="px-4 mx-auto max-w-7xl">
-            <div className="mb-8">
-              <div className="h-8 bg-jepang-red/10 animate-pulse w-1/4 mb-2" />
-              <div className="h-10 bg-jepang-red/10 animate-pulse w-1/3" />
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {[...Array(5)].map((_, idx) => (
-                <CategoryCardSkeleton key={idx} />
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white" data-testid="homepage">
-      {/* Featured Slider + Trending */}
-      <section className="py-12">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              {featuredArticles.length > 0 ? (
-                <div className="relative overflow-hidden">
-                  <div
-                    className="flex transition-transform duration-700 ease-in-out"
-                    style={{
-                      transform: `translateX(-${featuredIndex * 100}%)`,
-                    }}
-                  >
-                    {featuredArticles.map((article: Article, idx: number) => (
-                      <div key={article.id} className="w-full shrink-0">
-                        <ArticleCard article={article} variant="featured" priority={idx === 0} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {featuredArticles.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={goPrevFeatured}
-                        className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
-                        aria-label="Artikel sebelumnya"
-                      >
-                        <ChevronLeft size={20} strokeWidth={1.5} />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={goNextFeatured}
-                        className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
-                        aria-label="Artikel berikutnya"
-                      >
-                        <ChevronRight size={20} strokeWidth={1.5} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : articles.length > 0 ? (
-                <ArticleCard article={articles[0]} variant="featured" priority={true} />
-              ) : (
-                <div className="border border-jepang-border bg-jepang-off-white p-10 text-center text-sm text-jepang-muted">
-                  Tidak ada artikel pilihan utama tersedia.
-                </div>
-              )}
-            </div>
-            <div className="bg-white border border-jepang-border p-5">
-              <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-jepang-border">
-                <div className="flex items-center gap-2">
-                  <TrendingUp
-                    size={18}
-                    strokeWidth={1.5}
-                    className="text-jepang-red"
-                  />
-                  <h3 className="small-caps">Sedang Tren Sekarang</h3>
-                </div>
-                <Link
-                  href="/trending"
-                  className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors"
-                  data-testid="view-all-trending"
-                >
-                  Lihat Semua →
-                </Link>
+            ) : todayArticles.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {todayArticles.map((article: Article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
               </div>
-                <div className="space-y-0">
-                  {trending.slice(0, 5).map((article: TrendingArticle, idx: number) => {
-                    const thumbnailUrl = article.coverImageUrl || article.cover_image_url;
-
-                    return (
-                      <div
-                        key={article.id}
-                        className="flex items-center gap-3 py-3 border-b border-jepang-border last:border-b-0"
-                      >
-                        <span className="font-mono font-black text-2xl text-jepang-red">
-                          0{idx + 1}
-                        </span>
-                        <Link
-                          href={`/articles/${article.slug}`}
-                          className="relative shrink-0 overflow-hidden rounded-sm bg-jepang-off-white w-20 h-16"
-                          data-testid={`trending-thumbnail-${article.slug}`}
-                        >
-                          {thumbnailUrl ? (
-                            <Image
-                              src={thumbnailUrl}
-                              alt={article.title}
-                              fill
-                              sizes="80px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-[10px] text-jepang-muted uppercase tracking-wider">
-                              Tidak ada gambar
-                            </div>
-                          )}
-                        </Link>
-                        <div className="flex-1 min-w-0">
-                          <Link
-                            href={`/articles/${article.slug}`}
-                            className="font-heading font-bold text-sm hover:text-jepang-red transition-colors line-clamp-2"
-                            data-testid={`trending-${article.slug}`}
-                          >
-                            {article.title}
-                          </Link>
-                          <p className="text-[10px] text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                            {article.weeklyViewCount || 0} dilihat minggu ini
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {trending.length === 0 && (
-                    <p className="text-sm text-jepang-muted text-center py-8">
-                      Belum ada artikel tren
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      {/* Hero Banner */}
-      <SectionHeader
-        label="日本のポータル / PORTAL JEPANG"
-        title={
-          <>
-            Berita, Budaya &{" "}
-            <span className="text-jepang-red">Hiburan Jepang</span>
-          </>
-        }
-        subtitle="Portal interaktif untuk pembaca Indonesia. Baca, ikuti kuis, voting, dan raih poin!"
-        dark
-        className="relative border-b border-jepang-border bg-jepang-navy overflow-hidden"
-      >
-        <div className="absolute inset-0">
-          <div className="asanoha-bg" />
-        </div>
-        <form
-          onSubmit={handleHeroSearch}
-          className="relative mt-6 flex gap-0 max-w-xl"
-          data-testid="hero-search-form"
-        >
-          <input
-            type="text"
-            placeholder="Cari artikel, topik, atau budaya Jepang..."
-            value={heroSearch}
-            onChange={(e) => setHeroSearch(e.target.value)}
-            className="flex-1 bg-white text-foreground px-4 py-3 text-sm border-0 focus:outline-none focus:ring-2 focus:ring-jepang-red"
-            data-testid="hero-search-input"
-          />
-          <button
-            type="submit"
-            className="bg-jepang-red text-white px-5 py-3 hover:bg-jepang-red-hover transition-colors shrink-0"
-            aria-label="Cari"
-            data-testid="hero-search-submit"
-          >
-            <Search size={18} strokeWidth={1.5} />
-          </button>
-        </form>
-        <div className="mt-4 hidden md:flex justify-end">
-          <Link
-            href="/sign-up"
-            className="jepang-btn-primary"
-            data-testid="hero-register-btn"
-          >
-            Gabung Sekarang
-            <ArrowRight className="inline ml-2" size={16} />
-          </Link>
-        </div>
-      </SectionHeader>
-
-      {/* Latest Articles Grid */}
-      <section className="py-12 bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
-            <div>
-              <p className="small-caps text-jepang-red mb-1">最新 / TERBARU</p>
-              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
-                Artikel Terbaru
-              </h2>
-            </div>
-            <Link
-              href="/articles"
-              className="hidden md:inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red transition-colors"
-              data-testid="view-all-articles"
-            >
-              Lihat Semua <ArrowRight size={14} />
-            </Link>
-          </div>
-          {latestArticles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {latestArticles.map((article: Article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-jepang-muted py-12">
-              Belum ada artikel. Segera periksa kembali!
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* Interactive Section: Polls + Quiz */}
-      <section className="py-12">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
-            <div>
-              <p className="section-label mb-1">インタラクティブ / INTERAKTIF</p>
-              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
-                Polling & Kuis
-              </h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-lg border border-jepang-border bg-white p-6 shadow-jepang">
-              <div className="flex items-start gap-3 mb-4 pb-3 border-b border-jepang-border">
-                <MessageSquare
-                  size={18}
-                  strokeWidth={1.5}
-                  className="mt-0.5 shrink-0 text-jepang-red"
-                />
-                <div className="min-w-0">
-                  <p className="section-label mb-1">Polling</p>
-                  {polls.length > 0 ? (
-                    <h3 className="font-heading font-bold text-xl tracking-tight line-clamp-2">
-                      {polls[0].title}
-                    </h3>
-                  ) : (
-                    <h3 className="font-heading font-bold text-xl tracking-tight">
-                      Poll Aktif
-                    </h3>
-                  )}
-                </div>
-              </div>
-              {polls.length > 0 ? (
-                <div>
-                  <span className="jepang-badge mb-3">
-                    {polls[0].pollType?.replace(/_/g, " ")}
-                  </span>
-                  <p className="text-sm text-jepang-muted mb-4">
-                    {polls[0].questionCount || 0} pertanyaan ·{" "}
-                    {polls[0].totalVotes || 0} suara
-                  </p>
-                  <Link
-                    href={`/polls/${polls[0].slug}`}
-                    className="jepang-btn-primary inline-block"
-                    data-testid="homepage-poll-cta"
-                  >
-                    Pilih Sekarang
-                  </Link>
-                </div>
-              ) : (
-                <p className="text-sm text-jepang-muted py-8 text-center">
-                  Tidak ada jajak pendapat aktif. Segera periksa kembali!
-                </p>
-              )}
-            </div>
-
-            <div className="rounded-lg bg-jepang-navy p-6 text-white shadow-jepang">
-              <div className="flex items-start gap-3 mb-4 pb-3 border-b border-white/10">
-                <Zap
-                  size={18}
-                  strokeWidth={1.5}
-                  className="mt-0.5 shrink-0 text-jepang-red"
-                />
-                <div className="min-w-0">
-                  <p className="section-label mb-1">Kuis</p>
-                  {quizzes.length > 0 ? (
-                    <h3 className="font-heading font-bold text-xl tracking-tight line-clamp-2">
-                      {quizzes[0].title}
-                    </h3>
-                  ) : (
-                    <h3 className="font-heading font-bold text-xl tracking-tight">
-                      Uji Pengetahuanmu
-                    </h3>
-                  )}
-                </div>
-              </div>
-              {quizzes.length > 0 ? (
-                <div>
-                  <span className="jepang-badge-red mb-3">Kuis</span>
-                  <p className="text-sm text-zinc-400 mb-4">
-                    {quizzes[0].questionCount || 0} pertanyaan · +10 poin
-                  </p>
-                  <Link
-                    href={`/quizzes/${quizzes[0].slug}`}
-                    className="jepang-btn-primary inline-block"
-                    data-testid="homepage-quiz-cta"
-                  >
-                    Mulai Kuis
-                  </Link>
-                </div>
-              ) : (
-                <p className="text-sm text-zinc-400 py-8 text-center">
-                  Belum ada kuis yang tersedia.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Leaderboard Preview */}
-      <section className="py-12 bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
-            <div>
-              <p className="small-caps text-jepang-red mb-1">
-                ランキング / PERINGKAT
-              </p>
-              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
-                <Trophy
-                  size={32}
-                  strokeWidth={1.5}
-                  className="text-jepang-red"
-                />{" "}
-                Papan Peringkat Mingguan
-              </h2>
-            </div>
-            <Link
-              href="/leaderboard"
-              className="hidden md:inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red transition-colors"
-              data-testid="view-full-leaderboard"
-            >
-              SEMUA PERINGKAT <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="bg-white border border-jepang-border">
-            {leaderboard.length > 0 ? (
-              leaderboard.slice(0, 5).map((entry: LeaderboardEntry, idx: number) => (
-                <div
-                  key={entry.userId}
-                  className="flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0"
-                  data-testid={`leaderboard-row-${idx}`}
-                >
-                  <span
-                    className={`font-mono font-black text-2xl w-10 ${idx === 0 ? "text-jepang-red" : "text-jepang-black"}`}
-                  >
-                    #{entry.rank}
-                  </span>
-                  <LeaderboardAvatar
-                    avatarUrl={entry.avatarUrl}
-                    displayName={entry.displayName}
-                  />
-                  <div className="flex-1">
-                    <AuthorLink
-                      username={entry.profileLinked ? entry.username : null}
-                      className="font-semibold block"
-                    >
-                      {entry.displayName}
-                    </AuthorLink>
-                    <AuthorLink
-                      username={entry.profileLinked ? entry.username : null}
-                      className="text-xs text-jepang-muted font-mono block"
-                    >
-                      @{entry.username}
-                    </AuthorLink>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono font-black text-xl text-jepang-red">
-                      {entry.totalXp}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
-                      POIN
-                    </p>
-                  </div>
-                </div>
-              ))
             ) : (
               <p className="text-center text-jepang-muted py-12">
-                Belum ada data peringkat. Jadilah yang pertama!
+                Belum ada artikel. Segera periksa kembali!
               </p>
             )}
           </div>
-        </div>
-      </section>
-      {/* Categories Grid */}
-      <section className="py-12 bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
-            <div>
-              <p className="small-caps text-jepang-red mb-1">
-                カテゴリ / KATEGORI
-              </p>
-              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
-                Jelajahi Kategori
-              </h2>
-            </div>
-          </div>
+        </section>
+      </LazySectionShell>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {categories.map((cat: any) => (
-              <div
-                key={cat.id}
-                className="bg-white border border-jepang-border p-5"
-              >
-                <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-jepang-border">
-                  <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-jepang-red">
-                    {cat.name}
-                  </h3>
+      {/* §4 Kategori Editorial — Wave 2 (placeholder Fase 0) */}
+      <LazySectionShell sectionId="categories-editorial">
+        <HomePlaceholderSection sectionId="categories-editorial" />
+      </LazySectionShell>
 
-                  <Link
-                    href={`/articles?category=${cat.slug}`}
-                    className="shrink-0 font-mono text-[9px] uppercase tracking-[0.18em] text-jepang-muted hover:text-jepang-red transition-colors"
-                  >
-                    Lihat Semua →
-                  </Link>
+      {/* §5 Jepangku TV — Wave 3 (placeholder Fase 0) */}
+      <LazySectionShell sectionId="tv">
+        <HomePlaceholderSection sectionId="tv" />
+      </LazySectionShell>
+
+      {/* §6 Advertisement — Wave 3 (placeholder Fase 0) */}
+      <LazySectionShell sectionId="ads">
+        <HomePlaceholderSection sectionId="ads" />
+      </LazySectionShell>
+
+      {/* §7 Belajar Bahasa Jepang — Wave 3 (placeholder Fase 0) */}
+      <LazySectionShell sectionId="lms">
+        <HomePlaceholderSection sectionId="lms" />
+      </LazySectionShell>
+
+      {/* §8 Reaksi Komunitas — Wave 3 (placeholder Fase 0) */}
+      <LazySectionShell sectionId="reactions">
+        <HomePlaceholderSection sectionId="reactions" />
+      </LazySectionShell>
+
+      {/* §9–10 Polling, Kuis & Leaderboard — Wave 4 */}
+      <LazySectionShell sectionId="engagement">
+        {loading ? (
+          <>
+            <section className="py-12">
+              <div className="px-4 mx-auto max-w-7xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <ArticleCardSkeleton />
+                  <ArticleCardSkeleton />
+                </div>
+              </div>
+            </section>
+            <section className="py-12 bg-jepang-off-white">
+              <div className="px-4 mx-auto max-w-7xl">
+                <div className="bg-white border border-jepang-border">
+                  {[...Array(5)].map((_, idx) => (
+                    <LeaderboardRowSkeleton key={idx} />
+                  ))}
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            <section className="py-12">
+              <div className="px-4 mx-auto max-w-7xl">
+                <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+                  <div>
+                    <p className="section-label mb-1">
+                      インタラクティブ / INTERAKTIF
+                    </p>
+                    <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
+                      Polling & Kuis
+                    </h2>
+                  </div>
                 </div>
 
-                <ul>
-                  {cat.articles && cat.articles.length > 0 ? (
-                    cat.articles.slice(0, 5).map((article: any, idx: number) => (
-                      <li
-                        key={article.id}
-                        className="grid grid-cols-[28px_1fr] gap-3 py-2.5 border-b border-jepang-border last:border-b-0"
-                      >
-                        <span className="font-mono text-base font-black leading-5 text-jepang-red">
-                          {String(idx + 1).padStart(2, "0")}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="rounded-lg border border-jepang-border bg-white p-6 shadow-jepang">
+                    <div className="flex items-start gap-3 mb-4 pb-3 border-b border-jepang-border">
+                      <MessageSquare
+                        size={18}
+                        strokeWidth={1.5}
+                        className="mt-0.5 shrink-0 text-jepang-red"
+                      />
+                      <div className="min-w-0">
+                        <p className="section-label mb-1">Polling</p>
+                        {polls.length > 0 ? (
+                          <h3 className="font-heading font-bold text-xl tracking-tight line-clamp-2">
+                            {polls[0].title}
+                          </h3>
+                        ) : (
+                          <h3 className="font-heading font-bold text-xl tracking-tight">
+                            Poll Aktif
+                          </h3>
+                        )}
+                      </div>
+                    </div>
+                    {polls.length > 0 ? (
+                      <div>
+                        <span className="jepang-badge mb-3">
+                          {polls[0].pollType?.replace(/_/g, " ")}
                         </span>
-
+                        <p className="text-sm text-jepang-muted mb-4">
+                          {polls[0].questionCount || 0} pertanyaan ·{" "}
+                          {polls[0].totalVotes || 0} suara
+                        </p>
                         <Link
-                          href={`/articles/${article.slug}`}
-                          className="text-[13px] font-semibold leading-5 text-jepang-black hover:text-jepang-red transition-colors line-clamp-2"
+                          href={`/polls/${polls[0].slug}`}
+                          className="jepang-btn-primary inline-block"
+                          data-testid="homepage-poll-cta"
                         >
-                          {article.title}
+                          Pilih Sekarang
                         </Link>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="py-8 text-center text-sm text-jepang-muted">
-                      Belum ada artikel
-                    </li>
-                  )}
-                </ul>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-jepang-muted py-8 text-center">
+                        Tidak ada jajak pendapat aktif. Segera periksa kembali!
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="rounded-lg bg-jepang-navy p-6 text-white shadow-jepang">
+                    <div className="flex items-start gap-3 mb-4 pb-3 border-b border-white/10">
+                      <Zap
+                        size={18}
+                        strokeWidth={1.5}
+                        className="mt-0.5 shrink-0 text-jepang-red"
+                      />
+                      <div className="min-w-0">
+                        <p className="section-label mb-1">Kuis</p>
+                        {quizzes.length > 0 ? (
+                          <h3 className="font-heading font-bold text-xl tracking-tight line-clamp-2">
+                            {quizzes[0].title}
+                          </h3>
+                        ) : (
+                          <h3 className="font-heading font-bold text-xl tracking-tight">
+                            Uji Pengetahuanmu
+                          </h3>
+                        )}
+                      </div>
+                    </div>
+                    {quizzes.length > 0 ? (
+                      <div>
+                        <span className="jepang-badge-red mb-3">Kuis</span>
+                        <p className="text-sm text-zinc-400 mb-4">
+                          {quizzes[0].questionCount || 0} pertanyaan · +10 poin
+                        </p>
+                        <Link
+                          href={`/quizzes/${quizzes[0].slug}`}
+                          className="jepang-btn-primary inline-block"
+                          data-testid="homepage-quiz-cta"
+                        >
+                          Mulai Kuis
+                        </Link>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-zinc-400 py-8 text-center">
+                        Belum ada kuis yang tersedia.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </section>
+
+            <section className="py-12 bg-jepang-off-white">
+              <div className="px-4 mx-auto max-w-7xl">
+                <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+                  <div>
+                    <p className="small-caps text-jepang-red mb-1">
+                      ランキング / PERINGKAT
+                    </p>
+                    <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
+                      <Trophy
+                        size={32}
+                        strokeWidth={1.5}
+                        className="text-jepang-red"
+                      />
+                      Papan Peringkat Mingguan
+                    </h2>
+                  </div>
+                  <Link
+                    href="/leaderboard"
+                    className="hidden md:inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red transition-colors"
+                    data-testid="view-full-leaderboard"
+                  >
+                    SEMUA PERINGKAT <ArrowRight size={14} />
+                  </Link>
+                </div>
+                <div className="bg-white border border-jepang-border">
+                  {leaderboard.length > 0 ? (
+                    leaderboard
+                      .slice(0, 5)
+                      .map((entry: LeaderboardEntry, idx: number) => (
+                        <div
+                          key={entry.userId}
+                          className="flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0"
+                          data-testid={`leaderboard-row-${idx}`}
+                        >
+                          <span
+                            className={`font-mono font-black text-2xl w-10 ${idx === 0 ? "text-jepang-red" : "text-jepang-black"}`}
+                          >
+                            #{entry.rank}
+                          </span>
+                          <LeaderboardAvatar
+                            avatarUrl={entry.avatarUrl}
+                            displayName={entry.displayName}
+                          />
+                          <div className="flex-1">
+                            <AuthorLink
+                              username={
+                                entry.profileLinked ? entry.username : null
+                              }
+                              className="font-semibold block"
+                            >
+                              {entry.displayName}
+                            </AuthorLink>
+                            <AuthorLink
+                              username={
+                                entry.profileLinked ? entry.username : null
+                              }
+                              className="text-xs text-jepang-muted font-mono block"
+                            >
+                              @{entry.username}
+                            </AuthorLink>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-mono font-black text-xl text-jepang-red">
+                              {entry.totalXp}
+                            </p>
+                            <p className="text-[10px] uppercase tracking-wider text-jepang-muted">
+                              POIN
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-center text-jepang-muted py-12">
+                      Belum ada data peringkat. Jadilah yang pertama!
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+      </LazySectionShell>
     </div>
   );
 }

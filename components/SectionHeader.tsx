@@ -66,7 +66,7 @@ export default function SectionHeader({
             </p>
           ) : null}
 
-          {children ? <div className="mt-4">{children}</div> : null}
+          {children ? <div className="mt-4 w-full">{children}</div> : null}
         </div>
       </div>
     </section>

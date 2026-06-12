@@ -384,7 +384,6 @@ export default function Navbar() {
                   </>
                 ) : showGuest ? (
                   <>
-                    <NavbarNotifications />
                     <div className="hidden items-center gap-2 sm:flex">
                       <Button variant="ghost" size="sm" asChild data-testid="navbar-login-btn">
                         <Link href={getAuthLoginPath()}>Masuk</Link>

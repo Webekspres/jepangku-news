@@ -10,6 +10,598 @@ signifikan pada fitur.
 
 ---
 
+## ✅ Daftar Pekerjaan — Prioritas Teratas
+
+> **Diperbarui:** Juni 2026 — hasil briefing landing page ekosistem jepangku.com  
+> Detail rencana teknis: [§ Rencana Landing Page](#-rencana-landing-page-ekosistem--jepangkucom) di bawah.
+
+### 🏠 Homepage jepangku.com *(Landing Page Ekosistem)* — **FASE AKTIF**
+
+Transformasi `app/(public)/page.tsx` menjadi hub ekosistem (Berita · TV · LMS · Interaktif).  
+**Arsitektur data:** API terpisah per wave + lazy load saat section mendekati viewport — **bukan** monolit `/api/homepage`.
+
+#### Quick win *(bisa dikerjakan terpisah)*
+
+[x] **Navbar** — sembunyikan bell notifikasi saat guest (`components/Navbar.tsx`, render `NavbarNotifications` hanya jika auth)
+
+#### Fase 0 — Perencanaan
+
+[x] Briefing & dokumen rencana landing page ekosistem  
+[x] Keputusan arsitektur: API terpisah + lazy load per section (§3.1)  
+[x] Review desain / sign-off urutan section — `lib/home/sections.ts` + `page.tsx` struktur §1–§10 + placeholder §4–§8  
+[x] `hooks/useLazySection.ts` + `LazySectionShell` + `HomeHero` + `HomePlaceholderSection`  
+[x] Hero ekosistem: headline, quick links, search, `asanoha-bg`  
+[x] Label §3: `今日 / HARI INI` (ganti “Artikel Terbaru”)  
+[x] Hapus grid kategori lama (§11) — digantikan placeholder §4 editorial
+
+#### Fase 1 — Fondasi data + above-the-fold *(1–2 hari)*
+
+**Backend & infra**
+
+[ ] Ekstrak query dari `app/api/homepage/route.ts` → `lib/home/queries/feed.ts`  
+[ ] `GET /api/home/feed` — Wave 1: `featuredArticles`, `trending`, `todayArticles` (timezone Asia/Jakarta)  
+[ ] Hook `hooks/useLazySection.ts` (Intersection Observer + fetch/SWR) *(hook ✅ Fase 0; wiring API Fase 1)*  
+[ ] Komponen `LazySectionSkeleton.tsx` (tinggi fixed, anti-CLS)  
+[ ] Refactor `page.tsx`: hapus satu `loadData()` global; Wave 1 fetch on mount *(struktur section ✅ Fase 0)*
+
+**Section UI**
+
+[ ] §1 Featured + Trending — polish spacing, pakai data Wave 1 *(struktur ✅ Fase 0)*  
+[ ] §2 Hero ekosistem — headline ekosistem, search horizontal, quick links (Berita · TV · Kursus · Kuis · Poll), CTA auth/guest, `asanoha-bg` *(✅ Fase 0)*  
+[ ] §3 Hari Ini — ganti label “Artikel Terbaru” → `今日 / HARI INI`; fallback jika `< 3` artikel hari ini *(label ✅ Fase 0; query timezone Fase 1)*
+
+#### Fase 2 — Kategori editorial *(2–3 hari)*
+
+[ ] Seed kategori: `halal-in-japan`, `entertainment` (`prisma/seeder/data/categories.js`)  
+[ ] Mapping editorial group → slug (Anime Manga, Entertainment, Lifestyle, Culture, Halal) di `lib/home/queries/categories-editorial.ts`  
+[ ] `GET /api/home/categories-editorial` — Wave 2 lazy (sentinel §4)  
+[ ] Komponen `CategoryEditorialSection.tsx` — layout 2 kolom featured + 3 kolom list (referensi Japanese Station)  
+[ ] Keputusan §11 “Jelajahi Kategori” grid — gabung ke §4 atau pindah ke footer explore
+
+#### Fase 3 — Jepangku TV *(3–5 hari)*
+
+[ ] Model Prisma `Video` + migrasi  
+[ ] Admin CRUD `/admin/videos`  
+[ ] `GET /api/videos`, `GET /api/videos/[slug]`  
+[ ] `GET /api/home/tv` — Wave 3 lazy: featured + sidebar 3–4 video  
+[ ] Komponen `JepangkuTvSection.tsx` — embed YouTube lazy-load  
+[ ] Halaman dedicated `/tv` atau `/jepangku-tv` (archive + pagination)
+
+#### Fase 4 — Advertisement *(1–2 hari)*
+
+[ ] Model Prisma `AdSlot` / `HomepageBanner` + migrasi  
+[ ] Admin banner/ads (`/admin/ads` atau extend `/admin/homepage`)  
+[ ] `GET /api/home/ads?slot=homepage-mid` — Wave 3 lazy  
+[ ] Komponen `AdBannerSlot.tsx` — empty state rapi (sembunyikan jika slot kosong)
+
+#### Fase 5 — Belajar Bahasa Jepang / LMS teaser *(1 hari)*
+
+[ ] Komponen `HomeLmsTeaser.tsx` — keunggulan JLPT, 2–3 course card statis  
+[ ] Link ke `https://dev.kursus.jepangku.com/kursus` + UTM `?utm_source=jepangku.com&utm_medium=homepage`  
+[ ] `GET /api/home/lms-teaser` — Wave 3 lazy (Fase 1: JSON statis; sinkron manual dengan `jepangkuLMS/.../courses-data.ts`)
+
+#### Fase 6 — Reaksi komunitas emoji *(2 hari)*
+
+[ ] Query agregat top reacted articles minggu ini → `lib/home/queries/reactions.ts`  
+[ ] `GET /api/home/reactions` — Wave 3 lazy  
+[ ] Komponen `HomeReactionsSection.tsx` — showcase 9 emoji + 3–5 kartu “Paling Direaksi”
+
+#### Fase 7 — Engagement bawah fold + migrasi API *(1–2 hari)*
+
+[ ] Ekstrak poll/quiz/leaderboard → `lib/home/queries/engagement.ts`  
+[ ] `GET /api/home/engagement` — Wave 4 lazy (sentinel §9): polls (≤2), quizzes (≤2), leaderboard  
+[ ] Komponen `HomeEngagementSection.tsx` — poll/kuis tampil >1 item  
+[ ] Deprecate monolit `GET /api/homepage` — delegasi ke helpers; hapus setelah E2E migrasi  
+[ ] Update test E2E homepage ke endpoint wave baru
+
+#### QA sebelum launch jepangku.com
+
+[ ] Mobile: semua section scrollable, tidak overflow horizontal  
+[ ] Empty state tiap section (video / artikel hari ini / iklan / reaksi)  
+[ ] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll  
+[ ] Section error isolated — satu API gagal tidak kosongkan halaman  
+[ ] Lighthouse: lazy-load YouTube embed; skeleton height fixed  
+[ ] `data-testid` untuk section & wave baru (E2E)
+
+#### Integrasi LMS — lanjutan *(koordinasi jepangkuLMS)*
+
+[ ] Fase 2 LMS: `GET /api/public/courses` di jepangkuLMS  
+[ ] Fase 2 News: proxy `/api/home/lms-teaser` baca live dari LMS (ganti static cards)  
+[ ] Fase 3 LMS: katalog publik `/kursus` baca Prisma (single source of truth)
+
+**Urutan implementasi disarankan:** Quick win Navbar → Fase 1 → 2 → 5 → 6 → 7 (engagement migrate) → 3 → 4 → LMS Fase 2
+
+---
+
+### 📋 Portal & Ekosistem — Pekerjaan Lain *(paralel / setelah fondasi homepage)*
+
+#### Sekarang — Core, halaman, keamanan
+
+[ ] **Core deploy prod** + Clerk webhook → `POST /api/v1/auth/webhooks/clerk`  
+[ ] **Verifikasi Fase 4** — registrasi, poin, daily login, admin, leaderboard, staging E2E (`bun run verify:core`)  
+[ ] **Kebijakan akun legacy** — user tanpa Clerk ID: force re-login atau hapus  
+[ ] **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log  
+[ ] **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain  
+[ ] **Gap Core** — endpoint riwayat transaksi user (riwayat `/points` penuh)
+
+#### Berikutnya — Fase E *(Core Service)*
+
+[ ] In-app notifications (fungsional — setelah placeholder Navbar diganti)  
+[ ] Follow / subscribe kategori  
+[ ] Monthly & all-time leaderboard, filter by app, badge/level  
+[ ] Export riwayat poin CSV, riwayat aktivitas `/activity`  
+[ ] Admin activity audit log  
+
+#### Ditunda — soft launch konten
+
+[ ] Seed 30+ artikel untuk soft launch *(tidak diprioritaskan sementara)*
+
+> Checklist lengkap per area: [§ Belum Diimplementasi](#-belum-diimplementasi) · yang sudah selesai: [§ Sudah Diimplementasi](#-sudah-diimplementasi-verified)
+
+---
+
+## 🏠 Rencana Landing Page Ekosistem — jepangku.com
+
+> **Status:** 📋 Perencanaan — belum diimplementasi (Juni 2026)  
+> **Scope:** `app/(public)/page.tsx`, komponen homepage baru, **API terpisah per section + lazy load**, quick fix Navbar  
+> **Referensi UI:** [Japanese Station TV](https://japanesestation.com/japanese-station-tv), layout kategori portal berita JS
+
+### 1. Tujuan & Posisi Produk
+
+**jepangku.com** bukan lagi halaman “portal berita saja”, melainkan **pusat ekosistem Jepangku** — gerbang pertama pengunjung sebelum masuk ke produk anak:
+
+| Produk | Domain | Peran di landing |
+| :--- | :--- | :--- |
+| **Portal Berita** *(repo ini)* | `jepangku.com` | Berita, trending, kategori, interaktif (poll/kuis/reaction) |
+| **LMS Kursus Jepang** | `kursus.jepangku.com` / dev: `dev.kursus.jepangku.com` | Belajar bahasa Jepang, JLPT, sertifikat |
+| **Core Service** | `core.jepangku.com` | Identitas, poin, leaderboard — *tidak ditampilkan sebagai produk terpisah* |
+
+**Prinsip UX:**
+
+1. **5 detik pertama** — pengunjung paham: “Ini portal Jepang untuk orang Indonesia: baca, tonton, belajar, ikut kuis.”
+2. **Satu scroll = satu cerita** — dari headline → konten hari ini → kategori → video → belajar → interaktif → komunitas.
+3. **CTA jelas per produk** — setiap section punya satu aksi utama (baca / tonton / daftar kursus / ikut poll).
+4. **Tidak overload** — section baru ditambah bertahap; skeleton & empty state harus rapi sebelum konten penuh.
+
+### 2. Alur Pengunjung (User Journey)
+
+```mermaid
+flowchart TD
+  A[Landing jepangku.com] --> B{Sudah login?}
+  B -->|Tidak| C[Hero + search + CTA Gabung]
+  B -->|Ya| D[Hero + search + poin badge di Navbar]
+  C --> E[Konten Hari Ini]
+  D --> E
+  E --> F[Kategori editorial JS-style]
+  F --> G[Jepangku TV]
+  G --> H[Slot Iklan]
+  H --> I[Belajar Bahasa Jepang → LMS]
+  I --> J[Reaksi komunitas emoji]
+  J --> K[Poll & Kuis + Leaderboard]
+  K --> L{Minat mendalam?}
+  L -->|Berita| M[/articles, /trending]
+  L -->|Belajar| N[kursus.jepangku.com]
+  L -->|Video| O[/tv atau halaman TV]
+```
+
+**Persona utama:**
+
+- **Pembaca casual** — scroll headline & kategori, klik artikel trending.
+- **Fan Jepang** — tonton Jepangku TV, reaksi emoji, ikut poll/kuis.
+- **Pelajar bahasa** — section LMS → katalog kursus di subdomain kursus.
+- **Kontributor** — Navbar “Buat Artikel”, leaderboard, daftar akun.
+
+### 3. Urutan Section Baru (Target)
+
+Menggantikan urutan homepage saat ini (featured → hero → terbaru → poll → leaderboard → kategori grid):
+
+| # | Section | Status saat ini | Aksi rencana |
+| :-: | :--- | :---: | :--- |
+| 1 | **Featured + Trending** | ✅ Ada | Pertahankan; polish spacing dengan hero baru |
+| 2 | **Hero Ekosistem** | 🟡 Ada (basic) | Redesign: value prop ekosistem, search, quick links ke Berita / TV / Kursus |
+| 3 | **Hari Ini** *(ganti “Artikel Terbaru”)* | 🟡 Partial | Filter `publishedAt` hari ini (timezone Asia/Jakarta); fallback 6 artikel terbaru jika kosong |
+| 4 | **Kategori Editorial** *(layout foto referensi)* | 🔴 Belum | 2 kolom besar (Anime-Manga, Entertainment) + 3 kolom list (Lifestyle, Culture, Halal) |
+| 5 | **Jepangku TV** | 🔴 Belum | Featured video + sidebar daftar video; referensi JS TV |
+| 6 | **Advertisement** | 🔴 Belum | Slot iklan/banner admin-managed |
+| 7 | **Belajar Bahasa Jepang** | 🔴 Belum | Teaser LMS → `dev.kursus.jepangku.com` |
+| 8 | **Reaksi Komunitas** | 🔴 Belum | Showcase emoji + artikel/konten paling direaksi |
+| 9 | **Polling & Kuis** | ✅ Ada | Tampilkan hingga 2 poll + 2 quiz (API sudah return 4) |
+| 10 | **Leaderboard** | ✅ Ada | Pertahankan |
+| 11 | **Jelajahi Kategori** *(grid ringkas)* | ✅ Ada | Opsional: dipindah ke footer explore atau digabung dengan §4 |
+
+### 3.1 Arsitektur Data — API Terpisah + Lazy Load per Section
+
+> **Keputusan:** **Jangan** memuat semua payload homepage ke satu `GET /api/homepage` yang monolit.  
+> Gunakan **endpoint kecil per domain data** + **fetch saat section hampir masuk viewport** (Intersection Observer).
+
+**Alasan:**
+
+| Masalah monolit `/api/homepage` | Solusi terpisah + lazy |
+| :--- | :--- |
+| 10+ query Prisma + Core leaderboard sekaligus | Hanya query yang section-nya butuh |
+| Payload JSON besar (artikel + kategori blocks + video + reaksi) | Response kecil per wave; TTFB & parse lebih cepat |
+| User bounce sebelum scroll — query TV/LMS/reaksi sia-sia | Query berat ditunda sampai user scroll |
+| Satu endpoint error → seluruh halaman kosong | Section gagal load independen + retry per section |
+
+**Pola fetch (disarankan):**
+
+```mermaid
+sequenceDiagram
+  participant U as Pengunjung
+  participant P as page.tsx
+  participant S as Section + sentinel
+  participant API as API routes
+
+  U->>P: Buka jepangku.com
+  P->>API: Wave 1 — /api/home/feed (§1–3)
+  API-->>P: featured, trending, todayArticles
+  Note over P: Hero §2 = static, tanpa API
+
+  U->>P: Scroll — sentinel §4 masuk viewport
+  P->>API: Wave 2 — /api/home/categories-editorial
+  API-->>P: categoryBlocks
+
+  U->>P: Scroll — sentinel §5 masuk viewport
+  par Wave 3 paralel
+    P->>API: /api/home/tv
+    P->>API: /api/home/ads
+    P->>API: /api/home/lms-teaser
+    P->>API: /api/home/reactions
+  end
+
+  U->>P: Scroll — sentinel §9 masuk viewport
+  P->>API: Wave 4 — /api/home/engagement
+  API-->>P: polls, quizzes, leaderboard
+```
+
+**Pemetaan wave → section:**
+
+| Wave | Trigger | Endpoint | Section | Catatan |
+| :---: | :--- | :--- | :---: | :--- |
+| **1** | `mount` (langsung) | `GET /api/home/feed` | 1, 3 | Featured + trending + hari ini |
+| — | — | *(tanpa API)* | 2 | Hero static + search client-side |
+| **2** | sentinel §4 (`rootMargin: 400px`) | `GET /api/home/categories-editorial` | 4 | Query berat (5 group × artikel) |
+| **3** | sentinel §5 | `GET /api/home/tv` | 5 | |
+| | | `GET /api/home/ads?slot=homepage-mid` | 6 | Ringan |
+| | | `GET /api/home/lms-teaser` | 7 | Fase 1 bisa static JSON; Fase 2 proxy LMS |
+| | | `GET /api/home/reactions` | 8 | Agregat reaksi |
+| **4** | sentinel §9 | `GET /api/home/engagement` | 9, 10 | Poll + quiz + leaderboard Core |
+
+**Alternatif grouping** *(sesuai usulan scroll §2 → fetch §5–8):*
+
+- Wave 3 bisa di-trigger saat **§2 atau §4** pertama kali terlihat (lebih agresif preload), bukan menunggu §5.
+- Atur via `rootMargin` — mis. `'600px 0px'` = fetch ~1 layar sebelum section tampil.
+
+**Implementasi frontend:**
+
+```tsx
+// hooks/useLazySection.ts — pola per section
+function useLazySection<T>(endpoint: string, options?: { rootMargin?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [enabled, setEnabled] = useState(false);
+  const { data, isLoading, error } = useSWR(enabled ? endpoint : null, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
+  });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setEnabled(true); io.disconnect(); } },
+      { rootMargin: options?.rootMargin ?? '400px 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return { ref, data, isLoading, error };
+}
+```
+
+- Setiap section component punya **`<div ref={sentinel} />`** di atas section + **skeleton** sampai `data` ready.
+- Fetch **sekali per session** (`enabled` → disconnect observer); jangan re-fetch setiap scroll bolak-balik.
+- Wave 3: `Promise.all` di parent atau 4 hook paralel — browser multiplex HTTP/2.
+
+**Implementasi backend:**
+
+| Endpoint | Query utama | Cache `Cache-Control` |
+| :--- | :--- | :--- |
+| `/api/home/feed` | featured, trending, todayArticles | `s-maxage=60, stale-while-revalidate=120` |
+| `/api/home/categories-editorial` | 5 category blocks | `s-maxage=120, stale-while-revalidate=300` |
+| `/api/home/tv` | featuredVideo + latest 4 | `s-maxage=300` |
+| `/api/home/ads` | active slot by position | `s-maxage=60` |
+| `/api/home/lms-teaser` | static / proxy LMS | `s-maxage=600` |
+| `/api/home/reactions` | top reacted articles | `s-maxage=120` |
+| `/api/home/engagement` | polls, quizzes, Core leaderboard | `s-maxage=60` |
+
+**Migrasi dari `/api/homepage` saat ini:**
+
+1. Ekstrak logic di `app/api/homepage/route.ts` ke `lib/home/queries/*.ts` (shared query functions).
+2. Endpoint baru memanggil helper yang sama — **DRY**, bukan copy-paste query.
+3. Pertahankan `GET /api/homepage` sementara sebagai **aggregator tipis** (delegasi ke helpers) untuk backward compat / E2E lama; tandai deprecated.
+4. `page.tsx` ganti satu `loadData()` → per-section lazy hooks.
+
+**Trade-off & mitigasi:**
+
+| Trade-off | Mitigasi |
+| :--- | :--- |
+| Lebih banyak request HTTP | Wave kecil (4–7 request total); HTTP/2 paralel; cache CDN per endpoint |
+| Konten bawah fold tidak ada di HTML awal (client fetch) | Wave 1 cukup untuk SEO headline; optional **SSR/RSC Wave 1** nanti jika perlu |
+| Flash skeleton saat scroll cepat | `rootMargin` agresif + skeleton height fixed (CLS) |
+| Leaderboard Core lambat | Isolasi di Wave 4 — tidak blok above-the-fold |
+
+**Kesimpulan:** ✅ **Memungkinkan dan direkomendasikan.** Monolit `/api/homepage` hanya cocok untuk homepage kecil; dengan 10+ section, pola **API terpisah + lazy load per viewport** lebih scalable dan ramah performa.
+
+---
+
+### 4. Rincian Per Section
+
+#### 4.1 Hero Ekosistem (redesign)
+
+**Tujuan:** Komunikasikan identitas hub, bukan hanya tagline berita.
+
+**Konten:**
+
+- Label bilingual: `日本のポータル / PORTAL JEPANG`
+- Headline: *Berita, Budaya, Video & Belajar Bahasa Jepang*
+- Subtitle: satu kalimat tentang ekosistem (baca · tonton · belajar · dapat poin)
+- **Search bar** (horizontal: input + tombol) → `/search?q=`
+- **Quick links chips:** Berita · Jepangku TV · Kursus · Kuis · Poll
+- CTA: `Gabung Sekarang` (guest) / `Dashboard` (auth) — kanan pada desktop
+
+**Komponen:** perluas `SectionHeader` atau buat `HomeHero.tsx` dedicated.
+
+**Desain:** navy + `asanoha-bg`, kontras dengan section putih di bawahnya.
+
+---
+
+#### 4.2 Hari Ini *(ganti “Berita Terbaru”)*
+
+**Tujuan:** Signal freshness — “apa yang baru hari ini”, ala portal berita profesional.
+
+**Perubahan copy:**
+
+- Label: `今日 / HARI INI`
+- Judul: **Artikel Hari Ini**
+- Link: `Lihat Semua` → `/articles?sort=latest`
+
+**API:** `GET /api/home/feed` — field `todayArticles` (Wave 1, fetch on mount).
+
+- Filter: artikel `publishedAt` dalam window 00:00–23:59 **Asia/Jakarta**
+- Fallback: jika `< 3` artikel hari ini, isi dengan artikel terbaru + badge “Terbaru”
+
+**UI:** grid 3 kolom (sama seperti sekarang), optional timestamp relatif.
+
+---
+
+#### 4.3 Kategori Editorial *(referensi foto Japanese Station)*
+
+**Tujuan:** Kurasi editorial per vertical — bukan grid kategori generik.
+
+**Layout target:**
+
+```
+┌─────────────────────┬─────────────────────┐
+│  Anime Manga        │  Entertainment      │
+│  [featured besar]   │  [featured besar]   │
+│  + 3 list thumb     │  + 3 list thumb     │
+└─────────────────────┴─────────────────────┘
+┌──────────┬──────────┬──────────┐
+│ Lifestyle│ Culture  │ Halal JP │
+│ bullet   │ bullet   │ bullet   │
+│ headlines│ headlines│ headlines│
+└──────────┴──────────┴──────────┘
+```
+
+**Gap data kategori saat ini:**
+
+Seed DB (`prisma/seeder/data/categories.js`) punya: Anime, Manga, Culture, Travel, Food, Event, Technology, Lifestyle, Education, Fun — **belum ada** Entertainment, Halal In Japan, dan belum ada grouping “Anime Manga”.
+
+**Keputusan rencana:**
+
+1. **Fase A (tanpa migrasi berat):** mapping slug existing → group editorial di API:
+   - *Anime Manga* ← `anime`, `manga`, `fun`
+   - *Entertainment* ← `event`, `technology` (sementara)
+   - *Lifestyle* ← `lifestyle`, `food`, `travel`
+   - *Culture* ← `culture`, `education`
+   - *Halal In Japan* ← buat kategori baru `halal-in-japan` + seed
+2. **Fase B:** admin bisa set `categoryGroup` atau parent category di schema.
+
+**API:** `GET /api/home/categories-editorial` (Wave 2, lazy saat sentinel §4).
+
+```typescript
+{
+  slug: 'anime-manga',
+  title: 'Anime Manga',
+  featured: Article | null,
+  list: Article[] // 3 item dengan cover + meta
+}
+```
+
+**Komponen baru:** `CategoryEditorialBlock.tsx`, `CategoryListColumn.tsx`.
+
+---
+
+#### 4.4 Jepangku TV *(referensi Japanese Station TV)*
+
+**Nama produk:** **Jepangku TV** (alternatif: *Jepangku Channel* — final saat implementasi)
+
+**Layout target** (orange/navy brand, bukan copy warna JS):
+
+```
+┌──────────────────────────────────────────────────┐
+│  ▶ Jepangku TV                          [header] │
+├────────────────────────────┬─────────────────────┤
+│  Featured embed (YouTube)  │  Sidebar 3–4 video  │
+│  + judul + tanggal         │  thumb + date + title│
+├────────────────────────────┴─────────────────────┤
+│              [ Lihat Semua Video ]               │
+└──────────────────────────────────────────────────┘
+```
+
+**Backend baru (belum ada):**
+
+| Item | Detail |
+| :--- | :--- |
+| Model `Video` | `id`, `title`, `slug`, `youtubeId` / `embedUrl`, `thumbnailUrl`, `publishedAt`, `isFeatured`, `status`, `viewCount` |
+| API publik | `GET /api/videos`, `GET /api/videos/[slug]` |
+| Admin | CRUD di `/admin/videos` |
+| Homepage payload | `GET /api/home/tv` (Wave 3, lazy) |
+
+**Halaman dedicated:** `/tv` atau `/jepangku-tv` — daftar lengkap + pagination (mirroring JS TV archive).
+
+**Embed:** YouTube iframe lazy-load; thumbnail dari `img.youtube.com/vi/{id}/hqdefault.jpg`.
+
+---
+
+#### 4.5 Advertisement
+
+**Tujuan:** Slot monetisasi tanpa mengganggu UX — inspirasi billboard JS di homepage.
+
+**Opsi implementasi (urutan rekomendasi):**
+
+1. **Fase A — Admin banner statis:** model `AdSlot` / `HomepageBanner` dengan `position` (`homepage-mid`, `homepage-sidebar`), `imageUrl`, `linkUrl`, `alt`, `isActive`, `startAt`, `endAt`
+2. **Fase B — Rotasi & impression tracking** (opsional, post-launch)
+
+**UI:** full-width responsive banner antara TV dan LMS section; placeholder abu-abu dengan label “Partner” jika slot kosong (jangan tampilkan area kosong).
+
+**Admin:** extend `/admin/homepage` atau halaman `/admin/ads` baru.
+
+---
+
+#### 4.6 Belajar Bahasa Jepang *(integrasi jepangkuLMS)*
+
+**Audit LMS (Juni 2026):** **tidak ada API publik** untuk list kursus di `jepangkuLMS`. Katalog publik `/kursus` masih pakai data statis `CATALOG_COURSES`; Prisma-backed catalog hanya di dashboard auth.
+
+**Strategi landing (fase berurutan):**
+
+| Fase | Pendekatan | Data |
+| :---: | :--- | :--- |
+| **1** *(implementasi pertama)* | Section **keunggulan LMS** + CTA ke `https://dev.kursus.jepangku.com/kursus` | Hardcode 2–3 featured course card dari slug LMS (`jlpt-n5-kursus-lengkap`, dll.) — sinkron manual dengan `jepangkuLMS/features/learning/components/courses-data.ts` |
+| **2** | LMS tambah `GET /api/public/courses` + CORS | News proxy `GET /api/home/lms-teaser` (Wave 3, server-side) |
+| **3** | Katalog LMS baca Prisma di `/kursus` | Single source of truth |
+
+**Konten section Fase 1:**
+
+- Headline: `学ぶ / BELAJAR BAHASA JEPANG`
+- 3 bullet keunggulan: JLPT N5–N1, progress tracking, sertifikat
+- Grid 2–3 course card (thumb, level badge N5/N4, CTA “Lihat Kursus”)
+- Footer CTA: `Jelajahi Semua Kursus → dev.kursus.jepangku.com`
+
+**Komponen:** `HomeLmsTeaser.tsx` — link external, `target="_blank"` + `rel="noopener"`.
+
+---
+
+#### 4.7 Reaksi Komunitas (emoji)
+
+**Tujuan:** Social proof + highlight fitur unik Jepangku (9 emoji reaction sudah ada di detail artikel).
+
+**Yang sudah ada:** model `Reaction`, `ReactionBar.tsx`, `GET/POST /api/reactions`.
+
+**Yang perlu dibangun:**
+
+- Query agregat: artikel/konten dengan `reactionCount` tertinggi minggu ini
+- Homepage section: tampilkan bar emoji (`❤️ 😂 🥰 …`) + 3–5 kartu artikel “Paling Direaksi” dengan total reaksi & emoji dominan
+- Klik kartu → detail artikel; klik emoji (auth) → toggle reaction inline (reuse `ReactionBar` compact)
+
+**API:** `GET /api/home/reactions` (Wave 3, lazy).
+
+---
+
+#### 4.8 Quick fix Navbar — notifikasi guest
+
+**Masalah:** `NavbarNotifications` dirender untuk guest dan auth (`Navbar.tsx` ~L282 & ~L387); bell placeholder membingungkan pengunjung belum login.
+
+**Perbaikan (scope kecil, bisa dilakukan terpisah):**
+
+- Render `<NavbarNotifications />` **hanya** saat `showAuthenticated === true`
+- Guest: sembunyikan bell sepenuhnya (notifikasi = Fase E Core, belum fungsional)
+
+**File:** `components/Navbar.tsx` — conditional render; tidak perlu ubah `NavbarNotifications.tsx`.
+
+---
+
+### 5. Perubahan Backend & Data
+
+| Area | Perubahan | Prioritas |
+| :--- | :--- | :--- |
+| **`lib/home/queries/`** | Ekstrak query shared dari `/api/homepage` saat ini | Tinggi |
+| **`/api/home/*`** | 7 endpoint wave (feed, categories-editorial, tv, ads, lms-teaser, reactions, engagement) | Tinggi |
+| `/api/homepage` | Deprecated — delegasi ke helpers; hapus setelah migrasi | Rendah |
+| Prisma | Model `Video`, `AdSlot`; optional `CategoryGroup` | Tinggi |
+| Seed | Kategori `halal-in-japan`, `entertainment`; mapping editorial | Sedang |
+| Admin | Videos CRUD, banner/ads CRUD | Tinggi |
+| LMS | `GET /api/public/courses` *(koordinasi tim LMS)* | Fase 2 |
+| Navbar | Hide notifications for guest | Rendah (quick win) |
+| **Frontend** | `useLazySection` + SWR per section; sentinel + skeleton | Tinggi |
+
+---
+
+### 6. Komponen & File (Target Implementasi)
+
+```
+hooks/
+  useLazySection.ts              # Intersection Observer + SWR enabled gate
+
+lib/home/queries/
+  feed.ts                        # featured, trending, todayArticles
+  categories-editorial.ts
+  tv.ts
+  ads.ts
+  lms-teaser.ts
+  reactions.ts
+  engagement.ts                    # polls, quizzes, leaderboard
+
+app/api/home/
+  feed/route.ts
+  categories-editorial/route.ts
+  tv/route.ts
+  ads/route.ts
+  lms-teaser/route.ts
+  reactions/route.ts
+  engagement/route.ts
+
+components/home/
+  HomeHero.tsx                   # §2 — static, no fetch
+  HomeFeedSection.tsx            # §1+3 — Wave 1 on mount
+  HomeTodayArticles.tsx
+  CategoryEditorialSection.tsx   # §4 — Wave 2 lazy
+  JepangkuTvSection.tsx          # §5 — Wave 3 lazy
+  AdBannerSlot.tsx               # §6
+  HomeLmsTeaser.tsx              # §7
+  HomeReactionsSection.tsx       # §8
+  HomeEngagementSection.tsx      # §9+10 — Wave 4 lazy
+  LazySectionSkeleton.tsx        # shared placeholder
+
+app/(public)/tv/page.tsx
+app/api/videos/route.ts
+app/(admin)/admin/videos/...
+```
+
+Refactor `page.tsx`: **tidak ada** satu `fetch('/api/homepage')` global — setiap section (atau wave group) owns fetch via `useLazySection`. Hero §2 tanpa API.
+
+---
+
+### 7. Fase Implementasi
+
+| Fase | Deliverable | Estimasi relatif | Dependensi |
+| :---: | :--- | :---: | :--- |
+| **0** | Dokumen ini ✅ + arsitektur API lazy | — | — |
+| **1** | `lib/home/queries` + `/api/home/feed` + lazy hook; Hero, Hari Ini, hide notif guest | 1–2 hari | Hanya News |
+| **2** | Kategori editorial + seed/mapping kategori | 2–3 hari | Konten artikel per kategori |
+| **3** | Jepangku TV (model + admin + section + `/tv`) | 3–5 hari | Konten video YouTube |
+| **4** | Ad slot + admin banner | 1–2 hari | Asset iklan |
+| **5** | LMS teaser (keunggulan + link dev) | 1 hari | — |
+| **6** | Reaksi komunitas section | 2 hari | Data reaksi existing |
+| **7** | LMS public API + live course cards | 2–3 hari | Koordinasi jepangkuLMS |
+
+**Urutan disarankan:** 0 → 1 → 2 → 5 → 6 → 7 (engagement migrate) → 3 → 4 → LMS Fase 2
+
+> **Checklist implementasi:** lihat [Daftar Pekerjaan — Homepage](#-homepage-jepangkucom-landing-page-ekosistem--fase-aktif) di atas (sumber kebenaran untuk tracking task).
+
+---
+
 ## 🎯 Tujuan Utama
 
 - Stabilkan portal lebih dulu: selesaikan bug, fitur, dan integrasi Core — soft launch konten ditunda
@@ -23,16 +615,21 @@ signifikan pada fitur.
 
 ## ⏱️ Prioritas Pengerjaan Berikutnya
 
-Fokus saat ini: **bug, fitur, dan integrasi** — bukan konten soft launch. Detail checklist di [§ Belum Diimplementasi](#-belum-diimplementasi).
+Fokus paralel: **(A) homepage jepangku.com** + **(B) Core, keamanan, halaman sisa**.  
+Tracking task homepage: [Daftar Pekerjaan — Homepage](#-homepage-jepangkucom-landing-page-ekosistem--fase-aktif). Detail per area: [§ Belum Diimplementasi](#-belum-diimplementasi).
 
-### Sekarang — bug & fitur portal
+### A. Homepage jepangku.com *(landing page ekosistem)*
+
+Mulai dari **Quick win Navbar** → **Fase 1** (feed API + hero + hari ini) → **Fase 2** (kategori editorial) → **Fase 5–6** (LMS teaser + reaksi) → **Fase 7** (engagement migrate) → **Fase 3–4** (TV + ads, butuh konten operasional).
+
+### B. Sekarang — bug, fitur portal & Core
 
 1. **Core & cutover** — Fase 1 operasional (deploy, Clerk webhook) + Fase 4 verifikasi QA (`bun run verify:core`); lihat [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14)
 2. **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log; lihat [§ Halaman](#-halaman--belum-ada--belum-selesai)
 3. **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain; lihat [§ Keamanan](#️-keamanan--kualitas--pre-launch--production)
 4. **Gap Core** — endpoint riwayat transaksi user (memblok riwayat `/points` penuh); lihat [§ Gap Core](#gap-core--koordinasi-tidak-memblok-cutover-minimal)
 
-Portal user-facing utama (artikel, quiz, poll, komentar, search, analytics) sudah selesai di kode — sisa pekerjaan di atas.
+Portal user-facing utama (artikel, quiz, poll, komentar, search, analytics) sudah selesai di kode — sisa pekerjaan di atas + homepage ekosistem.
 
 ### Berikutnya — Fase E *(setelah Core API siap)*
 
