@@ -422,17 +422,6 @@ export default function Navbar() {
           data-testid="mobile-menu"
         >
           <div className="space-y-2 px-4 py-3">
-            <button
-              type="button"
-              onClick={openSearch}
-              className="flex w-full items-center gap-2 rounded-lg border border-jepang-border px-3 py-2.5 text-sm text-jepang-muted cursor-pointer"
-              data-testid="mobile-search-trigger"
-              aria-label="Cari artikel"
-            >
-              <Search size={16} strokeWidth={1.5} />
-              Cari artikel...
-            </button>
-
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.path}
