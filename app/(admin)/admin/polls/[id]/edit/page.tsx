@@ -277,7 +277,7 @@ export default function AdminEditPollPage() {
           </div>
         </section>
         <div className="w-full px-4 lg:px-6 py-8 space-y-4">
-          {[1, 2, 3].map((i) => <SkeletonBox key={i} height="3rem" width="100%" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => <SkeletonBox key={i} height="3rem" width="100%" />)}
         </div>
       </div>
     );

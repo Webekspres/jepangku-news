@@ -169,7 +169,7 @@ export default function MyArticlesPage() {
 
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
               <ArticleCardSkeleton key={i} variant="compact" />
             ))}
           </div>

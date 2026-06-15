@@ -184,7 +184,7 @@ export default function AdminUsersPage() {
 
             <TableBody>
               {loading && users.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     <TableCell>
                       <div className="flex items-center gap-3">

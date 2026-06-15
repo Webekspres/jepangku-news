@@ -112,7 +112,7 @@ export default function AdminReviewArticles() {
             </h3>
 
             {loading ? (
-              [1, 2, 3].map((i) => (
+              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                 <div key={i} className="w-full p-4 border">
                   <SkeletonBox height="1rem" width="80%" />
                   <div className="mt-2">

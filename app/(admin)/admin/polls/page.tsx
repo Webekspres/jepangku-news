@@ -220,7 +220,7 @@ export default function AdminPollsPage() {
 
             <TableBody>
               {loading && polls.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     {[...Array(9)].map((_, i) => (
                       <TableCell key={i}>

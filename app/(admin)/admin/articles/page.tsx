@@ -665,7 +665,7 @@ export default function AdminArticlesPage() {
 
             <TableBody>
               {loading && articles.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     <TableCell colSpan={7}>
                       <SkeletonBox height="1rem" width="100%" />
