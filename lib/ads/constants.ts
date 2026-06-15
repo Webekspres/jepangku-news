@@ -1,6 +1,7 @@
 export const AD_SLOT_POSITIONS = [
   { value: "homepage-mid", label: "Homepage — Tengah (antara TV & LMS)" },
-  { value: "homepage-sidebar", label: "Homepage — Sidebar" },
+  { value: "homepage-sidebar", label: "Homepage — Sidebar (engagement)" },
+  { value: "article-sidebar", label: "Artikel — Sidebar kanan" },
 ] as const;
 
 export type AdSlotPosition = (typeof AD_SLOT_POSITIONS)[number]["value"];

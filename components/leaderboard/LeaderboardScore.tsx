@@ -7,6 +7,8 @@ type LeaderboardScoreProps = {
   variant?: 'row' | 'podium';
   /** Light text on dark podium (e.g. #1 on red background) */
   inverted?: boolean;
+  /** Homepage sidebar: hanya angka poin periode, tanpa label total */
+  compact?: boolean;
 };
 
 export default function LeaderboardScore({
@@ -15,11 +17,23 @@ export default function LeaderboardScore({
   totalPoints,
   variant = 'row',
   inverted = false,
+  compact = false,
 }: LeaderboardScoreProps) {
   const isPodium = variant === 'podium';
   const accentClass = inverted ? 'text-white' : 'text-jepang-red';
   const mutedClass = inverted ? 'text-white/70' : 'text-jepang-muted';
   const totalClass = inverted ? 'text-white' : 'text-foreground';
+
+  if (compact) {
+    return (
+      <span
+        className={`font-mono font-black tabular-nums ${accentClass} text-lg`}
+        title={`${periodPoints} poin`}
+      >
+        {periodPoints}
+      </span>
+    );
+  }
 
   if (period === 'all-time') {
     return (

@@ -7,7 +7,8 @@ signifikan pada fitur.
 > **Dokumentasi integrasi Core:** mulai dari `[docs/README.md](./README.md)` →
 > `[ecosystem-integration.md](./ecosystem-integration.md)`. Kontrak API:
 > `jepangku-core/docs/API.md`. Roadmap: `[development-roadmap.md](./development-roadmap.md)`.  
-> **Urutan dokumen:** Tujuan → pekerjaan aktif → **revisi UI/UX (Juni 2026)** → belum selesai → sudah selesai → lampiran rencana teknis.
+> **Urutan dokumen:** Tujuan → **daftar prioritas** → pekerjaan aktif → belum selesai → sudah selesai → lampiran rencana teknis.  
+> **Rencana teknis detail:** [`backlog-plan.md`](./backlog-plan.md) · indeks: [`README.md`](./README.md)
 
 ---
 
@@ -22,151 +23,39 @@ signifikan pada fitur.
 
 ---
 
-## ✅ Daftar Pekerjaan — Prioritas Teratas
+## ✅ Daftar Prioritas — Urutan Pengerjaan *(Juni 2026)*
 
-> **Diperbarui:** Juni 2026
-> Rencana teknis homepage: [§ Rencana Landing Page](#-rencana-landing-page-ekosistem--jepangkucom) (lampiran di akhir dokumen).
-> **Backlog revisi produk:** [§ Revisi UI/UX — Backlog Terurut](#-revisi-uiux--backlog-terurut-juni-2026) 
+> **Diperbarui:** Juni 2026  
+> Urutan **paling dibutuhkan → paling kompleks**. Checklist `[ ]` / `[x]` di sini; rincian implementasi di [`backlog-plan.md`](./backlog-plan.md).  
+> Revisi UI Tier 1–4: ✅ selesai ([`backlog-plan.md` §1](./backlog-plan.md#1-revisi-uiux-juni-2026)).
 
----
+| Prio | Item | Fase | Status | Rencana |
+| :--: | :--- | :--: | :----: | :--- |
+| 1 | Homepage QA sebelum launch (mobile, empty state, wave, Lighthouse, E2E) | A | ⏳ | [§ QA Homepage](#qa-sebelum-launch-jepangkucom) |
+| 2 | Core deploy prod + Clerk webhook | B–C | ⏳ | [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14) |
+| 3 | Verifikasi Fase 4 (`bun run verify:core`) | C | ⏳ | [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14) |
+| 4 | Migrasi poin lokal + leaderboard News DB | C′ | ⏳ | [§ Migrasi poin](#-migrasi-poin-lokal--leaderboard-portal) |
+| 5 | Keamanan pre-production (Redis, moderasi AI, Sentry, backfill sanitasi) | A | ⏳ | [§ Keamanan](#️-keamanan--kualitas--pre-launch--production) |
+| 6 | **Kontributor** — waiting list + admin approve + gate upload | A″ | ⏳ | [backlog-plan §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) |
+| 7 | Kebijakan akun legacy (tanpa Clerk ID) | C | ⏳ | [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14) |
+| 8 | Halaman admin monitoring (`/activity`, admin poin/leaderboard/audit) | C′ / E | ⏳ | [§ Halaman](#-halaman--belum-ada--belum-selesai) · [§ Admin Monitoring](#️-admin-monitoring--audit--fase-e-portal) |
+| 9 | **Notifikasi** — modal daily poin + welcome + approve kontributor | C′ + E2 | ⏳ | [backlog-plan §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2) |
+| 10 | Integrasi LMS live (homepage teaser + katalog) | D | ⏳ | [§ QA Homepage — LMS](#integrasi-lms--lanjutan-koordinasi-jepangkulms) |
+| 11 | **Newsletter** — footer subscribe + admin CRUD + unsubscribe | E1 | ⏳ | [backlog-plan §3](./backlog-plan.md#3-newsletter-subscription--fase-e1) |
+| 12 | Notifikasi in-app lengkap (bell, artikel/komentar) | E2 | ⏳ | [§ Engagement & Sosial](#-engagement--sosial--fase-e-portal) |
+| 13 | Leaderboard monthly / all-time + export CSV poin | C′ / E | ⏳ | [§ Poin & Leaderboard](#-poin--leaderboard--fase-c-portal) |
+| 14 | Follow / subscribe kategori | E | ⏳ | [§ Engagement & Sosial](#-engagement--sosial--fase-e-portal) |
+| 15 | Admin activity audit log | E | ⏳ | [§ Admin Monitoring](#️-admin-monitoring--audit--fase-e-portal) |
+| 16 | Soft launch konten (30+ artikel) | A | ⏸️ | [§ Soft Launch](#-soft-launch--fase-a-ditunda) · [`soft-launch-content.md`](./soft-launch-content.md) |
+| 17 | Membership & payment global | E | ⏳ | [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de) |
+| 18 | Multi-app deploy, CI/CD, mobile/PWA | E | ⏳ | [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de) |
 
-## 📐 Revisi UI/UX — Backlog Terurut *(Juni 2026)*
+### Revisi UI/UX *(Juni 2026)*
 
-> Sumber: `revisi.txt` — diurutkan **UI paling mudah → paling kompleks**, lalu fitur full-stack.
-> Item backend murni (role, subscription, notifikasi) diletakkan di akhir karena membutuhkan schema, API, admin, dan alur auth.
-
-### Ringkasan analisis
-
-
-| Aspek                      | Temuan                                                                                                                                                                                                                                                                                                                                    |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Yang sudah ada di kode** | Logo `Logo-03.svg` + TODO ganti `logo-04.svg`; Navbar 3 lapisan dengan TODO sidebar; `AdBannerSlot` homepage mid-banner; share artikel hanya copy-link + track `shareMethod: "copy-link"`; `Role` enum hanya `USER` | `ADMIN`; editorial kategori + seed `entertainment` / `halal-in-japan` sudah ada, belum selaras kategori soft launch |
-| **Gap utama**              | Role **Kontributor** + antrian approve belum ada; sidebar drawer belum ada; iklan belum di sidebar / artikel detail; leaderboard masih inline di `HomeEngagementSection`; subscription & notifikasi in-app belum ada (placeholder Navbar saja)                                                                                            |
-| **Dependensi kritis**      | Sidebar Navbar (#14–15) ↔ iklan sidebar (#9–10); CTA kontributor (#3, #15, #17) ↔ role kontributor (#16); notif selamat datang kontributor (#19) ↔ approve kontributor (#16)                                                                                                                                                              |
-
-
-### Urutan pengerjaan *(mudah → kompleks)*
-
-#### Tier 1 — Quick win *(CSS, asset, copy)* · ~½–1 hari total
-
-
-| #   | Item                                                         | Scope | File / area                                   | Catatan                                                                                                                               |
-| --- | ------------------------------------------------------------ | ----- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Logo navbar** — ganti icon+teks dengan `logo-04.svg`       | UI    | `components/Navbar.tsx`                       | Asset sudah ada: `public/assets/images/logo/logo-04.svg`; ganti `Image src`, sesuaikan `width`/`height`                               |
-| 2   | **Lapisan 3 navbar** — background merah, bukan orange        | UI    | `components/navbar/NavbarCategoryBar.tsx`     | Ganti `var(--color-jepang-orange)` → `var(--color-jepang-red)`; cek kontras teks putih                                                |
-| 3   | **Footer** — "Kirim Artikel" → "Daftar sebagai Kontributor"  | UI    | `components/Footer.tsx`                       | Fase 1: ganti label + href ke halaman/daftar kontributor *(placeholder `/contributor/apply` sampai #16)*; guest & auth sama sementara |
-| 4   | **Header section berita** — aksen merah                      | UI    | `components/home/`*, utility `.section-label` | Section headline homepage (Hari Ini, Kategori, TV, dll.) pakai `text-jepang-red` / border merah konsisten                             |
-| 5   | **Teks section homepage** — gradient merah–orange            | UI    | CSS global / komponen section                 | Terapkan `bg-gradient-to-r from-jepang-red to-jepang-orange bg-clip-text text-transparent` pada judul section terpilih                |
-| 6   | **List bullet** — kolom artikel di section kategori homepage | UI    | `components/home/CategoryListColumn.tsx`      | Tambah `list-disc list-inside` atau bullet custom pada `<ul>` headline artikel                                                        |
-
-
-**Checklist Tier 1**
-
-[x] #1 Logo `logo-04.svg`  
-[x] #2 Lapisan 3 merah  
-[x] #3 Footer CTA kontributor *(copy)*  
-[x] #4 Header section merah  
-[x] #5 Gradient judul section  
-[x] #6 Bullet list kategori editorial  
-
----
-
-#### Tier 2 — Komponen UI kecil *(Navbar/Footer/artikel)* · ~1–2 hari
-
-
-| #   | Item                                                        | Scope    | File / area                                               | Catatan                                                                                                             |
-| --- | ----------------------------------------------------------- | -------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| 7   | **Icon sosial media** di samping tombol search (lapisan 3)  | UI       | `NavbarCategoryBar.tsx`                                   | Instagram, X, YouTube, TikTok — link dari env atau `lib/site-config`; `target="_blank"`                             |
-| 8   | **Share artikel** — platform sosial, bukan hanya salin link | UI + API | `app/(public)/articles/[slug]/page.tsx`, `POST .../share` | Tombol WhatsApp, X, Facebook + copy link; kirim `shareMethod` per platform; tetap +5 poin sekali *(logic existing)* |
-
-
-**Checklist Tier 2**
-
-[ ] #7 Sosial media di navbar  
-[ ] #8 Share multi-platform  
-
----
-
-#### Tier 3 — Layout & reposisi *(sidebar, homepage, info page)* · ~3–5 hari
-
-
-| #   | Item                                                               | Scope     | File / area                                                                         | Catatan                                                                                                                                                                                |
-| --- | ------------------------------------------------------------------ | --------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 9   | **Sidebar iklan** — slot iklan di sidebar *(bukan full-width mid)* | UI + data | Komponen baru `SidebarAdSlot.tsx`, `lib/home/queries/ads.ts`                        | Posisi slot baru `homepage-sidebar` / `article-sidebar` di model `AdSlot` *(field `position` sudah ada)*; admin `/admin/ads` extend filter posisi                                      |
-| 10  | **Iklan sidebar** — tampil juga di halaman single artikel          | UI        | `app/(public)/articles/[slug]/page.tsx`                                             | Reuse `SidebarAdSlot`; fetch `GET /api/home/ads?slot=article-sidebar` atau endpoint dedicated                                                                                          |
-| 11  | **Leaderboard homepage** — pindah ke sidebar kanan                 | UI        | `HomeEngagementSection.tsx`                                                         | Layout **3/4 poll+kuis (stack vertikal) + 1/4 leaderboard**; hilangkan teks "total poin" di preview; hanya peringkat minggu ini *(TODO sudah di kode)*                                 |
-| 12  | **Kategori** — selaraskan soft launch + update sidebar/navbar      | UI + data | `nav-config.ts`, `prisma/seeder/data/categories.js`, `lib/home/editorial-groups.ts` | Soft launch pakai vertical berbeda (News, Travel, Work in Japan, dll.) — lihat `[soft-launch-content.md](./soft-launch-content.md)`; sync `NAV_CATEGORIES`, seed, mapping editorial §4 |
-| 13  | **Info page sticky sidebar** — menu footer di kanan konten         | UI        | `components/InfoPageServer.tsx`, layout info pages                                  | Sidebar `position: sticky` berisi link About, Contact, Privacy, dll. *(mirror Footer)*; mobile: collapse / bottom sheet                                                                |
-
-
-**Checklist Tier 3**
-
-[ ] #9 Komponen sidebar iklan  
-[ ] #10 Iklan di artikel detail  
-[ ] #11 Leaderboard → sidebar engagement  
-[ ] #12 Kategori soft launch  
-[ ] #13 Sticky sidebar info page  
-
----
-
-#### Tier 4 — Navbar sidebar drawer *(refactor UI besar)* · ~3–4 hari
-
-
-| #   | Item                                                                                                           | Scope | File / area                                     | Catatan                                                                                                        |
-| --- | -------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 14  | **Hapus lapisan 1** — emoji/TV pindah ke sidebar drawer                                                        | UI    | `Navbar.tsx`, komponen baru `NavbarSidebar.tsx` | Hapus `navbar-layer-1`; pindahkan `NavbarReactionLinks` + link TV ke drawer                                    |
-| 15  | **Hamburger + drawer** — buka dari lapisan 3 (kiri kategori)                                                   | UI    | `NavbarCategoryBar.tsx`, `NavbarSidebar.tsx`    | Isi drawer: iklan (#9), daftar kategori (#12), sosial (#7), CTA kontributor (#15b), profile + logout jika auth |
-| 15b | **CTA sidebar** — guest: "Daftar sebagai Kontributor"; auth non-kontributor: sama; kontributor: "Buat Artikel" | UI    | `NavbarSidebar.tsx`, `Footer.tsx`               | Ganti "Masuk untuk menulis" / "Buat Artikel" sesuai state; **butuh #16** untuk gate penuh                      |
-
-
-**Checklist Tier 4**
-
-[ ] #14 Hapus lapisan 1, pindah konten ke drawer  
-[ ] #15 Hamburger + sidebar drawer  
-[ ] #15b CTA kontributor conditional *(UI dulu, logic penuh setelah #16)*  
-
-**Dependensi Tier 4:** sebaiknya setelah #7, #9, #12 agar drawer tidak kosong.
-
----
-
-#### Tier 5 — Full-stack *(role, subscription, notifikasi)* · ~1–2 minggu
-
-
-| #   | Item                                                   | Scope                | Rincian teknis                                                                                                                                                                                                                                                                        |
-| --- | ------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 16  | **Role Kontributor** + waiting list                    | Backend + UI         | Extend `Role` enum atau model `ContributorApplication` (`PENDING` / `APPROVED` / `REJECTED`); halaman `/contributor/apply`; gate `POST /api/articles/create` + `/submit-article` hanya kontributor approved; admin: antrian approve di `/admin/users` atau halaman baru               |
-| 17  | **Gate upload** — user biasa tidak bisa upload artikel | Backend + UI         | Redirect non-kontributor ke apply; semua entry point: Navbar, Footer, profile quick action, `my-articles`                                                                                                                                                                             |
-| 18  | **Subscription system**                                | Backend + UI + email | **Footer:** input email subscribe; **Admin:** menu daftar subscriber + CRUD; **Email:** tombol unsubscribe → halaman hapus subscription *(wajib login akun yang sama)*; model `NewsletterSubscription` + token unsubscribe                                                            |
-| 19  | **Notification system**                                | Backend + UI         | **Daily poin:** modal *(bukan bell)* saat login / first active session hari baru — "Hari ini Anda mendapat X poin"; deteksi aktivitas tanpa logout-login; **Welcome:** user baru + kontributor baru; **Kontributor:** notif saat application approved *(item `revisi.txt` terpotong)* |
-
-
-**Checklist Tier 5**
-
-[ ] #16 Role kontributor + waiting list + admin approve  
-[ ] #17 Gate upload artikel  
-[ ] #18 Subscription (footer, admin CRUD, unsubscribe page)  
-[ ] #19 Notifikasi (daily poin modal, welcome, approve kontributor)  
-
-**Relasi ke backlog existing:** #19 melanjutkan item [In-app notifications](#-engagement--sosial--fase-e-portal) di § Belum Diimplementasi; #18 terpisah dari "Follow / subscribe kategori".
-
----
-
-### Roadmap eksekusi disarankan
-
-```mermaid
-flowchart LR
-  T1[Tier 1 Quick wins] --> T2[Tier 2 Komponen kecil]
-  T2 --> T3[Tier 3 Layout]
-  T3 --> T4[Tier 4 Navbar drawer]
-  T4 --> T5a[#16 Kontributor]
-  T5a --> T5b[#17 Gate upload]
-  T5b --> T5c[#18 Subscription]
-  T5c --> T5d[#19 Notifikasi]
-```
-
-
-
-**Paralel aman:** #1–6 bisa dikerjakan sekaligus; #7 + #8 paralel; #9–11 berurutan; #12 bisa paralel dengan #9–11; #13 independen.
+| Tier | Status | Keterangan |
+| :--: | :----: | :--- |
+| 1–4 | ✅ | Logo, warna, share, sidebar iklan, leaderboard layout, kategori, info sidebar, navbar drawer |
+| 5 | ⏳ → fase | Kontributor (**A″**), newsletter (**E1**), notifikasi (**C′/E2**) — tidak lagi tier terpisah; lihat tabel prioritas & [`backlog-plan.md`](./backlog-plan.md) |
 
 ---
 
@@ -204,13 +93,15 @@ Checklist selesai: [§ Homepage Ekosistem](#-homepage-ekosistem--landing-page-je
 [ ] **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain  
 [ ] **Migrasi poin lokal** — kembalikan `point_transactions`; lepas ketergantungan `awardXp()` / Core leaderboard (lihat § Migrasi poin lokal)
 
-#### Berikutnya — Fase E *(Core Service)*
+#### Berikutnya — Fase A″ / C′ / E *(paralel setelah fondasi)*
 
-[ ] In-app notifications (fungsional — setelah placeholder Navbar diganti)
-[ ] Follow / subscribe kategori  
-[ ] Monthly & all-time leaderboard poin (News DB)  
-[ ] Export riwayat poin CSV, riwayat aktivitas `/activity`  
-[ ] Admin activity audit log  
+[ ] **Kontributor + gate upload** — Fase A″ · [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a)  
+[ ] **Notifikasi daily poin + welcome** — C′/E2 · [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2)  
+[ ] **Newsletter subscription** — E1 · [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1)  
+[ ] **Follow / subscribe kategori** — Fase E  
+[ ] **Monthly & all-time leaderboard** — C′/E  
+[ ] **Export riwayat poin CSV**, riwayat aktivitas `/activity`  
+[ ] **Admin activity audit log**
 
 #### Ditunda — soft launch konten
 
@@ -222,35 +113,19 @@ Checklist selesai: [§ Homepage Ekosistem](#-homepage-ekosistem--landing-page-je
 
 ## ⏱️ Prioritas Pengerjaan Berikutnya
 
-Fokus paralel: **(A) revisi UI/UX `[§ Revisi UI/UX](#-revisi-uiux--backlog-terurut-juni-2026)`** · **(B) homepage jepangku.com QA** · **(C) Core, keamanan, halaman sisa**.  
-Tracking task homepage: [Daftar Pekerjaan — Homepage](#-homepage-jepangkucom--fase-qa). Detail per area: [§ Belum Diimplementasi](#-belum-diimplementasi).
+Fokus mengikuti [Daftar Prioritas](#-daftar-prioritas--urutan-pengerjaan-juni-2026) **Prio 1–8** dulu, lalu engagement (9–15). Rincian teknis: [`backlog-plan.md`](./backlog-plan.md).
 
-### C. Revisi UI/UX *(Juni 2026 — dari `revisi.txt`)*
+1. **Homepage QA + Core cutover** (Prio 1–3) — mobile/Lighthouse/E2E; deploy Core; `verify:core`
+2. **Fondasi poin News DB** (Prio 4) — prasyarat daily poin modal & leaderboard akurat
+3. **Hardening production** (Prio 5) — Redis, moderasi AI, monitoring
+4. **Kontributor & gate upload** (Prio 6) — [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a)
+5. **Notifikasi & newsletter** (Prio 9–12) — setelah C′ + kontributor; [`backlog-plan.md` §3–4](./backlog-plan.md)
 
-Mulai **Tier 1** (logo, warna, copy footer) → **Tier 3** (sidebar iklan, leaderboard layout) → **Tier 4** (Navbar drawer) → **Tier 5** (kontributor, subscription, notifikasi).  
-Checklist lengkap: [§ Revisi UI/UX — Backlog Terurut](#-revisi-uiux--backlog-terurut-juni-2026).
-
-### A. Homepage jepangku.com *(landing page ekosistem)*
-
-**Fase 0–7 selesai** — fokus sekarang: **QA launch** (mobile, empty state, network wave, Lighthouse, E2E) → **integrasi LMS Fase 2** (live course cards).
-
-### B. Sekarang — bug, fitur portal & Core
-
-1. **Core & cutover** — Fase 1 operasional (deploy, Clerk webhook) + Fase 4 verifikasi QA (`bun run verify:core`); lihat [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14)
-2. **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log; lihat [§ Halaman](#-halaman--belum-ada--belum-selesai)
-3. **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain; lihat [§ Keamanan](#️-keamanan--kualitas--pre-launch--production)
-4. **Migrasi poin lokal** — selaraskan kode dengan Core v2.1; lihat [§ Migrasi poin lokal](#-migrasi-poin-lokal--leaderboard-portal)
-
-Portal user-facing utama (artikel, quiz, poll, komentar, search, analytics) + homepage ekosistem (implementasi) sudah selesai di kode — sisa QA homepage + pekerjaan di atas.
-
-### Berikutnya — Fase E *(setelah Core API siap)*
-
-1. Leaderboard poin lanjutan, notifikasi, admin monitoring — lihat [§ Fase E](#-engagement--sosial--fase-e-portal) di bawah
-2. Ekosistem LMS & payment — lihat [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de)
+Portal user-facing utama + revisi UI Tier 1–4 ✅ — sisa pekerjaan di tabel prioritas & [§ Belum Diimplementasi](#-belum-diimplementasi).
 
 ### Ditunda — soft launch konten
 
-Konten 30+ artikel **tidak diprioritaskan** untuk sementara; lihat [§ Soft Launch](#-soft-launch--fase-a-ditunda) saat siap rilis publik.
+Konten 30+ artikel **Prio 16** — lihat [§ Soft Launch](#-soft-launch--fase-a-ditunda) · [`soft-launch-content.md`](./soft-launch-content.md)
 
 ---
 
@@ -327,10 +202,42 @@ Selaras **Core v2.1** — poin dan leaderboard **bukan** tanggung jawab Core.
 [ ] **Sentry SDK + alert channel terpusat** — ganti/extend monitoring webhook-only
 [ ] **Log drain / file persistence** — export log dari Vercel ke storage terpusat
 
+### 👤 Kontributor & Gate Upload — *Fase A″ (revisi produk)*
+
+Rencana lengkap: [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) · UI CTA ✅ (Tier 4).
+
+[ ] Schema `ContributorApplication` (atau role `CONTRIBUTOR`) + migrasi  
+[ ] API apply + status kontributor  
+[ ] Gate `POST /api/articles/create` & halaman submit/edit  
+[ ] Admin antrian approve/reject (`/admin/contributors`)  
+[ ] Form `/contributor/apply` (ganti placeholder)  
+[ ] `lib/contributor.ts` — baca status DB, bukan hardcode ADMIN  
+[ ] Sinkron semua entry point (sidebar, footer, profile, my-articles)
+
+### 📧 Newsletter — *Fase E1*
+
+Rencana: [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1). Terpisah dari follow/subscribe kategori.
+
+[ ] Model `NewsletterSubscription`  
+[ ] Footer form + `POST /api/newsletter/subscribe`  
+[ ] Admin CRUD `/admin/newsletter`  
+[ ] Halaman unsubscribe (wajib login akun yang sama)  
+[ ] Email template + SMTP *(opsional fase lanjutan)*
+
+### 🔔 Notifikasi Portal — *Fase C′ + E2*
+
+Rencana: [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2).
+
+[ ] Model `Notification` + API read/mark-read  
+[ ] Modal daily poin (first session/hari, bukan bell) — butuh C′  
+[ ] Welcome user baru  
+[ ] Notif kontributor approved — butuh Fase A″  
+[ ] Navbar bell fungsional (artikel/komentar) — Fase E2 lanjutan
+
 ### 💬 Engagement & Sosial — *Fase E (portal)*
 
-[ ] **In-app notifications** — notifikasi artikel diapprove/ditolak, komentar baru, poin diterima
-[ ] **Follow / subscribe kategori** — user bisa subscribe kategori dan dapat notifikasi artikel baru
+[ ] **Follow / subscribe kategori** — user subscribe kategori + notifikasi artikel baru  
+[ ] **In-app notifications lanjutan** — artikel approve/reject, komentar *(melengkapi § Notifikasi Portal)*
 
 ### 🏆 Poin & Leaderboard — *Fase C′ (News DB)*
 
@@ -1222,6 +1129,7 @@ Refactor `page.tsx`: **tidak ada** satu `fetch('/api/homepage')` global — seti
 ## 📌 Referensi
 
 - `docs/README.md` — indeks dokumentasi News
+- `docs/backlog-plan.md` — rencana teknis (kontributor, newsletter, notifikasi, revisi UI)
 - `docs/ecosystem-integration.md` — kontrak cutover & keputusan arsitektur v2
 - `jepangku-core/docs/PHASE0-PHASE1.md` — runbook integrasi lintas-repo
 - `jepangku-core/docs/ECOSYSTEM.md` · `jepangku-core/docs/API.md` — spesifikasi Core

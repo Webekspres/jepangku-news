@@ -7,7 +7,8 @@ tercapai. Kontrak integrasi Core v2 ada di `docs/ecosystem-integration.md` dan
 
 Prinsip utama: **portal stabil + integrasi Core (Fase 1–3 coded); QA production & LMS polish berikutnya.**
 
-Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
+Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.  
+Rencana teknis kontributor, newsletter, notifikasi: `docs/backlog-plan.md`.
 
 ---
 
@@ -30,11 +31,14 @@ Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 | ---- | ----- | ------ |
 | **0** | Selaraskan dokumentasi & kontrak Core v2 | ✅ Selesai |
 | **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | 🔄 Aktif sekarang |
+| **A″** | Kontributor + gate upload artikel *(revisi produk Juni 2026)* | ⏳ Berikutnya · [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) |
 | **B** | Core + News bridge (`lib/core/`, JWT exchange) | ✅ Coded · prod ⏳ |
 | **C** | Cutover identitas News → Core (Clerk ID, JWT, role) | ✅ Coded · QA ⏳ |
 | **C′** | Migrasi poin + leaderboard portal ke News DB (selaras Core v2.1) | 🔄 Berikutnya |
 | **D** | LMS consumer Core (XP, level, badge lokal) | ✅ Fase 1 coded · UI belajar ⏳ |
-| **E** | Fitur lintas-app (membership, notifikasi, admin pusat) | ⏳ Menunggu |
+| **E1** | Newsletter subscription portal | ⏳ · [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1) |
+| **E2** | Notifikasi portal (modal daily poin, bell, welcome) | ⏳ · [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2) |
+| **E** | Fitur lintas-app lainnya (membership, admin pusat, CI/CD) | ⏳ Menunggu |
 
 ---
 
@@ -85,6 +89,17 @@ portal** meski Core Service hadir, jadi tidak akan terbuang.
 [ ] Testing end-to-end: homepage, search, filter, leaderboard, quiz, poll
 
 > **Catatan:** detail target konten per kategori ada di `docs/soft-launch-content.md`.
+
+### A″ — Kontributor & gate upload *(revisi produk)*
+
+Tujuan: user biasa tidak bisa submit artikel tanpa approve admin. UI CTA & drawer ✅ (Tier 4 revisi); backend belum.
+
+Checklist lengkap: [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) · prioritas **Prio 6** di [`feature-status.md`](./feature-status.md).
+
+[ ] Schema `ContributorApplication` / role `CONTRIBUTOR` + migrasi  
+[ ] API apply + gate `POST /api/articles/create`  
+[ ] Admin antrian `/admin/contributors`  
+[ ] Form `/contributor/apply` (ganti placeholder)
 
 ---
 
@@ -167,17 +182,34 @@ Prasyarat: Fase C News selesai atau pola `lib/core/` terbukti stabil.
 
 ## 🔴 Fase E — Fitur Ekosistem Global
 
-Tujuan: fitur lintas aplikasi yang hanya mungkin setelah Core berdiri. Membangunnya di portal
-sekarang akan terbuang — karena itu **ditunda sampai Core siap**.
+Tujuan: fitur lintas aplikasi. Beberapa item portal (E1, E2) **bisa dikerjakan di News DB** tanpa menunggu schema Core global — lihat [`backlog-plan.md`](./backlog-plan.md).
+
+### E1 — Newsletter *(portal-only)*
+
+Detail: [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1)
+
+[ ] Footer subscribe + model `NewsletterSubscription`  
+[ ] Admin CRUD `/admin/newsletter`  
+[ ] Unsubscribe wajib login akun yang sama  
+
+### E2 — Notifikasi portal *(News DB)*
+
+Detail: [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2). Modal daily poin butuh **C′**; notif approve kontributor butuh **A″**.
+
+[ ] Infrastruktur `Notification` + API  
+[ ] Modal daily poin (first session/hari)  
+[ ] Welcome user baru + notif kontributor approved  
+[ ] Navbar bell fungsional (artikel/komentar) — lanjutan  
+
+### E — Lintas-app & infrastruktur
 
 [ ] **Monthly leaderboard poin** — rolling 30 hari (News DB)
 [ ] **All-time leaderboard poin** — total poin portal (News DB)
 [ ] **Export riwayat poin** — CSV dari `point_transactions` News
-[ ] **In-app notifications** — belum ada di Core schema (desain Fase E)
 [ ] **Follow / subscribe kategori** — subscribe + notifikasi artikel baru
 [ ] **Riwayat aktivitas lengkap** (`/activity`) — viewer transaksi poin News
 [ ] **Admin: monitor leaderboard & poin** — dari News DB (bukan Core)
-[ ] **Admin: activity audit log** — audit admin portal (belum di Core)
+[ ] **Admin: activity audit log** — audit admin portal
 [ ] **Membership & payment** — belum ada di Core schema
 [ ] **Super-admin / role hierarchy** — `editor`, `moderator`, `instructor`, `student`
 [ ] **Admin pusat** — admin lintas aplikasi
@@ -196,12 +228,14 @@ Beberapa item yang sebelumnya ada di backlog portal **dipindah ke Core** agar ti
 | Email verification, Forgot password, OAuth, Session management UI | **Fase B/C — ditangani Clerk**, bukan portal |
 | Monthly / All-time leaderboard poin | **Fase C′ — News DB** |
 | Badge / level LMS | **LMS DB + Core XP** (bukan News) |
-| In-app notifications | **Fase E — Core** |
-| Follow / subscribe kategori | **Fase E — Core (notifikasi)** |
+| In-app notifications (modal daily poin, bell) | **Fase E2 — News DB** · [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2) |
+| Newsletter subscription | **Fase E1 — News DB** · [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1) |
+| Kontributor + gate upload | **Fase A″ — News** · [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) |
+| Follow / subscribe kategori | **Fase E — portal** (notifikasi artikel baru) |
 | Export riwayat poin | **Fase C′ — News DB** |
 | Riwayat aktivitas lengkap (`/activity`) | **Fase C′/E — News DB** |
 | Admin: monitor leaderboard & point transactions | **Fase C′ — News admin** |
-| Admin: activity audit log | **Fase E — Core** |
+| Admin: activity audit log | **Fase E — portal admin** |
 | Komentar, like, profil author, search, tags, analytics artikel | **Fase A — tetap di portal** |
 | Rate limiting, sanitasi HTML, image moderation, monitoring, logging | **Fase A — hardening portal** |
 
@@ -210,6 +244,7 @@ Beberapa item yang sebelumnya ada di backlog portal **dipindah ke Core** agar ti
 ## 📌 Referensi
 
 - `docs/README.md` — indeks dokumentasi News
+- `docs/backlog-plan.md` — rencana teknis backlog aktif (A″, E1, E2, revisi UI)
 - `docs/ecosystem-integration.md` — **kontrak cutover News ↔ Core (v2)**
 - `jepangku-core/docs/ECOSYSTEM.md` — peta ekosistem 3 aplikasi
 - `jepangku-core/docs/API.md` — spesifikasi HTTP API Core

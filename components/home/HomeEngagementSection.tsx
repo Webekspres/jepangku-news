@@ -12,11 +12,12 @@ import {
 import AuthorLink from "@/components/AuthorLink";
 import LeaderboardAvatar from "@/components/leaderboard/LeaderboardAvatar";
 import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
+import SidebarAdSlot from "@/components/home/SidebarAdSlot";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
-import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
-import LeaderboardRowSkeleton from "@/components/skeletons/LeaderboardRowSkeleton";
 import { Badge } from "@/components/ui/badge";
+import { useLazySection } from "@/hooks/useLazySection";
 import type {
+  HomeAdResponse,
   HomeEngagementResponse,
   HomePollSummary,
   HomeQuizSummary,
@@ -34,21 +35,18 @@ const LEADERBOARD_LIMIT = 5;
 
 function EngagementSkeleton() {
   return (
-    <LazySectionSkeleton minHeight={640} data-testid="home-engagement-loading">
-      <section className="py-12">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ArticleCardSkeleton />
-            <ArticleCardSkeleton />
-          </div>
-        </div>
-      </section>
+    <LazySectionSkeleton minHeight={720} data-testid="home-engagement-loading">
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="bg-white border border-jepang-border">
-            {[...Array(5)].map((_, idx) => (
-              <LeaderboardRowSkeleton key={idx} />
-            ))}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+            <div className="space-y-6 lg:col-span-3">
+              <div className="h-48 animate-pulse rounded-lg bg-jepang-border/60" />
+              <div className="h-48 animate-pulse rounded-lg bg-jepang-border/60" />
+            </div>
+            <div className="space-y-4 lg:col-span-1">
+              <div className="h-64 animate-pulse rounded-lg bg-jepang-border/60" />
+              <div className="h-40 animate-pulse rounded-lg bg-jepang-border/60" />
+            </div>
           </div>
         </div>
       </section>
@@ -131,6 +129,14 @@ export default function HomeEngagementSection({
   loading,
   error,
 }: HomeEngagementSectionProps) {
+  const {
+    data: sidebarAd,
+    isLoading: sidebarAdLoading,
+    error: sidebarAdError,
+  } = useLazySection<HomeAdResponse>("/api/home/ads?slot=homepage-sidebar", {
+    immediate: true,
+  });
+
   if (error) {
     return (
       <p className="text-center text-sm text-jepang-muted py-12">
@@ -148,177 +154,180 @@ export default function HomeEngagementSection({
   const leaderboard = data.leaderboard.slice(0, LEADERBOARD_LIMIT);
 
   return (
-
-    //  TODO: pindahkan section leaderboard ke sidebar dan section polling & kuis ke sebelah kirinya dengan layout kebawah, lebar bagian ini 3/4 lebar leaderboad 1/4
-    //  TODO: section leaderboard di sidebar adalah leaderboard peringkat minggu ini dan total poin HILANGKAN TEKS 
     <div data-testid="home-engagement-section">
-      <section className="py-12">
+      <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
           <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
             <div>
               <p className="section-label mb-1">インタラクティブ / INTERAKTIF</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient">
-                Polling & Kuis
+                Polling, Kuis & Peringkat
               </h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-lg border border-jepang-border bg-white p-6 shadow-jepang">
-              <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-jepang-border">
-                <div className="flex items-start gap-3 min-w-0">
-                  <MessageSquare
-                    size={18}
-                    strokeWidth={1.5}
-                    className="mt-0.5 shrink-0 text-jepang-red"
-                  />
-                  <div>
-                    <p className="section-label mb-1">Polling</p>
-                    <h3 className="font-heading font-bold text-xl tracking-tight">
-                      Poll Aktif
-                    </h3>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+            <div className="flex flex-col gap-6 lg:col-span-3">
+              <div className="rounded-lg border border-jepang-border bg-white p-6 shadow-jepang">
+                <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-jepang-border">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <MessageSquare
+                      size={18}
+                      strokeWidth={1.5}
+                      className="mt-0.5 shrink-0 text-jepang-red"
+                    />
+                    <div>
+                      <p className="section-label mb-1">Polling</p>
+                      <h3 className="font-heading font-bold text-xl tracking-tight">
+                        Poll Aktif
+                      </h3>
+                    </div>
                   </div>
-                </div>
-                <Link
-                  href="/polls"
-                  className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors shrink-0"
-                >
-                  Semua <ArrowRight size={12} />
-                </Link>
-              </div>
-
-              {polls.length > 0 ? (
-                <div>
-                  {polls.map((poll, index) => (
-                    <PollListItem key={poll.id} poll={poll} isPrimary={index === 0} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-jepang-muted py-8 text-center">
-                  Tidak ada jajak pendapat aktif. Segera periksa kembali!
-                </p>
-              )}
-
-              <div className="mt-4 pt-4 border-t border-jepang-border sm:hidden">
-                <Link href="/polls" className="jepang-btn-primary inline-flex items-center gap-2">
-                  Semua Polling <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-
-            <div className="rounded-lg bg-jepang-navy p-6 text-white shadow-jepang">
-              <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-white/10">
-                <div className="flex items-start gap-3 min-w-0">
-                  <Zap
-                    size={18}
-                    strokeWidth={1.5}
-                    className="mt-0.5 shrink-0 text-jepang-red"
-                  />
-                  <div>
-                    <p className="section-label mb-1">Kuis</p>
-                    <h3 className="font-heading font-bold text-xl tracking-tight">
-                      Uji Pengetahuanmu
-                    </h3>
-                  </div>
-                </div>
-                <Link
-                  href="/quizzes"
-                  className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors shrink-0"
-                >
-                  Semua <ArrowRight size={12} />
-                </Link>
-              </div>
-
-              {quizzes.length > 0 ? (
-                <div>
-                  {quizzes.map((quiz, index) => (
-                    <QuizListItem key={quiz.id} quiz={quiz} isPrimary={index === 0} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-zinc-400 py-8 text-center">
-                  Belum ada kuis yang tersedia.
-                </p>
-              )}
-
-              <div className="mt-4 pt-4 border-t border-white/10 sm:hidden">
-                <Link
-                  href="/quizzes"
-                  className="jepang-btn-primary inline-flex items-center gap-2"
-                >
-                  Semua Kuis <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-12 bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
-            <div>
-              <p className="small-caps text-jepang-red mb-1">ランキング / PERINGKAT</p>
-              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
-                <Trophy size={32} strokeWidth={1.5} className="text-jepang-red" />
-                <span className="section-title-gradient">
-                  Papan Peringkat {data.leaderboardPeriodLabel}
-                </span>
-              </h2>
-            </div>
-            <Link
-              href="/leaderboard"
-              className="hidden md:inline-flex items-center gap-1 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red transition-colors"
-              data-testid="view-full-leaderboard"
-            >
-              SEMUA PERINGKAT <ArrowRight size={14} />
-            </Link>
-          </div>
-          <div className="bg-white border border-jepang-border">
-            {leaderboard.length > 0 ? (
-              leaderboard.map((entry, idx) => (
-                <div
-                  key={entry.userId}
-                  className="flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0"
-                  data-testid={`leaderboard-row-${idx}`}
-                >
-                  <span
-                    className={`font-mono font-black text-2xl w-10 ${idx === 0 ? "text-jepang-red" : "text-jepang-black"}`}
+                  <Link
+                    href="/polls"
+                    className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors shrink-0"
                   >
-                    #{entry.rank}
-                  </span>
-                  <LeaderboardAvatar
-                    avatarUrl={entry.avatarUrl}
-                    displayName={entry.displayName}
-                  />
-                  <div className="flex-1">
-                    <AuthorLink
-                      username={entry.username || null}
-                      className="font-semibold block"
-                    >
-                      {entry.displayName}
-                    </AuthorLink>
-                    {entry.username ? (
-                      <AuthorLink
-                        username={entry.username}
-                        className="text-xs text-jepang-muted font-mono block"
-                      >
-                        @{entry.username}
-                      </AuthorLink>
-                    ) : null}
-                  </div>
-                  <LeaderboardScore
-                    period={entry.period}
-                    periodPoints={entry.periodPoints}
-                    totalPoints={entry.totalPoints}
-                  />
+                    Semua <ArrowRight size={12} />
+                  </Link>
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-jepang-muted py-12">
-                Belum ada data peringkat. Jadilah yang pertama!
-              </p>
-            )}
+
+                {polls.length > 0 ? (
+                  <div>
+                    {polls.map((poll, index) => (
+                      <PollListItem key={poll.id} poll={poll} isPrimary={index === 0} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-jepang-muted py-8 text-center">
+                    Tidak ada jajak pendapat aktif. Segera periksa kembali!
+                  </p>
+                )}
+
+                <div className="mt-4 pt-4 border-t border-jepang-border sm:hidden">
+                  <Link href="/polls" className="jepang-btn-primary inline-flex items-center gap-2">
+                    Semua Polling <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-jepang-navy p-6 text-white shadow-jepang">
+                <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-white/10">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Zap
+                      size={18}
+                      strokeWidth={1.5}
+                      className="mt-0.5 shrink-0 text-jepang-red"
+                    />
+                    <div>
+                      <p className="section-label mb-1">Kuis</p>
+                      <h3 className="font-heading font-bold text-xl tracking-tight">
+                        Uji Pengetahuanmu
+                      </h3>
+                    </div>
+                  </div>
+                  <Link
+                    href="/quizzes"
+                    className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors shrink-0"
+                  >
+                    Semua <ArrowRight size={12} />
+                  </Link>
+                </div>
+
+                {quizzes.length > 0 ? (
+                  <div>
+                    {quizzes.map((quiz, index) => (
+                      <QuizListItem key={quiz.id} quiz={quiz} isPrimary={index === 0} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-zinc-400 py-8 text-center">
+                    Belum ada kuis yang tersedia.
+                  </p>
+                )}
+
+                <div className="mt-4 pt-4 border-t border-white/10 sm:hidden">
+                  <Link
+                    href="/quizzes"
+                    className="jepang-btn-primary inline-flex items-center gap-2"
+                  >
+                    Semua Kuis <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <aside className="flex flex-col gap-6 lg:col-span-1">
+              <div
+                className="rounded-lg border border-jepang-border bg-white shadow-jepang lg:sticky lg:top-24"
+                data-testid="home-leaderboard-sidebar"
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-jepang-border px-4 py-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Trophy size={16} strokeWidth={1.5} className="shrink-0 text-jepang-red" />
+                    <h3 className="font-heading text-sm font-bold tracking-tight truncate">
+                      Peringkat {data.leaderboardPeriodLabel}
+                    </h3>
+                  </div>
+                  <Link
+                    href="/leaderboard"
+                    className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-jepang-muted hover:text-jepang-red transition-colors"
+                    data-testid="view-full-leaderboard"
+                  >
+                    Semua
+                  </Link>
+                </div>
+
+                {leaderboard.length > 0 ? (
+                  <ul>
+                    {leaderboard.map((entry, idx) => (
+                      <li
+                        key={entry.userId}
+                        className="flex items-center gap-2 border-b border-jepang-border px-3 py-3 last:border-b-0"
+                        data-testid={`leaderboard-row-${idx}`}
+                      >
+                        <span
+                          className={`font-mono font-black text-sm w-6 shrink-0 ${
+                            idx === 0 ? "text-jepang-red" : "text-jepang-black"
+                          }`}
+                        >
+                          #{entry.rank}
+                        </span>
+                        <LeaderboardAvatar
+                          avatarUrl={entry.avatarUrl}
+                          displayName={entry.displayName}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <AuthorLink
+                            username={entry.username || null}
+                            className="block truncate text-sm font-semibold"
+                          >
+                            {entry.displayName}
+                          </AuthorLink>
+                        </div>
+                        <LeaderboardScore
+                          period={entry.period}
+                          periodPoints={entry.periodPoints}
+                          totalPoints={entry.totalPoints}
+                          compact
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-center text-sm text-jepang-muted py-8 px-3">
+                    Belum ada data peringkat.
+                  </p>
+                )}
+              </div>
+
+              <SidebarAdSlot
+                data={sidebarAd}
+                loading={sidebarAdLoading}
+                error={sidebarAdError}
+                testId="homepage-sidebar-ad"
+                className="lg:sticky lg:top-[calc(6rem+320px)]"
+              />
+            </aside>
           </div>
         </div>
       </section>

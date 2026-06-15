@@ -1,15 +1,3 @@
-export function NavbarLayerOneSkeleton() {
-  return (
-    <div
-      className="flex h-10 items-center justify-end px-4"
-      style={{ backgroundColor: "var(--color-jepang-navy)" }}
-      aria-hidden
-    >
-      <div className="h-7 w-28 animate-pulse rounded-md bg-white/20" />
-    </div>
-  );
-}
-
 export function NavbarLayerTwoSkeleton() {
   return (
     <div
@@ -38,10 +26,11 @@ export function NavbarLayerThreeSkeleton() {
   return (
     <div
       className="overflow-hidden transition-all duration-500 ease-out"
-      style={{ backgroundColor: "var(--color-jepang-orange)" }}
+      style={{ backgroundColor: "var(--color-jepang-red)" }}
       aria-hidden
     >
-      <div className="mx-auto flex h-10 max-w-7xl items-center justify-between gap-4 px-4">
+      <div className="mx-auto flex h-10 max-w-7xl items-center gap-2 px-4">
+        <div className="h-8 w-8 shrink-0 animate-pulse rounded bg-white/30" />
         <div className="flex min-w-0 flex-1 gap-3 overflow-hidden">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
@@ -59,7 +48,6 @@ export function NavbarLayerThreeSkeleton() {
 export default function NavbarSkeleton() {
   return (
     <div data-testid="navbar-skeleton" className="pointer-events-none">
-      <NavbarLayerOneSkeleton />
       <NavbarLayerTwoSkeleton />
       <NavbarLayerThreeSkeleton />
     </div>

@@ -59,8 +59,9 @@ flowchart TB
 | **Peta ekosistem lintas-repo** | `jepangku-core/docs/ECOSYSTEM.md` | Arsitektur 3 app |
 | **Cutover News ↔ Core (dokumen ini)** | `docs/ecosystem-integration.md` | Keputusan arsitektur + ringkasan fase |
 | **Checklist implementasi step-by-step** | `docs/feature-status.md` § Penyatuan Shared Auth | Task per file, migrasi FK, endpoint poin |
-| **Status implementasi aktual** | `docs/feature-status.md` | Audit kode, sudah/belum |
-| **Roadmap berfase** | `docs/development-roadmap.md` | Fase A–E (sudah v2) |
+| **Status implementasi aktual** | `docs/feature-status.md` | Daftar prioritas Prio 1–18 + audit kode |
+| **Rencana teknis backlog aktif** | `docs/backlog-plan.md` | Kontributor (A″), newsletter (E1), notifikasi (E2) |
+| **Roadmap berfase** | `docs/development-roadmap.md` | Fase A–E, A″, E1, E2 |
 | **Stack & auth portal saat ini** | `docs/technical-architecture.md` | Kondisi runtime News |
 | **Visi produk jangka panjang** | `.agents/05-ecosystem-strategy.md` | ⚠️ Bagian 8–12 = desain v1; lihat §2 di bawah |
 

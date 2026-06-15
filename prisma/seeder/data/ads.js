@@ -11,6 +11,26 @@ const ADS_DATA = [
     isActive: true,
     sortOrder: 0,
   },
+  {
+    key: "homepage-sidebar-partner",
+    position: "homepage-sidebar",
+    title: "Partner — Sidebar Homepage",
+    imageUrl: IMAGES.articleCovers.culture[0],
+    linkUrl: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=homepage-sidebar",
+    altText: "Promo partner Jepangku",
+    isActive: true,
+    sortOrder: 0,
+  },
+  {
+    key: "article-sidebar-partner",
+    position: "article-sidebar",
+    title: "Partner — Sidebar Artikel",
+    imageUrl: IMAGES.articleCovers.lifestyle[0],
+    linkUrl: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=article-sidebar",
+    altText: "Promo partner di halaman artikel",
+    isActive: true,
+    sortOrder: 0,
+  },
 ];
 
 module.exports = { ADS_DATA };

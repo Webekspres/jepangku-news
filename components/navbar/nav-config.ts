@@ -7,17 +7,17 @@ export const NAV_LINKS = [
   { path: "/leaderboard", label: "Peringkat" },
 ] as const;
 
+/** Kategori navbar — selaras soft launch (docs/soft-launch-content.md) */
 export const NAV_CATEGORIES = [
-  { name: "Anime", slug: "anime" },
-  { name: "Manga", slug: "manga" },
-  { name: "Culture", slug: "culture" },
+  { name: "News", slug: "news" },
   { name: "Travel", slug: "travel" },
-  { name: "Food", slug: "food" },
-  { name: "Event", slug: "event" },
-  { name: "Technology", slug: "technology" },
+  { name: "Culture", slug: "culture" },
+  { name: "Entertainment", slug: "entertainment" },
   { name: "Lifestyle", slug: "lifestyle" },
-  { name: "Education", slug: "education" },
-  { name: "Fun", slug: "fun" },
+  { name: "Work in Japan", slug: "work-in-japan" },
+  { name: "Study in Japan", slug: "study-in-japan" },
+  { name: "Review Produk", slug: "review-produk" },
+  { name: "Event", slug: "event" },
 ] as const;
 
 export function categoryArticlesHref(slug: string) {

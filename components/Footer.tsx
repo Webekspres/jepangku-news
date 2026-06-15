@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
 import { CONTRIBUTOR_APPLY_PATH } from "@/lib/contributor";
+import { NAV_CATEGORIES, categoryArticlesHref } from "@/components/navbar/nav-config";
 
 export default function Footer() {
   const { user, loading, logout, isSignedIn } = useAuth();
@@ -75,38 +76,16 @@ export default function Footer() {
           <div>
             <h4 className="section-label text-jepang-orange mb-3">Kategori</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/articles?category=anime"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Anime
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles?category=manga"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Manga
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles?category=culture"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Budaya
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles?category=food"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Kuliner
-                </Link>
-              </li>
+              {NAV_CATEGORIES.map((cat) => (
+                <li key={cat.slug}>
+                  <Link
+                    href={categoryArticlesHref(cat.slug)}
+                    className="hover:text-jepang-red transition-colors"
+                  >
+                    {cat.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div>

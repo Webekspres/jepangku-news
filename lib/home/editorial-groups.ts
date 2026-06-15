@@ -1,6 +1,6 @@
 /**
  * Editorial category groups for homepage §4 (Japanese Station-style layout).
- * Maps display groups → existing category slugs in DB.
+ * Maps display groups → soft launch category slugs in DB.
  */
 export type EditorialGroupConfig = {
   slug: string;
@@ -12,37 +12,37 @@ export type EditorialGroupConfig = {
 
 export const EDITORIAL_FEATURED_GROUPS: EditorialGroupConfig[] = [
   {
-    slug: "anime-manga",
-    title: "Anime Manga",
-    categorySlugs: ["anime", "manga", "fun"],
-    primaryCategorySlug: "anime",
+    slug: "news-entertainment",
+    title: "News & Entertainment",
+    categorySlugs: ["news", "entertainment", "event"],
+    primaryCategorySlug: "news",
   },
   {
-    slug: "entertainment",
-    title: "Entertainment",
-    categorySlugs: ["entertainment", "event", "technology"],
-    primaryCategorySlug: "entertainment",
+    slug: "travel-lifestyle",
+    title: "Travel & Lifestyle",
+    categorySlugs: ["travel", "lifestyle", "culture"],
+    primaryCategorySlug: "travel",
   },
 ];
 
 export const EDITORIAL_LIST_GROUPS: EditorialGroupConfig[] = [
   {
-    slug: "lifestyle",
-    title: "Lifestyle",
-    categorySlugs: ["lifestyle", "food", "travel"],
-    primaryCategorySlug: "lifestyle",
+    slug: "work-study-japan",
+    title: "Work & Study in Japan",
+    categorySlugs: ["work-in-japan", "study-in-japan"],
+    primaryCategorySlug: "work-in-japan",
+  },
+  {
+    slug: "review-produk",
+    title: "Review Produk",
+    categorySlugs: ["review-produk"],
+    primaryCategorySlug: "review-produk",
   },
   {
     slug: "culture",
     title: "Culture",
-    categorySlugs: ["culture", "education"],
+    categorySlugs: ["culture"],
     primaryCategorySlug: "culture",
-  },
-  {
-    slug: "halal-in-japan",
-    title: "Halal In Japan",
-    categorySlugs: ["halal-in-japan"],
-    primaryCategorySlug: "halal-in-japan",
   },
 ];
 

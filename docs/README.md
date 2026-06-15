@@ -8,8 +8,9 @@ Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosy
 | :--- | :--- |
 | [design-system.md](./design-system.md) | **Brand guideline** — warna, tipografi, komponen UI |
 | [ecosystem-integration.md](./ecosystem-integration.md) | Kontrak cutover News ↔ Core, checklist fase |
-| [feature-status.md](./feature-status.md) | **Living doc** — status implementasi + checklist operasional |
-| [development-roadmap.md](./development-roadmap.md) | Roadmap produk berfase |
+| [feature-status.md](./feature-status.md) | **Living doc** — daftar prioritas (Prio 1–18) + checklist status |
+| [backlog-plan.md](./backlog-plan.md) | **Rencana teknis** — kontributor (A″), newsletter (E1), notifikasi (C′/E2), arsip revisi UI |
+| [development-roadmap.md](./development-roadmap.md) | Roadmap produk berfase (A–E, A″, E1, E2) |
 | [technical-architecture.md](./technical-architecture.md) | Stack & auth portal |
 
 **Repo Core (sumber kebenaran API):**
@@ -42,5 +43,7 @@ Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosy
 
 1. [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md)
 2. [ecosystem-integration.md](./ecosystem-integration.md)
-3. [feature-status.md](./feature-status.md)
-4. [`jepangku-core/docs/PHASE0-PHASE1.md`](../../jepangku-core/docs/PHASE0-PHASE1.md)
+3. [feature-status.md](./feature-status.md) — **prioritas & status singkat**
+4. [backlog-plan.md](./backlog-plan.md) — **rincian implementasi backlog aktif**
+5. [development-roadmap.md](./development-roadmap.md)
+6. [`jepangku-core/docs/PHASE0-PHASE1.md`](../../jepangku-core/docs/PHASE0-PHASE1.md)

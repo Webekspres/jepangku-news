@@ -14,8 +14,9 @@ import { NavbarLayerThreeSkeleton } from "@/components/navbar/NavbarSkeleton";
 import NavbarSearchOverlay from "@/components/navbar/NavbarSearchOverlay";
 import NavbarNotifications from "@/components/navbar/NavbarNotifications";
 import NavbarCategoryBar from "@/components/navbar/NavbarCategoryBar";
-import NavbarReactionLinks from "@/components/navbar/NavbarReactionLinks";
+import NavbarSidebar from "@/components/navbar/NavbarSidebar";
 import { NAV_LINKS } from "@/components/navbar/nav-config";
+import { getContributorCta } from "@/lib/contributor";
 import {
   Menu,
   X,
@@ -36,7 +37,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   const { user, displayPoints, logout, loading, isLoaded, isSignedIn, clerkUser } =
@@ -44,14 +44,13 @@ export default function Navbar() {
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [layerOneVisible, setLayerOneVisible] = useState(true);
   const [layerThreeVisible, setLayerThreeVisible] = useState(true);
 
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
-  const layerOneVisibleRef = useRef(true);
   const layerThreeVisibleRef = useRef(true);
   const scrollAccumulator = useRef(0);
   const scrollDirection = useRef<"up" | "down" | null>(null);
@@ -72,13 +71,7 @@ export default function Navbar() {
   const avatarUrl = authUser?.avatarUrl ?? clerkUser?.imageUrl ?? null;
   const totalPoints = displayPoints;
   const isAdmin = authUser?.role === "ADMIN";
-
-  const updateLayerOneVisible = (visible: boolean) => {
-    if (layerOneVisibleRef.current !== visible) {
-      layerOneVisibleRef.current = visible;
-      setLayerOneVisible(visible);
-    }
-  };
+  const contributorCta = getContributorCta(authUser);
 
   const updateLayerThreeVisible = (visible: boolean) => {
     if (layerThreeVisibleRef.current !== visible) {
@@ -89,7 +82,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const updateNavbar = () => {
-      if (searchOpen) return;
+      if (searchOpen || sidebarOpen) return;
 
       const currentY = window.scrollY || window.pageYOffset;
       const deltaY = currentY - lastScrollY.current;
@@ -105,12 +98,6 @@ export default function Navbar() {
         } else {
           scrollAccumulator.current += deltaY;
         }
-      }
-
-      if (layerOneVisibleRef.current) {
-        if (currentY > 40) updateLayerOneVisible(false);
-      } else if (currentY <= 5) {
-        updateLayerOneVisible(true);
       }
 
       const isAtTop = currentY <= 5;
@@ -140,7 +127,7 @@ export default function Navbar() {
     updateNavbar();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [searchOpen]);
+  }, [searchOpen, sidebarOpen]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -163,11 +150,19 @@ export default function Navbar() {
     setSearchQuery("");
     setSearchOpen(false);
     setMobileOpen(false);
+    setSidebarOpen(false);
   };
 
   const openSearch = () => {
     setMobileOpen(false);
+    setSidebarOpen(false);
     setSearchOpen(true);
+  };
+
+  const openSidebar = () => {
+    setMobileOpen(false);
+    setSearchOpen(false);
+    setSidebarOpen(true);
   };
 
   return (
@@ -180,65 +175,20 @@ export default function Navbar() {
         onClose={() => setSearchOpen(false)}
       />
 
+      <Suspense fallback={null}>
+        <NavbarSidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          showAuthenticated={showAuthenticated}
+          showGuest={showGuest}
+          showAuthSkeleton={showAuthSkeleton}
+          authUser={authUser}
+          displayName={displayName}
+          onLogout={handleLogout}
+        />
+      </Suspense>
+
       <div className="relative">
-        {/* Lapisan 1 — navy: Buat Artikel */}
-        {/* TODO: hapus lapisan 1 dan ganti dengan sidebar tombol untuk membuka sidebar ada di lapisan ke 3 dan isi sidebar adalah
-        - iklan
-        - kategori
-        - sosial media
-        - daftar sebagai kontributor (jika sudah login dan sudah jadi kontributor ganti jadi buat artikel)
-        - jika sudah login maka akan ada tombol logout dan tombol profile
-        */}
-        <div
-          data-testid="navbar-layer-1"
-          className={cn(
-            "w-full overflow-hidden transition-all duration-300 ease-out",
-            layerOneVisible ? "max-h-10 opacity-100" : "max-h-0 opacity-0",
-          )}
-          style={{ backgroundColor: "var(--color-jepang-navy)" }}
-        >
-          <div className="mx-auto flex h-10 max-w-7xl items-center justify-between gap-3 px-4">
-            <div className="flex items-center gap-3">
-              <NavbarReactionLinks />
-              <span className="text-sm font-semibold text-white">|</span>
-              {/* Tautan menuju halaman Jepangku TV */}
-              <Link href="/tv-jepangku" className="text-sm font-semibold text-white">
-                TV Jepangku
-              </Link>
-            </div>
-
-            {showAuthSkeleton ? (
-      
-              <div
-                className="h-7 w-28 animate-pulse rounded-md bg-white/20"
-                data-testid="navbar-layer1-skeleton"
-                aria-hidden
-              />
-            ) : showAuthenticated ? (
-              <Button
-                size="sm"
-                asChild
-                className="h-7 border-white/20 bg-white/10 px-3 text-xs font-semibold text-white hover:bg-white/20 hover:text-white"
-                data-testid="navbar-submit-article"
-              >
-                <Link href="/submit-article">
-                  <PenSquare size={13} strokeWidth={1.5} />
-                  Buat Artikel
-                </Link>
-              </Button>
-            ) : showGuest ? (
-              <Link
-                href={getAuthLoginPath()}
-                className="text-xs font-semibold uppercase tracking-wider text-white/80 transition-colors hover:text-white"
-                data-testid="navbar-layer1-login"
-              >
-                Masuk untuk menulis
-              </Link>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Lapisan 2 — utama: logo, nav, notifikasi & akun */}
         <div
           data-testid="navbar-layer-2"
           className="border-b border-jepang-border"
@@ -426,10 +376,12 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Lapisan 3 — kategori + search */}
-        {/* TODO: ganti warnanya jadi merah bukan orange dan tambahkan hamburger untuk membuka sidebar di samping kiri kategori dan di samping search button tambahkan sosial media icon */}
         <Suspense fallback={<NavbarLayerThreeSkeleton />}>
-          <NavbarCategoryBar visible={layerThreeVisible} onSearchOpen={openSearch} />
+          <NavbarCategoryBar
+            visible={layerThreeVisible}
+            onSearchOpen={openSearch}
+            onSidebarOpen={openSidebar}
+          />
         </Suspense>
       </div>
 
@@ -451,17 +403,15 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {showAuthenticated && (
-              <Link
-                href="/submit-article"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
-                data-testid="mobile-submit-article"
-              >
-                <PenSquare size={16} strokeWidth={1.5} />
-                Buat Artikel
-              </Link>
-            )}
+            <Link
+              href={contributorCta.href}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
+              data-testid="mobile-contributor-cta"
+            >
+              <PenSquare size={16} strokeWidth={1.5} />
+              {contributorCta.label}
+            </Link>
 
             {showGuest && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">

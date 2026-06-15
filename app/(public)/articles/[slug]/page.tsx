@@ -9,7 +9,6 @@ import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import {
   Bookmark,
-  Share2,
   Eye,
   Calendar,
   ArrowLeft,
@@ -23,6 +22,8 @@ import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
 import AuthorProfileCard from "@/components/AuthorProfileCard";
 import AuthorLink from "@/components/AuthorLink";
+import ArticleShareButtons from "@/components/ArticleShareButtons";
+import ArticleSidebarAd from "@/components/articles/ArticleSidebarAd";
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -32,7 +33,6 @@ export default function ArticleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [hasShared, setHasShared] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
   const [readCompleted, setReadCompleted] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const isLoading = loading && !article;
@@ -133,37 +133,12 @@ export default function ArticleDetailPage() {
     }
   };
 
-  const handleShare = async () => {
-    // Allow guest users to copy link
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-
-      // If user is logged in, track share and award points
-      if (user && !hasShared) {
-        setIsSharing(true);
-        try {
-          const trackResponse = await fetch(`/api/articles/${slug}/share`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ shareMethod: "copy-link" }),
-          }).then((r) => r.json());
-
-          if (trackResponse.pointsAwarded) {
-            toast.success(`Tautan disalin! +${trackResponse.points} poin untuk berbagi!`);
-            setHasShared(true);
-            await refreshUser(gamificationPatchFromResponse(trackResponse));
-          }
-        } catch (error) {
-          console.error("Error tracking share:", error);
-        } finally {
-          setIsSharing(false);
-        }
-      } else {
-        toast.success("Tautan disalin!");
-      }
-    } catch {
-      toast.error("Gagal menyalin tautan");
+  const handleShareComplete = async (
+    patch?: ReturnType<typeof gamificationPatchFromResponse>,
+  ) => {
+    setHasShared(true);
+    if (patch) {
+      await refreshUser(patch);
     }
   };
 
@@ -172,7 +147,8 @@ export default function ArticleDetailPage() {
   return (
     <div className="bg-white" data-testid="article-detail-page">
       <article className="px-4 mx-auto max-w-7xl py-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="mx-auto w-full max-w-4xl min-w-0 lg:mx-0">
           <Link
             href="/articles"
             className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
@@ -328,16 +304,19 @@ export default function ArticleDetailPage() {
                 Simpan
               </Button>
 
-              <Button
-                variant={(user && hasShared) ? "default" : "outline"}
-                size="sm"
-                onClick={handleShare}
-                disabled={loading || isSharing}
-                data-testid="share-btn"
-              >
-                <Share2 size={14} strokeWidth={1.5} />
-                {user && hasShared ? "Dibagikan" : "Bagikan"}
-              </Button>
+              <ArticleShareButtons
+                slug={slug}
+                title={article?.title ?? ""}
+                url={
+                  typeof window !== "undefined"
+                    ? window.location.href
+                    : `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/articles/${slug}`
+                }
+                isAuthenticated={Boolean(user)}
+                hasShared={hasShared}
+                onShared={handleShareComplete}
+                disabled={loading || isLoading}
+              />
             </div>
           </div>
 
@@ -419,6 +398,13 @@ export default function ArticleDetailPage() {
               <CommentSection targetType="ARTICLE" targetId={article.id} />
             </>
           )}
+          </div>
+  
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <ArticleSidebarAd />
+            </div>
+          </aside>
         </div>
       </article>
 

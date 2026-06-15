@@ -4,9 +4,17 @@ import { cn } from "@/lib/utils";
 
 type NavbarReactionLinksProps = {
   className?: string;
+  variant?: "dark" | "light";
 };
 
-export default function NavbarReactionLinks({ className }: NavbarReactionLinksProps) {
+export default function NavbarReactionLinks({
+  className,
+  variant = "dark",
+}: NavbarReactionLinksProps) {
+  const linkClass =
+    variant === "dark"
+      ? "flex h-7 shrink-0 items-center justify-center rounded px-1.5 text-base leading-none transition-colors hover:bg-white/10"
+      : "flex h-8 shrink-0 items-center justify-center rounded-md px-2 text-lg leading-none transition-colors hover:bg-jepang-off-white";
   return (
     <nav
       className={cn(
@@ -20,7 +28,7 @@ export default function NavbarReactionLinks({ className }: NavbarReactionLinksPr
         <Link
           key={reaction.key}
           href={`/reactions/${reaction.key.toLowerCase()}`}
-          className="flex h-7 shrink-0 items-center justify-center rounded px-1.5 text-base leading-none transition-colors hover:bg-white/10"
+          className={linkClass}
           title={reaction.label}
           aria-label={`Jelajahi konten dengan reaksi ${reaction.label}`}
           data-testid={`navbar-reaction-${reaction.key.toLowerCase()}`}

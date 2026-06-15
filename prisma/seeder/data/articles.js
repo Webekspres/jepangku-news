@@ -16,16 +16,15 @@ const AUTHORS = [
 ];
 
 const CATEGORIES = [
-  "anime",
-  "manga",
-  "culture",
+  "news",
   "travel",
-  "food",
-  "event",
-  "technology",
+  "culture",
+  "entertainment",
   "lifestyle",
-  "education",
-  "fun",
+  "work-in-japan",
+  "study-in-japan",
+  "review-produk",
+  "event",
 ];
 
 const TAG_POOL = [
