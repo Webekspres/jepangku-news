@@ -117,12 +117,12 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
   return (
     <section className="py-12 bg-jepang-navy text-white" data-testid="home-lms-teaser">
       <div className="px-4 mx-auto max-w-7xl">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8 pb-3 border-b border-white/10">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
             <p className="section-label mb-1 text-jepang-orange">学ぶ / BELAJAR BAHASA JEPANG</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
               <BookOpen size={32} strokeWidth={1.5} className="text-jepang-orange shrink-0" />
-              Belajar Bahasa Jepang
+              <span className="section-title-gradient">Belajar Bahasa Jepang</span>
             </h2>
             <p className="mt-2 text-sm text-zinc-300 max-w-2xl">
               Kursus JLPT interaktif dengan progress tracking — powered by Jepangku LMS.

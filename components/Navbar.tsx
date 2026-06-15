@@ -26,7 +26,6 @@ import {
   Award,
   LayoutDashboard,
   PenSquare,
-  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -183,6 +182,13 @@ export default function Navbar() {
 
       <div className="relative">
         {/* Lapisan 1 — navy: Buat Artikel */}
+        {/* TODO: hapus lapisan 1 dan ganti dengan sidebar tombol untuk membuka sidebar ada di lapisan ke 3 dan isi sidebar adalah
+        - iklan
+        - kategori
+        - sosial media
+        - daftar sebagai kontributor (jika sudah login dan sudah jadi kontributor ganti jadi buat artikel)
+        - jika sudah login maka akan ada tombol logout dan tombol profile
+        */}
         <div
           data-testid="navbar-layer-1"
           className={cn(
@@ -246,10 +252,10 @@ export default function Navbar() {
                 data-testid="navbar-logo"
               >
                 <Image
-                  src="/assets/images/logo/Logo-03.svg"
+                  src="/assets/images/logo/logo-04.svg"
                   alt="Jepangku Berita"
-                  width={140}
-                  height={48}
+                  width={160}
+                  height={42}
                   className="h-9 w-auto"
                   priority
                 />
@@ -421,6 +427,7 @@ export default function Navbar() {
         </div>
 
         {/* Lapisan 3 — kategori + search */}
+        {/* TODO: ganti warnanya jadi merah bukan orange dan tambahkan hamburger untuk membuka sidebar di samping kiri kategori dan di samping search button tambahkan sosial media icon */}
         <Suspense fallback={<NavbarLayerThreeSkeleton />}>
           <NavbarCategoryBar visible={layerThreeVisible} onSearchOpen={openSearch} />
         </Suspense>

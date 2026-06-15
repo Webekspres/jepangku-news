@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "components/Footer.tsx": {
-    "mtime": 1781167558.0664213,
-    "ast_hash": "4a1418cd04b3a4ac41167b08510da907",
+    "mtime": 1781497085.5703669,
+    "ast_hash": "4c00275147fd567e5d5e37f29e1ee525",
     "semantic_hash": ""
   },
   "components/InfoPageServer.tsx": {
@@ -850,8 +850,8 @@
     "semantic_hash": ""
   },
   "components/Navbar.tsx": {
-    "mtime": 1781244514.6940286,
-    "ast_hash": "a76b81a3b2b9ae282918e0f5762afa77",
+    "mtime": 1781497083.6247957,
+    "ast_hash": "a0ae8fca4718e3d14a961c000dc948f8",
     "semantic_hash": ""
   },
   "components/PopularTags.tsx": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "components/home/CategoryEditorialSection.tsx": {
-    "mtime": 1781245261.0456777,
-    "ast_hash": "db755d4d7bbf35736622f002ba13ae2c",
+    "mtime": 1781497089.7787027,
+    "ast_hash": "363f47f9478d1374108007d6010596e7",
     "semantic_hash": ""
   },
   "components/home/CategoryFeaturedColumn.tsx": {
@@ -945,18 +945,18 @@
     "semantic_hash": ""
   },
   "components/home/CategoryListColumn.tsx": {
-    "mtime": 1781230968.284376,
-    "ast_hash": "ac104f6f9a49c9320c1d794421bbede0",
+    "mtime": 1781497090.2276964,
+    "ast_hash": "d5fcbbee189c6917bc2a5741c24a13e4",
     "semantic_hash": ""
   },
   "components/home/HomeEngagementSection.tsx": {
-    "mtime": 1781252485.3487618,
-    "ast_hash": "1c4bad812de7058c763e1bbd6b6ef42e",
+    "mtime": 1781497102.2805986,
+    "ast_hash": "7264b19ac551ad19eca2c01942b7afb1",
     "semantic_hash": ""
   },
   "components/home/HomeFeedSection.tsx": {
-    "mtime": 1781230751.9549882,
-    "ast_hash": "2ffee5c5117cee1f0ca2a0af8c97cf2f",
+    "mtime": 1781497088.3802943,
+    "ast_hash": "ffc3baaf59692b4d5f2d346a79486ecb",
     "semantic_hash": ""
   },
   "components/home/HomeHero.tsx": {
@@ -965,8 +965,8 @@
     "semantic_hash": ""
   },
   "components/home/HomeLmsTeaser.tsx": {
-    "mtime": 1781234906.2729437,
-    "ast_hash": "6d4336098c3e3daf276726d62b0dab1b",
+    "mtime": 1781497103.4991834,
+    "ast_hash": "0763fbffffb43aae674f685a3807194b",
     "semantic_hash": ""
   },
   "components/home/HomePlaceholderSection.tsx": {
@@ -975,18 +975,18 @@
     "semantic_hash": ""
   },
   "components/home/HomeReactionsSection.tsx": {
-    "mtime": 1781235957.648865,
-    "ast_hash": "b57c0e5b97b86720e7e259e967db5e8a",
+    "mtime": 1781497092.2264822,
+    "ast_hash": "f9552da0c954fd8d25853e6908ae7217",
     "semantic_hash": ""
   },
   "components/home/HomeTodaySection.tsx": {
-    "mtime": 1781230762.6072996,
-    "ast_hash": "a9f76758e8625e94f104ea732cdc128b",
+    "mtime": 1781497089.099056,
+    "ast_hash": "c68155f1cc8878dd9dff0c40ab0da889",
     "semantic_hash": ""
   },
   "components/home/JepangkuTvSection.tsx": {
-    "mtime": 1781237741.497575,
-    "ast_hash": "d7646a87a26f5d3b011b51afcf3855d5",
+    "mtime": 1781497101.0703044,
+    "ast_hash": "03598a471bac72cf48300f0637ca0a15",
     "semantic_hash": ""
   },
   "components/home/LazySectionShell.tsx": {
@@ -1010,13 +1010,13 @@
     "semantic_hash": ""
   },
   "components/leaderboard/LeaderboardScore.tsx": {
-    "mtime": 1781252483.0283272,
-    "ast_hash": "7e2cf67398d704eb9dda4de3f3181af8",
+    "mtime": 1781492637.155158,
+    "ast_hash": "b3be1b0bb5e7ac4116a4975a6e893972",
     "semantic_hash": ""
   },
   "components/leaderboard/LeaderboardTableRow.tsx": {
-    "mtime": 1781254416.4849434,
-    "ast_hash": "6233bbd7b1e6fab374e297e1be74b96f",
+    "mtime": 1781254670.634541,
+    "ast_hash": "3a7ea694389ddcc4a83ff8198018bf88",
     "semantic_hash": ""
   },
   "components/navbar/NavbarAuthSkeleton.tsx": {
@@ -1025,8 +1025,8 @@
     "semantic_hash": ""
   },
   "components/navbar/NavbarCategoryBar.tsx": {
-    "mtime": 1781171733.1021717,
-    "ast_hash": "a430db110e5a6d2de8053c5c2111feaa",
+    "mtime": 1781497083.6247957,
+    "ast_hash": "cfb2f5d6480b1a82f2b8540186142ada",
     "semantic_hash": ""
   },
   "components/navbar/NavbarNotifications.tsx": {
@@ -1705,8 +1705,8 @@
     "semantic_hash": ""
   },
   "prisma/seeder/data/categories.js": {
-    "mtime": 1781230951.7516892,
-    "ast_hash": "50b7be39944cbacd123f33605bd70f14",
+    "mtime": 1781492452.8810158,
+    "ast_hash": "fa8074fd7fed28504b9fe2c9815ea039",
     "semantic_hash": ""
   },
   "prisma/seeder/data/clerk-test-emails.js": {
@@ -1860,8 +1860,8 @@
     "semantic_hash": ""
   },
   "docs/feature-status.md": {
-    "mtime": 1781253802.012139,
-    "ast_hash": "ba905ddb39a37f0606502ed9d61ddc1a",
+    "mtime": 1781497104.5903692,
+    "ast_hash": "74073a46a3a75dd4f2e547030653fbc6",
     "semantic_hash": ""
   },
   "docs/soft-launch-content.md": {
@@ -1917,6 +1917,21 @@
   "public/assets/images/logo/Logo-03.svg": {
     "mtime": 1780900496.0,
     "ast_hash": "ff57d05d2d3af392c7f45d6b8647f65e",
+    "semantic_hash": ""
+  },
+  "app/(public)/contributor/apply/page.tsx": {
+    "mtime": 1781497081.6046488,
+    "ast_hash": "f5417a323278625fef8e94e133b132ee",
+    "semantic_hash": ""
+  },
+  "lib/contributor.ts": {
+    "mtime": 1781497081.3957472,
+    "ast_hash": "2f30100fd1a035909d7f236cb0a32045",
+    "semantic_hash": ""
+  },
+  "public/assets/images/logo/logo-04.svg": {
+    "mtime": 1781491753.7739742,
+    "ast_hash": "aa5121a2dfe77625868c5b8dc9f8eca8",
     "semantic_hash": ""
   }
 }

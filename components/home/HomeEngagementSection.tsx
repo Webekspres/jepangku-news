@@ -148,13 +148,16 @@ export default function HomeEngagementSection({
   const leaderboard = data.leaderboard.slice(0, LEADERBOARD_LIMIT);
 
   return (
+
+    //  TODO: pindahkan section leaderboard ke sidebar dan section polling & kuis ke sebelah kirinya dengan layout kebawah, lebar bagian ini 3/4 lebar leaderboad 1/4
+    //  TODO: section leaderboard di sidebar adalah leaderboard peringkat minggu ini dan total poin HILANGKAN TEKS 
     <div data-testid="home-engagement-section">
       <section className="py-12">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
             <div>
               <p className="section-label mb-1">インタラクティブ / INTERAKTIF</p>
-              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
+              <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient">
                 Polling & Kuis
               </h2>
             </div>
@@ -253,12 +256,14 @@ export default function HomeEngagementSection({
 
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
             <div>
               <p className="small-caps text-jepang-red mb-1">ランキング / PERINGKAT</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
                 <Trophy size={32} strokeWidth={1.5} className="text-jepang-red" />
-                Papan Peringkat {data.leaderboardPeriodLabel}
+                <span className="section-title-gradient">
+                  Papan Peringkat {data.leaderboardPeriodLabel}
+                </span>
               </h2>
             </div>
             <Link
@@ -269,9 +274,6 @@ export default function HomeEngagementSection({
               SEMUA PERINGKAT <ArrowRight size={14} />
             </Link>
           </div>
-          <p className="text-xs text-jepang-muted mb-3 text-center md:text-left">
-            Format: poin minggu ini / total poin
-          </p>
           <div className="bg-white border border-jepang-border">
             {leaderboard.length > 0 ? (
               leaderboard.map((entry, idx) => (

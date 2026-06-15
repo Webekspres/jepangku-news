@@ -15,11 +15,11 @@ export default function CategoryListColumn({ column }: CategoryListColumnProps) 
       className="flex flex-col h-full border border-jepang-border bg-white p-5"
       data-testid={`editorial-list-${slug}`}
     >
-      <h3 className="font-heading font-black text-lg md:text-xl text-jepang-red tracking-tight mb-4 pb-3 border-b border-jepang-border">
+      <h3 className="font-heading font-black text-lg md:text-xl text-jepang-red tracking-tight mb-4 pb-3 border-b-2 border-jepang-red">
         {title}
       </h3>
 
-      <ul className="flex-1 space-y-0">
+      <ul className="flex-1 space-y-0 list-disc list-outside pl-4 marker:text-jepang-red">
         {articles.map((article) => (
           <li
             key={article.id}

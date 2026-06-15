@@ -57,12 +57,12 @@ export default function HomeFeedSection({
       aria-labelledby="home-feed-heading"
     >
       <div className="px-4 mx-auto max-w-7xl">
-        <div className="flex items-end justify-between gap-4 mb-6 md:mb-8 pb-3 border-b border-jepang-border">
+        <div className="flex items-end justify-between gap-4 mb-6 md:mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
             <p className="small-caps text-jepang-red mb-1">特集 / UNGGULAN</p>
             <h2
               id="home-feed-heading"
-              className="font-heading font-black text-3xl md:text-4xl tracking-tighter"
+              className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient"
             >
               Berita Pilihan & Trending
             </h2>

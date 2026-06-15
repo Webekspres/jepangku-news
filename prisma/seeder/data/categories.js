@@ -1,3 +1,4 @@
+// TODO: sesuaikan dengan softlaunch konten dan update sidebar
 const CATEGORIES_DATA = [
   { name: 'Anime',      slug: 'anime',      color: '#D90429' },
   { name: 'Manga',      slug: 'manga',      color: '#0A0A0A' },
@@ -12,5 +13,6 @@ const CATEGORIES_DATA = [
   { name: 'Entertainment', slug: 'entertainment', color: '#D90429' },
   { name: 'Halal In Japan', slug: 'halal-in-japan', color: '#0A0A0A' },
 ];
+
 
 module.exports = { CATEGORIES_DATA };

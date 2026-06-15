@@ -73,12 +73,12 @@ export default function HomeReactionsSection({
   return (
     <section className="py-12 bg-jepang-off-white" data-testid="home-reactions-section">
       <div className="px-4 mx-auto max-w-7xl">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8 pb-3 border-b border-jepang-border">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
             <p className="section-label mb-1">リアクション / REAKSI</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
               <Smile size={32} strokeWidth={1.5} className="text-jepang-red shrink-0" />
-              Reaksi Komunitas
+              <span className="section-title-gradient">Reaksi Komunitas</span>
             </h2>
             <p className="mt-2 text-sm text-jepang-muted">
               Artikel paling direaksi komunitas — {periodLabel}.

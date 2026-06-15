@@ -140,12 +140,12 @@ export default function JepangkuTvSection({
     return (
       <section className="py-12 bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl">
-          <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+          <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
             <div>
               <p className="section-label mb-1">テレビ / JEPANGKU TV</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
                 <Tv size={32} strokeWidth={1.5} className="text-jepang-red" />
-                Jepangku TV
+                <span className="section-title-gradient">Jepangku TV</span>
               </h2>
             </div>
           </div>
@@ -162,12 +162,12 @@ export default function JepangkuTvSection({
   return (
     <section className="py-12 bg-jepang-off-white" data-testid="jepangku-tv-section">
       <div className="px-4 mx-auto max-w-7xl">
-        <div className="flex items-end justify-between mb-8 pb-3 border-b border-jepang-border">
+        <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
             <p className="section-label mb-1">テレビ / JEPANGKU TV</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
               <Tv size={32} strokeWidth={1.5} className="text-jepang-red" />
-              Jepangku TV
+              <span className="section-title-gradient">Jepangku TV</span>
             </h2>
           </div>
           <Link

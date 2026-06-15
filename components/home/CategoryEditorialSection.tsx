@@ -64,11 +64,11 @@ export default function CategoryEditorialSection({
       aria-labelledby="home-editorial-heading"
     >
       <div className="px-4 mx-auto max-w-7xl">
-        <div className="mb-6 md:mb-8 pb-3 border-b border-jepang-border">
+        <div className="mb-6 md:mb-8 pb-3 border-b-2 border-jepang-red">
           <p className="small-caps text-jepang-red mb-1">カテゴリ / KATEGORI</p>
           <h2
             id="home-editorial-heading"
-            className="font-heading font-black text-3xl md:text-4xl tracking-tighter"
+            className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient"
           >
             Jelajahi Topik Populer
           </h2>

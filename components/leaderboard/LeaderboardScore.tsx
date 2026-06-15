@@ -60,14 +60,6 @@ export default function LeaderboardScore({
           {totalPoints}
         </span>
       </div>
-      <p className={`text-[10px] uppercase tracking-wider ${mutedClass} mt-0.5`}>
-        {periodLabel}
-      </p>
-      {!inverted ? (
-        <p className="text-[10px] text-jepang-muted">
-          angka kanan = total poin
-        </p>
-      ) : null}
     </div>
   );
 }

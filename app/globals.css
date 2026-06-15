@@ -186,6 +186,22 @@ code {
   color: var(--color-jepang-red);
 }
 
+.section-title-gradient {
+  background: linear-gradient(
+    90deg,
+    var(--color-jepang-red) 0%,
+    var(--color-jepang-orange) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-section-header {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--color-jepang-red);
+}
+
 .small-caps {
   font-size: 0.75rem;
   font-weight: 600;

@@ -21,10 +21,10 @@ export default function HomeTodaySection({
   return (
     <section className="py-10 md:py-12 bg-jepang-off-white border-t border-jepang-border">
       <div className="px-4 mx-auto max-w-7xl">
-        <div className="flex items-end justify-between gap-4 mb-6 md:mb-8 pb-3 border-b border-jepang-border">
+        <div className="flex items-end justify-between gap-4 mb-6 md:mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
             <p className="small-caps text-jepang-red mb-1">今日 / HARI INI</p>
-            <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter">
+            <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient">
               Artikel Hari Ini
             </h2>
             {!loading && todaySource === "fallback" ? (

@@ -28,7 +28,7 @@ export default function LeaderboardTableRow({
     <div
       className={`flex items-center gap-4 px-6 py-4 border-b border-jepang-border last:border-b-0 ${
         isCurrentUser
-          ? "bg-gradient-to-r from-jepang-red/8 via-purple-50/80 to-jepang-red/5"
+          ? "bg-linear-to-r from-jepang-red/8 via-purple-50/80 to-jepang-red/5"
           : entry.rank <= 3
             ? "bg-jepang-off-white"
             : ""

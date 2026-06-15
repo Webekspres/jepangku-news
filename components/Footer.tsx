@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
+import { CONTRIBUTOR_APPLY_PATH } from "@/lib/contributor";
 
 export default function Footer() {
   const { user, loading, logout, isSignedIn } = useAuth();
@@ -212,10 +213,10 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/submit-article"
+                      href={CONTRIBUTOR_APPLY_PATH}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Kirim Artikel
+                      Daftar sebagai Kontributor
                     </Link>
                   </li>
                 </>
@@ -239,10 +240,10 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/submit-article"
+                      href={CONTRIBUTOR_APPLY_PATH}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Kirim Artikel
+                      Daftar sebagai Kontributor
                     </Link>
                   </li>
                 </>

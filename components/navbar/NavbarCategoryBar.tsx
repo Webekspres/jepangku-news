@@ -29,7 +29,7 @@ export default function NavbarCategoryBar({
         "w-full overflow-hidden transition-all duration-500 ease-out",
         visible ? "max-h-12 opacity-100" : "max-h-0 opacity-0",
       )}
-      style={{ backgroundColor: "var(--color-jepang-orange)" }}
+      style={{ backgroundColor: "var(--color-jepang-red)" }}
     >
       <div className="mx-auto flex h-10 max-w-7xl items-center justify-between gap-3 px-4">
         <nav
