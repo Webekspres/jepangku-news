@@ -59,10 +59,12 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3001/ || exit 1
 CMD ["node", "server.js"]
-# ========== MIGRATE ONLY (separate image) ==========
+# ========== MIGRATE + SEED (separate image) ==========
 FROM oven/bun:1 AS migrator
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY prisma ./prisma
 COPY prisma.config.ts package.json bun.lock ./
+ENV DATABASE_URL=postgresql://build:build@localhost:5432/build
+RUN bunx prisma generate
 ENTRYPOINT ["bunx", "prisma", "migrate", "deploy"]
