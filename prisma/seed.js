@@ -106,7 +106,10 @@ async function main() {
   const adminId =
     clerkByEmail.get(adminEmail.toLowerCase()) || "seed_admin_jepangku";
 
-  let admin = await prisma.user.findUnique({ where: { id: adminId } });
+  let admin =
+    (await prisma.user.findUnique({ where: { id: adminId } })) ||
+    (await prisma.user.findUnique({ where: { email: adminEmail } })) ||
+    (await prisma.user.findUnique({ where: { username: "admin" } }));
   if (!admin) {
     admin = await prisma.user.create({
       data: {
@@ -126,7 +129,7 @@ async function main() {
     });
     console.log(`✅ Created admin: ${adminEmail} (${adminId})`);
   } else {
-    console.log(`⏭  Admin already exists: ${adminEmail}`);
+    console.log(`⏭  Admin already exists: ${adminEmail} (${admin.id})`);
   }
 
   // ── 2. Sample users (Clerk ID or seed_* for dev content) ─────────────
