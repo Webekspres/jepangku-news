@@ -1,19 +1,17 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Eye,
-  PenSquare,
   Save,
   Upload,
   Globe,
   FileText,
 } from "lucide-react";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -227,31 +225,13 @@ export default function AdminCreateArticlePage() {
   };
 
   return (
-    <div
-      className="bg-white min-h-screen"
-      data-testid="admin-article-create-page"
+    <AdminPageLayout
+      testId="admin-article-create-page"
+      backHref="/admin/articles"
+      backLabel="Kembali ke Artikel"
+      title="Buat Artikel"
+      subtitle="Konten redaksi dapat langsung dipublikasikan tanpa antrian review."
     >
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <Link
-            href="/admin/articles"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Artikel
-          </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2 flex items-center gap-2">
-            <PenSquare size={14} /> ADMIN
-          </p>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Buat Artikel
-          </h1>
-          <p className="text-jepang-muted mt-2 max-w-2xl">
-            Konten redaksi dapat langsung dipublikasikan tanpa antrian review.
-          </p>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">
@@ -416,7 +396,6 @@ export default function AdminCreateArticlePage() {
             />
           </div>
         </div>
-      </div>
-    </div>
+    </AdminPageLayout>
   );
 }

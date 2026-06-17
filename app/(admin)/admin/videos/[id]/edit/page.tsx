@@ -1,14 +1,13 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminVideoEditPage() {
@@ -90,8 +89,7 @@ export default function AdminVideoEditPage() {
       backHref="/admin/videos"
       backLabel="Daftar Video"
     >
-      <Card>
-        <CardContent className="pt-6">
+      <AdminCard>
           <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
             <div>
               <label className="block text-sm font-semibold mb-1.5">Judul *</label>
@@ -167,8 +165,7 @@ export default function AdminVideoEditPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+      </AdminCard>
     </AdminPageShell>
   );
 }

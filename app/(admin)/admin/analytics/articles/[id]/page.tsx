@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
@@ -47,6 +46,7 @@ function ArticleAnalyticsContent() {
           ? `Periode: ${data.periodLabel}. Total views = semua kunjungan halaman. Unique visitors = pengunjung unik (user login atau anonim terpisah).`
           : undefined
       }
+      label="Analytics"
       backHref="/admin/analytics/content"
       backLabel="Kembali ke Performa Artikel"
     >

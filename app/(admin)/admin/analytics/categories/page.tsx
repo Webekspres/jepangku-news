@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -32,6 +31,7 @@ export default function CategoryAnalyticsPage() {
     <AdminPageShell
       title="Statistik per Kategori"
       subtitle="Agregat lifetime artikel published per kategori. Engagement = bookmark + share yang tercatat pada artikel di kategori tersebut."
+      label="Analytics"
     >
       <AnalyticsNav />
 

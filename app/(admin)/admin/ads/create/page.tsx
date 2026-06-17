@@ -1,13 +1,12 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { AD_SLOT_POSITIONS } from "@/lib/ads/constants";
 
 export default function AdminAdCreatePage() {
@@ -63,8 +62,7 @@ export default function AdminAdCreatePage() {
       backHref="/admin/ads"
       backLabel="Daftar Banner"
     >
-      <Card>
-        <CardContent className="pt-6">
+      <AdminCard>
           <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
             <div>
               <label className="block text-sm font-semibold mb-1.5">Slot posisi *</label>
@@ -165,8 +163,7 @@ export default function AdminAdCreatePage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+      </AdminCard>
     </AdminPageShell>
   );
 }

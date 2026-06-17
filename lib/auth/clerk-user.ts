@@ -66,7 +66,8 @@ async function loginSyncData(
 
   return {
     email,
-    avatarUrl: clerkUser.imageUrl ?? currentAvatarUrl,
+    // Portal custom avatar (R2) menang atas foto default Clerk.
+    avatarUrl: currentAvatarUrl ?? clerkUser.imageUrl ?? null,
     lastLoginAt: new Date(),
     ...(profile?.displayName ? { name: profile.displayName } : {}),
     ...extra,

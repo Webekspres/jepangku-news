@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -37,6 +36,7 @@ export default function QuizAnalyticsPage() {
     <AdminPageShell
       title={quiz ? `Kuis: ${quiz.title}` : "Statistik Kuis"}
       subtitle="Pass rate = persentase attempt dengan ≥70% jawaban benar. Distribusi skor berdasarkan rasio benar/total pertanyaan."
+      label="Analytics"
       backHref="/admin/quizzes"
       backLabel="Kembali ke Daftar Kuis"
     >

@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -13,7 +12,8 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import AdminStatCards from "@/components/admin/AdminStatCards";
 import DashboardCharts from "@/components/admin/DashboardCharts";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -76,10 +76,12 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-dashboard">
-      <div className="w-full px-4 lg:px-6 py-12">
+    <AdminPageLayout
+      testId="admin-dashboard"
+      title="Dashboard"
+      subtitle="Ringkasan portal Jepangku Berita"
+    >
         <AdminStatCards
-          className="mb-12"
           loading={!stats}
           skeletonCount={6}
           items={statCards.map((stat) => ({
@@ -91,7 +93,7 @@ export default function AdminDashboard() {
           }))}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             href="/admin/articles/create"
             className="bg-foreground text-white p-6 hover:opacity-90 transition-opacity"
@@ -145,12 +147,11 @@ export default function AdminDashboard() {
 
         <DashboardCharts charts={stats?.charts ?? null} loading={!stats} />
 
-        <Card className="border border-foreground">
-          <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3 flex flex-row items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              ARTIKEL MENUNGGU REVIEW TERBARU
-            </p>
-
+        <AdminCard
+          variant="list"
+          title="ARTIKEL MENUNGGU REVIEW TERBARU"
+          noPadding
+          headerAction={
             <Link
               href="/admin/articles/review"
               className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
@@ -158,9 +159,8 @@ export default function AdminDashboard() {
             >
               Lihat Semua →
             </Link>
-          </CardHeader>
-
-          <CardContent className="p-0">
+          }
+        >
             {pendingArticles.length === 0 && stats ? (
               <p className="p-6 text-center text-jepang-muted text-sm">
                 Tidak ada artikel yang menunggu review
@@ -211,9 +211,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+    </AdminPageLayout>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import SectionHeader from "@/components/SectionHeader";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminPagination from "@/components/admin/AdminPagination";
+import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import AdminTrendChart from "@/components/admin/AdminTrendChart";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { Button } from "@/components/ui/button";
@@ -70,171 +73,135 @@ export default function AdminActivityLogPage() {
   }, [growthPeriod, growthGranularity]);
 
   return (
-    <div className="w-full px-4 py-8 lg:px-6" data-testid="admin-activity-log">
-      <SectionHeader
-        label="管理 / ADMIN"
-        title="Audit Log"
-        subtitle="Riwayat persetujuan/penolakan artikel dan kontributor"
-        className="border-b border-jepang-border bg-jepang-navy text-white"
-        fullWidth
-      />
-
-      <div className="py-8 space-y-8">
-        <Card>
-          <CardContent className="p-5 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-heading font-bold text-lg">Pertumbuhan Pengguna</h2>
-              <div className="flex flex-wrap gap-2">
-                {GROWTH_PERIODS.map((option) => (
-                  <Button
-                    key={option.value}
-                    size="sm"
-                    variant={growthPeriod === option.value ? "default" : "outline"}
-                    onClick={() => setGrowthPeriod(option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-                <Button
-                  size="sm"
-                  variant={growthGranularity === "week" ? "default" : "outline"}
-                  onClick={() =>
-                    setGrowthGranularity((g) => (g === "day" ? "week" : "day"))
-                  }
-                >
-                  {growthGranularity === "day" ? "Per Hari" : "Per Minggu"}
-                </Button>
+    <AdminPageLayout
+      testId="admin-activity-log"
+      title="Audit Log"
+      subtitle="Riwayat persetujuan/penolakan artikel dan kontributor"
+    >
+      <AdminCard
+        title="Pertumbuhan Pengguna"
+        variant="panel"
+        headerAction={
+          <div className="flex flex-wrap gap-2">
+            <AdminFilterButtons
+              options={GROWTH_PERIODS}
+              value={growthPeriod}
+              onChange={setGrowthPeriod}
+            />
+            <Button
+              size="sm"
+              variant={growthGranularity === "week" ? "default" : "outline"}
+              onClick={() =>
+                setGrowthGranularity((g) => (g === "day" ? "week" : "day"))
+              }
+            >
+              {growthGranularity === "day" ? "Per Hari" : "Per Minggu"}
+            </Button>
+          </div>
+        }
+      >
+        {growth && (
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-jepang-muted">
+                  Total Pengguna
+                </p>
+                <p className="font-mono font-black text-3xl">
+                  {growth.totalUsers.toLocaleString("id-ID")}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wider text-jepang-muted">
+                  Baru di Periode
+                </p>
+                <p className="font-mono font-black text-3xl">
+                  {growth.newInPeriod.toLocaleString("id-ID")}
+                </p>
               </div>
             </div>
-            {growth && (
-              <>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-jepang-muted">
-                      Total Pengguna
-                    </p>
-                    <p className="font-mono font-black text-3xl">
-                      {growth.totalUsers.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-jepang-muted">
-                      Baru di Periode
-                    </p>
-                    <p className="font-mono font-black text-3xl">
-                      {growth.newInPeriod.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                </div>
-                <AdminTrendChart
-                  data={growth.series}
-                  valueLabel="Registrasi"
-                  color="#171717"
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+            <AdminTrendChart
+              data={growth.series}
+              valueLabel="Registrasi"
+              color="#171717"
+            />
+          </div>
+        )}
+      </AdminCard>
 
-        <div className="flex flex-wrap gap-2">
-          {TYPE_FILTERS.map((filter) => (
-            <Button
-              key={filter.value || "all"}
-              size="sm"
-              variant={type === filter.value ? "default" : "outline"}
-              onClick={() => {
-                setType(filter.value);
-                setPage(1);
-              }}
-            >
-              {filter.label}
-            </Button>
+      <AdminToolbar>
+        <AdminFilterButtons
+          options={TYPE_FILTERS}
+          value={type}
+          onChange={(value) => {
+            setType(value);
+            setPage(1);
+          }}
+        />
+      </AdminToolbar>
+
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <SkeletonBox key={i} height="5rem" width="100%" />
           ))}
         </div>
-
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonBox key={i} height="5rem" width="100%" />
-            ))}
-          </div>
-        ) : entries.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-sm text-jepang-muted">
-              Belum ada entri audit log.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {entries.map((entry) => (
-              <Card key={entry.id}>
-                <CardContent className="p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className={TYPE_BADGE[entry.type] ?? ""}>
-                          {entry.type === "article_review" ? "Artikel" : "Kontributor"}
-                        </Badge>
-                        <span className="text-sm font-semibold text-jepang-navy">
-                          {entry.action}
-                        </span>
-                      </div>
-                      <p className="text-sm text-jepang-muted">
-                        oleh <strong>{entry.actor.name}</strong> (@{entry.actor.username})
-                      </p>
-                      <p className="text-sm">
-                        Target:{" "}
-                        {entry.target.href ? (
-                          <Link
-                            href={entry.target.href}
-                            className="text-jepang-orange hover:underline"
-                          >
-                            {entry.target.label}
-                          </Link>
-                        ) : (
-                          entry.target.label
-                        )}
-                      </p>
-                      {entry.note && (
-                        <p className="text-sm text-jepang-muted whitespace-pre-wrap mt-2">
-                          Catatan: {entry.note}
-                        </p>
-                      )}
+      ) : entries.length === 0 ? (
+        <AdminCard variant="panel">
+          <AdminEmptyState title="Belum ada entri audit log." />
+        </AdminCard>
+      ) : (
+        <div className="space-y-3">
+          {entries.map((entry) => (
+            <Card key={entry.id}>
+              <CardContent className="p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className={TYPE_BADGE[entry.type] ?? ""}>
+                        {entry.type === "article_review" ? "Artikel" : "Kontributor"}
+                      </Badge>
+                      <span className="text-sm font-semibold text-jepang-navy">
+                        {entry.action}
+                      </span>
                     </div>
-                    <p className="text-xs text-jepang-muted font-mono">
-                      {new Date(entry.occurredAt).toLocaleString("id-ID")}
+                    <p className="text-sm text-jepang-muted">
+                      oleh <strong>{entry.actor.name}</strong> (@{entry.actor.username})
                     </p>
+                    <p className="text-sm">
+                      Target:{" "}
+                      {entry.target.href ? (
+                        <Link
+                          href={entry.target.href}
+                          className="text-jepang-orange hover:underline"
+                        >
+                          {entry.target.label}
+                        </Link>
+                      ) : (
+                        entry.target.label
+                      )}
+                    </p>
+                    {entry.note && (
+                      <p className="text-sm text-jepang-muted whitespace-pre-wrap mt-2">
+                        Catatan: {entry.note}
+                      </p>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  <p className="text-xs text-jepang-muted font-mono">
+                    {new Date(entry.occurredAt).toLocaleString("id-ID")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Sebelumnya
-            </Button>
-            <span className="text-xs text-jepang-muted">
-              Halaman {page} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
+      <AdminPagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+    </AdminPageLayout>
   );
 }

@@ -1,14 +1,16 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Star, Tv } from "lucide-react";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -43,6 +45,13 @@ const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draf",
   ARCHIVED: "Arsip",
 };
+
+const STATUS_FILTERS = [
+  { value: "", label: "Semua" },
+  { value: "DRAFT", label: "Draf" },
+  { value: "PUBLISHED", label: "Terbit" },
+  { value: "ARCHIVED", label: "Arsip" },
+];
 
 export default function AdminVideosPage() {
   const [videos, setVideos] = useState<AdminVideo[]>([]);
@@ -116,126 +125,124 @@ export default function AdminVideosPage() {
   };
 
   return (
-    <div className="w-full px-4 py-8 lg:px-6" data-testid="admin-videos-page">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <p className="section-label mb-1">Konten</p>
-          <h1 className="font-heading font-black text-3xl tracking-tighter flex items-center gap-2">
-            <Tv size={28} className="text-jepang-red" />
-            Jepangku TV
-          </h1>
-        </div>
-        <Button onClick={() => router.push("/admin/videos/create")} data-testid="create-video-btn">
-          <Plus size={16} className="mr-2" />
-          Tambah Video
-        </Button>
-      </div>
-
-      <Card className="mb-6 p-4">
-        <div className="flex flex-wrap gap-2">
-          {["", "DRAFT", "PUBLISHED", "ARCHIVED"].map((s) => (
-            <button
-              key={s || "all"}
-              type="button"
-              onClick={() => setStatusFilter(s)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider border transition-colors ${
-                statusFilter === s
-                  ? "bg-jepang-navy text-white border-jepang-navy"
-                  : "border-jepang-border hover:border-jepang-navy"
-              }`}
-            >
-              {s ? STATUS_LABEL[s] : "Semua"}
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        {loading ? (
-          <div className="p-6 space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <SkeletonBox key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : videos.length === 0 ? (
-          <div className="p-12 text-center text-jepang-muted">
-            Belum ada video. Tambah video pertama!
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Judul</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {videos.map((video) => (
-                <TableRow key={video.id} data-testid={`admin-video-row-${video.id}`}>
-                  <TableCell>
-                    <div className="min-w-0">
-                      <p className="font-semibold line-clamp-1">{video.title}</p>
-                      <p className="text-xs text-jepang-muted font-mono">{video.youtubeId}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_BADGE[video.status] ?? "muted"}>
-                      {STATUS_LABEL[video.status] ?? video.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleFeatured(video)}
-                      className={`p-1 rounded transition-colors ${
-                        video.isFeatured ? "text-jepang-red" : "text-jepang-muted hover:text-jepang-red"
-                      }`}
-                      title={video.isFeatured ? "Hapus featured" : "Jadikan featured"}
-                      disabled={video.status !== "PUBLISHED"}
-                    >
-                      <Star size={16} fill={video.isFeatured ? "currentColor" : "none"} />
-                    </button>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{video.viewCount}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {video.status === "DRAFT" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handlePublish(video.id, video.title)}
-                        >
-                          Terbitkan
-                        </Button>
-                      )}
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link href={`/admin/videos/${video.id}/edit`}>
-                          <Pencil size={14} />
-                        </Link>
-                      </Button>
-                      {video.status === "DRAFT" && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-jepang-red hover:text-jepang-red"
-                          onClick={() => handleDelete(video.id, video.title)}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
-
+    <>
       <ConfirmModal {...confirmProps} />
-    </div>
+
+      <AdminPageLayout
+        testId="admin-videos-page"
+        label="Konten"
+        title={
+          <>
+            <Tv size={28} className="inline mr-2 text-jepang-red" />
+            Jepangku TV
+          </>
+        }
+        headerActions={
+          <Button onClick={() => router.push("/admin/videos/create")} data-testid="create-video-btn">
+            <Plus size={16} className="mr-2" />
+            Tambah Video
+          </Button>
+        }
+      >
+        <AdminToolbar>
+          <AdminFilterButtons
+            options={STATUS_FILTERS}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </AdminToolbar>
+
+        <AdminCard
+          title={`${loading ? "..." : videos.length} VIDEO`}
+          variant="list"
+          noPadding
+        >
+          {loading ? (
+            <div className="p-6 space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <SkeletonBox key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : videos.length === 0 ? (
+            <AdminEmptyState
+              icon={Tv}
+              title="Belum ada video"
+              description="Tambah video pertama!"
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Judul</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>Views</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {videos.map((video) => (
+                  <TableRow key={video.id} data-testid={`admin-video-row-${video.id}`}>
+                    <TableCell>
+                      <div className="min-w-0">
+                        <p className="font-semibold line-clamp-1">{video.title}</p>
+                        <p className="text-xs text-jepang-muted font-mono">{video.youtubeId}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_BADGE[video.status] ?? "muted"}>
+                        {STATUS_LABEL[video.status] ?? video.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFeatured(video)}
+                        className={`p-1 rounded transition-colors ${
+                          video.isFeatured ? "text-jepang-red" : "text-jepang-muted hover:text-jepang-red"
+                        }`}
+                        title={video.isFeatured ? "Hapus featured" : "Jadikan featured"}
+                        disabled={video.status !== "PUBLISHED"}
+                      >
+                        <Star size={16} fill={video.isFeatured ? "currentColor" : "none"} />
+                      </button>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{video.viewCount}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        {video.status === "DRAFT" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePublish(video.id, video.title)}
+                          >
+                            Terbitkan
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" asChild>
+                          <Link href={`/admin/videos/${video.id}/edit`}>
+                            <Pencil size={14} />
+                          </Link>
+                        </Button>
+                        {video.status === "DRAFT" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-jepang-red hover:text-jepang-red"
+                            onClick={() => handleDelete(video.id, video.title)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </AdminCard>
+      </AdminPageLayout>
+    </>
   );
 }

@@ -1,14 +1,15 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Zap, Trash2, BarChart2 } from "lucide-react";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -103,46 +104,37 @@ export default function AdminQuizzesPage() {
   };
 
   const filters = [
-    { v: "", l: "Semua" },
-    { v: "ACTIVE", l: "Aktif" },
-    { v: "DRAFT", l: "Draf" },
-    { v: "INACTIVE", l: "Tidak Aktif" },
+    { value: "", label: "Semua", testId: "quiz-filter-all" },
+    { value: "ACTIVE", label: "Aktif", testId: "quiz-filter-ACTIVE" },
+    { value: "DRAFT", label: "Draf", testId: "quiz-filter-DRAFT" },
+    { value: "INACTIVE", label: "Tidak Aktif", testId: "quiz-filter-INACTIVE" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-quizzes-page">
+    <>
       <ConfirmModal {...confirmProps} />
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="font-heading font-black text-4xl tracking-tighter">
-              Semua Kuis
-            </h1>
-            <Button asChild size="sm" data-testid="create-quiz-btn">
-              <Link href="/admin/quizzes/create">
-                <Plus size={14} className="mr-1" /> Buat Kuis
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
 
-      <div className="w-full px-4 lg:px-6 py-8">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {filters.map((s) => (
-            <Button
-              key={s.v}
-              size="sm"
-              variant={filter === s.v ? "black" : "outline"}
-              onClick={() => setFilter(s.v)}
-              data-testid={`quiz-filter-${s.v || "all"}`}
-            >
-              {s.l}
-            </Button>
-          ))}
-        </div>
+      <AdminPageLayout
+        testId="admin-quizzes-page"
+        title="Semua Kuis"
+        headerActions={
+          <Button asChild size="sm" data-testid="create-quiz-btn">
+            <Link href="/admin/quizzes/create">
+              <Plus size={14} className="mr-1" /> Buat Kuis
+            </Link>
+          </Button>
+        }
+      >
+        <AdminToolbar>
+          <AdminFilterButtons options={filters} value={filter} onChange={setFilter} />
+        </AdminToolbar>
 
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading && quizzes.length === 0 ? "..." : quizzes.length} KUIS`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -267,8 +259,8 @@ export default function AdminQuizzesPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+      </AdminPageLayout>
+    </>
   );
 }

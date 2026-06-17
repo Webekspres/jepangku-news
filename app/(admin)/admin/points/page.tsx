@@ -1,8 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import SectionHeader from "@/components/SectionHeader";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import AdminTrendChart from "@/components/admin/AdminTrendChart";
 import PointTransactionDetailModal from "@/components/admin/PointTransactionDetailModal";
 import SimpleBarChart from "@/components/admin/SimpleBarChart";
@@ -48,121 +49,101 @@ export default function AdminPointsPage() {
   }, [period]);
 
   return (
-    <div className="w-full px-4 py-8 lg:px-6" data-testid="admin-points">
-      <SectionHeader
-        label="管理 / ADMIN"
-        title="Transaksi Poin"
-        subtitle="Ringkasan poin yang diaward ke pengguna"
-        className="border-b border-jepang-border bg-jepang-navy text-white"
-        fullWidth
-      />
+    <AdminPageLayout
+      testId="admin-points"
+      title="Transaksi Poin"
+      subtitle="Ringkasan poin yang diaward ke pengguna"
+    >
+      <AdminToolbar>
+        <AdminFilterButtons
+          options={PERIODS}
+          value={period}
+          onChange={setPeriod}
+        />
+      </AdminToolbar>
 
-      <div className="py-8 space-y-6">
-        <div className="flex flex-wrap gap-2">
-          {PERIODS.map((option) => (
-            <Button
-              key={option.value}
-              size="sm"
-              variant={period === option.value ? "default" : "outline"}
-              onClick={() => setPeriod(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
-        </div>
-
-        {loading ? (
-          <SkeletonBox height="24rem" width="100%" />
-        ) : data ? (
-          <>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardContent className="p-5">
-                  <p className="text-xs uppercase tracking-wider text-jepang-muted">
-                    Total Poin Diaward
-                  </p>
-                  <p className="font-mono font-black text-4xl mt-2">
-                    {data.totalPoints.toLocaleString("id-ID")}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-5">
-                  <p className="text-xs uppercase tracking-wider text-jepang-muted">
-                    Jumlah Transaksi
-                  </p>
-                  <p className="font-mono font-black text-4xl mt-2">
-                    {data.transactionCount.toLocaleString("id-ID")}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardContent className="p-5">
-                  <h2 className="font-heading font-bold text-lg mb-4">Poin per Hari</h2>
-                  <AdminTrendChart
-                    data={data.pointsByDay}
-                    valueLabel="Poin"
-                    color="#c41e3a"
-                  />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-5">
-                  <h2 className="font-heading font-bold text-lg mb-4">Breakdown Tipe Aktivitas</h2>
-                  <SimpleBarChart
-                    data={data.breakdown.map((row) => ({
-                      label: row.label,
-                      value: row.totalPoints,
-                      subLabel: `${row.count}×`,
-                    }))}
-                    valueLabel="Total poin"
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
+      {loading ? (
+        <SkeletonBox height="24rem" width="100%" />
+      ) : data ? (
+        <>
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
-              <CardContent className="p-0 divide-y divide-jepang-border">
-                <div className="px-5 py-4 border-b border-jepang-border">
-                  <h2 className="font-heading font-bold text-lg">Transaksi Terbaru</h2>
-                </div>
-                {data.recentTransactions.length === 0 ? (
-                  <p className="p-8 text-center text-sm text-jepang-muted">
-                    Belum ada transaksi pada periode ini.
-                  </p>
-                ) : (
-                  data.recentTransactions.map((tx) => (
-                    <div key={tx.id} className="flex items-center gap-4 p-4 text-sm">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold">{tx.activityLabel}</p>
-                        <p className="text-xs text-jepang-muted truncate">
-                          {tx.source.label} · {tx.user.name} ·{" "}
-                          {new Date(tx.occurredAt).toLocaleString("id-ID")}
-                        </p>
-                      </div>
-                      <p className="font-mono font-bold text-jepang-red shrink-0">
-                        +{tx.points}
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() => setSelectedTx(tx)}
-                        data-testid={`point-tx-detail-${tx.id}`}
-                      >
-                        Detail
-                      </Button>
-                    </div>
-                  ))
-                )}
+              <CardContent className="p-5">
+                <p className="text-xs uppercase tracking-wider text-jepang-muted">
+                  Total Poin Diaward
+                </p>
+                <p className="font-mono font-black text-4xl mt-2">
+                  {data.totalPoints.toLocaleString("id-ID")}
+                </p>
               </CardContent>
             </Card>
-          </>
-        ) : null}
-      </div>
+            <Card>
+              <CardContent className="p-5">
+                <p className="text-xs uppercase tracking-wider text-jepang-muted">
+                  Jumlah Transaksi
+                </p>
+                <p className="font-mono font-black text-4xl mt-2">
+                  {data.transactionCount.toLocaleString("id-ID")}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <AdminCard title="Poin per Hari" variant="panel">
+              <AdminTrendChart
+                data={data.pointsByDay}
+                valueLabel="Poin"
+                color="#c41e3a"
+              />
+            </AdminCard>
+            <AdminCard title="Breakdown Tipe Aktivitas" variant="panel">
+              <SimpleBarChart
+                data={data.breakdown.map((row) => ({
+                  label: row.label,
+                  value: row.totalPoints,
+                  subLabel: `${row.count}×`,
+                }))}
+                valueLabel="Total poin"
+              />
+            </AdminCard>
+          </div>
+
+          <AdminCard title="Transaksi Terbaru" variant="panel" noPadding>
+            {data.recentTransactions.length === 0 ? (
+              <p className="p-8 text-center text-sm text-jepang-muted">
+                Belum ada transaksi pada periode ini.
+              </p>
+            ) : (
+              <div className="divide-y divide-jepang-border">
+                {data.recentTransactions.map((tx) => (
+                  <div key={tx.id} className="flex items-center gap-4 p-4 text-sm">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold">{tx.activityLabel}</p>
+                      <p className="text-xs text-jepang-muted truncate">
+                        {tx.source.label} · {tx.user.name} ·{" "}
+                        {new Date(tx.occurredAt).toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                    <p className="font-mono font-bold text-jepang-red shrink-0">
+                      +{tx.points}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => setSelectedTx(tx)}
+                      data-testid={`point-tx-detail-${tx.id}`}
+                    >
+                      Detail
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </AdminCard>
+        </>
+      ) : null}
 
       <PointTransactionDetailModal
         transaction={selectedTx}
@@ -171,6 +152,6 @@ export default function AdminPointsPage() {
           if (!open) setSelectedTx(null);
         }}
       />
-    </div>
+    </AdminPageLayout>
   );
 }

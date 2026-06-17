@@ -15,10 +15,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import AvatarCropModal from "@/components/profile/AvatarCropModal";
+import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
 
 interface ProfileForm {
   name: string;
@@ -49,6 +51,8 @@ export default function EditProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [usernameCooldownDays, setUsernameCooldownDays] = useState(0);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect jika belum login
@@ -80,10 +84,24 @@ export default function EditProfilePage() {
       });
   }, [user]);
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Format harus JPG, PNG, GIF, atau WebP");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCropImageSrc(objectUrl);
+    setCropOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadCroppedAvatar = async (file: File) => {
     setUploading(true);
     try {
       const fd = new FormData();
@@ -94,14 +112,34 @@ export default function EditProfilePage() {
         throw new Error(err.error || "Upload gagal");
       }
       const data = await res.json();
-      setForm((prev) => ({ ...prev, avatarUrl: data.url }));
-      toast.success("Foto profil diupload");
-    } catch (err: any) {
-      toast.error(err.message || "Upload gagal");
+      const url = data.url as string;
+
+      const saveRes = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: url }),
+      });
+      if (!saveRes.ok) {
+        const err = await saveRes.json();
+        throw new Error(err.error || "Gagal menyimpan foto profil");
+      }
+
+      setForm((prev) => ({ ...prev, avatarUrl: url }));
+      await refreshUser();
+      toast.success("Foto profil diperbarui");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upload gagal");
+      throw err;
     } finally {
       setUploading(false);
-      // reset input so user can re-upload same file if needed
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropOpenChange = (open: boolean) => {
+    setCropOpen(open);
+    if (!open && cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
     }
   };
 
@@ -232,7 +270,8 @@ export default function EditProfilePage() {
                 {/* Upload controls */}
                 <div className="flex-1">
                   <p className="text-sm text-jepang-muted mb-3">
-                    Unggah foto JPG, PNG, atau WebP. Maks. 10MB.
+                    Unggah foto JPG, PNG, atau WebP. Akan di-crop persegi{" "}
+                    {AVATAR_OUTPUT_SIZE}×{AVATAR_OUTPUT_SIZE}px sebelum diupload.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -252,9 +291,30 @@ export default function EditProfilePage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setForm((prev) => ({ ...prev, avatarUrl: "" }))
-                        }
+                        disabled={uploading || saving}
+                        onClick={async () => {
+                          setUploading(true);
+                          try {
+                            const res = await fetch("/api/user/profile", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ avatarUrl: null }),
+                            });
+                            if (!res.ok) {
+                              const err = await res.json();
+                              throw new Error(err.error || "Gagal menghapus foto");
+                            }
+                            setForm((prev) => ({ ...prev, avatarUrl: "" }));
+                            await refreshUser();
+                            toast.success("Foto profil dihapus");
+                          } catch (err: unknown) {
+                            toast.error(
+                              err instanceof Error ? err.message : "Gagal menghapus foto",
+                            );
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
                         className="text-jepang-red hover:bg-jepang-red hover:text-white border-jepang-red"
                         data-testid="remove-avatar-btn"
                       >
@@ -268,7 +328,7 @@ export default function EditProfilePage() {
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     className="hidden"
-                    onChange={handleAvatarUpload}
+                    onChange={handleFilePick}
                     data-testid="avatar-file-input"
                   />
                 </div>
@@ -445,6 +505,13 @@ export default function EditProfilePage() {
             </Button>
           </div>
         </form>
+
+        <AvatarCropModal
+          open={cropOpen}
+          imageSrc={cropImageSrc}
+          onOpenChange={handleCropOpenChange}
+          onConfirm={uploadCroppedAvatar}
+        />
       </div>
     </div>
   );

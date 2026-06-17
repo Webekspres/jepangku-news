@@ -1,16 +1,15 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { Star, Flame, Search } from "lucide-react";
+import { Star, Flame } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import { AdminSearchInput, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function AdminHomepagePage() {
   const [homepageData, setHomepageData] = useState<any>({
@@ -85,126 +84,77 @@ export default function AdminHomepagePage() {
     : allArticles;
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-homepage-page">
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            PENGATURAN BERANDA
-          </p>
-
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Artikel Pilihan & Hot
-          </h1>
-
-          <p className="text-jepang-muted mt-2">
-            Atur artikel yang tampil sebagai pilihan utama di hero dan artikel
-            hot di beranda.
-          </p>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8">
-        {loading ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <Card className="border border-jepang-red">
-                <CardHeader className="border-b border-jepang-border py-3">
-                  <div className="flex items-center gap-2">
-                    <SkeletonBox height="1rem" width="8rem" />
+    <AdminPageLayout
+      testId="admin-homepage-page"
+      label="PENGATURAN BERANDA"
+      title="Artikel Pilihan & Hot"
+      subtitle="Atur artikel yang tampil sebagai pilihan utama di hero dan artikel hot di beranda."
+    >
+      {loading ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AdminCard title="PILIHAN UTAMA" variant="list" className="border-jepang-red">
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-2 border border-jepang-border"
+                  >
+                    <SkeletonBox height="1rem" width="12rem" />
+                    <SkeletonBox height="1.6rem" width="3rem" />
                   </div>
-                </CardHeader>
+                ))}
+              </div>
+            </AdminCard>
 
-                <CardContent className="pt-3">
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-2 border border-jepang-border"
-                      >
-                        <SkeletonBox height="1rem" width="12rem" />
-                        <SkeletonBox height="1.6rem" width="3rem" />
-                      </div>
-                    ))}
+            <AdminCard title="HOT" variant="list">
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-2 border border-jepang-border"
+                  >
+                    <SkeletonBox height="1rem" width="12rem" />
+                    <SkeletonBox height="1.6rem" width="3rem" />
                   </div>
-                </CardContent>
-              </Card>
+                ))}
+              </div>
+            </AdminCard>
+          </div>
 
-              <Card className="border border-foreground">
-                <CardHeader className="border-b border-jepang-border py-3">
-                  <div className="flex items-center gap-2">
-                    <SkeletonBox height="1rem" width="8rem" />
+          <AdminCard title="SEMUA ARTIKEL" variant="list" noPadding>
+            <div className={cn(THIN_SCROLLBAR_CLASS, "divide-y divide-jepang-border max-h-150 overflow-y-auto")}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="p-3 flex items-center justify-between gap-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <SkeletonBox height="1rem" width="60%" />
                   </div>
-                </CardHeader>
 
-                <CardContent className="pt-3">
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-2 border border-jepang-border"
-                      >
-                        <SkeletonBox height="1rem" width="12rem" />
-                        <SkeletonBox height="1.6rem" width="3rem" />
-                      </div>
-                    ))}
+                  <div className="flex gap-2">
+                    <SkeletonBox height="1.6rem" width="5rem" />
+                    <SkeletonBox height="1.6rem" width="5rem" />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              ))}
             </div>
-
-            <Card className="border border-foreground">
-              <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-                <div className="flex items-center justify-between gap-4">
-                  <SkeletonBox height="1rem" width="10rem" />
-
-                  <div className="relative flex-1 max-w-xs">
-                    <SkeletonBox height="2rem" width="10rem" />
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-0">
-                <div className={cn(THIN_SCROLLBAR_CLASS, "divide-y divide-jepang-border max-h-150 overflow-y-auto")}>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="p-3 flex items-center justify-between gap-3"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <SkeletonBox height="1rem" width="60%" />
-                      </div>
-
-                      <div className="flex gap-2">
-                        <SkeletonBox height="1.6rem" width="5rem" />
-                        <SkeletonBox height="1.6rem" width="5rem" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              <Card className="border border-jepang-red">
-                <CardHeader className="border-b border-jepang-border py-3">
-                  <div className="flex items-center gap-2">
-                    <Star
-                      size={20}
-                      strokeWidth={1.5}
-                      className="text-jepang-red"
-                      fill="currentColor"
-                    />
-
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
-                      SAAT INI MENJADI PILIHAN UTAMA (
-                      {homepageData.featured?.length || 0})
-                    </p>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-3">
+          </AdminCard>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AdminCard
+              title={
+                <span className="flex items-center gap-2 text-jepang-red">
+                  <Star size={20} strokeWidth={1.5} fill="currentColor" />
+                  SAAT INI MENJADI PILIHAN UTAMA ({homepageData.featured?.length || 0})
+                </span>
+              }
+              variant="list"
+              className="border-jepang-red"
+            >
                   {homepageData.featured?.length > 0 ? (
                     <div className="space-y-2">
                       {homepageData.featured.map((a: any) => (
@@ -234,25 +184,17 @@ export default function AdminHomepagePage() {
                       Belum ada artikel pilihan utama
                     </p>
                   )}
-                </CardContent>
-              </Card>
+            </AdminCard>
 
-              <Card className="border border-foreground">
-                <CardHeader className="border-b border-jepang-border py-3">
-                  <div className="flex items-center gap-2">
-                    <Flame
-                      size={20}
-                      strokeWidth={1.5}
-                      className="text-jepang-red"
-                    />
-
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                      SAAT INI HOT ({homepageData.hot?.length || 0})
-                    </p>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-3">
+            <AdminCard
+              title={
+                <span className="flex items-center gap-2">
+                  <Flame size={20} strokeWidth={1.5} className="text-jepang-red" />
+                  SAAT INI HOT ({homepageData.hot?.length || 0})
+                </span>
+              }
+              variant="list"
+            >
                   {homepageData.hot?.length > 0 ? (
                     <div className="space-y-2">
                       {homepageData.hot.map((a: any) => (
@@ -282,37 +224,24 @@ export default function AdminHomepagePage() {
                       Belum ada artikel hot
                     </p>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+            </AdminCard>
+          </div>
 
-            <Card className="border border-foreground">
-              <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                    SEMUA ARTIKEL YANG DIPUBLIKASIKAN
-                  </p>
+          <AdminToolbar>
+            <AdminSearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Cari artikel..."
+              testId="homepage-search"
+            />
+          </AdminToolbar>
 
-                  <div className="relative flex-1 max-w-xs">
-                    <Search
-                      size={14}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-jepang-muted"
-                    />
-
-                    <Input
-                      type="text"
-                      placeholder="Cari artikel..."
-                      className="pl-8 text-sm py-2"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      data-testid="homepage-search"
-                    />
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-0">
-                <div className={cn(THIN_SCROLLBAR_CLASS, "divide-y divide-jepang-border max-h-150 overflow-y-auto")}>
+          <AdminCard
+            title={`${filtered.length} ARTIKEL YANG DIPUBLIKASIKAN`}
+            variant="list"
+            noPadding
+          >
+            <div className={cn(THIN_SCROLLBAR_CLASS, "divide-y divide-jepang-border max-h-150 overflow-y-auto")}>
                   {filtered.map((article: any) => (
                     <div
                       key={article.id}
@@ -375,7 +304,7 @@ export default function AdminHomepagePage() {
 
                         <Button
                           size="sm"
-                          variant={article.isHot ? "black" : "outline"}
+                          variant={article.isHot ? "default" : "outline"}
                           onClick={() => toggleHot(article)}
                           data-testid={`toggle-hot-${article.id}`}
                         >
@@ -390,12 +319,10 @@ export default function AdminHomepagePage() {
                       Tidak ada artikel ditemukan
                     </p>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
-    </div>
+            </div>
+          </AdminCard>
+        </>
+      )}
+    </AdminPageLayout>
   );
 }

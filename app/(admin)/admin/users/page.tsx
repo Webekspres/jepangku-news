@@ -1,14 +1,18 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Search, Users, Shield, User, PenSquare } from "lucide-react";
+import { Users, Shield, User, PenSquare } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import {
+  AdminFilterButtons,
+  AdminSearchInput,
+  AdminToolbar,
+} from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
   Table,
@@ -102,75 +106,49 @@ export default function AdminUsersPage() {
   };
 
   const roleFilters = [
-    { v: "", l: "Semua", t: "role-filter-all" },
-    { v: "ADMIN", l: "Admin", t: "role-filter-admin" },
-    { v: "CONTRIBUTOR", l: "Kontributor", t: "role-filter-contributor" },
-    { v: "USER", l: "Pengguna", t: "role-filter-user" },
+    { value: "", label: "Semua", testId: "role-filter-all" },
+    { value: "ADMIN", label: "Admin", testId: "role-filter-admin" },
+    { value: "CONTRIBUTOR", label: "Kontributor", testId: "role-filter-contributor" },
+    { value: "USER", label: "Pengguna", testId: "role-filter-user" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-users-page">
+    <>
       <ConfirmModal {...confirmProps} />
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            MANAJEMEN PENGGUNA
-          </p>
 
-          <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3">
-            <Users size={36} strokeWidth={1.5} /> Semua Pengguna
-          </h1>
+      <AdminPageLayout
+        testId="admin-users-page"
+        label="MANAJEMEN PENGGUNA"
+        title={
+          <>
+            <Users size={36} strokeWidth={1.5} className="inline mr-3" />
+            Semua Pengguna
+          </>
+        }
+        subtitle={loading ? "..." : `${users.length} PENGGUNA`}
+      >
+        <AdminToolbar>
+          <AdminFilterButtons
+            options={roleFilters}
+            value={roleFilter}
+            onChange={setRoleFilter}
+          />
+          <AdminSearchInput
+            value={searchInput}
+            onChange={setSearchInput}
+            onSubmit={() => setSearch(searchInput)}
+            placeholder="Cari berdasarkan nama, username, atau email..."
+            className="flex-1 sm:max-w-none"
+            testId="user-search-input"
+          />
+        </AdminToolbar>
 
-          <p className="text-jepang-muted font-mono uppercase tracking-wider text-sm mt-2">
-            {loading ? "..." : `${users.length} PENGGUNA`}
-          </p>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8">
-        <div className="mb-6 space-y-3">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearch(searchInput);
-            }}
-            className="flex gap-2"
-          >
-            <Input
-              type="text"
-              placeholder="Cari berdasarkan nama, username, atau email..."
-              className="flex-1"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              data-testid="user-search-input"
-            />
-
-            <Button
-              type="submit"
-              variant="black"
-              size="icon"
-              data-testid="user-search-submit"
-            >
-              <Search size={16} strokeWidth={1.5} />
-            </Button>
-          </form>
-
-          <div className="flex gap-2">
-            {roleFilters.map((r) => (
-              <Button
-                key={r.v}
-                size="sm"
-                variant={roleFilter === r.v ? "black" : "outline"}
-                onClick={() => setRoleFilter(r.v)}
-                data-testid={r.t}
-              >
-                {r.l}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading ? "..." : users.length} PENGGUNA`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -392,8 +370,8 @@ export default function AdminUsersPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+      </AdminPageLayout>
+    </>
   );
 }

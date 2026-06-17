@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -43,6 +42,7 @@ export default function ContentPerformancePage() {
     <AdminPageShell
       title="Performa Artikel"
       subtitle={`Peringkat artikel berdasarkan aktivitas dalam periode: ${periodLabel || "..."}. Kolom angka = aktivitas di periode; angka kecil di bawah = total sepanjang waktu.`}
+      label="Analytics"
     >
       <AnalyticsNav />
 

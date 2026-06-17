@@ -1,8 +1,6 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import {
   Plus,
@@ -14,9 +12,11 @@ import {
   X,
   Check,
 } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
@@ -195,45 +195,35 @@ export default function AdminCategoriesPage() {
 
   // ── Render ────────────────────────────────────────────────
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-categories-page">
+    <>
       <ConfirmModal {...confirmProps} />
 
-      {/* Page header */}
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            MANAJEMEN KATEGORI
-          </p>
-
-          <div className="flex items-center justify-between">
-            <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3">
-              <LayoutGrid size={36} strokeWidth={1.5} /> Kategori
-            </h1>
-
-            <Button
-              onClick={() => setShowCreateForm((v) => !v)}
-              data-testid="toggle-create-form-btn"
-            >
-              <Plus size={14} strokeWidth={1.5} />
-              Tambah Kategori
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8">
-
-        {/* Create form */}
+      <AdminPageLayout
+        testId="admin-categories-page"
+        label="MANAJEMEN KATEGORI"
+        title={
+          <>
+            <LayoutGrid size={36} strokeWidth={1.5} className="inline mr-3" />
+            Kategori
+          </>
+        }
+        headerActions={
+          <Button
+            onClick={() => setShowCreateForm((v) => !v)}
+            data-testid="toggle-create-form-btn"
+          >
+            <Plus size={14} strokeWidth={1.5} />
+            Tambah Kategori
+          </Button>
+        }
+      >
         {showCreateForm && (
-          <Card className="border border-foreground mb-6" data-testid="create-category-form">
-            <CardHeader className="pb-3 border-b border-jepang-border bg-jepang-off-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                BUAT KATEGORI BARU
-              </p>
-            </CardHeader>
-
-            <CardContent className="pt-5">
-              <form onSubmit={handleCreate} className="space-y-4">
+          <AdminCard
+            title="BUAT KATEGORI BARU"
+            variant="list"
+            testId="create-category-form"
+          >
+            <form onSubmit={handleCreate} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-[0.15em] mb-1">
@@ -324,18 +314,12 @@ export default function AdminCategoriesPage() {
                   </Button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
+          </AdminCard>
         )}
 
-        {/* List */}
         {loading ? (
-          <Card className="border border-foreground">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">KATEGORI</p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
+          <AdminCard title="KATEGORI" variant="list" noPadding>
+            <div className="divide-y divide-jepang-border">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                   <div key={i} className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -349,30 +333,18 @@ export default function AdminCategoriesPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </AdminCard>
         ) : categories.length === 0 ? (
-          <div className="text-center py-24" data-testid="no-categories">
-            <LayoutGrid
-              size={48}
-              strokeWidth={1.5}
-              className="mx-auto mb-4 text-jepang-muted"
+          <div data-testid="no-categories">
+            <AdminEmptyState
+              icon={LayoutGrid}
+              title="Belum ada kategori"
+              description="Tambahkan kategori pertama melalui tombol di atas"
             />
-            <p className="font-heading font-bold text-2xl mb-2">Belum ada kategori</p>
-            <p className="text-jepang-muted">
-              Tambahkan kategori pertama melalui tombol di atas
-            </p>
           </div>
         ) : (
-          <Card className="border border-foreground">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                {categories.length} KATEGORI
-              </p>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
+          <AdminCard title={`${categories.length} KATEGORI`} variant="list" noPadding>
+            <div className="divide-y divide-jepang-border">
                 {categories.map((cat) =>
                   editingId === cat.id ? (
                     /* ── Edit row ── */
@@ -561,18 +533,16 @@ export default function AdminCategoriesPage() {
                   ),
                 )}
               </div>
-            </CardContent>
-          </Card>
+          </AdminCard>
         )}
 
-        {/* Info box */}
-        <div className="mt-6 p-4 border border-jepang-border bg-jepang-off-white text-xs text-jepang-muted space-y-1">
+        <div className="p-4 border border-jepang-border bg-jepang-off-white text-xs text-jepang-muted space-y-1">
           <p className="font-semibold uppercase tracking-[0.15em] text-foreground mb-2">INFO</p>
           <p>• Kategori yang <strong>dinonaktifkan</strong> tidak akan tampil di filter publik, tetapi artikel yang terhubung tetap aman.</p>
           <p>• Kategori hanya dapat <strong>dihapus</strong> jika tidak ada artikel yang menggunakannya.</p>
           <p>• Gunakan tombol mata (👁) untuk mengaktifkan atau menonaktifkan kategori tanpa menghapus data.</p>
         </div>
-      </div>
-    </div>
+      </AdminPageLayout>
+    </>
   );
 }

@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -16,19 +15,23 @@ import {
   Check,
   FileText,
   Eye,
-  Search,
   BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import {
+  AdminFilterButtons,
+  AdminSearchInput,
+  AdminToolbar,
+} from "@/components/admin/AdminToolbar";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
-import AdminStatCards from "@/components/admin/AdminStatCards";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -467,15 +470,15 @@ export default function AdminArticlesPage() {
   };
 
   const statusFilters = [
-    { v: "", l: "Semua" },
-    { v: "PENDING_REVIEW", l: "Review" },
-    { v: "PUBLISHED", l: "Dipublikasikan" },
-    { v: "REJECTED", l: "Ditolak" },
-    { v: "ARCHIVED", l: "Arsip" },
+    { value: "", label: "Semua" },
+    { value: "PENDING_REVIEW", label: "Review" },
+    { value: "PUBLISHED", label: "Dipublikasikan" },
+    { value: "REJECTED", label: "Ditolak" },
+    { value: "ARCHIVED", label: "Arsip" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-articles-page">
+    <>
       <ConfirmModal {...confirmProps} />
       <RejectArticleModal
         open={rejectModalOpen}
@@ -489,30 +492,25 @@ export default function AdminArticlesPage() {
         loading={rejectLoading}
       />
 
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <h1 className="font-heading font-black text-4xl tracking-tighter">
-              Semua Artikel
-            </h1>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleExport("csv")} data-testid="export-csv">
-                <Download size={14} className="mr-1" /> CSV
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleExport("json")} data-testid="export-json">
-                <Download size={14} className="mr-1" /> JSON
-              </Button>
-              <Button asChild data-testid="create-article-btn">
-                <Link href="/admin/articles/create">
-                  <Plus size={14} className="mr-1" /> Buat Artikel
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8 space-y-6">
+      <AdminPageLayout
+        testId="admin-articles-page"
+        title="Semua Artikel"
+        headerActions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => handleExport("csv")} data-testid="export-csv">
+              <Download size={14} className="mr-1" /> CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleExport("json")} data-testid="export-json">
+              <Download size={14} className="mr-1" /> JSON
+            </Button>
+            <Button asChild data-testid="create-article-btn">
+              <Link href="/admin/articles/create">
+                <Plus size={14} className="mr-1" /> Buat Artikel
+              </Link>
+            </Button>
+          </>
+        }
+      >
         <div data-testid="admin-articles-stats">
           <AdminStatCards
             loading={statsLoading}
@@ -522,37 +520,23 @@ export default function AdminArticlesPage() {
           />
         </div>
 
-        <Card className="border border-jepang-border p-4 space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {statusFilters.map((s) => (
-              <Button
-                key={s.v}
-                size="sm"
-                variant={statusFilter === s.v ? "black" : "outline"}
-                onClick={() => applyStatusFilter(s.v)}
-              >
-                {s.l}
-              </Button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_200px] gap-3">
-            <div className="relative">
-              <Search
-                size={16}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-jepang-muted"
-              />
-              <Input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Cari judul atau ringkasan..."
-                className="pl-9"
-                data-testid="admin-article-search"
-              />
-            </div>
+        <AdminToolbar className="flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+          <AdminFilterButtons
+            options={statusFilters}
+            value={statusFilter}
+            onChange={applyStatusFilter}
+          />
+          <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-[1fr_200px_200px] sm:ml-auto sm:w-auto">
+            <AdminSearchInput
+              value={search}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
+              placeholder="Cari judul atau ringkasan..."
+              className="w-full sm:w-auto"
+              testId="admin-article-search"
+            />
             <Select
               value={categoryFilter || "_all"}
               onValueChange={(v) => {
@@ -590,7 +574,7 @@ export default function AdminArticlesPage() {
               </SelectContent>
             </Select>
           </div>
-        </Card>
+        </AdminToolbar>
 
         {selected.size > 0 && (
           <div className="flex flex-wrap gap-2 p-4 border border-foreground bg-jepang-off-white">
@@ -641,7 +625,12 @@ export default function AdminArticlesPage() {
           </div>
         )}
 
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading && articles.length === 0 ? "..." : totalItems} ARTIKEL`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -754,7 +743,7 @@ export default function AdminArticlesPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
+        </AdminCard>
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
@@ -784,7 +773,7 @@ export default function AdminArticlesPage() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </AdminPageLayout>
+    </>
   );
 }

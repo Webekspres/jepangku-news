@@ -1,11 +1,10 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useState, useCallback, useEffect } from "react";
-import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -269,37 +268,29 @@ export default function AdminEditPollPage() {
   /* ── Loading state ── */
   if (fetching) {
     return (
-      <div className="bg-white min-h-screen">
-        <section className="border-b border-jepang-border bg-jepang-off-white">
-          <div className="w-full px-4 lg:px-6 py-8">
-            <SkeletonBox height="1rem" width="12rem" className="mb-4" />
-            <SkeletonBox height="2.5rem" width="16rem" />
-          </div>
-        </section>
-        <div className="w-full px-4 lg:px-6 py-8 space-y-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => <SkeletonBox key={i} height="3rem" width="100%" />)}
+      <AdminPageLayout
+        backHref="/admin/polls"
+        backLabel="Kembali ke Daftar Polling"
+        title="Edit Polling"
+      >
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <SkeletonBox key={i} height="3rem" width="100%" />
+          ))}
         </div>
-      </div>
+      </AdminPageLayout>
     );
   }
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-edit-poll-page">
-      {/* Header */}
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <Link href="/admin/polls"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4">
-            <ArrowLeft size={14} /> Kembali ke Daftar Polling
-          </Link>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">Edit Polling</h1>
-          <p className="text-jepang-muted mt-2">
-            Perbarui informasi dan opsi polling/voting.
-          </p>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8 space-y-8">
+    <AdminPageLayout
+      testId="admin-edit-poll-page"
+      backHref="/admin/polls"
+      backLabel="Kembali ke Daftar Polling"
+      title="Edit Polling"
+      subtitle="Perbarui informasi dan opsi polling/voting."
+    >
+      <div className="space-y-8">
         {/* ── Info dasar ── */}
         <section className="space-y-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
@@ -506,6 +497,6 @@ export default function AdminEditPollPage() {
           </Button>
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

@@ -1,13 +1,12 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { AD_SLOT_POSITIONS } from "@/lib/ads/constants";
 
@@ -109,8 +108,7 @@ export default function AdminAdEditPage() {
       backHref="/admin/ads"
       backLabel="Daftar Banner"
     >
-      <Card>
-        <CardContent className="pt-6">
+      <AdminCard>
           {form.imageUrl ? (
             <div className="mb-6 overflow-hidden rounded-lg border border-jepang-border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -214,8 +212,7 @@ export default function AdminAdEditPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+      </AdminCard>
     </AdminPageShell>
   );
 }

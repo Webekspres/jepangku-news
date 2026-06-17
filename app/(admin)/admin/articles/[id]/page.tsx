@@ -1,14 +1,14 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Eye, Globe, Pencil } from "lucide-react";
+import { Globe, Pencil } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
 import { cn } from "@/lib/utils";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -54,23 +54,20 @@ export default function AdminArticleViewPage() {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-screen" data-testid="admin-article-view-page">
-        <section className="border-b border-jepang-border bg-jepang-off-white">
-          <div className="w-full px-4 lg:px-6 py-8 space-y-3">
-            <SkeletonBox height="1rem" width="8rem" />
-            <SkeletonBox height="2.5rem" width="50%" />
+      <AdminPageLayout
+        testId="admin-article-view-page"
+        backHref="/admin/articles"
+        backLabel="Kembali ke Artikel"
+        title="Lihat Artikel"
+      >
+        <AdminCard>
+          <div className="space-y-4">
+            <SkeletonBox height="1rem" width="30%" />
+            <SkeletonBox height="2rem" width="70%" />
+            <SkeletonBox height="12rem" width="100%" />
           </div>
-        </section>
-        <div className="w-full px-4 lg:px-6 py-12">
-          <Card className="border border-foreground">
-            <CardContent className="p-6 space-y-4">
-              <SkeletonBox height="1rem" width="30%" />
-              <SkeletonBox height="2rem" width="70%" />
-              <SkeletonBox height="12rem" width="100%" />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        </AdminCard>
+      </AdminPageLayout>
     );
   }
 
@@ -80,27 +77,13 @@ export default function AdminArticleViewPage() {
     article.status === "REJECTED" ? article.reviews?.[0]?.note ?? null : null;
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-article-view-page">
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <Link
-            href="/admin/articles"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Artikel
-          </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2 flex items-center gap-2">
-            <Eye size={14} /> ADMIN
-          </p>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Lihat Artikel
-          </h1>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-12">
-        <Card className="border border-foreground" data-testid="admin-article-detail">
-          <CardContent className="p-6">
+    <AdminPageLayout
+      testId="admin-article-view-page"
+      backHref="/admin/articles"
+      backLabel="Kembali ke Artikel"
+      title="Lihat Artikel"
+    >
+        <AdminCard testId="admin-article-detail">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <Badge variant={STATUS_BADGE[article.status] || "muted"}>
                 {STATUS_LABEL[article.status] || article.status}
@@ -168,9 +151,7 @@ export default function AdminArticleViewPage() {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+    </AdminPageLayout>
   );
 }

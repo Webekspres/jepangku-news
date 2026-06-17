@@ -1,13 +1,13 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { Plus, Trash2, Tag as TagIcon } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
@@ -79,33 +79,21 @@ export default function AdminTagsPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-tags-page">
+    <>
       <ConfirmModal {...confirmProps} />
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            MANAJEMEN TAG
-          </p>
 
-          <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3">
-            <TagIcon size={36} strokeWidth={1.5} /> Tag
-          </h1>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8">
-        <Card
-          className="border border-foreground mb-6"
-          data-testid="create-tag-form"
-        >
-          <CardHeader className="pb-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              BUAT TAG BARU
-            </p>
-          </CardHeader>
-
-          <CardContent>
-            <form onSubmit={handleCreate} className="flex gap-2">
+      <AdminPageLayout
+        testId="admin-tags-page"
+        label="MANAJEMEN TAG"
+        title={
+          <>
+            <TagIcon size={36} strokeWidth={1.5} className="inline mr-3" />
+            Tag
+          </>
+        }
+      >
+        <AdminCard title="BUAT TAG BARU" variant="list" testId="create-tag-form">
+          <form onSubmit={handleCreate} className="flex gap-2">
               <Input
                 type="text"
                 placeholder="Nama tag, contoh: tokyo, sushi"
@@ -124,19 +112,11 @@ export default function AdminTagsPage() {
                 {creating ? "Membuat..." : "Buat"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+        </AdminCard>
 
         {loading ? (
-          <Card className="border border-foreground">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                TAG
-              </p>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
+          <AdminCard title="TAG" variant="list" noPadding>
+            <div className="divide-y divide-jepang-border">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                   <div
                     key={i}
@@ -157,18 +137,10 @@ export default function AdminTagsPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </AdminCard>
         ) : tags.length > 0 ? (
-          <Card className="border border-foreground">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                {tags.length} TAG
-              </p>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
+          <AdminCard title={`${tags.length} TAG`} variant="list" noPadding>
+            <div className="divide-y divide-jepang-border">
                 {tags.map((tag: any) => (
                   <div
                     key={tag.id}
@@ -209,26 +181,17 @@ export default function AdminTagsPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </AdminCard>
         ) : (
-          <div className="text-center py-24" data-testid="no-tags">
-            <TagIcon
-              size={48}
-              strokeWidth={1.5}
-              className="mx-auto mb-4 text-jepang-muted"
+          <div data-testid="no-tags">
+            <AdminEmptyState
+              icon={TagIcon}
+              title="Belum ada tag"
+              description="Buat tag pertama Anda melalui form di atas"
             />
-
-            <p className="font-heading font-bold text-2xl mb-2">
-              Belum ada tag
-            </p>
-
-            <p className="text-jepang-muted">
-              Buat tag pertama Anda melalui form di atas
-            </p>
           </div>
         )}
-      </div>
-    </div>
+      </AdminPageLayout>
+    </>
   );
 }

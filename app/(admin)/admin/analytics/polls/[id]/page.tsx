@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -37,6 +36,7 @@ export default function PollAnalyticsPage() {
     <AdminPageShell
       title={poll ? `Polling: ${poll.title}` : "Statistik Polling"}
       subtitle="Breakdown suara dihitung dari record vote aktual. Grafik tren menunjukkan jumlah vote baru per hari."
+      label="Analytics"
       backHref="/admin/polls"
       backLabel="Kembali ke Daftar Polling"
     >

@@ -1,11 +1,10 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -265,26 +264,14 @@ export default function AdminCreatePoll() {
   };
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-create-poll-page">
-      {/* Header */}
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <Link
-            href="/admin/polls"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Daftar Polling
-          </Link>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Buat Polling / Voting
-          </h1>
-          <p className="text-jepang-muted mt-2">
-            Satu polling bisa memiliki beberapa pertanyaan. Setiap opsi bisa punya teks dan/atau gambar.
-          </p>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-8 space-y-8">
+    <AdminPageLayout
+      testId="admin-create-poll-page"
+      backHref="/admin/polls"
+      backLabel="Kembali ke Daftar Polling"
+      title="Buat Polling / Voting"
+      subtitle="Satu polling bisa memiliki beberapa pertanyaan. Setiap opsi bisa punya teks dan/atau gambar."
+    >
+      <div className="space-y-8">
         {/* ── Info dasar ── */}
         <section className="space-y-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
@@ -519,6 +506,6 @@ export default function AdminCreatePoll() {
           </Button>
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

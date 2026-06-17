@@ -1,13 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
-  PenSquare,
   Save,
   Send,
   Upload,
@@ -16,6 +12,7 @@ import {
   Check,
   XCircle,
 } from "lucide-react";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,43 +233,28 @@ export default function AdminEditArticlePage() {
 
   if (fetching) {
     return (
-      <div className="bg-white min-h-screen">
-        <div className="border-b border-jepang-border bg-jepang-off-white px-4 py-12">
-          <div className="w-full px-4 lg:px-6 space-y-3">
-            <div className="h-3 w-24 bg-jepang-border animate-pulse" />
-            <div className="h-10 w-80 bg-jepang-border animate-pulse" />
-          </div>
-        </div>
-        <div className="w-full px-4 lg:px-6 py-12 space-y-6">
+      <AdminPageLayout
+        backHref="/admin/articles"
+        backLabel="Kembali ke Artikel"
+        title="Edit Artikel"
+      >
+        <div className="space-y-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-14 bg-jepang-border animate-pulse" />
           ))}
         </div>
-      </div>
+      </AdminPageLayout>
     );
   }
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-article-edit-page">
+    <AdminPageLayout
+      testId="admin-article-edit-page"
+      backHref="/admin/articles"
+      backLabel="Kembali ke Artikel"
+      title="Edit Artikel"
+    >
       <ConfirmModal {...confirmProps} />
-      <section className="border-b border-jepang-border bg-jepang-off-white">
-        <div className="w-full px-4 lg:px-6 py-8">
-          <Link
-            href="/admin/articles"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Artikel
-          </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2 flex items-center gap-2">
-            <PenSquare size={14} /> ADMIN
-          </p>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Edit Artikel
-          </h1>
-        </div>
-      </section>
-
-      <div className="w-full px-4 lg:px-6 py-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">
@@ -479,7 +461,6 @@ export default function AdminEditArticlePage() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </AdminPageLayout>
   );
 }

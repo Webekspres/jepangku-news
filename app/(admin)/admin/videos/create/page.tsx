@@ -1,13 +1,12 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function AdminVideoCreatePage() {
   const router = useRouter();
@@ -53,8 +52,7 @@ export default function AdminVideoCreatePage() {
       backHref="/admin/videos"
       backLabel="Daftar Video"
     >
-      <Card>
-        <CardContent className="pt-6">
+      <AdminCard>
           <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
             <div>
               <label className="block text-sm font-semibold mb-1.5">Judul *</label>
@@ -123,8 +121,7 @@ export default function AdminVideoCreatePage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
+      </AdminCard>
     </AdminPageShell>
   );
 }
