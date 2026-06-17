@@ -2,6 +2,7 @@ import type { User } from '@clerk/backend';
 import type { User as DbUser } from '@prisma/client';
 import { db } from '@/lib/db';
 import type { CoreJwtClaims } from '@/lib/core/session';
+import { isClerkUserId } from '@/lib/auth/clerk-id';
 import { checkDailyLogin } from '@/lib/points';
 import { toSessionUser } from './session';
 import { slugifyUsername } from '@/lib/username';
@@ -162,7 +163,13 @@ export async function ensureLocalUserFromClerk(
   clerkUser: User,
   coreClaims?: CoreJwtClaims | null,
 ): Promise<SessionUser> {
-  return linkOrCreateLocalUser(clerkUser, coreClaims);
+  const sessionUser = await linkOrCreateLocalUser(clerkUser, coreClaims);
+  if (!isClerkUserId(sessionUser.id)) {
+    throw new Error(
+      'Legacy portal account — sign in with Clerk using the same email to migrate, or contact support.',
+    );
+  }
+  return sessionUser;
 }
 
 export async function getSessionUserByClerkId(

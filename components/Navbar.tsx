@@ -16,7 +16,9 @@ import NavbarNotifications from "@/components/navbar/NavbarNotifications";
 import NavbarCategoryBar from "@/components/navbar/NavbarCategoryBar";
 import NavbarSidebar from "@/components/navbar/NavbarSidebar";
 import { NAV_LINKS } from "@/components/navbar/nav-config";
-import { getContributorCta } from "@/lib/contributor";
+import { getContributorCta, canCreateArticles } from "@/lib/contributor";
+import { imageLoadingProps } from "@/lib/image-loading";
+import type { SocialLink } from "@/lib/site-config";
 import {
   Menu,
   X,
@@ -38,7 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function Navbar() {
+export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
   const { user, displayPoints, logout, loading, isLoaded, isSignedIn, clerkUser } =
     useAuth();
   const router = useRouter();
@@ -186,6 +188,7 @@ export default function Navbar() {
           authUser={authUser}
           displayName={displayName}
           onLogout={handleLogout}
+          socialLinks={socialLinks}
         />
       </Suspense>
 
@@ -208,7 +211,7 @@ export default function Navbar() {
                   width={160}
                   height={42}
                   className="h-9 w-auto"
-                  priority
+                  {...imageLoadingProps(true)}
                 />
               </Link>
 
@@ -292,16 +295,18 @@ export default function Navbar() {
                           </Link>
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href="/my-articles"
-                            className="cursor-pointer"
-                            data-testid="menu-my-articles"
-                          >
-                            <FileText size={16} strokeWidth={1.5} />
-                            Artikel Saya
-                          </Link>
-                        </DropdownMenuItem>
+                        {canCreateArticles(authUser) ? (
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href="/my-articles"
+                              className="cursor-pointer"
+                              data-testid="menu-my-articles"
+                            >
+                              <FileText size={16} strokeWidth={1.5} />
+                              Artikel Saya
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : null}
 
                         <DropdownMenuItem asChild>
                           <Link
@@ -382,6 +387,7 @@ export default function Navbar() {
             visible={layerThreeVisible}
             onSearchOpen={openSearch}
             onSidebarOpen={openSidebar}
+            socialLinks={socialLinks}
           />
         </Suspense>
       </div>
@@ -404,15 +410,25 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <Link
-              href={contributorCta.href}
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
-              data-testid="mobile-contributor-cta"
-            >
-              <PenSquare size={16} strokeWidth={1.5} />
-              {contributorCta.label}
-            </Link>
+            {contributorCta.disabled ? (
+              <span
+                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-muted cursor-not-allowed"
+                data-testid="mobile-contributor-cta"
+              >
+                <PenSquare size={16} strokeWidth={1.5} />
+                {contributorCta.label}
+              </span>
+            ) : (
+              <Link
+                href={contributorCta.href}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
+                data-testid="mobile-contributor-cta"
+              >
+                <PenSquare size={16} strokeWidth={1.5} />
+                {contributorCta.label}
+              </Link>
+            )}
 
             {showGuest && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">

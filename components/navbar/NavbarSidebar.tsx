@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import NavbarReactionLinks from "@/components/navbar/NavbarReactionLinks";
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
+import type { SocialLink } from "@/lib/site-config";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +37,7 @@ type NavbarSidebarProps = {
   authUser: SessionUser | null;
   displayName: string;
   onLogout: () => void | Promise<void>;
+  socialLinks: SocialLink[];
 };
 
 export default function NavbarSidebar({
@@ -47,6 +49,7 @@ export default function NavbarSidebar({
   authUser,
   displayName,
   onLogout,
+  socialLinks,
 }: NavbarSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -202,7 +205,11 @@ export default function NavbarSidebar({
 
           <section>
             <p className="section-label mb-2">Sosial Media</p>
-            <SocialMediaLinks tone="dark" testIdPrefix="navbar-sidebar-social" />
+            <SocialMediaLinks
+              links={socialLinks}
+              tone="dark"
+              testIdPrefix="navbar-sidebar-social"
+            />
           </section>
 
           <SidebarAdSlot
@@ -217,40 +224,29 @@ export default function NavbarSidebar({
               <div className="h-10 animate-pulse rounded-md bg-jepang-border/70" />
             ) : (
               <>
-                <Button
-                  asChild
-                  className="w-full"
-                  data-testid="navbar-sidebar-contributor-cta"
-                >
-                  <Link href={contributorCta.href} onClick={onClose}>
-                    <PenSquare size={16} strokeWidth={1.5} />
-                    {contributorCta.label}
-                  </Link>
-                </Button>
-
                 {showAuthenticated ? (
                   <div className="space-y-1">
-                    <Link
-                      href="/profile"
-                      onClick={onClose}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-jepang-navy transition-colors hover:bg-jepang-off-white hover:text-jepang-red"
-                      data-testid="navbar-sidebar-profile"
-                    >
-                      <User size={16} strokeWidth={1.5} />
-                      Profil{displayName ? ` — ${displayName}` : ""}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await onLogout();
-                        onClose();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-jepang-red transition-colors hover:bg-jepang-red/5"
-                      data-testid="navbar-sidebar-logout"
-                    >
-                      <LogOut size={16} strokeWidth={1.5} />
-                      Keluar
-                    </button>
+                    {contributorCta.disabled ? (
+                      <Button
+                        className="w-full"
+                        disabled
+                        data-testid="navbar-sidebar-contributor-cta"
+                      >
+                        <PenSquare size={16} strokeWidth={1.5} />
+                        {contributorCta.label}
+                      </Button>
+                    ) : (
+                      <Button
+                        asChild
+                        className="w-full"
+                        data-testid="navbar-sidebar-contributor-cta"
+                      >
+                        <Link href={contributorCta.href} onClick={onClose}>
+                          <PenSquare size={16} strokeWidth={1.5} />
+                          {contributorCta.label}
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 ) : showGuest ? (
                   <div className="grid grid-cols-2 gap-2">

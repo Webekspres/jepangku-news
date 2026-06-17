@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
+import { imageLoadingProps } from "@/lib/image-loading";
 
 function LoginForm() {
   const { login } = useAuth();
@@ -53,6 +54,7 @@ function LoginForm() {
                 width={180}
                 height={18}
                 className="mx-auto"
+                {...imageLoadingProps(true)}
               />
             </Link>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mt-2">

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { imageLoadingProps } from '@/lib/image-loading';
 import { usePathname } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,6 +49,7 @@ export default function AdminSidebar({ onNavigate, className }: AdminSidebarProp
             width={120}
             height={40}
             className="h-8 w-auto"
+            {...imageLoadingProps(false)}
           />
         </Link>
       </div>

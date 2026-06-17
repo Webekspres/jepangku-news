@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, TrendingUp } from "lucide-react";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { cn } from "@/lib/utils";
 
 export type TrendingArticleItem = {
@@ -101,6 +102,7 @@ export default function TrendingArticlesPanel({
                       fill
                       sizes="70px"
                       className="object-cover"
+                      {...imageLoadingProps(false)}
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wider text-jepang-muted">

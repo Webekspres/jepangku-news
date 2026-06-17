@@ -24,6 +24,7 @@ import {
   ArticleActivityModal,
   useArticleActivity,
 } from "@/components/ui/article-activity-modal";
+import ContributorGate from "@/components/ContributorGate";
 
 const STATUS_BADGE: Record<
   string,
@@ -123,6 +124,7 @@ export default function MyArticlesPage() {
   };
 
   return (
+    <ContributorGate>
     <div className="bg-white min-h-screen" data-testid="my-articles-page">
       <ConfirmModal {...confirmProps} />
       <ArticleActivityModal {...activityModalProps} />
@@ -360,5 +362,6 @@ export default function MyArticlesPage() {
         )}
       </div>
     </div>
+    </ContributorGate>
   );
 }

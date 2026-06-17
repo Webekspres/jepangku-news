@@ -3,13 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth, getAuthLoginPath, getAuthRegisterPath } from "@/contexts/AuthContext";
-import { CONTRIBUTOR_APPLY_PATH } from "@/lib/contributor";
+import { useAuth, getAuthLoginPath, getAuthRegisterPath, isAuthUser } from "@/contexts/AuthContext";
+import { getContributorCta } from "@/lib/contributor";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { NAV_CATEGORIES, categoryArticlesHref } from "@/components/navbar/nav-config";
 
 export default function Footer() {
   const { user, loading, logout, isSignedIn } = useAuth();
   const router = useRouter();
+  const contributorCta = getContributorCta(isAuthUser(user) ? user : null);
 
   const handleLogout = async () => {
     await logout();
@@ -29,8 +31,8 @@ export default function Footer() {
               alt="Jepangku"
               width={160}
               height={48}
-              priority={true}
               className="h-40 w-auto mb-4"
+              {...imageLoadingProps(false)}
             />
             <p className="text-sm text-zinc-400 leading-relaxed">
               Portal media interaktif bertema Jepang untuk pembaca Indonesia.
@@ -192,10 +194,10 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href={CONTRIBUTOR_APPLY_PATH}
+                      href={contributorCta.href}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Daftar sebagai Kontributor
+                      {contributorCta.label}
                     </Link>
                   </li>
                 </>
@@ -219,10 +221,10 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href={CONTRIBUTOR_APPLY_PATH}
+                      href={contributorCta.href}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Daftar sebagai Kontributor
+                      {contributorCta.label}
                     </Link>
                   </li>
                 </>

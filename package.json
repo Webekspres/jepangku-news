@@ -13,6 +13,9 @@
     "verify:core": "bun run scripts/verify-core-integration.ts",
     "verify:home": "bun run scripts/verify-home-waves.ts",
     "verify:staging": "bun run scripts/verify-staging-cutover.ts",
+    "purge:legacy-users": "bun run scripts/purge-legacy-users.ts",
+    "backfill:sanitize": "bun run scripts/backfill-sanitize-content.ts",
+    "backfill:sanitize:apply": "bun run scripts/backfill-sanitize-content.ts -- --apply",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },

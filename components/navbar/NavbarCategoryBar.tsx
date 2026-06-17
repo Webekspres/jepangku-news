@@ -8,18 +8,21 @@ import {
   NAV_CATEGORIES,
   categoryArticlesHref,
 } from "@/components/navbar/nav-config";
+import type { SocialLink } from "@/lib/site-config";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
 
 type NavbarCategoryBarProps = {
   visible: boolean;
   onSearchOpen: () => void;
   onSidebarOpen: () => void;
+  socialLinks: SocialLink[];
 };
 
 export default function NavbarCategoryBar({
   visible,
   onSearchOpen,
   onSidebarOpen,
+  socialLinks,
 }: NavbarCategoryBarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -73,7 +76,7 @@ export default function NavbarCategoryBar({
         </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
-          <SocialMediaLinks testIdPrefix="navbar-social" />
+          <SocialMediaLinks links={socialLinks} testIdPrefix="navbar-social" />
           <button
             type="button"
             onClick={onSearchOpen}

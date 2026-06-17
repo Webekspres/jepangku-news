@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Play, Tv } from "lucide-react";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeTvResponse, PublicVideoSummary } from "@/lib/home/types";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { cn } from "@/lib/utils";
 
 type JepangkuTvSectionProps = {
@@ -39,11 +40,13 @@ function VideoThumbnailLink({
   sizes,
   playIconSize = 28,
   playButtonClassName = "h-16 w-16",
+  priority = false,
 }: {
   video: PublicVideoSummary;
   sizes: string;
   playIconSize?: number;
   playButtonClassName?: string;
+  priority?: boolean;
 }) {
   return (
     <Link
@@ -57,6 +60,7 @@ function VideoThumbnailLink({
         fill
         sizes={sizes}
         className="object-cover transition-transform duration-500 group-hover:scale-105"
+        {...imageLoadingProps(priority)}
       />
       <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
       <span className="absolute inset-0 flex items-center justify-center">
@@ -87,6 +91,7 @@ function SidebarItem({ video }: { video: PublicVideoSummary }) {
           fill
           sizes="96px"
           className="object-cover"
+          {...imageLoadingProps(false)}
         />
         <span className="absolute inset-0 flex items-center justify-center bg-black/30">
           <Play size={14} fill="white" className="text-white" />
@@ -185,6 +190,7 @@ export default function JepangkuTvSection({
               <VideoThumbnailLink
                 video={featuredVideo}
                 sizes="(max-width: 1024px) 100vw, 66vw"
+                priority={false}
               />
               <div className="border-t border-jepang-border p-5 md:p-6">
                 <Link

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
@@ -19,6 +20,9 @@ export async function PATCH(
 ) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!canCreateArticles(user)) {
+    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+  }
 
   const { id } = await params;
 

@@ -8,6 +8,7 @@ generator client {
 
 enum Role {
   USER
+  CONTRIBUTOR
   ADMIN
 }
 
@@ -40,6 +41,20 @@ enum VideoStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+enum ContributorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  X
+  YOUTUBE
+  TIKTOK
 }
 
 enum CommentTargetType {
@@ -103,6 +118,8 @@ model User {
   articleViews       ArticleView[]
   infoPagesUpdated   InfoPage[]      @relation("InfoPageEditor")
   pointTransactions  PointTransaction[]
+  contributorApplications ContributorApplication[] @relation("ContributorApplications")
+  contributorReviews    ContributorApplication[] @relation("ContributorApplicationReviews")
 
   @@map("users")
 }
@@ -580,4 +597,34 @@ model AdSlot {
 
   @@index([position, isActive])
   @@map("ad_slots")
+}
+
+model SiteSocialLink {
+  platform  SocialPlatform @id
+  url       String
+  isEnabled Boolean        @default(true) @map("is_enabled")
+  sortOrder Int            @default(0) @map("sort_order")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  @@map("site_social_links")
+}
+
+model ContributorApplication {
+  id           String                       @id @default(uuid())
+  userId       String                       @map("user_id")
+  motivation   String
+  portfolioUrl String?                      @map("portfolio_url")
+  status       ContributorApplicationStatus @default(PENDING)
+  adminNote    String?                      @map("admin_note")
+  reviewedById String?                      @map("reviewed_by_id")
+  reviewedAt   DateTime?                    @map("reviewed_at")
+  createdAt    DateTime                     @default(now()) @map("created_at")
+  updatedAt    DateTime                     @updatedAt @map("updated_at")
+
+  user       User  @relation("ContributorApplications", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("ContributorApplicationReviews", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("contributor_applications")
 }

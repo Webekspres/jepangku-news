@@ -15,7 +15,7 @@ Sumber awal: `revisi.txt` (isi dipindahkan ke sini + status di `feature-status.m
 | Tier | Ringkasan | File utama |
 | :---: | :--- | :--- |
 | 1 | Logo, lapisan 3 merah, footer CTA kontributor, header/gradient section, bullet list | `Navbar.tsx`, `NavbarCategoryBar.tsx`, `Footer.tsx`, `globals.css`, `CategoryListColumn.tsx`, komponen home |
-| 2 | Sosial media navbar, share multi-platform artikel | `SocialMediaLinks.tsx`, `ArticleShareButtons.tsx`, `lib/site-config.ts`, `lib/share.ts` |
+| 2 | Sosial media navbar, share multi-platform artikel | `SocialMediaLinks.tsx`, `lib/social-links.ts`, Admin `/admin/social-links`, `ArticleShareButtons.tsx`, `lib/share.ts` |
 | 3 | Sidebar iklan, iklan artikel, leaderboard sidebar, kategori soft launch, info page sidebar | `SidebarAdSlot.tsx`, `HomeEngagementSection.tsx`, `nav-config.ts`, `InfoPageSidebar.tsx` |
 | 4 | Hapus lapisan 1, drawer sidebar + animasi slide, CTA kontributor conditional | `NavbarSidebar.tsx`, `lib/contributor.ts` |
 

@@ -60,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const { role, status } = body;
 
   const updateData: Record<string, unknown> = {};
-  if (role && ['USER', 'ADMIN'].includes(role.toUpperCase())) updateData.role = role.toUpperCase();
+  if (role && ['USER', 'CONTRIBUTOR', 'ADMIN'].includes(role.toUpperCase())) updateData.role = role.toUpperCase();
   if (status && ['active', 'inactive', 'banned'].includes(status)) updateData.status = status;
 
   if (Object.keys(updateData).length === 0) {

@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SectionHeader from "@/components/SectionHeader";
+import ContributorGate from "@/components/ContributorGate";
 import RichTextEditor from "@/components/RichTextEditor";
 
 export default function EditArticlePage() {
@@ -148,6 +149,7 @@ export default function EditArticlePage() {
   }
 
   return (
+    <ContributorGate>
     <div className="bg-white min-h-screen" data-testid="edit-article-page">
       <SectionHeader
         label="UBAH ARTIKEL"
@@ -301,5 +303,6 @@ export default function EditArticlePage() {
         </div>
       </div>
     </div>
+    </ContributorGate>
   );
 }

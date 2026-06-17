@@ -1,4 +1,4 @@
-import type { Role } from '@prisma/client';
+import type { Role, ContributorApplicationStatus } from '@prisma/client';
 
 /** Stable session shape for portal features — independent of auth backend. */
 export type GamificationPatch = {
@@ -19,6 +19,8 @@ export type SessionUser = {
   role: Role;
   avatarUrl: string | null;
   status: string;
+  /** Latest contributor application status for non-contributors. */
+  contributorApplicationStatus?: ContributorApplicationStatus | null;
   /** Global points from Core (`currentPoints` — live API, fallback JWT). */
   totalPoints: number;
   totalXp: number;

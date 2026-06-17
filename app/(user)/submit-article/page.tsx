@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
+import ContributorGate from "@/components/ContributorGate";
 import RichTextEditor from "@/components/RichTextEditor";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import {
@@ -251,6 +252,7 @@ export default function SubmitArticlePage() {
   if (user === false) return null;
 
   return (
+    <ContributorGate>
     <div className="bg-white min-h-screen" data-testid="submit-article-page">
       <SectionHeader
         label="ARTIKEL BARU"
@@ -423,5 +425,6 @@ export default function SubmitArticlePage() {
         </div>
       </div>
     </div>
+    </ContributorGate>
   );
 }

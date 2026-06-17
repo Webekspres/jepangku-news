@@ -2,6 +2,7 @@ import type { User } from '@prisma/client';
 import { getCoreSessionToken } from '@/lib/core/session';
 import type { CoreJwtClaims } from '@/lib/core/session';
 import { fetchCoreUserMe } from '@/lib/core/users';
+import { getContributorApplicationStatusForUser } from '@/lib/contributor-applications';
 import { getUserPointBalance } from '@/lib/points';
 import type { SessionUser } from './types';
 
@@ -45,6 +46,10 @@ export async function applyCoreGamification(
     totalXp: coreClaims?.jepangku?.totalXp ?? user.totalXp ?? 0,
     currentLevel: coreClaims?.jepangku?.level ?? user.currentLevel ?? 1,
     coreRoles: coreRoles.length > 0 ? coreRoles : user.coreRoles,
+    contributorApplicationStatus: await getContributorApplicationStatusForUser(
+      user.id,
+      user.role,
+    ),
   };
 }
 

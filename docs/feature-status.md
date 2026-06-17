@@ -25,7 +25,6 @@
 
 [x] Deploy Core prod — `GET https://core.jepangku.com/health` OK (`status: ok`, redis connected)  
 [x] News env prod — `CORE_API_URL=https://core.jepangku.com`, `CORE_JWT_PUBLIC_KEY` + `CORE_JWT_ISSUER`  
-[ ] Clerk webhook production → `https://core.jepangku.com/api/v1/auth/webhooks/clerk` (Clerk Dashboard)
 
 ### 3. Verifikasi Fase 4 — `bun run verify:core`
 
@@ -48,24 +47,23 @@
 [x] Input sanitasi HTML (`lib/sanitizer.ts`)  
 [x] Image moderation validasi file (`lib/image-moderation.ts` + `POST /api/upload`)  
 [x] Image moderation AI — kode HTTP generik siap  
-[ ] Image moderation AI — set `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY` di production  
 [x] Redis/Upstash — kode siap (`lib/rate-limit-store.ts`)  
 [x] Redis/Upstash — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` di production  
-[ ] Backfill sanitasi konten lama di DB
-[ ] Sentry SDK + alert channel terpusat
-[ ] Log drain / file persistence (export log Vercel)
+[x] Backfill sanitasi konten lama — `bun run backfill:sanitize` (dry-run) / `backfill:sanitize:apply`  
+[x] Error monitoring — `captureException` → `MONITORING_WEBHOOK_URL` + `LOG_DRAIN_URL`
+[x] Log drain — JSON structured logger + `LOG_DRAIN_URL` (warn/error); Vercel stdout → Log Drain
 
 ### 6. Kontributor & gate upload *(Fase A″)*
 
 [x] Halaman placeholder `/contributor/apply`  
-[x] CTA kontributor di navbar/sidebar (`lib/contributor.ts` — hardcode ADMIN)  
-[ ] Schema `ContributorApplication` (atau role `CONTRIBUTOR`) + migrasi  
-[ ] API apply + status kontributor  
-[ ] Gate `POST /api/articles/create` & halaman submit/edit  
-[ ] Admin antrian approve/reject (`/admin/contributors`)  
-[ ] Form `/contributor/apply` fungsional (ganti placeholder)  
-[ ] `lib/contributor.ts` — baca status DB  
-[ ] Sinkron semua entry point (sidebar, footer, profile, my-articles)
+[x] CTA kontributor di navbar/sidebar (`lib/contributor.ts`)  
+[x] Role `CONTRIBUTOR` + migrasi Prisma  
+[x] API apply + status kontributor  
+[x] Gate `POST /api/articles/create` & halaman submit/edit/my/preview  
+[x] Admin antrian approve/reject (`/admin/contributors`) — sementara promote via `/admin/users`  
+[x] Form `/contributor/apply` fungsional (ganti placeholder)  
+[x] `lib/contributor.ts` — `canCreateArticles()` baca role DB (`ADMIN` | `CONTRIBUTOR`)  
+[x] Sinkron entry point (navbar dropdown, sidebar, profile; my-articles disembunyikan untuk USER)
 
 ### 7. Halaman belum ada / admin monitoring *(Fase C′ / E)*
 
@@ -81,10 +79,10 @@
 
 [x] Navbar bell UI placeholder (`NavbarNotifications.tsx`)  
 [x] Sembunyikan bell untuk guest (`Navbar.tsx`)  
-[ ] Model `Notification` + API read/mark-read  
-[ ] Modal daily poin (first session/hari)  
-[ ] Welcome user baru  
-[ ] Notif kontributor approved *(butuh Fase A″)*  
+[ ] Model `Notification` + API read/mark-read
+[ ] Modal daily poin (first session/hari)
+[ ] Welcome user baru
+[ ] Notif kontributor approved *(butuh Fase A″)*
 [ ] Navbar bell fungsional — artikel approve/reject, komentar
 
 ### 9. Newsletter *(Fase E1)*
@@ -93,11 +91,11 @@
 [ ] Footer form + `POST /api/newsletter/subscribe`  
 [ ] Admin CRUD `/admin/newsletter`  
 [ ] Halaman unsubscribe (wajib login akun yang sama)  
-[ ] Email template + SMTP *(opsional)*
+[ ] Email template + SMTP
 
 ### 10. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*
 
-[x] LMS teaser statis — `HomeLmsTeaser.tsx` + `GET /api/home/lms-teaser`  
+[x] LMS teaser statis — `HomeLmsTeaser.tsx` + `GET /api/home/lms-teaser`
 [ ] `GET /api/public/courses` di jepangkuLMS  
 [ ] News proxy `/api/home/lms-teaser` baca live dari LMS  
 [ ] Katalog publik `/kursus` di LMS baca Prisma (single source of truth)

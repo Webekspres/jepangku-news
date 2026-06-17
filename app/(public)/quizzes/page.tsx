@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { Zap, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import SectionHeader from "@/components/SectionHeader";
@@ -49,6 +50,7 @@ function QuizCard({ quiz }: { quiz: any }) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
+            {...imageLoadingProps(false)}
           />
         </div>
         <div className="flex flex-1 flex-col gap-2 p-5">

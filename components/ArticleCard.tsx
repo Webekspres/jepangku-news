@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import AuthorLink from "@/components/AuthorLink";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,7 @@ export default function ArticleCard({
   const coverUrl = article.coverImageUrl || article.cover_image_url;
   const viewCount = article.viewCount ?? article.view_count ?? 0;
   const isHot = article.isHot ?? article.is_hot ?? false;
+  const load = imageLoadingProps(priority);
 
   if (variant === "featured") {
     return (
@@ -53,8 +55,7 @@ export default function ArticleCard({
               fill
               sizes="(max-width: 1024px) 100vw, calc(100vw - 360px)"
               className="object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-300"
-              priority={priority}
-              fetchPriority={priority ? "high" : "auto"}
+              {...load}
               quality={priority ? 80 : 75}
             />
           </div>
@@ -117,7 +118,7 @@ export default function ArticleCard({
                 fill
                 sizes="80px"
                 className="object-cover"
-                priority={priority}
+                {...imageLoadingProps(priority)}
               />
             </div>
           ) : (
@@ -154,8 +155,7 @@ export default function ArticleCard({
               fill
               sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
-              priority={priority}
-              fetchPriority={priority ? "high" : "auto"}
+              {...load}
               quality={75}
             />
           </div>

@@ -198,6 +198,42 @@ async function main() {
   );
 
   try {
+    const loginRes = await fetch(`${newsBase}/api/auth/login`, { method: "POST" });
+    const loginJson = (await loginRes.json()) as { code?: string };
+    record(
+      "Legacy JWT login disabled",
+      loginRes.status === 410 && loginJson.code === "LOCAL_AUTH_DISABLED",
+      `status=${loginRes.status} code=${loginJson.code ?? "?"}`,
+    );
+  } catch (error) {
+    record(
+      "Legacy JWT login disabled",
+      false,
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+
+  record(
+    "users.password_hash removed from schema",
+    !schema.includes("password_hash"),
+    "Clerk-only auth",
+  );
+  record(
+    "Clerk ID guard in ensureLocalUserFromClerk",
+    readFileSync(join(process.cwd(), "lib", "auth", "clerk-user.ts"), "utf8").includes(
+      "isClerkUserId",
+    ),
+    "rejects non-Clerk session user ids",
+  );
+  record(
+    "Legacy user purge script",
+    readFileSync(join(process.cwd(), "scripts", "purge-legacy-users.ts"), "utf8").includes(
+      "isLegacyPortalUserId",
+    ),
+    "bun run purge:legacy-users",
+  );
+
+  try {
     const legacy = await fetch(`${newsBase}/api/homepage`);
     record(
       "Legacy /api/homepage removed",

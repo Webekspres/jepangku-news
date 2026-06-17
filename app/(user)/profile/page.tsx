@@ -10,9 +10,14 @@ import {
   Bookmark as BookmarkIcon,
   BarChart3,
   Pencil,
+  PenSquare,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  canCreateArticles,
+  getContributorCta,
+} from "@/lib/contributor";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -23,7 +28,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      fetch("/api/articles/my").then((r) => r.json()),
+      canCreateArticles(user)
+        ? fetch("/api/articles/my").then((r) => r.json())
+        : Promise.resolve([]),
       fetch("/api/bookmarks").then((r) => r.json()),
       fetch("/api/points/my").then((r) => r.json()),
       fetch("/api/user/profile").then((r) => r.json()),
@@ -38,6 +45,31 @@ export default function ProfilePage() {
   }, [user]);
 
   if (!user) return null;
+
+  const contributorCta = getContributorCta(user);
+  const articleActions = canCreateArticles(user)
+    ? [
+        {
+          href: "/submit-article",
+          icon: FileText,
+          label: "Kirim Artikel",
+          testid: "action-submit-article",
+        },
+        {
+          href: "/my-articles",
+          icon: FileText,
+          label: "Artikel Saya",
+          testid: "action-my-articles",
+        },
+      ]
+    : [
+        {
+          href: contributorCta.href,
+          icon: PenSquare,
+          label: contributorCta.label,
+          testid: "action-contributor-apply",
+        },
+      ];
 
   return (
     <div className="bg-white min-h-screen" data-testid="profile-page">
@@ -131,18 +163,7 @@ export default function ProfilePage() {
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[
-                {
-                  href: "/submit-article",
-                  icon: FileText,
-                  label: "Kirim Artikel",
-                  testid: "action-submit-article",
-                },
-                {
-                  href: "/my-articles",
-                  icon: FileText,
-                  label: "Artikel Saya",
-                  testid: "action-my-articles",
-                },
+                ...articleActions,
                 {
                   href: "/bookmarks",
                   icon: BookmarkIcon,

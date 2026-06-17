@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Play } from "lucide-react";
 import { useState } from "react";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { youtubeEmbedUrl } from "@/lib/video/youtube";
 
 type LazyYoutubeEmbedProps = {
@@ -50,6 +51,7 @@ export default function LazyYoutubeEmbed({
         fill
         sizes="(max-width: 1024px) 100vw, 66vw"
         className="object-cover transition-transform duration-500 group-hover:scale-105"
+        {...imageLoadingProps(false)}
       />
       <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
       <span className="absolute inset-0 flex items-center justify-center">

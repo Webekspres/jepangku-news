@@ -1,11 +1,13 @@
 "use client";
 
 import type { ComponentType } from "react";
-import { Instagram, Youtube } from "lucide-react";
-import { getSocialLinks, type SocialPlatform } from "@/lib/site-config";
+import Link from "next/link";
+import { Facebook, Instagram, Youtube } from "lucide-react";
+import type { SocialLink } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 type SocialMediaLinksProps = {
+  links: SocialLink[];
   className?: string;
   iconClassName?: string;
   testIdPrefix?: string;
@@ -39,23 +41,23 @@ function TikTokIcon({ className }: { className?: string }) {
 }
 
 const PLATFORM_ICONS: Record<
-  SocialPlatform,
+  SocialLink["id"],
   ComponentType<{ className?: string }>
 > = {
   instagram: Instagram,
+  facebook: Facebook,
   x: XIcon,
   youtube: Youtube,
   tiktok: TikTokIcon,
 };
 
 export default function SocialMediaLinks({
+  links,
   className,
   iconClassName = "h-4 w-4",
   testIdPrefix = "social",
   tone = "light",
 }: SocialMediaLinksProps) {
-  const links = getSocialLinks();
-
   if (links.length === 0) {
     return null;
   }
@@ -73,11 +75,12 @@ export default function SocialMediaLinks({
       {links.map((link) => {
         const Icon = PLATFORM_ICONS[link.id];
         return (
-          <a
+          <Link
             key={link.id}
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
+            prefetch={false}
             aria-label={link.label}
             className={cn(
               "rounded-md p-1.5 transition-colors",
@@ -86,7 +89,7 @@ export default function SocialMediaLinks({
             data-testid={`${testIdPrefix}-${link.id}`}
           >
             <Icon className={iconClassName} />
-          </a>
+          </Link>
         );
       })}
     </div>

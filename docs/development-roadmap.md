@@ -53,7 +53,7 @@ portal** meski Core Service hadir, jadi tidak akan terbuang.
 [~] **Rate limiting** — in-memory pada endpoint sensitif (login, register, artikel, vote, share, comment, quiz, upload, dll). *Defer:* Redis/Upstash pre-launch
 [~] **Image moderation** — magic bytes + MIME + ukuran; moderasi AI opsional via env. *Defer:* wajibkan di production
 [~] **Logging structured** — JSON `logger` + `proxy.ts` `/api/*`. *Defer:* log drain
-[~] **Monitoring & alerting** — `captureException`, webhook opsional, `GET /api/health`. *Defer:* Sentry + uptime checker eksternal
+[x] **Monitoring & alerting** — `captureException`, `MONITORING_WEBHOOK_URL`, `LOG_DRAIN_URL`, `GET /api/health`
 
 ### A2. Engagement & Sosial (domain portal)
 

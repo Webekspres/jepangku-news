@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import ContributorGate from "@/components/ContributorGate";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -194,6 +195,7 @@ export default function PreviewArticlePage() {
     article.status === "REJECTED" ? article.reviews?.[0]?.note ?? null : null;
 
   return (
+    <ContributorGate>
     <div className="bg-white min-h-screen" data-testid="preview-article-page">
       {/* Sticky preview banner */}
       <PreviewBanner
@@ -328,5 +330,6 @@ export default function PreviewArticlePage() {
         </div>
       </article>
     </div>
+    </ContributorGate>
   );
 }

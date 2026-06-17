@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -180,9 +181,9 @@ export default function PollDetailPage() {
                 src={poll!.thumbnailUrl}
                 alt={poll!.title}
                 fill
-                priority
                 sizes="(max-width: 768px) 100vw, 768px"
                 className="object-cover"
+                {...imageLoadingProps(true)}
               />
             </div>
           )}
@@ -286,6 +287,7 @@ export default function PollDetailPage() {
                               fill
                               sizes="(max-width: 768px) 100vw, 640px"
                               className="object-cover"
+                              {...imageLoadingProps(false)}
                             />
                           </div>
                         )}
@@ -326,6 +328,7 @@ export default function PollDetailPage() {
                                     fill
                                     sizes="(max-width: 768px) 100vw, 640px"
                                     className="object-cover"
+                                    {...imageLoadingProps(false)}
                                   />
                                 </div>
                               )}

@@ -144,8 +144,20 @@ export default function AdminUserDetailPage() {
                 @{user.username} • {user.email}
               </p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant={user.role === "ADMIN" ? "red" : "muted"}>
-                  {user.role === "ADMIN" ? "ADMIN" : "PENGGUNA"}
+                <Badge
+                  variant={
+                    user.role === "ADMIN"
+                      ? "red"
+                      : user.role === "CONTRIBUTOR"
+                        ? "warning"
+                        : "muted"
+                  }
+                >
+                  {user.role === "ADMIN"
+                    ? "ADMIN"
+                    : user.role === "CONTRIBUTOR"
+                      ? "KONTRIBUTOR"
+                      : "PENGGUNA"}
                 </Badge>
                 <Badge variant={user.status === "active" ? "success" : "muted"}>
                   {user.status === "active" ? "AKTIF" : "TIDAK AKTIF"}

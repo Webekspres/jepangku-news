@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { MessageSquare, Award, BarChart3, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +70,7 @@ function PollCard({ poll }: { poll: any }) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
+            {...imageLoadingProps(false)}
           />
         </div>
         <div className="flex flex-1 flex-col gap-2 p-5">

@@ -1,5 +1,5 @@
 import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
+import NavbarShell from "@/components/NavbarShell";
 
 export default function AuthLayout({
   children,
@@ -8,7 +8,7 @@ export default function AuthLayout({
 }) {
   return (
     <main className="flex-1">
-      <Navbar />
+      <NavbarShell />
       {children}
       <Footer />
     </main>

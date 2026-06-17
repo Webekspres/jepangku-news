@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -187,9 +188,9 @@ export default function QuizDetailPage() {
                 src={quiz.thumbnailUrl}
                 alt={quiz.title}
                 fill
-                priority
                 sizes="(max-width: 768px) 100vw, 768px"
                 className="object-cover"
+                {...imageLoadingProps(true)}
               />
             </div>
           )}
@@ -307,6 +308,7 @@ export default function QuizDetailPage() {
                             fill
                             sizes="(max-width: 768px) 100vw, 640px"
                             className="object-cover"
+                            {...imageLoadingProps(false)}
                           />
                         </div>
                       )}
@@ -342,6 +344,7 @@ export default function QuizDetailPage() {
                                   fill
                                   sizes="(max-width: 768px) 100vw, 640px"
                                   className="object-cover"
+                                  {...imageLoadingProps(false)}
                                 />
                               </div>
                             )}

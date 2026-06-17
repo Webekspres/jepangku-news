@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
+import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
@@ -11,6 +12,9 @@ import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!canCreateArticles(user)) {
+    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+  }
 
   const { slug } = await params;
 

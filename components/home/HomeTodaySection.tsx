@@ -74,11 +74,10 @@ export default function HomeTodaySection({
         ) : displayArticles.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:col-span-2">
-              {displayArticles.map((article, index) => (
+              {displayArticles.map((article) => (
                 <ArticleCard
                   key={article.id}
                   article={article}
-                  priority={index === 0}
                 />
               ))}
             </div>

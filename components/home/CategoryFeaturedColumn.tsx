@@ -1,15 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatArticleDate } from "@/lib/home/format-article-date";
+import { imageLoadingProps } from "@/lib/image-loading";
 import type { EditorialFeaturedColumn } from "@/lib/home/types";
 import { Clock, User } from "lucide-react";
 
 type CategoryFeaturedColumnProps = {
   column: EditorialFeaturedColumn;
+  /** Hanya kolom editorial pertama above-the-fold yang boleh priority */
+  imagePriority?: boolean;
 };
 
 export default function CategoryFeaturedColumn({
   column,
+  imagePriority = false,
 }: CategoryFeaturedColumnProps) {
   const { featured, list, title, viewMoreHref, slug } = column;
 
@@ -44,6 +48,7 @@ export default function CategoryFeaturedColumn({
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
+              {...imageLoadingProps(imagePriority)}
             />
           ) : (
             <div className="absolute inset-0 bg-jepang-navy" />
@@ -95,6 +100,7 @@ export default function CategoryFeaturedColumn({
                   fill
                   sizes="80px"
                   className="object-cover"
+                  {...imageLoadingProps(false)}
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-[10px] text-jepang-muted">

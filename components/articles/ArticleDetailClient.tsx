@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { useAuth } from "@/contexts/AuthContext";
 import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { articlePageUrl } from "@/lib/site-url";
@@ -324,11 +326,14 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
               </div>
             ) : (
               article.coverImageUrl && (
-                <div className="my-8 -mx-4 md:mx-0">
-                  <img
+                <div className="my-8 -mx-4 md:mx-0 relative aspect-16/10 max-h-150 w-full overflow-hidden">
+                  <Image
                     src={article.coverImageUrl}
                     alt={article.title}
-                    className="w-full max-h-150 object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 768px"
+                    className="object-cover"
+                    {...imageLoadingProps(true)}
                   />
                 </div>
               )

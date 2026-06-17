@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Search, Users, Shield, User } from "lucide-react";
+import { Search, Users, Shield, User, PenSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +50,7 @@ export default function AdminUsersPage() {
 
   const getRoleLabel = (role: string) => {
     if (role === "ADMIN") return "Admin";
+    if (role === "CONTRIBUTOR") return "Kontributor";
     return "Pengguna";
   };
 
@@ -103,6 +104,7 @@ export default function AdminUsersPage() {
   const roleFilters = [
     { v: "", l: "Semua", t: "role-filter-all" },
     { v: "ADMIN", l: "Admin", t: "role-filter-admin" },
+    { v: "CONTRIBUTOR", l: "Kontributor", t: "role-filter-contributor" },
     { v: "USER", l: "Pengguna", t: "role-filter-user" },
   ];
 
@@ -266,10 +268,22 @@ export default function AdminUsersPage() {
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant={user.role === "ADMIN" ? "red" : "muted"}>
+                      <Badge
+                        variant={
+                          user.role === "ADMIN"
+                            ? "red"
+                            : user.role === "CONTRIBUTOR"
+                              ? "warning"
+                              : "muted"
+                        }
+                      >
                         {user.role === "ADMIN" ? (
                           <span className="inline-flex items-center gap-1">
                             <Shield size={10} /> Admin
+                          </span>
+                        ) : user.role === "CONTRIBUTOR" ? (
+                          <span className="inline-flex items-center gap-1">
+                            <PenSquare size={10} /> Kontributor
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1">
@@ -305,14 +319,35 @@ export default function AdminUsersPage() {
                         </Button>
 
                         {user.role === "USER" ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                handleRoleChange(user.id, "CONTRIBUTOR")
+                              }
+                              data-testid={`promote-contributor-${user.id}`}
+                            >
+                              Jadikan Kontributor
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                              onClick={() => handleRoleChange(user.id, "ADMIN")}
+                              data-testid={`promote-${user.id}`}
+                            >
+                              Jadikan Admin
+                            </Button>
+                          </>
+                        ) : user.role === "CONTRIBUTOR" ? (
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
-                            onClick={() => handleRoleChange(user.id, "ADMIN")}
-                            data-testid={`promote-${user.id}`}
+                            onClick={() => handleRoleChange(user.id, "USER")}
+                            data-testid={`demote-${user.id}`}
                           >
-                            Jadikan Admin
+                            Jadikan Pengguna
                           </Button>
                         ) : (
                           <Button
