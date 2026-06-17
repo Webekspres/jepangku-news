@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { sanitizePlainField } from "@/lib/sanitizer";
+import { SITE_BRAND_NAME } from "@/lib/site-config";
 import { articlePageUrl, getSiteUrl, toAbsoluteUrl } from "@/lib/site-url";
 
 const DEFAULT_OG_IMAGE = "/assets/images/favicons/web-app-manifest-512x512.png";
@@ -20,13 +21,13 @@ export async function generateArticleMetadata(slug: string): Promise<Metadata> {
   });
 
   if (!article) {
-    return { title: "Artikel tidak ditemukan | Jepangku News" };
+    return { title: `Artikel tidak ditemukan | ${SITE_BRAND_NAME}` };
   }
 
   const title = sanitizePlainField(article.title, 300);
   const description =
     (article.excerpt ? sanitizePlainField(article.excerpt, 500) : null) ??
-    `Baca "${title}" di Jepangku News — portal berita Jepang untuk pembaca Indonesia.`;
+    `Baca "${title}" di ${SITE_BRAND_NAME} — pusat ekosistem Jepang untuk pembaca Indonesia.`;
 
   const pageUrl = articlePageUrl(slug);
   const ogImageUrl = article.coverImageUrl
@@ -42,7 +43,7 @@ export async function generateArticleMetadata(slug: string): Promise<Metadata> {
       title,
       description,
       url: pageUrl,
-      siteName: "Jepangku News",
+      siteName: SITE_BRAND_NAME,
       locale: "id_ID",
       publishedTime: article.publishedAt?.toISOString(),
       modifiedTime: article.updatedAt?.toISOString(),
@@ -94,7 +95,7 @@ export function buildArticleJsonLd(input: {
       : undefined,
     publisher: {
       "@type": "Organization",
-      name: "Jepangku News",
+      name: SITE_BRAND_NAME,
       url: getSiteUrl(),
     },
     mainEntityOfPage: {

@@ -1,4 +1,5 @@
 import { toAbsoluteUrl } from '@/lib/site-url';
+import { SITE_BRAND_NAME } from '@/lib/site-config';
 import type { EmailTemplateId, EmailTemplatePayload } from '@/lib/email/types';
 
 function layout(title: string, body: string, ctaLabel: string, ctaUrl: string): string {
@@ -9,7 +10,7 @@ function layout(title: string, body: string, ctaLabel: string, ctaUrl: string): 
     <tr><td align="center">
       <table width="100%" style="max-width:560px;background:#ffffff;border:1px solid #e5e7eb;">
         <tr><td style="padding:24px;background:#1E1B57;color:#ffffff;">
-          <strong style="font-size:18px;">Jepangku News</strong>
+          <strong style="font-size:18px;">${SITE_BRAND_NAME}</strong>
         </td></tr>
         <tr><td style="padding:24px;">
           <h1 style="margin:0 0 12px;font-size:20px;">${title}</h1>
@@ -19,7 +20,7 @@ function layout(title: string, body: string, ctaLabel: string, ctaUrl: string): 
           </p>
         </td></tr>
         <tr><td style="padding:16px 24px;font-size:12px;color:#9ca3af;border-top:1px solid #e5e7eb;">
-          Email otomatis dari Jepangku. Jangan balas email ini.
+          Email otomatis dari ${SITE_BRAND_NAME}. Jangan balas email ini.
         </td></tr>
       </table>
     </td></tr>
@@ -59,7 +60,7 @@ export function renderEmailTemplate<T extends EmailTemplateId>(
         : '';
       const submitUrl = toAbsoluteUrl(p.submitUrl);
       return {
-        subject: 'Lamaran kontributor disetujui — Jepangku',
+        subject: `Lamaran kontributor disetujui — ${SITE_BRAND_NAME}`,
         html: layout(
           'Selamat, Anda kini kontributor!',
           `<p>Halo ${escapeHtml(p.userName)},</p>
@@ -75,7 +76,7 @@ export function renderEmailTemplate<T extends EmailTemplateId>(
       const p = payload as EmailTemplatePayload['contributor_rejected'];
       const applyUrl = toAbsoluteUrl(p.applyUrl);
       return {
-        subject: 'Update lamaran kontributor — Jepangku',
+        subject: `Update lamaran kontributor — ${SITE_BRAND_NAME}`,
         html: layout(
           'Lamaran kontributor belum disetujui',
           `<p>Halo ${escapeHtml(p.userName)},</p>
@@ -91,15 +92,15 @@ export function renderEmailTemplate<T extends EmailTemplateId>(
       const p = payload as EmailTemplatePayload['welcome_user'];
       const homeUrl = toAbsoluteUrl(p.homeUrl);
       return {
-        subject: 'Selamat datang di Jepangku!',
+        subject: `Selamat datang di ${SITE_BRAND_NAME}!`,
         html: layout(
           `Halo, ${escapeHtml(p.userName)}!`,
-          `<p>Terima kasih sudah bergabung di Jepangku News.</p>
+          `<p>Terima kasih sudah bergabung di ${SITE_BRAND_NAME}.</p>
            <p>Baca artikel, kumpulkan poin, ikuti kuis & polling, dan jelajahi komunitas pecinta Jepang.</p>`,
           'Mulai jelajah',
           homeUrl,
         ),
-        text: `Selamat datang di Jepangku! Mulai di ${homeUrl}`,
+        text: `Selamat datang di ${SITE_BRAND_NAME}! Mulai di ${homeUrl}`,
       };
     }
     default:

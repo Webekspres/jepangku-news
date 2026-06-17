@@ -7,6 +7,7 @@ import {
 } from "@/lib/article-seo";
 import { db } from "@/lib/db";
 import { sanitizePlainField } from "@/lib/sanitizer";
+import { SITE_BRAND_NAME } from "@/lib/site-config";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -37,7 +38,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   const title = sanitizePlainField(article.title, 300);
   const description =
     (article.excerpt ? sanitizePlainField(article.excerpt, 500) : null) ??
-    `Baca "${title}" di Jepangku News.`;
+    `Baca "${title}" di ${SITE_BRAND_NAME}.`;
 
   const jsonLd = buildArticleJsonLd({
     slug,

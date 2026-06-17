@@ -1,16 +1,21 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import ClientProviders from '@/components/ClientProviders';
+import {
+  SITE_DEFAULT_DESCRIPTION,
+  SITE_DEFAULT_TITLE,
+  SITE_TITLE_TEMPLATE,
+} from '@/lib/site-config';
 import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: 'Jepangku News | Portal Berita Jepang',
-    template: '%s | Jepangku News',
+    default: SITE_DEFAULT_TITLE,
+    template: SITE_TITLE_TEMPLATE,
   },
-  description: 'Portal media interaktif bertema Jepang untuk pembaca Indonesia. Baca artikel, ikuti quiz, vote, dan raih poin!',
+  description: SITE_DEFAULT_DESCRIPTION,
   icons: {
     icon: [
       { url: '/assets/images/favicons/favicon.ico', sizes: 'any' },
