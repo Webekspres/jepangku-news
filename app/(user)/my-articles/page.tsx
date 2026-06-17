@@ -11,11 +11,14 @@ import {
   Eye,
   Trash2,
   Send,
+  Globe,
   FileText,
   History,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useAuth, isAuthUser } from "@/contexts/AuthContext";
+import { isAdminAuthor } from "@/lib/article-workflow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
@@ -46,6 +49,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function MyArticlesPage() {
+  const { user } = useAuth();
+  const isAdmin = isAuthUser(user) && isAdminAuthor(user);
   const [articles, setArticles] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -109,17 +114,39 @@ export default function MyArticlesPage() {
     });
   };
 
-  const handleSubmit = async (article: any) => {
+  const handleSubmitForReview = async (article: any) => {
     try {
-      await fetch(`/api/articles/${article.slug}/update`, {
+      const res = await fetch(`/api/articles/${article.slug}/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "PENDING_REVIEW" }),
       });
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.error || "Gagal mengirim");
+      }
       toast.success("Artikel dikirim untuk review");
       await loadArticles(page, filter);
-    } catch {
-      toast.error("Gagal mengirim");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal mengirim");
+    }
+  };
+
+  const handlePublish = async (article: any) => {
+    try {
+      const res = await fetch(`/api/articles/${article.slug}/update`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "PUBLISHED" }),
+      });
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.error || "Gagal mempublikasikan");
+      }
+      toast.success("Artikel berhasil dipublikasikan");
+      await loadArticles(page, filter);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal mempublikasikan");
     }
   };
 
@@ -209,6 +236,12 @@ export default function MyArticlesPage() {
                           ✕ {article.reviews[0].note}
                         </p>
                       )}
+                    {article.status === "PENDING_REVIEW" && (
+                      <p className="text-xs text-jepang-muted mt-2 font-mono">
+                        Artikel sedang dalam antrian review dan tidak dapat diedit.
+                      </p>
+                    )}
+
                     {article.lastEditedBy?.role === "ADMIN" && (
                       <p className="text-xs text-jepang-muted mt-1">
                         Terakhir diedit admin:{" "}
@@ -270,18 +303,30 @@ export default function MyArticlesPage() {
                           onClick={() =>
                             router.push(`/edit-article/${article.id}`)
                           }
+                          title="Edit artikel"
                           data-testid={`edit-${article.id}`}
                         >
                           <Edit size={14} strokeWidth={1.5} />
                         </Button>
-                        <Button
-                          size="icon"
-                          onClick={() => handleSubmit(article)}
-                          data-testid={`submit-${article.id}`}
-                          title="Kirim untuk review"
-                        >
-                          <Send size={14} strokeWidth={1.5} />
-                        </Button>
+                        {isAdmin ? (
+                          <Button
+                            size="icon"
+                            onClick={() => handlePublish(article)}
+                            data-testid={`publish-${article.id}`}
+                            title="Publikasikan artikel"
+                          >
+                            <Globe size={14} strokeWidth={1.5} />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            onClick={() => handleSubmitForReview(article)}
+                            data-testid={`submit-${article.id}`}
+                            title="Kirim untuk review"
+                          >
+                            <Send size={14} strokeWidth={1.5} />
+                          </Button>
+                        )}
                       </>
                     )}
 

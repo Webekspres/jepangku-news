@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AvatarCropModal from "@/components/profile/AvatarCropModal";
 import { preloadMediaImage } from "@/lib/media/client-cache";
+import { uploadMediaFile } from "@/lib/upload-media";
 import UserAvatar from "@/components/media/UserAvatar";
 import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
 
@@ -106,15 +107,8 @@ export default function EditProfilePage() {
   const uploadCroppedAvatar = async (file: File) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Upload gagal");
-      }
-      const data = await res.json();
-      const url = data.url as string;
+      const data = await uploadMediaFile(file, "avatar");
+      const url = data.url;
 
       const saveRes = await fetch("/api/user/profile", {
         method: "PATCH",

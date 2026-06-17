@@ -3,9 +3,9 @@ export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Eye, Save, Send, Upload, PenSquare } from "lucide-react";
+import { Eye, Save, Send, Upload, PenSquare, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +27,12 @@ import {
   type ArticleDraftInfo,
   type ArticleFormSnapshot,
 } from "@/hooks/useAutosave";
+import { uploadMediaFile } from "@/lib/upload-media";
+import {
+  isAdminAuthor,
+  submitSuccessMessage,
+  userPortalCreateSubtitle,
+} from "@/lib/article-workflow";
 
 // ---------------------------------------------------------------------------
 // API helpers
@@ -89,6 +95,7 @@ async function apiUpdateDraft(
 export default function SubmitArticlePage() {
   const { user } = useAuth();
   const router = useRouter();
+  const isAdmin = isAuthUser(user) && isAdminAuthor(user);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [form, setForm] = useState<ArticleFormSnapshot>({
@@ -134,15 +141,7 @@ export default function SubmitArticlePage() {
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const data = await fetch("/api/upload", {
-        method: "POST",
-        body: fd,
-      }).then((r) => {
-        if (!r.ok) throw new Error("Upload failed");
-        return r.json();
-      });
+      const data = await uploadMediaFile(file, "cover");
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
       toast.success("Gambar berhasil diupload");
     } catch {
@@ -212,11 +211,7 @@ export default function SubmitArticlePage() {
         setDraftInfo({ id: article.id, slug: article.slug });
       }
 
-      toast.success(
-        status === "DRAFT"
-          ? "Draft berhasil disimpan"
-          : "Artikel berhasil dikirim untuk direview",
-      );
+      toast.success(submitSuccessMessage(status as "DRAFT" | "PUBLISHED" | "PENDING_REVIEW", isAdmin));
       router.push("/my-articles");
     } catch (e: unknown) {
       toast.error(
@@ -256,8 +251,8 @@ export default function SubmitArticlePage() {
     <div className="bg-white min-h-screen" data-testid="submit-article-page">
       <SectionHeader
         label="ARTIKEL BARU"
-        title="Kirim Artikel Baru"
-        subtitle="Bagikan cerita atau berita Jepang. Artikel akan direview admin sebelum tayang."
+        title={isAdmin ? "Buat Artikel Baru" : "Kirim Artikel Baru"}
+        subtitle={userPortalCreateSubtitle(isAdmin)}
         icon={<PenSquare size={16} strokeWidth={1.5} />}
       />
 
@@ -395,14 +390,25 @@ export default function SubmitArticlePage() {
                 <Save size={14} strokeWidth={1.5} className="mr-1" />
                 {loading ? "Menyimpan..." : "Simpan Draft"}
               </Button>
-              <Button
-                onClick={() => handleSubmit("PENDING_REVIEW")}
-                disabled={loading}
-                data-testid="submit-review-btn"
-              >
-                <Send size={14} strokeWidth={1.5} className="mr-1" />
-                {loading ? "Mengirim..." : "Kirim untuk Review"}
-              </Button>
+              {isAdmin ? (
+                <Button
+                  onClick={() => handleSubmit("PUBLISHED")}
+                  disabled={loading}
+                  data-testid="publish-article-btn"
+                >
+                  <Globe size={14} strokeWidth={1.5} className="mr-1" />
+                  {loading ? "Mempublikasikan..." : "Publikasikan"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => handleSubmit("PENDING_REVIEW")}
+                  disabled={loading}
+                  data-testid="submit-review-btn"
+                >
+                  <Send size={14} strokeWidth={1.5} className="mr-1" />
+                  {loading ? "Mengirim..." : "Kirim untuk Review"}
+                </Button>
+              )}
               {draftId && (
                 <Button
                   variant="outline"

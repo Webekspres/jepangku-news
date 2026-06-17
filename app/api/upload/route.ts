@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { uploadToR2 } from '@/lib/r2';
 import { db } from '@/lib/db';
 import { moderateImage, validateImageBuffer } from '@/lib/image-moderation';
+import { optimizeImageBuffer, parseUploadPurpose } from '@/lib/image-optimize';
 import { enforceRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const purpose = parseUploadPurpose(formData.get('purpose'));
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -42,16 +44,20 @@ export async function POST(request: NextRequest) {
     const detected = validateImageBuffer(buffer, file.type);
     await moderateImage(buffer, file.type);
 
-    const fileName = `jepangku/uploads/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${detected.ext}`;
+    const optimized = await optimizeImageBuffer(buffer, purpose, detected.ext);
+    const uploadBuffer = optimized.buffer;
+    const uploadContentType = optimized.contentType;
 
-    const url = await uploadToR2(buffer, fileName, file.type);
+    const fileName = `jepangku/uploads/${user.id}/${purpose}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${optimized.ext}`;
+
+    const url = await uploadToR2(uploadBuffer, fileName, uploadContentType);
 
     await db.file.create({
       data: {
         storagePath: fileName,
         originalFilename: file.name,
-        contentType: file.type,
-        size: file.size,
+        contentType: uploadContentType,
+        size: uploadBuffer.length,
         userId: user.id,
       },
     });

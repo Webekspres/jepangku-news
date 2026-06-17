@@ -3,6 +3,11 @@ import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
+import {
+  canEditOnUserPortal,
+  getUserPortalSubmitStatuses,
+  resolveUserPortalSubmitStatus,
+} from '@/lib/article-workflow';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
@@ -32,12 +37,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return blockedResponse;
   }
 
-  if (article.authorId !== user.id && user.role !== 'ADMIN') {
+  if (article.authorId !== user.id) {
     return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
   }
 
-  if (!['DRAFT', 'REJECTED'].includes(article.status) && user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Can only edit draft or rejected articles' }, { status: 400 });
+  if (!canEditOnUserPortal(article.status)) {
+    return NextResponse.json(
+      { error: 'Artikel tidak dapat diedit pada status ini' },
+      { status: 400 },
+    );
   }
 
   try {
@@ -73,13 +81,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.categoryId = await resolveCategoryId(categoryId);
     }
     if (status !== undefined) {
-      const validStatuses =
-        user.role === 'ADMIN'
-          ? ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED']
-          : ['DRAFT', 'PENDING_REVIEW'];
-      if (validStatuses.includes(status)) {
-        updateData.status = status;
-        if (status === 'PUBLISHED' && !article.publishedAt) {
+      const isAdmin = user.role === 'ADMIN';
+      const validStatuses = getUserPortalSubmitStatuses(isAdmin);
+      const nextStatus = resolveUserPortalSubmitStatus(String(status), isAdmin);
+      if (validStatuses.includes(nextStatus)) {
+        updateData.status = nextStatus;
+        if (nextStatus === 'PUBLISHED' && !article.publishedAt) {
           updateData.publishedAt = new Date();
         }
       }

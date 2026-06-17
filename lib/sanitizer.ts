@@ -8,6 +8,8 @@ const allowedTags = [
   'code',
   'div',
   'em',
+  'figcaption',
+  'figure',
   'h1',
   'h2',
   'h3',
@@ -34,7 +36,9 @@ const allowedTags = [
 
 const allowedAttributes: sanitizeHtml.IOptions['allowedAttributes'] = {
   a: ['href', 'name', 'target', 'rel'],
-  img: ['src', 'alt', 'title', 'width', 'height'],
+  img: ['src', 'alt', 'title', 'width', 'height', 'loading', 'decoding', 'class'],
+  figure: ['class'],
+  figcaption: ['class'],
   '*': ['class'],
 };
 
@@ -77,6 +81,19 @@ export function sanitizeHtmlContent(input: string) {
     },
     transformTags: {
       a: sanitizeHtml.simpleTransform('a', { rel: 'nofollow noreferrer noopener', target: '_blank' }),
+      img: (_tagName, attribs) => ({
+        tagName: 'img',
+        attribs: {
+          ...attribs,
+          loading: attribs.loading || 'lazy',
+          decoding: attribs.decoding || 'async',
+          class: attribs.class
+            ? `${attribs.class} article-inline-image`
+            : 'article-inline-image',
+        },
+      }),
+      figure: sanitizeHtml.simpleTransform('figure', { class: 'article-figure' }),
+      figcaption: sanitizeHtml.simpleTransform('figcaption', { class: 'article-figure-caption' }),
     },
   });
 }

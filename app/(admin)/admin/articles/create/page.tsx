@@ -9,7 +9,6 @@ import {
   Save,
   Upload,
   Globe,
-  FileText,
 } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import RichTextEditor from "@/components/RichTextEditor";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
+import { uploadMediaFile } from "@/lib/upload-media";
 import NextLink from "next/link";
 import {
   useAutosave,
@@ -129,15 +129,7 @@ export default function AdminCreateArticlePage() {
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const data = await fetch("/api/upload", {
-        method: "POST",
-        body: fd,
-      }).then((r) => {
-        if (!r.ok) throw new Error("Upload failed");
-        return r.json();
-      });
+      const data = await uploadMediaFile(file, "cover");
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
       toast.success("Gambar berhasil diupload");
     } catch {
@@ -355,15 +347,6 @@ export default function AdminCreateArticlePage() {
               >
                 <Save size={14} strokeWidth={1.5} className="mr-1" />
                 {loading ? "Menyimpan..." : "Simpan Draft"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSubmit("PENDING_REVIEW")}
-                disabled={loading}
-                data-testid="admin-save-pending"
-              >
-                <FileText size={14} strokeWidth={1.5} className="mr-1" />
-                Antrian Review
               </Button>
               <Button
                 onClick={() => handleSubmit("PUBLISHED")}

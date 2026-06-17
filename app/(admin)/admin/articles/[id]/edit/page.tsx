@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import RichTextEditor from "@/components/RichTextEditor";
+import { uploadMediaFile } from "@/lib/upload-media";
 
 export default function AdminEditArticlePage() {
   const { id } = useParams<{ id: string }>();
@@ -84,14 +85,7 @@ export default function AdminEditArticlePage() {
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const data = await fetch("/api/upload", { method: "POST", body: fd }).then(
-        (r) => {
-          if (!r.ok) throw new Error("Upload failed");
-          return r.json();
-        },
-      );
+      const data = await uploadMediaFile(file, "cover");
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
       toast.success("Gambar berhasil diupload");
     } catch {

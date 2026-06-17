@@ -313,3 +313,23 @@ code {
 .article-content ol {
   list-style: decimal;
 }
+.article-content figure.article-figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+.article-content .article-inline-image {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  border: 1px solid var(--color-jepang-border);
+  background: var(--color-jepang-off-white);
+}
+.article-content .article-figure-caption {
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-jepang-muted);
+  font-style: italic;
+}

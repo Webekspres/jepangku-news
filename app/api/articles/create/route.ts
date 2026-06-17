@@ -3,6 +3,10 @@ import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
+import {
+  getUserPortalSubmitStatuses,
+  resolveUserPortalSubmitStatus,
+} from '@/lib/article-workflow';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
@@ -38,8 +42,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
 
-    const validStatuses = ['DRAFT', 'PENDING_REVIEW'];
-    const articleStatus = validStatuses.includes(status) ? status : 'DRAFT';
+    const isAdmin = user.role === 'ADMIN';
+    const validStatuses = getUserPortalSubmitStatuses(isAdmin);
+    const articleStatus = resolveUserPortalSubmitStatus(String(status || 'DRAFT'), isAdmin);
+
+    if (!validStatuses.includes(articleStatus)) {
+      return NextResponse.json({ error: 'Invalid article status' }, { status: 400 });
+    }
 
     const slug = createSlug(safeTitle);
 

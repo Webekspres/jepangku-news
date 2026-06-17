@@ -7,7 +7,7 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Typography from "@tiptap/extension-typography";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import {
   Bold,
   Italic,
@@ -26,8 +26,14 @@ import {
   Unlink,
   RotateCcw,
   RotateCw,
+  ImageIcon,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ArticleFigure } from "@/lib/tiptap/article-figure";
+import ArticleImageInsertDialog, {
+  type ArticleImageInsertValues,
+} from "@/components/editor/ArticleImageInsertDialog";
 
 interface RichTextEditorProps {
   value: string;
@@ -93,6 +99,12 @@ export default function RichTextEditor({
   placeholder = "Tulis konten artikel...",
   className,
 }: RichTextEditorProps) {
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [imageDialogInitial, setImageDialogInitial] = useState<
+    Partial<ArticleImageInsertValues> | undefined
+  >(undefined);
+  const [editingFigure, setEditingFigure] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -126,6 +138,7 @@ export default function RichTextEditor({
           class: "text-jepang-red underline underline-offset-2 cursor-pointer",
         },
       }),
+      ArticleFigure,
     ],
     content: value || "",
     editorProps: {
@@ -150,6 +163,10 @@ export default function RichTextEditor({
           // strong / em
           "[&_strong]:font-bold",
           "[&_em]:italic",
+          // inline figures
+          "[&_figure.article-figure]:my-6 [&_figure.article-figure]:text-center",
+          "[&_figure.article-figure_img]:mx-auto [&_figure.article-figure_img]:max-h-80 [&_figure.article-figure_img]:w-full [&_figure.article-figure_img]:border [&_figure.article-figure_img]:border-jepang-border [&_figure.article-figure_img]:object-contain [&_figure.article-figure_img]:bg-jepang-off-white",
+          "[&_figcaption.article-figure-caption]:mt-2 [&_figcaption.article-figure-caption]:text-xs [&_figcaption.article-figure-caption]:italic [&_figcaption.article-figure-caption]:text-jepang-muted",
         ),
       },
     },
@@ -178,6 +195,44 @@ export default function RichTextEditor({
     }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }, [editor]);
+
+  const openInsertImageDialog = useCallback(() => {
+    setEditingFigure(false);
+    setImageDialogInitial(undefined);
+    setImageDialogOpen(true);
+  }, []);
+
+  const openEditImageDialog = useCallback(() => {
+    if (!editor) return;
+    const attrs = editor.getAttributes("articleFigure");
+    setEditingFigure(true);
+    setImageDialogInitial({
+      src: attrs.src ?? "",
+      alt: attrs.alt ?? "",
+      caption: attrs.caption ?? "",
+    });
+    setImageDialogOpen(true);
+  }, [editor]);
+
+  const handleImageConfirm = useCallback(
+    (values: ArticleImageInsertValues) => {
+      if (!editor) return;
+      if (editingFigure) {
+        editor
+          .chain()
+          .focus()
+          .updateArticleFigure({
+            src: values.src,
+            alt: values.alt,
+            caption: values.caption,
+          })
+          .run();
+      } else {
+        editor.chain().focus().insertArticleFigure(values).run();
+      }
+    },
+    [editor, editingFigure],
+  );
 
   if (!editor) return null;
 
@@ -328,6 +383,23 @@ export default function RichTextEditor({
 
         <ToolbarDivider />
 
+        {/* Image */}
+        <ToolbarButton
+          onClick={openInsertImageDialog}
+          title="Sisipkan gambar"
+        >
+          <ImageIcon size={15} strokeWidth={2} />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={openEditImageDialog}
+          disabled={!editor.isActive("articleFigure")}
+          title="Edit gambar terpilih"
+        >
+          <Pencil size={15} strokeWidth={2} />
+        </ToolbarButton>
+
+        <ToolbarDivider />
+
         {/* History */}
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -349,6 +421,13 @@ export default function RichTextEditor({
 
       {/* Editor area */}
       <EditorContent editor={editor} />
+
+      <ArticleImageInsertDialog
+        open={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        initialValues={imageDialogInitial}
+        onConfirm={handleImageConfirm}
+      />
 
       {/* Shortcut hint bar */}
       <div className="border-t border-jepang-border bg-jepang-off-white px-3 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
