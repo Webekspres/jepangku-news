@@ -168,7 +168,7 @@ export default function HomeEngagementSection({
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             <div className="flex flex-col gap-6 lg:col-span-3">
-              <div className="rounded-lg border border-jepang-border bg-white p-6 shadow-jepang">
+              <div className="rounded-lg border border-jepang-border bg-white p-6">
                 <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-jepang-border">
                   <div className="flex items-start gap-3 min-w-0">
                     <MessageSquare
@@ -256,11 +256,12 @@ export default function HomeEngagementSection({
               </div>
             </div>
 
-            <aside className="flex flex-col gap-6 lg:col-span-1">
-              <div
-                className="rounded-lg border border-jepang-border bg-white shadow-jepang lg:sticky lg:top-24"
-                data-testid="home-leaderboard-sidebar"
-              >
+            <aside className="lg:col-span-1">
+              <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+                <div
+                  className="rounded-lg border border-jepang-border bg-white shadow-jepang"
+                  data-testid="home-leaderboard-sidebar"
+                >
                 <div className="flex items-center justify-between gap-2 border-b border-jepang-border px-4 py-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <Trophy size={16} strokeWidth={1.5} className="shrink-0 text-jepang-red" />
@@ -318,15 +319,15 @@ export default function HomeEngagementSection({
                     Belum ada data peringkat.
                   </p>
                 )}
-              </div>
+                </div>
 
-              <SidebarAdSlot
-                data={sidebarAd}
-                loading={sidebarAdLoading}
-                error={sidebarAdError}
-                testId="homepage-sidebar-ad"
-                className="lg:sticky lg:top-[calc(6rem+320px)]"
-              />
+                <SidebarAdSlot
+                  data={sidebarAd}
+                  loading={sidebarAdLoading}
+                  error={sidebarAdError}
+                  testId="homepage-sidebar-ad"
+                />
+              </div>
             </aside>
           </div>
         </div>

@@ -34,7 +34,6 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
         data-testid="home-ad-banner-empty"
       >
         <div className="px-4 mx-auto max-w-7xl">
-          <p className="section-label mb-3 text-center">パートナー / PARTNER</p>
           <div className="flex min-h-[120px] items-center justify-center rounded-lg border border-dashed border-jepang-border bg-jepang-off-white px-6 text-center">
             <p className="text-sm text-jepang-muted">
               Slot iklan partner — segera hadir
@@ -69,7 +68,6 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
       data-testid="home-ad-banner"
     >
       <div className="px-4 mx-auto max-w-7xl">
-        <p className="section-label mb-3 text-center">パートナー / PARTNER</p>
         {banner.linkUrl ? (
           <a
             href={banner.linkUrl}
@@ -81,7 +79,7 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
             {image}
           </a>
         ) : (
-          <div className="overflow-hidden rounded-lg shadow-jepang">{image}</div>
+          <div className="overflow-hidden rounded-lg">{image}</div>
         )}
       </div>
     </section>

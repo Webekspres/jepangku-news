@@ -4,8 +4,14 @@ import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
+import SidebarAdSlot from "@/components/home/SidebarAdSlot";
+import PopularTags from "@/components/PopularTags";
+import { useLazySection } from "@/hooks/useLazySection";
 import type { HomeArticle } from "@/lib/home/article-include";
+import type { HomeAdResponse } from "@/lib/home/types";
 import { ArrowRight } from "lucide-react";
+
+const TODAY_ARTICLE_LIMIT = 6;
 
 type HomeTodaySectionProps = {
   articles: HomeArticle[];
@@ -18,6 +24,16 @@ export default function HomeTodaySection({
   todaySource,
   loading,
 }: HomeTodaySectionProps) {
+  const {
+    data: sidebarAd,
+    isLoading: sidebarAdLoading,
+    error: sidebarAdError,
+  } = useLazySection<HomeAdResponse>("/api/home/ads?slot=homepage-sidebar", {
+    immediate: true,
+  });
+
+  const displayArticles = articles.slice(0, TODAY_ARTICLE_LIMIT);
+
   return (
     <section className="py-10 md:py-12 bg-jepang-off-white border-t border-jepang-border">
       <div className="px-4 mx-auto max-w-7xl">
@@ -43,22 +59,55 @@ export default function HomeTodaySection({
         </div>
 
         {loading ? (
-          <LazySectionSkeleton minHeight={360}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-              {[...Array(3)].map((_, idx) => (
-                <ArticleCardSkeleton key={idx} />
-              ))}
+          <LazySectionSkeleton minHeight={720}>
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:col-span-2">
+                {[...Array(TODAY_ARTICLE_LIMIT)].map((_, idx) => (
+                  <ArticleCardSkeleton key={idx} />
+                ))}
+              </div>
+              <aside className="hidden lg:block lg:col-span-1">
+                <div className="h-64 animate-pulse rounded-lg bg-jepang-border/60" />
+              </aside>
             </div>
           </LazySectionSkeleton>
-        ) : articles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {articles.map((article, index) => (
-              <ArticleCard
-                key={article.id}
-                article={article}
-                priority={index === 0}
-              />
-            ))}
+        ) : displayArticles.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:col-span-2">
+              {displayArticles.map((article, index) => (
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  priority={index === 0}
+                />
+              ))}
+            </div>
+
+            <aside className="lg:col-span-1">
+              <div
+                className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start"
+                data-testid="home-today-sidebar"
+              >
+                <div
+                  className="rounded-lg border border-jepang-border bg-white p-5 shadow-jepang"
+                  aria-label="Topik populer"
+                  data-testid="home-today-hot-topics"
+                >
+                  <PopularTags
+                    limit={12}
+                    title="ホット / HOT TOPIC"
+                    className="w-full"
+                  />
+                </div>
+
+                <SidebarAdSlot
+                  data={sidebarAd}
+                  loading={sidebarAdLoading}
+                  error={sidebarAdError}
+                  testId="home-today-sidebar-ad"
+                />
+              </div>
+            </aside>
           </div>
         ) : (
           <p className="text-center text-jepang-muted py-12">

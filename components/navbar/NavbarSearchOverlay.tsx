@@ -56,7 +56,7 @@ export default function NavbarSearchOverlay({
         role="presentation"
         onClick={onClose}
         className={cn(
-          "fixed inset-0 z-[100] bg-black/25 transition-opacity duration-300",
+          "fixed inset-0 z-100 bg-black/25 transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0",
         )}
         data-testid="navbar-search-backdrop"
@@ -67,7 +67,7 @@ export default function NavbarSearchOverlay({
         role="presentation"
         onClick={onClose}
         className={cn(
-          "fixed inset-x-0 top-0 z-[101] border-b border-jepang-border bg-jepang-off-white shadow-md",
+          "fixed inset-x-0 top-0 z-101 border-b border-jepang-border bg-jepang-off-white shadow-md",
           "transition-transform duration-300 will-change-transform",
           open ? "translate-y-0 ease-out" : "-translate-y-full ease-in",
         )}
