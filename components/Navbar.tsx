@@ -15,6 +15,7 @@ import NavbarSearchOverlay from "@/components/navbar/NavbarSearchOverlay";
 import NavbarNotifications from "@/components/navbar/NavbarNotifications";
 import NavbarCategoryBar from "@/components/navbar/NavbarCategoryBar";
 import NavbarSidebar from "@/components/navbar/NavbarSidebar";
+import UserAvatar from "@/components/media/UserAvatar";
 import { NAV_LINKS } from "@/components/navbar/nav-config";
 import { getContributorCta, canCreateArticles } from "@/lib/contributor";
 import { imageLoadingProps } from "@/lib/image-loading";
@@ -258,17 +259,11 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                           className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
                           data-testid="user-menu-button"
                         >
-                          {avatarUrl ? (
-                            <img
-                              src={avatarUrl}
-                              alt={displayName}
-                              className="h-9 w-9 rounded-full border border-jepang-border object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-jepang-navy text-sm font-bold text-white">
-                              {displayName.charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                          <UserAvatar
+                            src={avatarUrl}
+                            alt={displayName}
+                            size={36}
+                          />
                         </button>
                       </DropdownMenuTrigger>
 

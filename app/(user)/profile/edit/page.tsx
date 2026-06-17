@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AvatarCropModal from "@/components/profile/AvatarCropModal";
+import { preloadMediaImage } from "@/lib/media/client-cache";
+import UserAvatar from "@/components/media/UserAvatar";
 import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
 
 interface ProfileForm {
@@ -125,6 +127,7 @@ export default function EditProfilePage() {
       }
 
       setForm((prev) => ({ ...prev, avatarUrl: url }));
+      preloadMediaImage(url);
       await refreshUser();
       toast.success("Foto profil diperbarui");
     } catch (err: unknown) {
@@ -244,22 +247,13 @@ export default function EditProfilePage() {
               <div className="flex items-center gap-6">
                 {/* Avatar preview */}
                 <div className="relative shrink-0">
-                  {form.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={form.avatarUrl}
-                      alt="Avatar"
-                      className="w-24 h-24 object-cover rounded-full border border-jepang-border"
-                      data-testid="avatar-preview"
-                    />
-                  ) : (
-                    <div
-                      className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl rounded-full border border-jepang-border"
-                      data-testid="avatar-initial"
-                    >
-                      {avatarInitial}
-                    </div>
-                  )}
+                  <UserAvatar
+                    src={form.avatarUrl || null}
+                    alt="Avatar"
+                    size={96}
+                    fallbackInitial={avatarInitial}
+                    testId={form.avatarUrl ? "avatar-preview" : "avatar-initial"}
+                  />
                   {uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <Loader2 size={24} className="text-white animate-spin" />

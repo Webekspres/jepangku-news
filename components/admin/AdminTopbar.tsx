@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getAdminBreadcrumbs } from '@/lib/admin-nav';
+import UserAvatar from '@/components/media/UserAvatar';
 
 type AdminTopbarProps = {
   onMenuClick?: () => void;
@@ -105,17 +106,13 @@ export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
                 className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
                 data-testid="admin-user-menu-button"
               >
-                {authUser.avatarUrl ? (
-                  <img
-                    src={authUser.avatarUrl}
-                    alt={authUser.displayName}
-                    className="h-9 w-9 border border-foreground object-cover"
-                  />
-                ) : (
-                  <div className="flex h-9 w-9 items-center justify-center border border-foreground bg-foreground text-sm font-bold text-white">
-                    {authUser.displayName?.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <UserAvatar
+                  src={authUser.avatarUrl}
+                  alt={authUser.displayName}
+                  size={36}
+                  fallbackInitial={authUser.displayName}
+                  className="rounded-none border-foreground"
+                />
               </button>
             </DropdownMenuTrigger>
 

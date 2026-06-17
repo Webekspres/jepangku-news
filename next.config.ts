@@ -1,4 +1,8 @@
 import type { NextConfig } from 'next';
+import { NEXT_IMAGE_CACHE_TTL_SEC } from './lib/media/constants';
+import { getR2PublicHostname } from './lib/media/url';
+
+const r2PublicHost = getR2PublicHostname();
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -27,10 +31,14 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 80, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: NEXT_IMAGE_CACHE_TTL_SEC,
     remotePatterns: [
       { protocol: "https", hostname: "**.r2.cloudflarestorage.com" },
       { protocol: "https", hostname: "**.r2.dev" },
+      ...(r2PublicHost
+        ? [{ protocol: "https" as const, hostname: r2PublicHost }]
+        : []),
+      { protocol: "https", hostname: "img.clerk.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "static.prod-images.emergentagent.com" },
       { protocol: "https", hostname: "img.youtube.com" },

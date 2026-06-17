@@ -1,5 +1,6 @@
 import type { HomeAdResponse } from '@/lib/home/types';
 import { AD_SLOT_CLIENT_TTL_MS } from '@/lib/ads/cache';
+import { preloadMediaImage } from '@/lib/media/client-cache';
 
 type CacheEntry = {
   data: HomeAdResponse;
@@ -8,19 +9,14 @@ type CacheEntry = {
 
 const memoryCache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<HomeAdResponse>>();
-const preloadedImages = new Set<string>();
 
 export function adSlotEndpoint(slot: string): string {
   return `/api/home/ads?slot=${encodeURIComponent(slot)}`;
 }
 
-/** Warm browser image cache — idempotent per URL per session. */
+/** @deprecated Gunakan preloadMediaImage dari lib/media/client-cache */
 export function preloadAdBannerImage(imageUrl: string | null | undefined): void {
-  if (!imageUrl || typeof window === 'undefined' || preloadedImages.has(imageUrl)) return;
-  preloadedImages.add(imageUrl);
-  const img = new window.Image();
-  img.decoding = 'async';
-  img.src = imageUrl;
+  preloadMediaImage(imageUrl);
 }
 
 function readCache(slot: string): HomeAdResponse | null {

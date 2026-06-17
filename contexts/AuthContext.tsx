@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { useClerk, useAuth as useClerkSession, useUser } from '@clerk/nextjs';
 import type { GamificationPatch, SessionUser } from '@/lib/auth/types';
+import { preloadMediaImage } from '@/lib/media/client-cache';
 
 type ClerkUser = ReturnType<typeof useUser>['user'];
 
@@ -120,6 +121,7 @@ export function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
         applyPointsBalance(gamification);
 
         if (data) {
+          if (data.avatarUrl) preloadMediaImage(data.avatarUrl);
           setProfile(mergeGamification(data, gamification));
           return;
         }

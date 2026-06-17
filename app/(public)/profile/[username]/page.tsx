@@ -9,6 +9,7 @@ import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import SectionHeader from "@/components/SectionHeader";
 import { Eye, Bookmark, FileText, Calendar, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import UserAvatar from "@/components/media/UserAvatar";
 
 type PublicProfile = {
   username: string;
@@ -128,21 +129,13 @@ function PublicProfileContent() {
 
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="flex flex-col sm:flex-row gap-6 mb-10 pb-8 border-b border-jepang-border">
-          {profile.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt={profile.displayName}
-              className="h-24 w-24 shrink-0 rounded-full border border-jepang-border object-cover"
-              data-testid="profile-avatar"
-            />
-          ) : (
-            <div
-              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-jepang-border bg-foreground text-3xl font-bold text-white"
-              data-testid="profile-avatar-fallback"
-            >
-              {profile.displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
+          <UserAvatar
+            src={profile.avatarUrl}
+            alt={profile.displayName}
+            size={96}
+            fallbackInitial={profile.displayName}
+            testId={profile.avatarUrl ? "profile-avatar" : "profile-avatar-fallback"}
+          />
 
           <div className="flex-1 min-w-0">
             {profile.bio ? (

@@ -1,4 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { R2_OBJECT_CACHE_CONTROL } from '@/lib/media/constants';
 
 const hasR2Config =
   process.env.R2_ACCESS_KEY_ID &&
@@ -32,6 +33,7 @@ export async function uploadToR2(
     Key: fileName,
     Body: file,
     ContentType: contentType,
+    CacheControl: R2_OBJECT_CACHE_CONTROL,
   });
 
   await s3Client.send(command);

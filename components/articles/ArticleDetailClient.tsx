@@ -24,6 +24,7 @@ import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
 import AuthorProfileCard from "@/components/AuthorProfileCard";
 import AuthorLink from "@/components/AuthorLink";
+import UserAvatar from "@/components/media/UserAvatar";
 import ArticleShareButtons from "@/components/ArticleShareButtons";
 import ArticleSidebarAd from "@/components/articles/ArticleSidebarAd";
 import { categoryArticlesHref } from "@/components/navbar/nav-config";
@@ -234,16 +235,16 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
               <div className="flex items-center gap-2">
                 {isLoading ? (
                   <div className="w-8 h-8 bg-jepang-red/10 animate-pulse" />
-                ) : article.author?.avatarUrl ? (
-                  <img
-                    src={article.author.avatarUrl}
-                    alt={article.author.displayName || article.author.name}
-                    className="h-8 w-8 shrink-0 border border-foreground object-cover"
-                  />
                 ) : (
-                  <div className="w-8 h-8 bg-foreground text-white flex items-center justify-center font-bold text-xs shrink-0">
-                    {(article.author?.displayName || article.author?.name)?.charAt(0).toUpperCase() || "J"}
-                  </div>
+                  <UserAvatar
+                    src={article.author?.avatarUrl}
+                    alt={article.author?.displayName || article.author?.name || "Penulis"}
+                    size={32}
+                    fallbackInitial={
+                      article.author?.displayName || article.author?.name
+                    }
+                    className="rounded-none border-foreground"
+                  />
                 )}
 
                 <div>

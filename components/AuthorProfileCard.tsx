@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { User } from "lucide-react";
 import AuthorLink from "@/components/AuthorLink";
+import UserAvatar from "@/components/media/UserAvatar";
 
 export type ArticleAuthor = {
   name: string;
@@ -18,17 +19,12 @@ export default function AuthorProfileCard({ author }: { author: ArticleAuthor })
       className="mt-8 flex gap-4 rounded-lg border border-jepang-border p-5 shadow-sm"
       data-testid="author-profile-card"
     >
-      {author.avatarUrl ? (
-        <img
-          src={author.avatarUrl}
-          alt={displayName}
-          className="h-16 w-16 shrink-0 rounded-full border border-jepang-border object-cover"
-        />
-      ) : (
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-jepang-navy text-xl font-bold text-white">
-          {displayName.charAt(0).toUpperCase()}
-        </div>
-      )}
+      <UserAvatar
+        src={author.avatarUrl}
+        alt={displayName}
+        size={64}
+        fallbackInitial={displayName}
+      />
 
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted mb-1">

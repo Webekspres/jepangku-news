@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { cn } from "@/lib/utils";
 import AuthorLink from "@/components/AuthorLink";
+import UserAvatar from "@/components/media/UserAvatar";
 
 export type CommentTargetType = "ARTICLE" | "POLL" | "QUIZ";
 
@@ -72,19 +73,14 @@ function relativeTime(iso: string): string {
 }
 
 function Avatar({ author }: { author: CommentAuthor }) {
-  if (author.avatarUrl) {
-    return (
-      <img
-        src={author.avatarUrl}
-        alt={author.name}
-        className="h-9 w-9 border border-foreground object-cover shrink-0"
-      />
-    );
-  }
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-foreground bg-foreground text-sm font-bold text-white">
-      {author.name?.charAt(0).toUpperCase() || "?"}
-    </div>
+    <UserAvatar
+      src={author.avatarUrl}
+      alt={author.name}
+      size={36}
+      fallbackInitial={author.name}
+      className="rounded-none border-foreground"
+    />
   );
 }
 
