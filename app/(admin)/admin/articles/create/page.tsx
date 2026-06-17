@@ -360,14 +360,14 @@ export default function AdminCreateArticlePage() {
                 <Button
                   variant="outline"
                   asChild
-                  data-testid="admin-preview-draft-btn"
+                  data-testid="admin-view-draft-btn"
                 >
                   <NextLink
-                    href={`/preview-article/${draftId}`}
+                    href={`/admin/articles/${draftId}`}
                     target="_blank"
                   >
                     <Eye size={14} strokeWidth={1.5} className="mr-1" />
-                    Pratinjau
+                    Lihat
                   </NextLink>
                 </Button>
               )}

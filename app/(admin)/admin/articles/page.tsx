@@ -370,6 +370,35 @@ export default function AdminArticlesPage() {
     );
   };
 
+  const handleArchive = (articleId: string, title: string) => {
+    confirm({
+      title: "Arsipkan artikel?",
+      description: `"${title}" akan diarsipkan dan tidak tampil di situs.`,
+      confirmLabel: "Arsipkan",
+      variant: "warning",
+      onConfirm: async () => {
+        setActionLoading(articleId);
+        try {
+          const res = await fetch("/api/admin/articles/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: [articleId], action: "archive" }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Gagal mengarsipkan artikel");
+          }
+          toast.success("Artikel berhasil diarsipkan");
+          await Promise.all([loadArticles(), loadStats()]);
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal mengarsipkan artikel");
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
+  };
+
   const handleApprove = (articleId: string) => {
     confirm({
       title: "Setujui artikel?",
@@ -705,7 +734,7 @@ export default function AdminArticlesPage() {
                       {article.viewCount || 0}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-1">
                         {article.status === "PENDING_REVIEW" && (
                           <>
                             <Button
@@ -728,14 +757,53 @@ export default function AdminArticlesPage() {
                             </Button>
                           </>
                         )}
-                        <Button variant="outline" size="sm" asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                          className="border border-jepang-border hover:border-foreground"
+                          title="Lihat"
+                        >
+                          <Link
+                            href={`/admin/articles/${article.id}`}
+                            data-testid={`view-article-action-${article.id}`}
+                          >
+                            <Eye size={14} strokeWidth={1.5} />
+                            <span className="sr-only">Lihat</span>
+                          </Link>
+                        </Button>
+                        {article.status !== "ARCHIVED" &&
+                          article.status !== "PENDING_REVIEW" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                handleArchive(article.id, article.title)
+                              }
+                              disabled={actionLoading === article.id}
+                              className="border border-jepang-border hover:border-foreground"
+                              title="Arsipkan"
+                              data-testid={`archive-article-${article.id}`}
+                            >
+                              <Archive size={14} strokeWidth={1.5} />
+                              <span className="sr-only">Arsipkan</span>
+                            </Button>
+                          )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          title="Ubah"
+                        >
                           <Link
                             href={`/admin/articles/${article.id}/edit`}
                             data-testid={`edit-article-${article.id}`}
                           >
-                            <Pencil size={14} className="mr-1" /> Ubah
+                            <Pencil size={14} className="mr-1" />
+                            <span className="sr-only">Ubah</span>
                           </Link>
                         </Button>
+
                       </div>
                     </TableCell>
                   </TableRow>

@@ -181,6 +181,20 @@ export const revisionListSelect = {
   editor: { select: { id: true, name: true, role: true } },
 } as const;
 
+export const revisionDetailSelect = {
+  id: true,
+  revisionNumber: true,
+  changeNote: true,
+  title: true,
+  excerpt: true,
+  content: true,
+  coverImageUrl: true,
+  categoryId: true,
+  status: true,
+  createdAt: true,
+  editor: { select: { id: true, name: true, role: true } },
+} as const;
+
 export const reviewListSelect = {
   id: true,
   previousStatus: true,

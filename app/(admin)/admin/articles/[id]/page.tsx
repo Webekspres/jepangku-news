@@ -81,7 +81,7 @@ export default function AdminArticleViewPage() {
       testId="admin-article-view-page"
       backHref="/admin/articles"
       backLabel="Kembali ke Artikel"
-      title="Lihat Artikel"
+      title={article.title}
     >
         <AdminCard testId="admin-article-detail">
             <div className="flex flex-wrap items-center gap-2 mb-3">

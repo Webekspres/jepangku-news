@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ContributorGate from "@/components/ContributorGate";
+import PreviewArticleBreadcrumb from "@/components/articles/PreviewArticleBreadcrumb";
+import { isAdminPreviewContext } from "@/lib/preview-article-nav";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -124,6 +126,8 @@ function PreviewBanner({
 
 export default function PreviewArticlePage() {
   const { id } = useParams<{ id: string }>()!;
+  const searchParams = useSearchParams();
+  const fromAdmin = isAdminPreviewContext(searchParams);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -146,10 +150,10 @@ export default function PreviewArticlePage() {
       .then(setArticle)
       .catch(() => {
         toast.error("Artikel tidak ditemukan atau kamu tidak punya akses");
-        router.replace("/my-articles");
+        router.replace(fromAdmin ? "/admin/articles" : "/my-articles");
       })
       .finally(() => setLoading(false));
-  }, [id, user, router]);
+  }, [id, user, router, fromAdmin]);
 
   const handleSubmitForReview = async () => {
     if (!article) return;
@@ -208,13 +212,10 @@ export default function PreviewArticlePage() {
 
       <article className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-4xl mx-auto">
-          {/* Back link */}
-          <Link
-            href="/my-articles"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
-          >
-            <ArrowLeft size={14} /> Kembali ke Artikel Saya
-          </Link>
+          <PreviewArticleBreadcrumb
+            fromAdmin={fromAdmin}
+            articleTitle={article.title}
+          />
 
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
