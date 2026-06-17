@@ -11,9 +11,9 @@ import HomeLmsTeaser from "@/components/home/HomeLmsTeaser";
 import HomeReactionsSection from "@/components/home/HomeReactionsSection";
 import HomeEngagementSection from "@/components/home/HomeEngagementSection";
 import LazySectionShell from "@/components/home/LazySectionShell";
+import { useAdSlot } from "@/hooks/useAdSlot";
 import { useLazySection } from "@/hooks/useLazySection";
 import type {
-  HomeAdResponse,
   HomeCategoriesEditorialResponse,
   HomeEngagementResponse,
   HomeFeedResponse,
@@ -50,7 +50,7 @@ export default function HomePage() {
     data: ads,
     isLoading: adsLoading,
     error: adsError,
-  } = useLazySection<HomeAdResponse>("/api/home/ads?slot=homepage-mid");
+  } = useAdSlot("homepage-mid");
 
   const {
     sentinelRef: lmsSentinelRef,

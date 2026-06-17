@@ -11,6 +11,7 @@ const CLERK_PROTECTED_ROUTES = createRouteMatcher([
   '/submit-article(.*)',
   '/edit-article(.*)',
   '/bookmarks(.*)',
+  '/activity(.*)',
   '/points(.*)',
   '/profile/edit(.*)',
   '/admin(.*)',

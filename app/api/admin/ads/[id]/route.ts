@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { isValidAdSlotPosition } from "@/lib/ads/constants";
+import { revalidateAdSlots } from "@/lib/ads/revalidate";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 
@@ -75,6 +76,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (sortOrder !== undefined) updateData.sortOrder = Number(sortOrder) || 0;
 
   await db.adSlot.update({ where: { id }, data: updateData });
+  revalidateAdSlots(existing.position);
+  if (updateData.position && updateData.position !== existing.position) {
+    revalidateAdSlots(String(updateData.position));
+  }
 
   return NextResponse.json({ message: "Ad updated" });
 }
@@ -88,6 +93,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   if (!ad) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
 
   await db.adSlot.delete({ where: { id } });
+  revalidateAdSlots(ad.position);
 
   return NextResponse.json({ message: "Ad deleted" });
 }

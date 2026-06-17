@@ -6,8 +6,7 @@ import TrendingArticlesPanel, {
   type TrendingArticleItem,
 } from "@/components/home/TrendingArticlesPanel";
 import PopularTags from "@/components/PopularTags";
-import { useLazySection } from "@/hooks/useLazySection";
-import type { HomeAdResponse } from "@/lib/home/types";
+import { useAdSlot } from "@/hooks/useAdSlot";
 
 type ArticleSidebarProps = {
   /** Sembunyikan artikel yang sedang dibaca dari daftar trending */
@@ -19,10 +18,9 @@ const TRENDING_LIMIT = 5;
 export default function ArticleSidebarAd({
   excludeArticleSlug,
 }: ArticleSidebarProps) {
-  const { data, isLoading, error } = useLazySection<HomeAdResponse>(
-    "/api/home/ads?slot=article-sidebar",
-    { immediate: true },
-  );
+  const { data, isLoading, error } = useAdSlot("article-sidebar", {
+    immediate: true,
+  });
 
   const [trending, setTrending] = useState<TrendingArticleItem[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);

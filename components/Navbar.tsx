@@ -320,7 +320,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                         </DropdownMenuItem>
 
                         <DropdownMenuItem asChild>
-                          <Link href="/points" className="cursor-pointer" data-testid="menu-points">
+                          <Link href="/activity" className="cursor-pointer" data-testid="menu-points">
                             <Award size={16} strokeWidth={1.5} />
                             Riwayat Poin
                           </Link>

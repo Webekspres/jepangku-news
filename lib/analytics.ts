@@ -355,7 +355,7 @@ export async function getDashboardChartData() {
   const since = new Date(dayKeys[0]);
   since.setHours(0, 0, 0, 0);
 
-  const [statusGroups, views, publishedArticles, categories] = await Promise.all([
+  const [statusGroups, views, publishedArticles, categories, recentUsers] = await Promise.all([
     db.article.groupBy({ by: ['status'], _count: { id: true } }),
     db.articleView.findMany({
       where: { viewedAt: { gte: since } },
@@ -366,6 +366,10 @@ export async function getDashboardChartData() {
       select: { publishedAt: true },
     }),
     getCategoryAnalytics(),
+    db.user.findMany({
+      where: { createdAt: { gte: since } },
+      select: { createdAt: true },
+    }),
   ]);
 
   const articleStatus = statusGroups
@@ -394,11 +398,17 @@ export async function getDashboardChartData() {
 
   const totalViews7d = views.length;
 
+  const userRegistrationsByDay = countByDay(
+    recentUsers.map((u) => u.createdAt),
+    dayKeys,
+  );
+
   return {
     articleStatus,
     viewsByDay,
     articlesPublishedByDay,
     topCategories,
     totalViews7d,
+    userRegistrationsByDay,
   };
 }

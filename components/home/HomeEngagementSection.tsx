@@ -15,9 +15,8 @@ import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import { Badge } from "@/components/ui/badge";
-import { useLazySection } from "@/hooks/useLazySection";
+import { useAdSlot } from "@/hooks/useAdSlot";
 import type {
-  HomeAdResponse,
   HomeEngagementResponse,
   HomePollSummary,
   HomeQuizSummary,
@@ -133,9 +132,7 @@ export default function HomeEngagementSection({
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useLazySection<HomeAdResponse>("/api/home/ads?slot=homepage-sidebar", {
-    immediate: true,
-  });
+  } = useAdSlot("homepage-sidebar", { immediate: true });
 
   if (error) {
     return (

@@ -1,5 +1,6 @@
 "use client";
 
+import AdBannerImage from "@/components/ads/AdBannerImage";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeAdResponse } from "@/lib/home/types";
 
@@ -48,16 +49,13 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
   const alt = banner.altText || banner.title || "Partner";
 
   const image = (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={banner.imageUrl}
+    <AdBannerImage
+      imageUrl={banner.imageUrl}
       alt={alt}
-      loading="lazy"
-      decoding="async"
       width={1200}
       height={280}
-      className="w-full h-auto max-h-[280px] object-cover rounded-lg border border-jepang-border bg-jepang-off-white"
-      data-testid={`ad-banner-image-${banner.id}`}
+      className="max-h-[280px]"
+      testId={`ad-banner-image-${banner.id}`}
     />
   );
 

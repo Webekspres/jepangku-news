@@ -64,7 +64,7 @@ export default function HomeFeedSection({
           <LazySectionSkeleton minHeight={440} data-testid="homepage-loading">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-stretch">
               <ArticleCardSkeleton variant="featured" />
-              <div className="rounded-lg border border-jepang-border bg-white p-5 shadow-jepang lg:min-h-[460px]">
+              <div className="rounded-lg border border-jepang-border bg-white p-5 lg:min-h-[460px]">
                 <div className="mb-4 h-6 w-40 animate-pulse rounded bg-jepang-border" />
                 <div className="space-y-0">
                   {[...Array(5)].map((_, idx) => (
@@ -120,7 +120,7 @@ export default function HomeFeedSection({
                             key={article.id}
                             type="button"
                             onClick={() => setFeaturedIndex(idx)}
-                            className="flex h-11 w-11 items-center justify-center rounded-full"
+                            className="flex h-5 w-5 items-center justify-center rounded-full"
                             aria-label={`Slide ${idx + 1}`}
                             aria-current={idx === featuredIndex ? "true" : undefined}
                           >
@@ -128,8 +128,8 @@ export default function HomeFeedSection({
                               className={cn(
                                 "block rounded-full transition-all",
                                 idx === featuredIndex
-                                  ? "h-2.5 w-6 bg-jepang-red"
-                                  : "h-2.5 w-2.5 bg-white/70 hover:bg-white",
+                                  ? "h-3 w-6 bg-jepang-red"
+                                  : "h-3 w-3 bg-white/20 hover:bg-white/30",
                               )}
                               aria-hidden
                             />

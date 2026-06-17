@@ -39,7 +39,7 @@
 
 ### 4. Kebijakan akun legacy
 
-[ ] User tanpa Clerk ID (JWT lama): force re-login Clerk atau hapus
+[x] User tanpa Clerk ID (JWT lama): force re-login Clerk atau hapus — guard `isClerkUserId` + relink email di `lib/auth/clerk-user.ts`, login JWT disabled (410), skrip `bun run purge:legacy-users`
 
 ### 5. Keamanan & kualitas pre-production
 
@@ -67,13 +67,13 @@
 
 ### 7. Halaman belum ada / admin monitoring *(Fase C′ / E)*
 
-[ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user  
-[ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard *(nav: comingSoon)*  
-[ ] `app/(admin)/admin/points/page.tsx` — monitor transaksi poin *(nav: comingSoon)*  
-[ ] `app/(admin)/admin/activity-log/page.tsx` — audit log admin *(nav: comingSoon)*  
-[ ] Activity audit log — siapa approve/reject apa, kapan  
-[ ] Point transaction summary di admin — total per periode, breakdown tipe  
-[ ] User growth tracking — grafik registrasi per hari/minggu
+[x] `app/(user)/activity/page.tsx` — riwayat aktivitas user (`/points` redirect ke sini)  
+[x] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard  
+[x] `app/(admin)/admin/points/page.tsx` — monitor transaksi poin  
+[x] `app/(admin)/admin/activity-log/page.tsx` — audit log admin  
+[x] Activity audit log — siapa approve/reject apa, kapan (`ArticleReview` + `ContributorApplication`)  
+[x] Point transaction summary di admin — total per periode, breakdown tipe (`/api/admin/points`)  
+[x] User growth tracking — grafik registrasi per hari/minggu (dashboard + `/admin/activity-log`)
 
 ### 8. Notifikasi portal *(Fase C′ + E2)*
 

@@ -23,9 +23,9 @@ import {
   getAuthLoginPath,
   getAuthRegisterPath,
 } from "@/contexts/AuthContext";
+import { useAdSlot } from "@/hooks/useAdSlot";
 import type { SessionUser } from "@/lib/auth/types";
 import { getContributorCta } from "@/lib/contributor";
-import type { HomeAdResponse } from "@/lib/home/types";
 import { cn } from "@/lib/utils";
 
 type NavbarSidebarProps = {
@@ -56,10 +56,13 @@ export default function NavbarSidebar({
   const activeCategory =
     pathname === "/articles" ? searchParams.get("category") : null;
 
-  const [adData, setAdData] = useState<HomeAdResponse | null>(null);
-  const [adLoading, setAdLoading] = useState(false);
   const [isPresent, setIsPresent] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+
+  const { data: adData, isLoading: adLoading } = useAdSlot("homepage-sidebar", {
+    enabled: open,
+    immediate: true,
+  });
 
   const contributorCta = getContributorCta(authUser);
 
@@ -95,29 +98,6 @@ export default function NavbarSidebar({
       document.body.style.overflow = "";
     };
   }, [isPresent]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    let cancelled = false;
-    setAdLoading(true);
-
-    fetch("/api/home/ads?slot=homepage-sidebar")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json: HomeAdResponse | null) => {
-        if (!cancelled) setAdData(json);
-      })
-      .catch(() => {
-        if (!cancelled) setAdData(null);
-      })
-      .finally(() => {
-        if (!cancelled) setAdLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
 
   if (!isPresent) return null;
 

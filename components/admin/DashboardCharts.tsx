@@ -23,6 +23,7 @@ export type DashboardChartsData = {
   articlesPublishedByDay: DayPoint[];
   topCategories: BarPoint[];
   totalViews7d: number;
+  userRegistrationsByDay: DayPoint[];
 };
 
 function formatDayLabel(iso: string) {
@@ -220,15 +221,15 @@ export default function DashboardCharts({
 
         <div className="lg:col-span-2">
           <ChartCard
-            title="Artikel Dipublikasi"
-            subtitle="Jumlah publish per hari · 7 hari terakhir"
-            href="/admin/articles"
-            testId="chart-published"
+            title="Registrasi Pengguna"
+            subtitle="Akun baru · 7 hari terakhir"
+            href="/admin/activity-log"
+            testId="chart-user-growth"
           >
             <AreaTrendChart
-              data={charts.articlesPublishedByDay}
+              data={charts.userRegistrationsByDay}
               color="#171717"
-              valueLabel="Artikel"
+              valueLabel="Registrasi"
             />
           </ChartCard>
         </div>

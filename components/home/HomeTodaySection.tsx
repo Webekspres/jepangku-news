@@ -6,9 +6,8 @@ import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
 import PopularTags from "@/components/PopularTags";
-import { useLazySection } from "@/hooks/useLazySection";
+import { useAdSlot } from "@/hooks/useAdSlot";
 import type { HomeArticle } from "@/lib/home/article-include";
-import type { HomeAdResponse } from "@/lib/home/types";
 import { ArrowRight } from "lucide-react";
 
 const TODAY_ARTICLE_LIMIT = 6;
@@ -28,9 +27,7 @@ export default function HomeTodaySection({
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useLazySection<HomeAdResponse>("/api/home/ads?slot=homepage-sidebar", {
-    immediate: true,
-  });
+  } = useAdSlot("homepage-sidebar", { immediate: true });
 
   const displayArticles = articles.slice(0, TODAY_ARTICLE_LIMIT);
 

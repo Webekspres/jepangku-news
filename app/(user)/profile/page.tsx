@@ -171,7 +171,7 @@ export default function ProfilePage() {
                   testid: "action-bookmarks",
                 },
                 {
-                  href: "/points",
+                  href: "/activity",
                   icon: BarChart3,
                   label: "Poin",
                   testid: "action-points",
@@ -208,7 +208,7 @@ export default function ProfilePage() {
               AKTIVITAS TERBARU
             </p>
             <Link
-              href="/points"
+              href="/activity"
               className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
               data-testid="view-all-points"
             >

@@ -1,5 +1,6 @@
 "use client";
 
+import AdBannerImage from "@/components/ads/AdBannerImage";
 import type { HomeAdResponse } from "@/lib/home/types";
 import { cn } from "@/lib/utils";
 
@@ -26,14 +27,13 @@ export default function SidebarAdSlot({
   const alt = banner.altText || banner.title || "Partner";
 
   const image = (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={banner.imageUrl}
+    <AdBannerImage
+      imageUrl={banner.imageUrl}
       alt={alt}
-      loading="lazy"
-      decoding="async"
-      className="w-full h-auto max-h-[360px] object-cover rounded-lg border border-jepang-border bg-jepang-off-white"
-      data-testid={`${testId}-image-${banner.id}`}
+      width={400}
+      height={360}
+      className="max-h-[360px]"
+      testId={`${testId}-image-${banner.id}`}
     />
   );
 

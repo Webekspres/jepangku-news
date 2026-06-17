@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { isValidAdSlotPosition } from "@/lib/ads/constants";
+import { revalidateAdSlots } from "@/lib/ads/revalidate";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 
@@ -62,6 +63,8 @@ export async function POST(request: NextRequest) {
       createdBy: admin.id,
     },
   });
+
+  revalidateAdSlots(String(position));
 
   return NextResponse.json({ message: "Ad created", id: ad.id }, { status: 201 });
 }
