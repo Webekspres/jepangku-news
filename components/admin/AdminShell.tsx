@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { hasNewsAdminAccess } from '@/lib/auth/types';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminTopbar from '@/components/admin/AdminTopbar';
 import { ThinScrollbar } from '@/components/ui/thin-scrollbar';
@@ -19,7 +20,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       router.push('/');
       return;
     }
-    if (!loading && user && (user as { role?: string }).role !== 'ADMIN') {
+    if (!loading && user && !hasNewsAdminAccess(user)) {
       router.push('/');
     }
   }, [user, loading, isLoaded, isSignedIn, router]);
@@ -28,7 +29,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     setSidebarOpen(false);
   }, [pathname]);
 
-  if (!isLoaded || !isSignedIn || loading || !user || (user as { role?: string }).role !== 'ADMIN') {
+  if (
+    !isLoaded ||
+    !isSignedIn ||
+    loading ||
+    !user ||
+    !hasNewsAdminAccess(user)
+  ) {
     return null;
   }
 

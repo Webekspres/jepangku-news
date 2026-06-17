@@ -860,8 +860,8 @@
     "semantic_hash": ""
   },
   "components/ProtectedRoute.tsx": {
-    "mtime": 1781159672.5052795,
-    "ast_hash": "62b96fc9b378ca5f505dd3ddb95e2b5e",
+    "mtime": 1781666265.9712307,
+    "ast_hash": "45740cfa4baae352770d9fef1495f56a",
     "semantic_hash": ""
   },
   "components/Providers.tsx": {
@@ -890,8 +890,8 @@
     "semantic_hash": ""
   },
   "components/admin/AdminShell.tsx": {
-    "mtime": 1781167798.470917,
-    "ast_hash": "63536335b67b6d69dc701f1d28b020b0",
+    "mtime": 1781666264.6654203,
+    "ast_hash": "a3827f54e87be0caa4fdf717589a1eee",
     "semantic_hash": ""
   },
   "components/admin/AdminSidebar.tsx": {
@@ -930,8 +930,8 @@
     "semantic_hash": ""
   },
   "components/home/AdBannerSlot.tsx": {
-    "mtime": 1781664253.1386533,
-    "ast_hash": "af9560474bc05be3c1a313429e5afede",
+    "mtime": 1781664445.1674855,
+    "ast_hash": "d7f48a3edc6ac19d8007c9bac5bb455d",
     "semantic_hash": ""
   },
   "components/home/CategoryEditorialSection.tsx": {
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "components/home/HomeTodaySection.tsx": {
-    "mtime": 1781664210.2946064,
-    "ast_hash": "91b360da79d2c4cbe4cdb865ff81eb96",
+    "mtime": 1781664343.317362,
+    "ast_hash": "b9f5098d60f1a6d202eb8a2432ec954b",
     "semantic_hash": ""
   },
   "components/home/JepangkuTvSection.tsx": {
@@ -1265,8 +1265,8 @@
     "semantic_hash": ""
   },
   "lib/auth/types.ts": {
-    "mtime": 1781244952.124467,
-    "ast_hash": "262c2d69adb732448500cd01244ed226",
+    "mtime": 1781666263.5407884,
+    "ast_hash": "f1e7cc8ac8f6a9aad03a3730e70ef6e8",
     "semantic_hash": ""
   },
   "lib/clerk-appearance.ts": {
@@ -1395,8 +1395,8 @@
     "semantic_hash": ""
   },
   "lib/home/queries/feed.ts": {
-    "mtime": 1781664211.2686746,
-    "ast_hash": "05a1ae87586c149dc50080a67c890bb0",
+    "mtime": 1781664335.6312385,
+    "ast_hash": "aaaaccca3526fae963af11740e0625f1",
     "semantic_hash": ""
   },
   "lib/home/queries/lms-teaser.ts": {
@@ -1560,8 +1560,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1781236443.6471126,
-    "ast_hash": "6932269c492ce630766f93c0229d8c27",
+    "mtime": 1781666319.2955258,
+    "ast_hash": "f91bc3060bfae4824e4c404afcc3d230",
     "semantic_hash": ""
   },
   "postcss.config.mjs": {
@@ -1780,8 +1780,8 @@
     "semantic_hash": ""
   },
   "scripts/verify-core-integration.ts": {
-    "mtime": 1781252047.293826,
-    "ast_hash": "0975d30a7f8a68d9432d6bc3d3869a0f",
+    "mtime": 1781666448.6332295,
+    "ast_hash": "01eee0eacadd26ebd8d90b14102655a4",
     "semantic_hash": ""
   },
   "scripts/verify-home-waves.ts": {
@@ -1850,18 +1850,18 @@
     "semantic_hash": ""
   },
   "docs/development-roadmap.md": {
-    "mtime": 1781499210.9865665,
-    "ast_hash": "d64841ae9db19cdf9879a3f4133de168",
+    "mtime": 1781666135.8742428,
+    "ast_hash": "c0e74a633a9ac0d197d7d2ef3c6bccc0",
     "semantic_hash": ""
   },
   "docs/ecosystem-integration.md": {
-    "mtime": 1781499214.956851,
-    "ast_hash": "f84c3e0fdab82129290efaf797194edf",
+    "mtime": 1781666341.975422,
+    "ast_hash": "b636ae5f35a278cd4aad2962fd9b945b",
     "semantic_hash": ""
   },
   "docs/feature-status.md": {
-    "mtime": 1781660863.3310986,
-    "ast_hash": "da2760b79a9729e85d9a1d1fc37bfef1",
+    "mtime": 1781666325.6532862,
+    "ast_hash": "24a0e6411154f53aaa0e433dccd29c29",
     "semantic_hash": ""
   },
   "docs/soft-launch-content.md": {
@@ -2002,6 +2002,26 @@
   "lib/site-url.ts": {
     "mtime": 1781662425.9223683,
     "ast_hash": "6ff54b01ed04e5b16b5a8736c7b04fe2",
+    "semantic_hash": ""
+  },
+  "e2e/homepage.spec.ts": {
+    "mtime": 1781666359.660212,
+    "ast_hash": "35383a88c263fe0a0b52aea5e6369084",
+    "semantic_hash": ""
+  },
+  "playwright.config.ts": {
+    "mtime": 1781665018.4602995,
+    "ast_hash": "d514f8c3c62a790cbda8a0228501b7d5",
+    "semantic_hash": ""
+  },
+  "scripts/verify-staging-cutover.ts": {
+    "mtime": 1781666307.8216143,
+    "ast_hash": "51944a16239c4437bf679d3794e73a63",
+    "semantic_hash": ""
+  },
+  "docs/runbooks/core-service-down.md": {
+    "mtime": 1781666317.3893635,
+    "ast_hash": "afa74b0fab9c50049a3c9d436bb4d586",
     "semantic_hash": ""
   }
 }

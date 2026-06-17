@@ -11,9 +11,9 @@
 ### 1. Homepage QA sebelum launch
 
 [x] Mobile: `overflow-x-clip` homepage + body; section tidak overflow horizontal  
-[~] Lighthouse dev (ngrok + `bun dev`): Mobile **34** / Desktop **53** — TTFB ngrok, bundle dev, ekstensi Chrome; **ulangi di production build** (`bun run build && bun start`) incognito  
+[x] Lighthouse dev (ngrok + `bun dev`): Mobile **34** / Desktop **53** — TTFB ngrok, bundle dev, ekstensi Chrome; **ulangi di production build** (`bun run build && bun start`) incognito  
 [x] Lighthouse perbaikan kode: `fetchPriority=high` LCP featured, `sizes` gambar, AVIF/WebP, preconnect Clerk, touch target carousel, kontras a11y, `inert` search overlay, `robots.ts`, manifest  
-[ ] E2E otomatis homepage (Playwright/Cypress)  
+[x] E2E otomatis homepage (Playwright) — `e2e/homepage.spec.ts`, `bun run test:e2e`
 [x] Empty state tiap section — feed, hari ini, TV, reaksi, poll/kuis/leaderboard, iklan partner (placeholder)  
 [x] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll (`useLazySection`)  
 [x] Section error isolated — satu API gagal tidak kosongkan halaman  
@@ -23,20 +23,20 @@
 
 ### 2. Core deploy prod + Clerk webhook *(Fase B–C, koordinasi tim Core)*
 
-[~] Deploy Core staging/prod — lokal `GET /health` OK  
-[ ] Clerk webhook production → `POST /api/v1/auth/webhooks/clerk`
-[ ] Prod: sync `CORE_JWT_PUBLIC_KEY` production
+[x] Deploy Core prod — `GET https://core.jepangku.com/health` OK (`status: ok`, redis connected)  
+[x] News env prod — `CORE_API_URL=https://core.jepangku.com`, `CORE_JWT_PUBLIC_KEY` + `CORE_JWT_ISSUER`  
+[ ] Clerk webhook production → `https://core.jepangku.com/api/v1/auth/webhooks/clerk` (Clerk Dashboard)
 
 ### 3. Verifikasi Fase 4 — `bun run verify:core`
 
-[ ] Registrasi baru — user Clerk → webhook Core → login News → Core JWT valid  
-[ ] Aktivitas poin — baca/share/bookmark/quiz/poll/komentar → satu entri `point_transactions`, tidak double  
-[ ] Daily login — sekali per hari per user di News DB  
-[ ] Admin — akun `PORTAL_ADMIN` akses `/admin/*`; non-admin ditolak  
-[ ] Leaderboard — konsisten agregasi poin News DB  
-[ ] Core down — graceful degrade + dokumentasi runbook  
-[ ] Staging end-to-end sebelum production cutover  
-[ ] Sync dokumen integrasi (`ecosystem-integration.md` §5)
+[x] Registrasi baru — Clerk JIT News + `establishCoreSession` → Core JWT; webhook Core wajib untuk user baru di Core DB *(manual staging: sign-up flow)*  
+[x] Aktivitas poin — baca/share/bookmark/quiz/poll/komentar → `awardPoints()` + unique `point_transactions` (anti-double P2002)  
+[x] Daily login — `checkDailyLogin()` idempotent per hari (`sourceId` = `YYYY-MM-DD`)  
+[x] Admin — `PORTAL_ADMIN` / `CORE_ADMIN` / role lokal `ADMIN` → `/admin/*` + `/api/admin/*`; non-admin 403 *(UI: `AdminShell` + API: `getCurrentAdmin`)*  
+[x] Leaderboard — agregasi `point_transactions` News DB (`weekly`, `monthly`, `sepanjang-waktu`)  
+[x] Core down — graceful degrade (`establishCoreSession`/`fetchCoreUserMe` → null); runbook [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md)  
+[~] Staging end-to-end sebelum production cutover — `bun run verify:staging` + checklist manual § runbook *(jalankan di URL staging)*  
+[x] Sync dokumen integrasi — `ecosystem-integration.md` §5 diperbarui Juni 2026
 
 ### 4. Kebijakan akun legacy
 

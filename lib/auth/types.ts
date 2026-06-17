@@ -30,10 +30,15 @@ export type SessionUser = {
   lastLoginAt: string | null;
 };
 
-export const CORE_ADMIN_ROLES = ['NEWS_EDITOR', 'CORE_ADMIN'] as const;
+export const CORE_ADMIN_ROLES = [
+  'PORTAL_ADMIN',
+  'CORE_ADMIN',
+  'NEWS_EDITOR', // legacy Core seed alias
+] as const;
 
 export function hasNewsAdminAccess(user: SessionUser): boolean {
-  // Portal lokal masih memakai Role.ADMIN; Core memakai NEWS_EDITOR / CORE_ADMIN.
   if (user.role === 'ADMIN') return true;
-  return user.coreRoles.some((r) => (CORE_ADMIN_ROLES as readonly string[]).includes(r));
+  return user.coreRoles.some((r) =>
+    (CORE_ADMIN_ROLES as readonly string[]).includes(r),
+  );
 }

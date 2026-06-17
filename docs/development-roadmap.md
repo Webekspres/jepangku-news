@@ -129,7 +129,7 @@ Detail: `docs/ecosystem-integration.md` §5 Fase 1–2 · API: `jepangku-core/do
 [x] Core JWT: `POST /api/v1/auth/token`
 [x] Schema v2.1: `users.id` = Clerk ID, `gamification_logs`, `roles`, `levels` (tanpa poin/badge di Core)
 [x] API: `GET /users/me`, `POST /gamification/award` (XP), `GET /leaderboard` (XP global — LMS)
-[ ] Deploy staging/prod + env production
+[x] Deploy prod — `https://core.jepangku.com` (`GET /health` OK)
 [x] Role portal: `USER`, `PORTAL_ADMIN` (seed Core v2.1)
 
 ### B2. Portal Berita — Clerk bridge (selesai) + Core shadow
@@ -137,7 +137,7 @@ Detail: `docs/ecosystem-integration.md` §5 Fase 1–2 · API: `jepangku-core/do
 [x] Integrasi Clerk di portal (`AUTH_PROVIDER=clerk`)
 [x] Kolom `users.clerk_id` + JIT provisioning lokal
 [x] Auth lokal (JWT/bcrypt) dinonaktifkan
-[ ] Env `CORE_API_URL`, `CORE_SERVICE_TOKEN`
+[x] Env `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*` (prod: `core.jepangku.com`)
 [ ] Modul `lib/core/` (token exchange, award wrapper)
 [ ] Shadow call `POST /api/v1/auth/token` setelah login (non-blocking)
 [ ] Dual-write tidak diperlukan — poin hanya di News DB (Core v2.1)

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, getAuthLoginPath } from "@/contexts/AuthContext";
+import { hasNewsAdminAccess } from "@/lib/auth/types";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -24,7 +25,7 @@ export default function ProtectedRoute({
     }
     if (loading || user === null) return;
 
-    if (requireAdmin && (user as { role?: string }).role !== "ADMIN") {
+    if (requireAdmin && user && !hasNewsAdminAccess(user)) {
       router.replace("/");
     }
   }, [user, isLoaded, isSignedIn, loading, requireAdmin, router]);
@@ -54,7 +55,7 @@ export default function ProtectedRoute({
   if (!isSignedIn || user === false) return null;
 
   // Not admin when required
-  if (requireAdmin && (user as any).role !== "ADMIN") return null;
+  if (requireAdmin && user && !hasNewsAdminAccess(user)) return null;
 
   return <>{children}</>;
 }

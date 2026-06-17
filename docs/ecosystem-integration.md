@@ -162,11 +162,11 @@ news:daily_login:{YYYY-MM-DD}:{clerkId}
 | FK konten | → Clerk ID ✅ | |
 | Identitas & role | Core JWT ✅ | `POST /auth/token` + `application: PORTAL_BERITA` |
 | Core client | `lib/core/` + `CORE_*` env ✅ | |
-| Admin gate | Core JWT ✅ | Target: `PORTAL_ADMIN` / `CORE_ADMIN` |
-| **Poin portal** | 🔄 Migrasi | Target: ledger lokal News; kode sementara masih via `awardXp()` Core |
-| **Leaderboard poin** | 🔄 Migrasi | Target: agregasi `point_transactions` News; kode sementara pakai Core XP leaderboard |
+| Admin gate | Core JWT ✅ | `PORTAL_ADMIN` / `CORE_ADMIN` / role lokal `ADMIN` |
+| **Poin portal** | ✅ News DB | `point_transactions` + `awardPoints()` — bukan Core |
+| **Leaderboard poin** | ✅ News DB | Agregasi `point_transactions`; bukan Core XP leaderboard |
 
-Sisa operasional: migrasi poin/leaderboard ke News DB, QA Fase 4 staging, sync `CORE_JWT_PUBLIC_KEY` (`bun run jwt:sync-public-key-to-clients`).
+Sisa operasional: Clerk webhook production di Dashboard, QA staging (`bun run verify:staging`), sign-up E2E manual di staging.
 
 ---
 
@@ -181,7 +181,8 @@ Sisa operasional: migrasi poin/leaderboard ke News DB, QA Fase 4 staging, sync `
 ### Fase 1 — Core siap (repo `jepangku-core`)
 
 - [x] Kode: Clerk sync, `auth/token`, `gamification/award`, verify script
-- [ ] **Prod:** deploy + Clerk webhook aktif
+- [x] **Prod:** deploy Core live (`https://core.jepangku.com`)
+- [ ] **Prod:** Clerk webhook aktif di Dashboard → `/api/v1/auth/webhooks/clerk`
 - [x] Seed activity types News (§3.4)
 - [x] Assign `PORTAL_ADMIN` via `db:sync-clerk`
 - [x] Verifikasi dev: `bun run verify:integration`
@@ -197,15 +198,17 @@ Sisa operasional: migrasi poin/leaderboard ke News DB, QA Fase 4 staging, sync `
 - [x] FK → Clerk ID (`users.id` = Clerk ID)
 - [x] Admin gate dari Core JWT (`PORTAL_ADMIN` / `CORE_ADMIN` — target v2.1)
 - [x] Hapus kolom `users.total_points` lokal (cutover identitas)
-- [ ] **Migrasi poin** — kembalikan ledger `point_transactions` di News DB (poin tidak di Core)
-- [ ] **Leaderboard poin** — agregasi lokal, bukan `GET /api/v1/leaderboard` Core
+- [x] **Migrasi poin** — ledger `point_transactions` di News DB (`awardPoints()`)
+- [x] **Leaderboard poin** — agregasi lokal (`lib/leaderboard/queries.ts`), bukan Core XP
 
 ### Fase 4 — Verifikasi
 
-- [x] Dev: login → user di Core DB
-- [x] Dev: identitas & JWT Core valid
-- [ ] Dev: aktivitas → poin di News DB (idempotent) — menggantikan alur `awardXp()` sementara
-- [ ] **Staging/prod:** E2E manual + `bun run verify:core`
+- [x] Dev: login → user di Core DB *(via webhook + JIT News)*
+- [x] Dev: identitas & JWT Core valid (`establishCoreSession`, `CORE_JWT_PUBLIC_KEY`)
+- [x] Dev: aktivitas → poin di News DB (idempotent unique constraint)
+- [x] Automated: `bun run verify:core` — schema, routes, admin gate, leaderboard API
+- [x] Runbook Core down: [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md)
+- [~] **Staging/prod:** `bun run verify:staging` + E2E manual sign-up/gamification *(jalankan di URL staging)*
 
 ### Fase 5 — LMS
 
