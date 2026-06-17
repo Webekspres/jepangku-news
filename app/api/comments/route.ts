@@ -15,6 +15,8 @@ import {
   type CommentRecord,
 } from '@/lib/comments';
 import { summarizeCommentReactions } from '@/lib/reactions';
+import { auditCommentCreate } from '@/lib/audit-routes';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 const USER_SELECT = {
   select: { id: true, name: true, username: true, avatarUrl: true, role: true },
@@ -134,6 +136,22 @@ export async function POST(request: NextRequest) {
     targetType,
     targetId,
     isReply: resolvedParentId !== null,
+  });
+
+  auditCommentCreate(
+    user,
+    comment.id,
+    { type: targetType, id: targetId, title: target.title },
+    resolvedParentId !== null,
+  );
+
+  dispatchNotificationEventSafe({
+    type: 'comment.created',
+    commentId: comment.id,
+    targetType,
+    targetId,
+    authorId: user.id,
+    parentId: resolvedParentId,
   });
 
   return NextResponse.json(

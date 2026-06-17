@@ -21,34 +21,68 @@ const PAGE_SIZE = 25;
 
 export type AdminAuditEntry = {
   id: string;
-  type: 'article_review' | 'contributor_review';
+  category: string;
   action: string;
+  summary: string;
   actor: {
     id: string;
     name: string;
     username: string;
-  };
+  } | null;
   target: {
-    id: string;
-    label: string;
+    id: string | null;
+    label: string | null;
     href: string | null;
   };
   note: string | null;
   occurredAt: string;
 };
 
-const ARTICLE_STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draft',
-  PENDING_REVIEW: 'Menunggu Review',
-  PUBLISHED: 'Dipublikasi',
-  REJECTED: 'Ditolak',
-  ARCHIVED: 'Arsip',
-};
+export async function getAdminActivityLog(options: {
+  page?: number;
+  category?: string;
+}) {
+  const page = Math.max(1, options.page ?? 1);
+  const take = PAGE_SIZE;
+  const skip = (page - 1) * take;
+  const categoryFilter = options.category?.trim();
 
-function formatArticleAction(previousStatus: string, newStatus: string): string {
-  const from = ARTICLE_STATUS_LABELS[previousStatus] ?? previousStatus;
-  const to = ARTICLE_STATUS_LABELS[newStatus] ?? newStatus;
-  return `${from} → ${to}`;
+  const where = categoryFilter ? { category: categoryFilter } : undefined;
+
+  const [rows, total] = await Promise.all([
+    db.auditLog.findMany({
+      where,
+      orderBy: { occurredAt: 'desc' },
+      skip,
+      take,
+      include: {
+        actor: { select: { id: true, name: true, username: true } },
+      },
+    }),
+    db.auditLog.count({ where }),
+  ]);
+
+  const entries: AdminAuditEntry[] = rows.map((row) => ({
+    id: row.id,
+    category: row.category,
+    action: row.action,
+    summary: row.summary,
+    actor: row.actor,
+    target: {
+      id: row.targetId,
+      label: row.targetLabel,
+      href: row.targetHref,
+    },
+    note: row.note,
+    occurredAt: row.occurredAt.toISOString(),
+  }));
+
+  return {
+    entries,
+    page,
+    totalPages: Math.max(1, Math.ceil(total / take)),
+    total,
+  };
 }
 
 function lastNDays(n: number): string[] {
@@ -234,84 +268,6 @@ export async function getAdminPointsSummary(periodParam: string | null) {
 
 export type { AdminPointTransaction };
 
-export async function getAdminActivityLog(options: {
-  page?: number;
-  type?: string;
-}) {
-  const page = Math.max(1, options.page ?? 1);
-  const take = PAGE_SIZE;
-  const skip = (page - 1) * take;
-  const typeFilter = options.type;
-  const fetchLimit = 200;
-
-  const [articleReviews, contributorReviews] = await Promise.all([
-    typeFilter && typeFilter !== 'article_review'
-      ? Promise.resolve([])
-      : db.articleReview.findMany({
-          orderBy: { reviewedAt: 'desc' },
-          take: fetchLimit,
-          include: {
-            reviewer: { select: { id: true, name: true, username: true } },
-            article: { select: { id: true, title: true, slug: true } },
-          },
-        }),
-    typeFilter && typeFilter !== 'contributor_review'
-      ? Promise.resolve([])
-      : db.contributorApplication.findMany({
-          where: { reviewedAt: { not: null } },
-          orderBy: { reviewedAt: 'desc' },
-          take: fetchLimit,
-          include: {
-            reviewedBy: { select: { id: true, name: true, username: true } },
-            user: { select: { id: true, name: true, username: true } },
-          },
-        }),
-  ]);
-
-  const merged: AdminAuditEntry[] = [
-    ...articleReviews.map((row) => ({
-      id: `article:${row.id}`,
-      type: 'article_review' as const,
-      action: formatArticleAction(row.previousStatus, row.newStatus),
-      actor: row.reviewer,
-      target: {
-        id: row.article.id,
-        label: row.article.title,
-        href: `/admin/articles/${row.article.id}`,
-      },
-      note: row.note,
-      occurredAt: row.reviewedAt.toISOString(),
-    })),
-    ...contributorReviews
-      .filter((row) => row.reviewedBy)
-      .map((row) => ({
-        id: `contributor:${row.id}`,
-        type: 'contributor_review' as const,
-        action:
-          row.status === 'APPROVED'
-            ? 'Permohonan kontributor disetujui'
-            : 'Permohonan kontributor ditolak',
-        actor: row.reviewedBy!,
-        target: {
-          id: row.user.id,
-          label: row.user.name,
-          href: `/admin/contributors`,
-        },
-        note: row.adminNote,
-        occurredAt: row.reviewedAt!.toISOString(),
-      })),
-  ];
-
-  merged.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
-  const slice = merged.slice(skip, skip + take);
-
-  return {
-    entries: slice,
-    page,
-    totalPages: Math.max(1, Math.ceil(merged.length / take)),
-    total: merged.length,
-  };
-}
 
 export async function getUserGrowthSeries(options: {
   period?: AnalyticsPeriod;

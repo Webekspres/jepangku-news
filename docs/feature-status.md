@@ -8,106 +8,41 @@
 
 ## Belum Selesai — Urut Prioritas
 
-### 1. Homepage QA sebelum launch
-
-[x] Mobile: `overflow-x-clip` homepage + body; section tidak overflow horizontal  
-[x] Lighthouse dev (ngrok + `bun dev`): Mobile **34** / Desktop **53** — TTFB ngrok, bundle dev, ekstensi Chrome; **ulangi di production build** (`bun run build && bun start`) incognito  
-[x] Lighthouse perbaikan kode: `fetchPriority=high` LCP featured, `sizes` gambar, AVIF/WebP, preconnect Clerk, touch target carousel, kontras a11y, `inert` search overlay, `robots.ts`, manifest  
-[x] E2E otomatis homepage (Playwright) — `e2e/homepage.spec.ts`, `bun run test:e2e`
-[x] Empty state tiap section — feed, hari ini, TV, reaksi, poll/kuis/leaderboard, iklan partner (placeholder)  
-[x] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll (`useLazySection`)  
-[x] Section error isolated — satu API gagal tidak kosongkan halaman  
-[x] Lazy-load YouTube embed (`LazyYoutubeEmbed` di `/tv/[slug]`)  
-[x] Skeleton height fixed (`LazySectionSkeleton` + `minHeight`)  
-[x] `data-testid` section & wave (`LazySectionShell`, `data-home-wave`)
-
-### 2. Core deploy prod + Clerk webhook *(Fase B–C, koordinasi tim Core)*
-
-[x] Deploy Core prod — `GET https://core.jepangku.com/health` OK (`status: ok`, redis connected)  
-[x] News env prod — `CORE_API_URL=https://core.jepangku.com`, `CORE_JWT_PUBLIC_KEY` + `CORE_JWT_ISSUER`  
-
-### 3. Verifikasi Fase 4 — `bun run verify:core`
-
-[x] Registrasi baru — Clerk JIT News + `establishCoreSession` → Core JWT; webhook Core wajib untuk user baru di Core DB *(manual staging: sign-up flow)*  
-[x] Aktivitas poin — baca/share/bookmark/quiz/poll/komentar → `awardPoints()` + unique `point_transactions` (anti-double P2002)  
-[x] Daily login — `checkDailyLogin()` idempotent per hari (`sourceId` = `YYYY-MM-DD`)  
-[x] Admin — `PORTAL_ADMIN` / `CORE_ADMIN` / role lokal `ADMIN` → `/admin/*` + `/api/admin/*`; non-admin 403 *(UI: `AdminShell` + API: `getCurrentAdmin`)*  
-[x] Leaderboard — agregasi `point_transactions` News DB (`weekly`, `monthly`, `sepanjang-waktu`)  
-[x] Core down — graceful degrade (`establishCoreSession`/`fetchCoreUserMe` → null); runbook [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md)  
-[~] Staging end-to-end sebelum production cutover — `bun run verify:staging` + checklist manual § runbook *(jalankan di URL staging)*  
-[x] Sync dokumen integrasi — `ecosystem-integration.md` §5 diperbarui Juni 2026
-
-### 4. Kebijakan akun legacy
-
-[x] User tanpa Clerk ID (JWT lama): force re-login Clerk atau hapus — guard `isClerkUserId` + relink email di `lib/auth/clerk-user.ts`, login JWT disabled (410), skrip `bun run purge:legacy-users`
-
-### 5. Keamanan & kualitas pre-production
-
-[x] Rate limiting — Upstash / Redis / in-memory fallback (`lib/rate-limit.ts`)  
-[x] Input sanitasi HTML (`lib/sanitizer.ts`)  
-[x] Image moderation validasi file (`lib/image-moderation.ts` + `POST /api/upload`)  
-[x] Image moderation AI — kode HTTP generik siap  
-[x] Redis/Upstash — kode siap (`lib/rate-limit-store.ts`)  
-[x] Redis/Upstash — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` di production  
-[x] Backfill sanitasi konten lama — `bun run backfill:sanitize` (dry-run) / `backfill:sanitize:apply`  
-[x] Error monitoring — `captureException` → `MONITORING_WEBHOOK_URL` + `LOG_DRAIN_URL`
-[x] Log drain — JSON structured logger + `LOG_DRAIN_URL` (warn/error); Vercel stdout → Log Drain
-
-### 6. Kontributor & gate upload *(Fase A″)*
-
-[x] Halaman placeholder `/contributor/apply`  
-[x] CTA kontributor di navbar/sidebar (`lib/contributor.ts`)  
-[x] Role `CONTRIBUTOR` + migrasi Prisma  
-[x] API apply + status kontributor  
-[x] Gate `POST /api/articles/create` & halaman submit/edit/my/preview  
-[x] Admin antrian approve/reject (`/admin/contributors`) — sementara promote via `/admin/users`  
-[x] Form `/contributor/apply` fungsional (ganti placeholder)  
-[x] `lib/contributor.ts` — `canCreateArticles()` baca role DB (`ADMIN` | `CONTRIBUTOR`)  
-[x] Sinkron entry point (navbar dropdown, sidebar, profile; my-articles disembunyikan untuk USER)
-
-### 7. Halaman belum ada / admin monitoring *(Fase C′ / E)*
-
-[x] `app/(user)/activity/page.tsx` — riwayat aktivitas user (`/points` redirect ke sini)  
-[x] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard  
-[x] `app/(admin)/admin/points/page.tsx` — monitor transaksi poin  
-[x] `app/(admin)/admin/activity-log/page.tsx` — audit log admin  
-[x] Activity audit log — siapa approve/reject apa, kapan (`ArticleReview` + `ContributorApplication`)  
-[x] Point transaction summary di admin — total per periode, breakdown tipe (`/api/admin/points`)  
-[x] User growth tracking — grafik registrasi per hari/minggu (dashboard + `/admin/activity-log`)
-
-### 8. Notifikasi portal *(Fase C′ + E2)*
-
-[x] Navbar bell UI placeholder (`NavbarNotifications.tsx`)  
-[x] Sembunyikan bell untuk guest (`Navbar.tsx`)  
-[ ] Model `Notification` + API read/mark-read
-[ ] Modal daily poin (first session/hari)
-[ ] Welcome user baru
-[ ] Notif kontributor approved *(butuh Fase A″)*
-[ ] Navbar bell fungsional — artikel approve/reject, komentar
-
-### 9. Newsletter *(Fase E1)*
+### 1. Newsletter *(Fase E1)*
 
 [ ] Model `NewsletterSubscription`  
 [ ] Footer form + `POST /api/newsletter/subscribe`  
 [ ] Admin CRUD `/admin/newsletter`  
 [ ] Halaman unsubscribe (wajib login akun yang sama)  
-[ ] Email template + SMTP
+[ ] Email template + SMTP *(shared dengan outbox § Notifikasi)*
 
-### 10. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*
+---
 
-[x] LMS teaser statis — `HomeLmsTeaser.tsx` + `GET /api/home/lms-teaser`
+### 2. Verifikasi staging E2E *(Fase B–C, ops)*
+
+[~] Staging end-to-end sebelum production cutover — `bun run verify:staging` + checklist manual [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md) *(jalankan di URL staging)*  
+[ ] Lighthouse production build — `bun run build && bun start` incognito (baseline post-ngrok dev: Mobile 34 / Desktop 53)
+
+---
+
+### 3. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*
+
 [ ] `GET /api/public/courses` di jepangkuLMS  
 [ ] News proxy `/api/home/lms-teaser` baca live dari LMS  
 [ ] Katalog publik `/kursus` di LMS baca Prisma (single source of truth)
 
-### 11. Engagement lanjutan *(Fase E)*
+---
+
+### 4. Engagement lanjutan *(Fase E)*
 
 [ ] Follow / subscribe kategori + notifikasi artikel baru  
 [ ] Export riwayat poin CSV milik user  
 [ ] Monthly / all-time quiz leaderboard per quiz  
-[ ] Riwayat aktivitas lengkap di `/activity`
+[ ] Riwayat aktivitas lengkap di `/activity` (di luar ledger poin)
 
-### 12. Soft launch konten *(Prio 16 — ditunda)*
+---
+
+### 5. Soft launch konten *(ditunda)*
 
 [ ] Riset topik dan sumber per kategori  
 [ ] Penulisan draft artikel (minimal 30 artikel)  
@@ -117,22 +52,89 @@
 [ ] Publikasi artikel  
 [ ] Testing: homepage, search, filter, leaderboard, quiz, poll
 
-### 13. Ekosistem lanjutan *(Fase D/E)*
+---
+
+### 6. Ekosistem lanjutan *(Fase D/E)*
 
 [ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
 [ ] Super-admin / role hierarchy (`editor`, `moderator`, `instructor`, `student`)  
-[ ] Membership & payment global  
-[ ] Admin pusat lintas aplikasi  
-[ ] Multi-app deployment (subdomain production)  
-[ ] CI/CD pipeline otomatis  
-[ ] Mobile app / PWA  
-[ ] Username global di Core *(sementara News DB)*  
 [ ] Profil extended (bio) di Core *(sementara `user_profiles` News)*  
-[ ] Spend poin, membership, notifikasi global — fase lanjutan
+[ ] Spend poin, membership — fase lanjutan apabila ada
 
 ---
 
 ## Sudah Diimplementasi — Verified
+
+### Notifikasi portal *(Fase E2 — News DB only, tanpa Core)*
+
+**Prinsip:** inbox persisten di News Prisma; event dispatcher terpusat; modal sesi terpisah dari bell; realtime via Redis/Upstash + SSE; email async untuk event penting.
+
+#### Infrastruktur data & service
+
+[x] Model `Notification` + migrasi Prisma (`userId`, `type`, `title`, `body`, `link`, `metadata`, `readAt`, `createdAt`, `dedupeKey`, `groupKey`, `priority`, `expiresAt`)  
+[x] Relasi `User.notifications` + index `(userId, readAt, createdAt DESC)` + unique `(userId, dedupeKey)`  
+[x] `lib/notifications/` — `create.ts`, `dispatch.ts`, `types.ts`, `handlers/` (article, contributor, comment, admin)  
+[x] `UserProfile` — `welcomedAt`, `lastDailyPointsModalAt`  
+[x] Logger — `notification.dispatched` / `notification.deduped` / `notification.failed`  
+[x] Retention — `expiresAt` default 90 hari; `bun run purge:notifications` / `purge:notifications:apply`  
+[x] `lib/jakarta-calendar.ts` — tanggal & bounds Asia/Jakarta  
+[x] `lib/notifications/queries.ts` — list, unread count, mark read, session bootstrap
+
+#### REST API
+
+[x] `GET /api/notifications` — list + cursor pagination + filter `unreadOnly`  
+[x] `GET /api/notifications/unread-count` — ringan untuk badge  
+[x] `PATCH /api/notifications/[id]/read`  
+[x] `POST /api/notifications/read-all`  
+[x] `GET /api/notifications/session` — bootstrap modal: `showDailyPoints`, `dailyPoints`, `showWelcome` (timezone Asia/Jakarta)  
+[x] `PATCH /api/notifications/session` — dismiss welcome / daily modal
+
+#### Event hooks (write path)
+
+[x] Artikel — hook di `recordStatusReview()` (`lib/article-audit.ts`): `PUBLISHED` / `REJECTED` → notif penulis; `PENDING_REVIEW` → broadcast admin  
+[x] `dedupeKey` — cegah duplikat bulk approve/reject (`article:{id}:{status}`)  
+[x] Kontributor — hook di `reviewContributorApplication()`: approved / rejected → notif applicant  
+[x] Komentar — hook di `POST /api/comments`: notif penulis artikel & pemilik komentar induk; skip self; agregasi `groupKey` + cap `COMMENT_GROUP_MAX_COUNT`  
+[x] `link` — pakai `getArticleViewHref()` (`lib/article-view-url.ts`)  
+[x] Submit review tanpa `recordStatusReview` — `POST /api/articles/create` & `PATCH /api/articles/drafts/[id]` saat → `PENDING_REVIEW`  
+[x] User baru — `notifyWelcomeUser()` + email welcome di `lib/auth/clerk-user.ts`
+
+#### Realtime (badge)
+
+[x] Redis pub/sub — publish `notif:{userId}` saat dispatch (Upstash production)  
+[x] `GET /api/notifications/stream` — SSE subscribe per user  
+[x] Client fallback — poll `unread-count` saat SSE putus / tab background
+
+#### UI — bell inbox
+
+[x] `NotificationBellMenu.tsx` — list unread, badge count, mark read, navigasi `link`  
+[x] `NavbarNotifications.tsx` + `AdminTopbar.tsx` — bell fungsional (user + admin)  
+[x] Sembunyikan bell untuk guest (`Navbar.tsx`)  
+[x] `hooks/useNotifications.ts` + `client-invalidate` (fetch + SSE + invalidate)
+
+#### UI — modal sesi (bukan bell)
+
+[x] `DailyPointsModal.tsx` — sekali per hari per sesi; trigger dari `/api/notifications/session` + `point_transactions`  
+[x] `WelcomeModal.tsx` — user baru; set `welcomedAt` saat dismiss  
+[x] Mount modal di `Providers.tsx` setelah auth loaded (`NotificationSessionModals`)  
+[x] Selaraskan daily login — `checkDailyLogin` `sourceId` tanggal **Asia/Jakarta** (`getJakartaDateKey`)
+
+#### Email async
+
+[x] Outbox `EmailOutbox` + `lib/email/` (queue, templates, SMTP transport)  
+[x] `POST /api/internal/email/process` — QStash atau fire-and-forget lokal (`EMAIL_QUEUE_SECRET`)  
+[x] Template — artikel ditolak, kontributor approved/rejected, welcome user  
+[x] Hooks — `lib/notifications/email-hooks.ts` terhubung ke artikel reject, kontributor review, registrasi
+
+#### QA
+
+[x] `bun run verify:notifications` — Jakarta session, dedupe, group cap, email hooks  
+[x] E2E Playwright — `e2e/notifications.spec.ts` (API 401, guest bell hidden)  
+[x] Daily modal sekali per hari (Jakarta); welcome hanya user baru  
+[x] Bulk approve tidak duplikat notif  
+[x] Komentar spam tidak membanjiri inbox (agregasi + rate limit)
+
+---
 
 ### Homepage ekosistem — jepangku.com
 
@@ -149,9 +151,21 @@
 [x] §4 Kategori editorial — `CategoryEditorialSection.tsx`, `lib/home/editorial-groups.ts`  
 [x] §5 Jepangku TV — model `Video`, admin `/admin/videos`, `/tv`, `/tv/[slug]`  
 [x] §6 Advertisement — model `AdSlot`, admin `/admin/ads`, `AdBannerSlot.tsx`  
-[x] §7 LMS teaser — static cards Fase 1  
+[x] §7 LMS teaser — static cards Fase 1 (`HomeLmsTeaser.tsx`)  
 [x] §8 Reaksi komunitas — `HomeReactionsSection.tsx`  
 [x] §9–10 Poll, Kuis, Leaderboard — `HomeEngagementSection.tsx`
+
+### Homepage QA & performa
+
+[x] Mobile: `overflow-x-clip` homepage + body; section tidak overflow horizontal  
+[x] Lighthouse perbaikan kode: `fetchPriority=high` LCP featured, `sizes` gambar, AVIF/WebP, preconnect Clerk, touch target carousel, kontras a11y, `inert` search overlay, `robots.ts`, manifest  
+[x] E2E otomatis homepage — `e2e/homepage.spec.ts`, `bun run test:e2e`  
+[x] Empty state tiap section — feed, hari ini, TV, reaksi, poll/kuis/leaderboard, iklan partner  
+[x] Network: Wave 1 saat load; Wave 2–4 lazy scroll (`useLazySection`)  
+[x] Section error isolated — satu API gagal tidak kosongkan halaman  
+[x] Lazy-load YouTube embed (`LazyYoutubeEmbed` di `/tv/[slug]`)  
+[x] Skeleton height fixed (`LazySectionSkeleton` + `minHeight`)  
+[x] `data-testid` section & wave (`LazySectionShell`, `data-home-wave`)
 
 ### Revisi UI/UX *(Tier 1–4, Juni 2026)*
 
@@ -159,32 +173,37 @@
 [x] Navbar redesign + drawer sidebar (`NavbarSidebar.tsx`)  
 [x] Share flow & leaderboard layout  
 [x] Kategori editorial & info sidebar  
-[x] Sidebar iklan artikel (`ArticleSidebarAd.tsx`)
+[x] Sidebar iklan artikel (`ArticleSidebarAd.tsx`)  
+[x] Social media links — `SiteSocialLink`, `SocialMediaLinks.tsx`, admin CRUD
 
 ### Poin & leaderboard — News DB *(Fase C′)*
 
 [x] Schema `point_transactions` di News DB  
-[x] `lib/points.ts` — tulis ledger lokal (`awardPoints`, `getUserPointBalance`)  
-[x] `checkDailyLogin()` — daily login via `point_transactions`  
-[x] `GET /api/points/my` — saldo + 100 transaksi terakhir dari News DB  
-[x] `GET /api/leaderboard` + `/weekly` — agregasi dari `point_transactions`  
+[x] `lib/points.ts` — `awardPoints`, `getUserPointBalance`, `checkDailyLogin`  
+[x] `GET /api/points/my` — saldo + 100 transaksi terakhir  
+[x] `GET /api/leaderboard` + `/weekly` — agregasi `point_transactions`  
 [x] `lib/leaderboard/queries.ts` — weekly, monthly, all-time (Asia/Jakarta)  
-[x] `lib/home/queries/engagement.ts` — leaderboard preview dari News DB  
+[x] `lib/home/queries/engagement.ts` — leaderboard preview homepage  
 [x] Halaman `/leaderboard` — tab mingguan / bulanan / all-time  
-[x] Navbar & profil — saldo dari `/api/user/gamification` (News DB)  
-[x] `scripts/verify-core-integration.ts` — verifikasi leaderboard portal  
-[x] `awardXp()` Core — tidak dipakai aktivitas portal (hanya `lib/core/gamification.ts`)
+[x] Navbar & profil — saldo dari `/api/user/gamification`  
+[x] `app/(user)/activity/page.tsx` — riwayat aktivitas user  
+[x] `/points` → redirect ke `/activity`  
+[x] `scripts/verify-core-integration.ts` — verifikasi ledger & leaderboard  
+[x] `awardXp()` Core — tidak dipakai aktivitas portal
 
-### Penyatuan auth & Core — Fase 2 & 3
+### Auth, Core & deploy production
 
 [x] Env News — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*`  
-[x] `lib/core/` — client, auth, gamification, types, activity-map, config  
+[x] Deploy Core prod — `GET https://core.jepangku.com/health` OK  
+[x] News env prod — `CORE_API_URL`, `CORE_JWT_PUBLIC_KEY`, `CORE_JWT_ISSUER`  
+[x] `lib/core/` — client, auth, gamification, types, activity-map, config, session  
 [x] Migrasi DB — FK Clerk ID; `users.id` = Clerk ID  
 [x] Core JWT — cookie `core_session` via `lib/core/session.ts`  
 [x] `getCurrentUser()` / `getCurrentAdmin()` / `hasNewsAdminAccess()`  
 [x] Skrip sync — `bun run db:sync-clerk` (Clerk → Core + `PORTAL_ADMIN`)  
-[x] Seed activity types News di Core  
-[x] Smoke test lokal Core + shadow *(historis, pre-cutover)*
+[x] Verifikasi integrasi — `bun run verify:core` (registrasi, poin, daily login, admin, leaderboard, Core down)  
+[x] Sync dokumen — `ecosystem-integration.md` §5 Juni 2026  
+[x] Core down graceful degrade + runbook [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md)
 
 ### Auth & akun — Clerk bridge
 
@@ -195,17 +214,52 @@
 [x] `/login`, `/register` redirect ke Clerk; API lokal disabled (410)  
 [x] Email verification, forgot password, OAuth — via Clerk  
 [x] Username change cooldown 14 hari  
-[x] `GET /api/auth/me`, logout Clerk/local
+[x] `GET /api/auth/me`, logout Clerk/local  
+[x] Kebijakan akun legacy — `isClerkUserId` guard, relink email, `purge:legacy-users`
+
+### Keamanan & kualitas production
+
+[x] Rate limiting — Upstash / Redis / in-memory (`lib/rate-limit.ts`, `lib/rate-limit-store.ts`)  
+[x] Redis/Upstash — `UPSTASH_REDIS_REST_*` / `REDIS_URL` di production  
+[x] Input sanitasi HTML (`lib/sanitizer.ts`)  
+[x] Backfill sanitasi konten lama — `backfill:sanitize` / `backfill:sanitize:apply`  
+[x] Image moderation — validasi file + AI opsional (`lib/image-moderation.ts`, `POST /api/upload`)  
+[x] Error monitoring — `captureException` → `MONITORING_WEBHOOK_URL`  
+[x] Log drain — structured JSON logger + `LOG_DRAIN_URL`  
+[x] `GET /api/health` — cek DB
+
+### Kontributor & gate upload *(Fase A″)*
+
+[x] Role `CONTRIBUTOR` + model `ContributorApplication`  
+[x] `lib/contributor.ts` — `canCreateArticles()`, `getContributorCta()`  
+[x] API — `POST /api/contributor/apply`, `GET /api/contributor/status`  
+[x] Admin — `/admin/contributors` approve/reject + `lib/contributor-applications.ts`  
+[x] Gate — `POST /api/articles/create`, submit/edit/my/preview (`ContributorGate`)  
+[x] Form `/contributor/apply` — `ContributorApplyForm.tsx` (ganti placeholder)  
+[x] CTA kontributor — navbar dropdown, sidebar, profile  
+[x] Entry point sinkron — my-articles disembunyikan untuk role `USER`
+
+### Admin monitoring & audit *(Fase C′)*
+
+[x] `/admin/leaderboard` — monitor leaderboard  
+[x] `/admin/points` — transaksi poin + `PointTransactionDetailModal`  
+[x] `/admin/activity-log` — audit log + grafik registrasi user  
+[x] `lib/admin-monitoring.ts` — agregasi review artikel & kontributor  
+[x] Activity audit — `ArticleReview` + `ContributorApplication`  
+[x] `GET /api/admin/points` — summary per periode, breakdown tipe
 
 ### Artikel — publik, user & admin
 
-[x] CRUD API artikel — list, detail, create, update, delete, my-articles  
+[x] CRUD API — list, detail, create, update, delete, my-articles, drafts  
+[x] Workflow status — `DRAFT` → `PENDING_REVIEW` → `PUBLISHED` / `REJECTED` / `ARCHIVED`  
 [x] Read complete (+2 poin), share (+5), bookmark (+1)  
-[x] Revisions & review history — penulis + admin  
-[x] Admin — create, edit published, archive, bulk, export CSV/JSON  
+[x] Revisions & review history — `lib/article-audit.ts`, modal admin & penulis  
+[x] `lib/article-view-url.ts` — pratinjau vs publik (`getArticleViewHref`)  
+[x] Admin — create, edit published, review queue `/admin/articles/review`, bulk, export CSV/JSON  
 [x] Draft autosave & preview sebelum submit  
-[x] Halaman — `/articles`, `/articles/[slug]`, submit, edit, my-articles  
-[x] Scroll detection read complete + banner poin
+[x] Halaman — `/articles`, `/articles/[slug]`, submit, edit, my-articles, preview-article  
+[x] Scroll detection read complete + banner poin  
+[x] `ArticleEditAside.tsx` — aksi review/reject/publish di admin edit
 
 ### Quiz & polling
 
@@ -217,7 +271,7 @@
 ### Bookmark, komentar & reaksi
 
 [x] Bookmark — API + halaman `/bookmarks`  
-[x] Komentar polimorfik — thread 1 level, moderasi admin, +2 poin  
+[x] Komentar polimorfik — thread 1 level, moderasi admin, +2 poin (`lib/comments.ts`)  
 [x] Reaksi 9 emoji (artikel/poll/quiz) + jempol komentar  
 [x] Admin moderasi komentar — `/admin/comments`  
 [x] Halaman browse reaksi — `/reactions/[type]`
@@ -232,7 +286,7 @@
 
 ### Profile & author discovery
 
-[x] Profil user — `/profile`, `/profile/edit`, avatar upload  
+[x] Profil user — `/profile`, `/profile/edit`, avatar upload (crop)  
 [x] Profil publik penulis — `/profile/[username]`  
 [x] `AuthorProfileCard`, `AuthorLink`, statistik penulis publik
 
@@ -249,17 +303,16 @@
 
 [x] `POST /api/upload` — R2 + validasi + moderasi  
 [x] `lib/r2.ts`, `lib/db.ts`, `lib/logger.ts`, `lib/monitoring.ts`  
-[x] `GET /api/health` — cek DB  
 [x] `lib/slug.ts`, `lib/article-tags.ts`, `lib/admin-articles-query.ts`  
-[x] `RichTextEditor`, confirm modal, review history modal
+[x] `RichTextEditor`, confirm modal, revision/review detail modal
 
 ### Admin — halaman & API
 
 [x] Dashboard `/admin` — stats, quick actions, pending preview  
-[x] Artikel — list, create, edit, review queue, bulk, export  
+[x] Artikel — list, create, edit, detail, review queue, bulk, export  
 [x] Kategori, tag, homepage featured/hot, info pages  
 [x] Users — list, detail, role/status, transaksi poin di detail  
-[x] Videos CRUD, Ads CRUD  
+[x] Videos CRUD, Ads CRUD, site social links  
 [x] Quizzes & polls CRUD + analytics link
 
 ### Halaman publik & statis
@@ -267,8 +320,8 @@
 [x] Homepage `/`  
 [x] About, Contact, Advertise, Media Partner, Career, Internship  
 [x] Privacy Policy, Terms of Service, Disclaimer  
-[x] `/points` — riwayat transaksi poin user  
-[x] `/contributor/apply` — placeholder info (bukan form apply)
+[x] `/contributor/apply` — form apply kontributor  
+[x] `/activity` — riwayat poin & aktivitas user
 
 ### Halaman — checklist path
 
@@ -280,11 +333,13 @@
 [x] `app/(public)/search/page.tsx` · `trending/page.tsx` · `explore/page.tsx`  
 [x] `app/(public)/profile/[username]/page.tsx`  
 [x] `app/(public)/tv/page.tsx` · `tv/[slug]/page.tsx`  
-[x] `app/(user)/bookmarks/page.tsx` · `my-articles/page.tsx` · `points/page.tsx`  
+[x] `app/(public)/contributor/apply/page.tsx`  
+[x] `app/(public)/reactions/[type]/page.tsx`  
+[x] `app/(user)/activity/page.tsx` · `bookmarks/page.tsx` · `my-articles/page.tsx`  
 [x] `app/(user)/profile/page.tsx` · `profile/edit/page.tsx`  
 [x] `app/(user)/submit-article/page.tsx` · `edit-article/[id]/page.tsx`  
 [x] `app/(user)/preview-article/[id]/page.tsx`  
-[x] `app/(admin)/admin/**` — dashboard, artikel, kategori, tag, users, quiz, poll, comments, videos, ads, analytics, info-pages, homepage
+[x] `app/(admin)/admin/**` — dashboard, artikel, review, kategori, tag, users, contributors, quiz, poll, comments, videos, ads, analytics, info-pages, homepage, points, leaderboard, activity-log
 
 ---
 

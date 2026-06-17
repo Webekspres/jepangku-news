@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronRight, Menu, Bell, User, LogOut, FileText, Bookmark } from 'lucide-react';
+import { ChevronRight, Menu, User, LogOut, FileText, Bookmark } from 'lucide-react';
 import { useAuth, isAuthUser } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getAdminBreadcrumbs } from '@/lib/admin-nav';
 import UserAvatar from '@/components/media/UserAvatar';
+import NotificationBellMenu from '@/components/notifications/NotificationBellMenu';
 
 type AdminTopbarProps = {
   onMenuClick?: () => void;
@@ -78,26 +79,10 @@ export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
       </nav>
 
       <div className="flex shrink-0 items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="relative text-jepang-muted hover:text-foreground"
-              aria-label="Notifikasi"
-              data-testid="admin-notifications-button"
-            >
-              <Bell size={20} strokeWidth={1.5} />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end" className="w-72" data-testid="admin-notifications-menu">
-            <DropdownMenuLabel>Notifikasi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <p className="px-2 py-6 text-center text-sm text-jepang-muted">Belum ada notifikasi.</p>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <NotificationBellMenu
+          buttonTestId="admin-notifications-button"
+          menuTestId="admin-notifications-menu"
+        />
 
         {authUser && (
           <DropdownMenu>

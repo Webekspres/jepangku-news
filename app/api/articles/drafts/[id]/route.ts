@@ -10,6 +10,8 @@ import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
+import { auditArticleDraftUpdate } from '@/lib/audit-routes';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 /**
  * PATCH /api/articles/drafts/[id]
@@ -78,6 +80,18 @@ export async function PATCH(
         if (nextStatus === 'PUBLISHED') {
           updateData.publishedAt = new Date();
         }
+        if (
+          nextStatus === 'PENDING_REVIEW' &&
+          article.status !== 'PENDING_REVIEW'
+        ) {
+          dispatchNotificationEventSafe({
+            type: 'article.status_changed',
+            articleId: article.id,
+            reviewerId: user.id,
+            previousStatus: article.status,
+            newStatus: 'PENDING_REVIEW',
+          });
+        }
       }
     }
 
@@ -85,6 +99,10 @@ export async function PATCH(
 
     if (tags !== undefined && Array.isArray(tags)) {
       await syncArticleTags(id, tags);
+    }
+
+    if (status !== undefined) {
+      auditArticleDraftUpdate(user, { id: updated.id, title: updated.title });
     }
 
     return NextResponse.json(updated);

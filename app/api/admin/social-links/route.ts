@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
+import { auditAdminEntity } from "@/lib/audit-routes";
 import {
   SOCIAL_LINKS_CACHE_TAG,
   getAdminSocialLinks,
@@ -32,6 +33,13 @@ export async function PUT(request: NextRequest) {
 
   await saveSocialLinkUpdates(parsed.updates);
   revalidateTag(SOCIAL_LINKS_CACHE_TAG, "max");
+
+  auditAdminEntity(admin, 'social_links', 'update', {
+    type: 'social_links',
+    id: 'global',
+    label: 'Media sosial',
+    href: '/admin/social-links',
+  });
 
   const links = await getAdminSocialLinks();
   return NextResponse.json({ links });

@@ -5,6 +5,8 @@ import type {
 } from '@prisma/client';
 import { db } from '@/lib/db';
 import { sanitizeText } from '@/lib/sanitizer';
+import { recordAuditLogSafe } from '@/lib/audit-log';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 export type ContributorApplicationSummary = {
   id: string;
@@ -121,11 +123,28 @@ export async function createContributorApplication(
       adminNote: true,
       createdAt: true,
       reviewedAt: true,
+      user: { select: { name: true, role: true } },
     },
   });
 
+  recordAuditLogSafe({
+    category: 'contributor',
+    action: 'apply',
+    actorId: userId,
+    actorRole: created.user.role,
+    targetType: 'contributor_application',
+    targetId: created.id,
+    targetLabel: created.user.name,
+    targetHref: '/admin/contributors',
+    occurredAt: created.createdAt,
+  });
+
   return {
-    ...created,
+    id: created.id,
+    status: created.status,
+    motivation: created.motivation,
+    portfolioUrl: created.portfolioUrl,
+    adminNote: created.adminNote,
     createdAt: created.createdAt.toISOString(),
     reviewedAt: null,
   };
@@ -203,10 +222,17 @@ async function reviewContributorApplication(
   await db.$transaction(async (tx) => {
     const application = await tx.contributorApplication.findUnique({
       where: { id: applicationId },
-      select: { id: true, status: true, userId: true },
+      select: {
+        id: true,
+        status: true,
+        userId: true,
+        user: { select: { name: true } },
+      },
     });
     if (!application) throw new Error('NOT_FOUND');
     if (application.status !== 'PENDING') throw new Error('NOT_PENDING');
+
+    const reviewedAt = new Date();
 
     await tx.contributorApplication.update({
       where: { id: applicationId },
@@ -214,7 +240,7 @@ async function reviewContributorApplication(
         status,
         adminNote: note,
         reviewedById: adminId,
-        reviewedAt: new Date(),
+        reviewedAt,
       },
     });
 
@@ -224,6 +250,33 @@ async function reviewContributorApplication(
         data: { role: 'CONTRIBUTOR' },
       });
     }
+
+    const admin = await tx.user.findUnique({
+      where: { id: adminId },
+      select: { role: true },
+    });
+
+    recordAuditLogSafe({
+      id: `contrib-${applicationId}`,
+      category: 'contributor',
+      action: status === 'APPROVED' ? 'approve' : 'reject',
+      actorId: adminId,
+      actorRole: admin?.role ?? 'ADMIN',
+      targetType: 'user',
+      targetId: application.userId,
+      targetLabel: application.user.name,
+      targetHref: '/admin/contributors',
+      note,
+      occurredAt: reviewedAt,
+    });
+  });
+
+  dispatchNotificationEventSafe({
+    type: 'contributor.reviewed',
+    applicationId,
+    adminId,
+    status,
+    adminNote: note,
   });
 }
 

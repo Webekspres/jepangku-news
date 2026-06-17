@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -10,5 +11,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const { value } = await request.json();
 
   const article = await db.article.update({ where: { id }, data: { isFeatured: value } });
+
+  auditAdminEntity(admin, 'article', 'set_featured', {
+    type: 'article',
+    id: article.id,
+    label: article.title,
+    href: `/admin/articles/${article.id}`,
+  }, undefined, { isFeatured: article.isFeatured });
+
   return NextResponse.json({ message: 'Updated', isFeatured: article.isFeatured });
 }

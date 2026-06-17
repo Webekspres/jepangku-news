@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
+import { auditArticleDelete } from '@/lib/audit-routes';
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
@@ -24,5 +25,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
 
   await db.article.delete({ where: { id: article.id } });
+
+  auditArticleDelete(
+    user,
+    { id: article.id, title: article.title },
+    user.role === 'ADMIN',
+  );
+
   return NextResponse.json({ message: 'Article deleted' });
 }

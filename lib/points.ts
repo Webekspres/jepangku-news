@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { db } from '@/lib/db';
+import { getJakartaDateKey } from '@/lib/jakarta-calendar';
 
 export type AwardPointsResult = {
   awarded: boolean;
@@ -92,7 +93,7 @@ export async function awardPoints(
 
 /** Daily login reward — idempotent via unique constraint per calendar day. */
 export async function checkDailyLogin(userId: string): Promise<boolean> {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getJakartaDateKey();
   const result = await awardPoints(userId, 'daily_login', 'system', today, 3);
   return result.awarded;
 }

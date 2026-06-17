@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { createSlug } from '@/lib/slug';
 import {
   sanitizeMediaUrl,
@@ -117,6 +118,8 @@ export async function POST(request: NextRequest) {
       });
     }
   }
+
+  auditAdminEntity(admin, 'poll', 'create', { type: 'poll', id: poll.id, label: poll.title, href: `/admin/polls/${poll.id}/edit` });
 
   return NextResponse.json({ message: 'Poll created', id: poll.id }, { status: 201 });
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { isValidAdSlotPosition } from "@/lib/ads/constants";
 import { revalidateAdSlots } from "@/lib/ads/revalidate";
+import { auditAdminEntity } from "@/lib/audit-routes";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 
@@ -81,6 +82,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     revalidateAdSlots(String(updateData.position));
   }
 
+  auditAdminEntity(admin, "ad", "update", {
+    type: "ad",
+    id,
+    label: existing.title ?? existing.position,
+    href: `/admin/ads/${id}/edit`,
+  });
+
   return NextResponse.json({ message: "Ad updated" });
 }
 
@@ -91,6 +99,13 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   const { id } = await params;
   const ad = await db.adSlot.findUnique({ where: { id } });
   if (!ad) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
+
+  auditAdminEntity(admin, "ad", "delete", {
+    type: "ad",
+    id: ad.id,
+    label: ad.title ?? ad.position,
+    href: `/admin/ads/${id}/edit`,
+  });
 
   await db.adSlot.delete({ where: { id } });
   revalidateAdSlots(ad.position);

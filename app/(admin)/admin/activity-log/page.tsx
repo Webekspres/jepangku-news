@@ -12,14 +12,13 @@ import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AUDIT_CATEGORIES,
+  AUDIT_CATEGORY_BADGE,
+  AUDIT_CATEGORY_FILTERS,
+} from "@/lib/audit-log-labels";
 import type { AdminAuditEntry } from "@/lib/admin-monitoring";
 import type { AnalyticsPeriod } from "@/lib/analytics";
-
-const TYPE_FILTERS = [
-  { value: "", label: "Semua" },
-  { value: "article_review", label: "Review Artikel" },
-  { value: "contributor_review", label: "Kontributor" },
-];
 
 const GROWTH_PERIODS: { value: AnalyticsPeriod; label: string }[] = [
   { value: "7d", label: "7 hari" },
@@ -27,17 +26,13 @@ const GROWTH_PERIODS: { value: AnalyticsPeriod; label: string }[] = [
   { value: "90d", label: "90 hari" },
 ];
 
-const TYPE_BADGE: Record<string, string> = {
-  article_review: "bg-blue-100 text-blue-800",
-  contributor_review: "bg-purple-100 text-purple-800",
-};
-
 export default function AdminActivityLogPage() {
   const [entries, setEntries] = useState<AdminAuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [type, setType] = useState("");
+  const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [growthPeriod, setGrowthPeriod] = useState<AnalyticsPeriod>("30d");
   const [growthGranularity, setGrowthGranularity] = useState<"day" | "week">("day");
   const [growth, setGrowth] = useState<{
@@ -51,14 +46,15 @@ export default function AdminActivityLogPage() {
     try {
       const sp = new URLSearchParams();
       sp.set("page", String(page));
-      if (type) sp.set("type", type);
+      if (category) sp.set("category", category);
       const data = await fetch(`/api/admin/activity-log?${sp}`).then((r) => r.json());
       setEntries(Array.isArray(data.entries) ? data.entries : []);
       setTotalPages(Number(data.totalPages || 1));
+      setTotal(Number(data.total || 0));
     } finally {
       setLoading(false);
     }
-  }, [page, type]);
+  }, [page, category]);
 
   useEffect(() => {
     loadLog();
@@ -76,7 +72,7 @@ export default function AdminActivityLogPage() {
     <AdminPageLayout
       testId="admin-activity-log"
       title="Audit Log"
-      subtitle="Riwayat persetujuan/penolakan artikel dan kontributor"
+      subtitle="Riwayat aksi admin, kontributor, dan pengguna — artikel, interaksi, dan pengaturan situs"
     >
       <AdminCard
         title="Pertumbuhan Pengguna"
@@ -131,13 +127,16 @@ export default function AdminActivityLogPage() {
 
       <AdminToolbar>
         <AdminFilterButtons
-          options={TYPE_FILTERS}
-          value={type}
+          options={AUDIT_CATEGORY_FILTERS}
+          value={category}
           onChange={(value) => {
-            setType(value);
+            setCategory(value);
             setPage(1);
           }}
         />
+        <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
+          {total.toLocaleString("id-ID")} entri
+        </p>
       </AdminToolbar>
 
       {loading ? (
@@ -158,29 +157,39 @@ export default function AdminActivityLogPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={TYPE_BADGE[entry.type] ?? ""}>
-                        {entry.type === "article_review" ? "Artikel" : "Kontributor"}
+                      <Badge className={AUDIT_CATEGORY_BADGE[entry.category] ?? ""}>
+                        {AUDIT_CATEGORIES[entry.category as keyof typeof AUDIT_CATEGORIES] ??
+                          entry.category}
                       </Badge>
                       <span className="text-sm font-semibold text-jepang-navy">
-                        {entry.action}
+                        {entry.summary}
                       </span>
                     </div>
                     <p className="text-sm text-jepang-muted">
-                      oleh <strong>{entry.actor.name}</strong> (@{entry.actor.username})
-                    </p>
-                    <p className="text-sm">
-                      Target:{" "}
-                      {entry.target.href ? (
-                        <Link
-                          href={entry.target.href}
-                          className="text-jepang-orange hover:underline"
-                        >
-                          {entry.target.label}
-                        </Link>
+                      {entry.actor ? (
+                        <>
+                          oleh <strong>{entry.actor.name}</strong> (@
+                          {entry.actor.username})
+                        </>
                       ) : (
-                        entry.target.label
+                        "oleh Sistem"
                       )}
                     </p>
+                    {entry.target.label && (
+                      <p className="text-sm">
+                        Target:{" "}
+                        {entry.target.href ? (
+                          <Link
+                            href={entry.target.href}
+                            className="text-jepang-orange hover:underline"
+                          >
+                            {entry.target.label}
+                          </Link>
+                        ) : (
+                          entry.target.label
+                        )}
+                      </p>
+                    )}
                     {entry.note && (
                       <p className="text-sm text-jepang-muted whitespace-pre-wrap mt-2">
                         Catatan: {entry.note}

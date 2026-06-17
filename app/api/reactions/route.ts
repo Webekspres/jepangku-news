@@ -5,6 +5,9 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/monitoring';
 import {
+  auditReactionToggle,
+} from '@/lib/audit-routes';
+import {
   isReactionAllowed,
   isValidReactionTargetType,
   reactionTargetExists,
@@ -85,6 +88,8 @@ export async function POST(request: NextRequest) {
     const summary = await summarizeReactions(targetType, targetId, user.id);
 
     logger.info('reaction.toggled', { userId: user.id, targetType, targetId, type, action });
+
+    auditReactionToggle(user, targetType, targetId, type, action);
 
     return NextResponse.json(summary);
   } catch (e) {

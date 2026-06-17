@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { captureException } from '@/lib/monitoring';
 import { getCurrentUser } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { uploadToR2 } from '@/lib/r2';
 import { db } from '@/lib/db';
 import { moderateImage, validateImageBuffer } from '@/lib/image-moderation';
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const url = await uploadToR2(uploadBuffer, fileName, uploadContentType);
 
-    await db.file.create({
+    const fileRecord = await db.file.create({
       data: {
         storagePath: fileName,
         originalFilename: file.name,
@@ -60,6 +61,12 @@ export async function POST(request: NextRequest) {
         size: uploadBuffer.length,
         userId: user.id,
       },
+    });
+
+    auditAdminEntity(user, 'file', 'upload', {
+      type: 'file',
+      id: fileRecord.id,
+      label: file.name,
     });
 
     return NextResponse.json({ url, path: fileName });

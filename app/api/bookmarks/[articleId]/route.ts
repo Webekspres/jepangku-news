@@ -5,6 +5,7 @@ import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
+import { auditBookmark } from '@/lib/audit-routes';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
   try {
@@ -46,6 +47,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     `Bookmarked article: ${article.title}`
   );
 
+  auditBookmark(user, 'create', article);
+
   return NextResponse.json({
     message: 'Bookmarked',
     pointsAwarded: award.awarded,
@@ -70,6 +73,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   await db.bookmark.update({ where: { id: bookmark.id }, data: { deletedAt: new Date() } });
   await db.article.update({ where: { id: articleId }, data: { bookmarkCount: { decrement: 1 } } });
+
+  const article = await db.article.findUnique({
+    where: { id: articleId },
+    select: { id: true, title: true },
+  });
+  if (article) auditBookmark(user, 'delete', article);
 
   return NextResponse.json({ message: 'Bookmark removed' });
 }

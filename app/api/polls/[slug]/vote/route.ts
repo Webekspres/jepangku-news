@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints, type AwardPointsResult } from '@/lib/points';
+import { auditPollVote } from '@/lib/audit-routes';
 
 export async function POST(
   request: NextRequest,
@@ -119,6 +120,8 @@ export async function POST(
       data: { voteCount: { increment: 1 } },
     });
   }
+
+  auditPollVote(user, poll, toProcess.length);
 
   return NextResponse.json({
     message: 'Vote recorded',

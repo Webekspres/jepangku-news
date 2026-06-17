@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { auditAdminEntity } from "@/lib/audit-routes";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
 
@@ -92,6 +93,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   await db.video.update({ where: { id }, data: updateData });
 
+  auditAdminEntity(admin, "video", "update", {
+    type: "video",
+    id,
+    label: (updateData.title as string | undefined) ?? existing.title,
+    href: `/admin/videos/${id}/edit`,
+  });
+
   return NextResponse.json({ message: "Video updated" });
 }
 
@@ -109,6 +117,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       { status: 400 },
     );
   }
+
+  auditAdminEntity(admin, "video", "delete", { type: "video", id: video.id, label: video.title, href: `/admin/videos/${id}/edit` });
 
   await db.video.delete({ where: { id } });
 

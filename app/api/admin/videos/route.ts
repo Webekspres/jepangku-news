@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { auditAdminEntity } from "@/lib/audit-routes";
 import { createSlug } from "@/lib/slug";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
@@ -88,6 +89,8 @@ export async function POST(request: NextRequest) {
       createdBy: admin.id,
     },
   });
+
+  auditAdminEntity(admin, "video", "create", { type: "video", id: video.id, label: video.title, href: `/admin/videos/${video.id}/edit` });
 
   return NextResponse.json({ message: "Video created", id: video.id }, { status: 201 });
 }

@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sanitizeMediaUrl, sanitizePlainField } from '@/lib/sanitizer';
 import { captureException } from '@/lib/monitoring';
+import { auditUserProfileUpdate } from '@/lib/audit-routes';
 
 const USERNAME_COOLDOWN_DAYS = 14;
 
@@ -164,6 +165,14 @@ export async function PATCH(request: NextRequest) {
         },
       });
     }
+  }
+
+  const profileChanged =
+    safeDisplayName !== undefined || safeBio !== undefined;
+  const userChanged = Object.keys(userUpdate).length > 0;
+
+  if (userChanged || profileChanged) {
+    auditUserProfileUpdate({ ...user, name: updatedUser.name });
   }
 
   return NextResponse.json({

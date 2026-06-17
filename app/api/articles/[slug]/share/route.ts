@@ -5,6 +5,7 @@ import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
+import { auditArticleShare } from '@/lib/audit-routes';
 
 export async function POST(
   request: NextRequest,
@@ -78,6 +79,8 @@ export async function POST(
     where: { id: article.id },
     data: { shareCount: { increment: 1 } },
   });
+
+  auditArticleShare(user, article, shareMethod);
 
   return NextResponse.json({
     message: 'Share tracked successfully',

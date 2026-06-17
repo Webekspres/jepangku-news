@@ -5,6 +5,7 @@ import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
+import { auditQuizAttempt } from '@/lib/audit-routes';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
@@ -102,6 +103,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   await db.quizAttempt.update({
     where: { id: attempt.id },
     data: { score, correctAnswers, pointsAwarded: pointsGranted },
+  });
+
+  auditQuizAttempt(user, quiz, {
+    correct: correctAnswers,
+    total: totalQuestions,
+    points: pointsGranted,
   });
 
   return NextResponse.json({

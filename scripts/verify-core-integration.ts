@@ -139,9 +139,9 @@ async function main() {
   record(
     "checkDailyLogin uses calendar day sourceId",
     readFileSync(join(process.cwd(), "lib", "points.ts"), "utf8").includes(
-      "daily_login",
+      "getJakartaDateKey",
     ),
-    "lib/points.ts daily_login + ISO date sourceId",
+    "lib/points.ts daily_login + Jakarta date sourceId",
   );
 
   const activityRoutes = [

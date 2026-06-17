@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
 
 export async function GET(request: NextRequest) {
@@ -36,6 +37,8 @@ export async function POST(request: NextRequest) {
   const category = await db.category.create({
     data: { name: name.trim(), slug, description: description?.trim() || null, iconUrl: iconUrl?.trim() || null, color: color?.trim() || null, isActive: true },
   });
+
+  auditAdminEntity(admin, 'category', 'create', { type: 'category', id: category.id, label: category.name, href: '/admin/categories' });
 
   return NextResponse.json(category, { status: 201 });
 }

@@ -5,6 +5,7 @@ import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
+import { auditArticleReadComplete } from '@/lib/audit-routes';
 
 const READ_POINTS = 2;
 
@@ -31,7 +32,7 @@ export async function POST(
 
   const article = await db.article.findFirst({
     where: { slug, status: 'PUBLISHED' },
-    select: { id: true, title: true },
+    select: { id: true, title: true, slug: true },
   });
 
   if (!article) {
@@ -47,6 +48,10 @@ export async function POST(
     READ_POINTS,
     `Read article: ${article.title}`,
   );
+
+  if (award.awarded) {
+    auditArticleReadComplete(user, article);
+  }
 
   return NextResponse.json({
     awarded: award.awarded,

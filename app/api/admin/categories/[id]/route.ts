@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
 
 export async function PATCH(
@@ -41,6 +42,8 @@ export async function PATCH(
     },
   });
 
+  auditAdminEntity(admin, 'category', 'update', { type: 'category', id: updated.id, label: updated.name, href: '/admin/categories' });
+
   return NextResponse.json(updated);
 }
 
@@ -53,6 +56,9 @@ export async function DELETE(
 
   const { id } = await params;
 
+  const category = await db.category.findUnique({ where: { id } });
+  if (!category) return NextResponse.json({ error: 'Kategori tidak ditemukan' }, { status: 404 });
+
   // Guard: cek artikel yang masih terhubung
   const articleCount = await db.article.count({ where: { categoryId: id } });
   if (articleCount > 0) {
@@ -61,6 +67,8 @@ export async function DELETE(
       { status: 400 },
     );
   }
+
+  auditAdminEntity(admin, 'category', 'delete', { type: 'category', id: category.id, label: category.name, href: '/admin/categories' });
 
   await db.category.delete({ where: { id } });
   return NextResponse.json({ message: 'Kategori berhasil dihapus' });

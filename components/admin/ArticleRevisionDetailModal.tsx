@@ -163,13 +163,13 @@ function ChangeBlock({
           <p className="mb-1 text-[10px] font-mono uppercase tracking-wider text-jepang-muted">
             Sebelum
           </p>
-          <p className="whitespace-pre-wrap break-words">{change.before}</p>
+          <p className="whitespace-pre-wrap wrap-break-word">{change.before}</p>
         </div>
         <div className="border border-jepang-border bg-white p-3">
           <p className="mb-1 text-[10px] font-mono uppercase tracking-wider text-jepang-muted">
             Sesudah
           </p>
-          <p className="whitespace-pre-wrap break-words">{change.after}</p>
+          <p className="whitespace-pre-wrap wrap-break-word">{change.after}</p>
         </div>
       </div>
     </div>

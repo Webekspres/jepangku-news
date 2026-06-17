@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { isValidAdSlotPosition } from "@/lib/ads/constants";
 import { revalidateAdSlots } from "@/lib/ads/revalidate";
+import { auditAdminEntity } from "@/lib/audit-routes";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 
@@ -65,6 +66,13 @@ export async function POST(request: NextRequest) {
   });
 
   revalidateAdSlots(String(position));
+
+  auditAdminEntity(admin, "ad", "create", {
+    type: "ad",
+    id: ad.id,
+    label: ad.title ?? ad.position,
+    href: `/admin/ads/${ad.id}/edit`,
+  });
 
   return NextResponse.json({ message: "Ad created", id: ad.id }, { status: 201 });
 }

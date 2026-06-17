@@ -1,12 +1,14 @@
 'use client';
 
 import { ClerkAuthProvider } from '@/contexts/AuthContext';
+import NotificationSessionModals from '@/components/notifications/NotificationSessionModals';
 import { Toaster } from 'sonner';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ClerkAuthProvider>
       {children}
+      <NotificationSessionModals />
       <Toaster
         position="top-right"
         toastOptions={{

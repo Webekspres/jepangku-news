@@ -11,6 +11,8 @@ import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
+import { auditArticleCreate } from '@/lib/audit-routes';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
@@ -71,6 +73,22 @@ export async function POST(request: NextRequest) {
 
     if (tags.length > 0) {
       await syncArticleTags(article.id, tags);
+    }
+
+    auditArticleCreate(
+      user,
+      { id: article.id, title: article.title, status: article.status },
+      'user',
+    );
+
+    if (article.status === 'PENDING_REVIEW') {
+      dispatchNotificationEventSafe({
+        type: 'article.status_changed',
+        articleId: article.id,
+        reviewerId: user.id,
+        previousStatus: 'DRAFT',
+        newStatus: 'PENDING_REVIEW',
+      });
     }
 
     return NextResponse.json(article, { status: 201 });

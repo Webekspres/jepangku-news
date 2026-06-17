@@ -278,7 +278,7 @@ export default function ArticleEditAside({
             </p>
           </div>
         ) : (
-          <ol className={cn(THIN_SCROLLBAR_CLASS, "max-h-[28rem] space-y-0 overflow-y-auto")}>
+          <ol className={cn(THIN_SCROLLBAR_CLASS, "max-h-112 space-y-0 overflow-y-auto")}>
             {timeline.map((item) => (
               <li
                 key={`${item.kind}-${item.data.id}`}

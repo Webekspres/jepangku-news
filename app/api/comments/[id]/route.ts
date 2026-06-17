@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { normalizeCommentContent } from '@/lib/comments';
+import { auditCommentDelete, auditCommentUpdate } from '@/lib/audit-routes';
 
 // PATCH /api/comments/[id]  { content }  — edit komentar milik sendiri
 export async function PATCH(
@@ -41,6 +42,8 @@ export async function PATCH(
     data: { content: normalized.content, editedAt: new Date() },
   });
 
+  auditCommentUpdate(user, updated.id);
+
   return NextResponse.json({
     id: updated.id,
     content: updated.content,
@@ -77,6 +80,8 @@ export async function DELETE(
   });
 
   logger.info('comment.deleted', { commentId: id, byUserId: user.id, asAdmin: isAdmin && !isOwner });
+
+  auditCommentDelete(user, id, isAdmin && !isOwner);
 
   return NextResponse.json({ message: 'Komentar dihapus' });
 }

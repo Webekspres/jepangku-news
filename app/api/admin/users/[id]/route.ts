@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 import { getUserPointBalance, getUserPointTransactions } from '@/lib/points';
 
@@ -67,6 +68,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   }
 
-  await db.user.update({ where: { id }, data: updateData });
+  const updated = await db.user.update({ where: { id }, data: updateData });
+
+  auditAdminEntity(admin, 'user', 'update', {
+    type: 'user',
+    id: updated.id,
+    label: updated.name ?? updated.username ?? updated.email ?? updated.id,
+    href: `/admin/users/${updated.id}`,
+  });
+
   return NextResponse.json({ message: 'User updated' });
 }

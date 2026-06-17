@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
 
 export async function GET(request: NextRequest) {
@@ -28,5 +29,8 @@ export async function POST(request: NextRequest) {
   if (existing) return NextResponse.json({ error: 'Tag already exists' }, { status: 400 });
 
   const tag = await db.tag.create({ data: { name: name.trim(), slug } });
+
+  auditAdminEntity(admin, 'tag', 'create', { type: 'tag', id: tag.id, label: tag.name, href: '/admin/tags' });
+
   return NextResponse.json(tag, { status: 201 });
 }
