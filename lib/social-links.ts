@@ -1,4 +1,4 @@
-import { SocialPlatform as DbSocialPlatform } from "@prisma/client";
+import { Prisma, SocialPlatform as DbSocialPlatform } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl } from "@/lib/sanitizer";
@@ -60,15 +60,40 @@ function toAdminLink(row: {
   return { ...base, isEnabled: row.isEnabled, sortOrder: row.sortOrder };
 }
 
-async function fetchPublicSocialLinks(): Promise<SocialLink[]> {
-  const rows = await db.siteSocialLink.findMany({
-    where: { isEnabled: true },
-    orderBy: { sortOrder: "asc" },
-  });
+function getDefaultPublicSocialLinks(): SocialLink[] {
+  return SOCIAL_PLATFORM_ORDER.map((id) => ({
+    id,
+    label: SOCIAL_PLATFORM_META[id].label,
+    href: SOCIAL_PLATFORM_META[id].defaultUrl,
+  }));
+}
 
-  return rows
-    .map(toPublicLink)
-    .filter((link) => Boolean(link.href.trim()));
+function isDatabaseUnreachableError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P1001" || error.code === "P1002";
+  }
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return true;
+  }
+  return false;
+}
+
+async function fetchPublicSocialLinks(): Promise<SocialLink[]> {
+  try {
+    const rows = await db.siteSocialLink.findMany({
+      where: { isEnabled: true },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    return rows
+      .map(toPublicLink)
+      .filter((link) => Boolean(link.href.trim()));
+  } catch (error) {
+    if (isDatabaseUnreachableError(error)) {
+      return getDefaultPublicSocialLinks();
+    }
+    throw error;
+  }
 }
 
 export const getPublicSocialLinks = unstable_cache(
