@@ -2,14 +2,14 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
 import AdminTrendChart from "@/components/admin/AdminTrendChart";
+import PointTransactionDetailModal from "@/components/admin/PointTransactionDetailModal";
 import SimpleBarChart from "@/components/admin/SimpleBarChart";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getActivityLabel } from "@/lib/activity-labels";
+import type { AdminPointTransaction } from "@/lib/admin/point-transactions";
 import type { AnalyticsPeriod } from "@/lib/analytics";
 
 const PERIODS: { value: AnalyticsPeriod; label: string }[] = [
@@ -30,20 +30,14 @@ type PointsSummary = {
     count: number;
   }>;
   pointsByDay: Array<{ date: string; count: number }>;
-  recentTransactions: Array<{
-    id: string;
-    activityType: string;
-    points: number;
-    description: string | null;
-    occurredAt: string;
-    user: { id: string; name: string; username: string };
-  }>;
+  recentTransactions: AdminPointTransaction[];
 };
 
 export default function AdminPointsPage() {
   const [period, setPeriod] = useState<AnalyticsPeriod>("30d");
   const [data, setData] = useState<PointsSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTx, setSelectedTx] = useState<AdminPointTransaction | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -143,17 +137,23 @@ export default function AdminPointsPage() {
                   data.recentTransactions.map((tx) => (
                     <div key={tx.id} className="flex items-center gap-4 p-4 text-sm">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold">
-                          {getActivityLabel(tx.activityType, tx.description)}
-                        </p>
-                        <p className="text-xs text-jepang-muted">
-                          {tx.user.name} · @{tx.user.username} ·{" "}
+                        <p className="font-semibold">{tx.activityLabel}</p>
+                        <p className="text-xs text-jepang-muted truncate">
+                          {tx.source.label} · {tx.user.name} ·{" "}
                           {new Date(tx.occurredAt).toLocaleString("id-ID")}
                         </p>
                       </div>
-                      <p className="font-mono font-bold text-jepang-red">+{tx.points}</p>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/admin/users`}>User</Link>
+                      <p className="font-mono font-bold text-jepang-red shrink-0">
+                        +{tx.points}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => setSelectedTx(tx)}
+                        data-testid={`point-tx-detail-${tx.id}`}
+                      >
+                        Detail
                       </Button>
                     </div>
                   ))
@@ -163,6 +163,14 @@ export default function AdminPointsPage() {
           </>
         ) : null}
       </div>
+
+      <PointTransactionDetailModal
+        transaction={selectedTx}
+        open={selectedTx !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedTx(null);
+        }}
+      />
     </div>
   );
 }

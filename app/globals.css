@@ -249,6 +249,12 @@ code {
   background-color: rgba(30, 27, 87, 0.38);
 }
 
+.asset-image {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .asanoha-bg {
   background-image: url("https://static.prod-images.emergentagent.com/jobs/d6b595d8-148b-4a5c-a6ea-ccdfa2ed4b68/images/d6842d3000c6e9b984d312d02f02aa7f612d8dff19ed10d1965c01e59c1ef899.png");
   background-repeat: repeat;

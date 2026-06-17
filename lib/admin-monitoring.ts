@@ -5,6 +5,10 @@ import {
   type AnalyticsPeriod,
 } from '@/lib/analytics';
 import { ACTIVITY_LABELS } from '@/lib/activity-labels';
+import {
+  enrichAdminPointTransactions,
+  type AdminPointTransaction,
+} from '@/lib/admin/point-transactions';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import {
   getPeriodBounds,
@@ -175,8 +179,15 @@ export async function getAdminPointsSummary(periodParam: string | null) {
       where,
       orderBy: { occurredAt: 'desc' },
       take: 20,
-      include: {
-        user: { select: { id: true, name: true, username: true } },
+      select: {
+        id: true,
+        activityType: true,
+        sourceType: true,
+        sourceId: true,
+        points: true,
+        description: true,
+        occurredAt: true,
+        user: { select: { id: true, name: true, username: true, email: true } },
       },
     }),
     db.pointTransaction.findMany({
@@ -217,16 +228,11 @@ export async function getAdminPointsSummary(periodParam: string | null) {
     }),
     pointsByDay: pointsSumByDay,
     transactionsByDay: pointsByDay,
-    recentTransactions: recent.map((tx) => ({
-      id: tx.id,
-      activityType: tx.activityType,
-      points: tx.points,
-      description: tx.description,
-      occurredAt: tx.occurredAt.toISOString(),
-      user: tx.user,
-    })),
+    recentTransactions: await enrichAdminPointTransactions(recent),
   };
 }
+
+export type { AdminPointTransaction };
 
 export async function getAdminActivityLog(options: {
   page?: number;

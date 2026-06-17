@@ -2,62 +2,32 @@ import { SocialPlatform as DbSocialPlatform } from "@prisma/client";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl } from "@/lib/sanitizer";
+import {
+  SOCIAL_LINKS_CACHE_TAG,
+  SOCIAL_PLATFORM_META,
+  SOCIAL_PLATFORM_ORDER,
+  type SocialLink,
+  type SocialLinkAdmin,
+  type SocialLinkUpdate,
+  type SocialPlatformId,
+} from "@/lib/social-links-config";
 
-export type SocialPlatformId =
-  | "instagram"
-  | "facebook"
-  | "x"
-  | "youtube"
-  | "tiktok";
+export {
+  SOCIAL_LINKS_CACHE_TAG,
+  SOCIAL_PLATFORM_META,
+  SOCIAL_PLATFORM_ORDER,
+  type SocialLink,
+  type SocialLinkAdmin,
+  type SocialLinkUpdate,
+  type SocialPlatformId,
+} from "@/lib/social-links-config";
 
-export type SocialLink = {
-  id: SocialPlatformId;
-  label: string;
-  href: string;
-};
-
-export type SocialLinkAdmin = SocialLink & {
-  isEnabled: boolean;
-  sortOrder: number;
-};
-
-export const SOCIAL_PLATFORM_ORDER: SocialPlatformId[] = [
-  "instagram",
-  "facebook",
-  "x",
-  "youtube",
-  "tiktok",
-];
-
-export const SOCIAL_PLATFORM_META: Record<
-  SocialPlatformId,
-  { label: string; db: DbSocialPlatform; defaultUrl: string }
-> = {
-  instagram: {
-    label: "Instagram",
-    db: DbSocialPlatform.INSTAGRAM,
-    defaultUrl: "https://www.instagram.com/jepangku",
-  },
-  facebook: {
-    label: "Facebook",
-    db: DbSocialPlatform.FACEBOOK,
-    defaultUrl: "https://www.facebook.com/jepangku",
-  },
-  x: {
-    label: "X (Twitter)",
-    db: DbSocialPlatform.X,
-    defaultUrl: "https://x.com/jepangku",
-  },
-  youtube: {
-    label: "YouTube",
-    db: DbSocialPlatform.YOUTUBE,
-    defaultUrl: "https://www.youtube.com/@jepangku",
-  },
-  tiktok: {
-    label: "TikTok",
-    db: DbSocialPlatform.TIKTOK,
-    defaultUrl: "https://www.tiktok.com/@jepangku",
-  },
+const PLATFORM_TO_DB: Record<SocialPlatformId, DbSocialPlatform> = {
+  instagram: DbSocialPlatform.INSTAGRAM,
+  facebook: DbSocialPlatform.FACEBOOK,
+  x: DbSocialPlatform.X,
+  youtube: DbSocialPlatform.YOUTUBE,
+  tiktok: DbSocialPlatform.TIKTOK,
 };
 
 const DB_TO_ID: Record<DbSocialPlatform, SocialPlatformId> = {
@@ -67,8 +37,6 @@ const DB_TO_ID: Record<DbSocialPlatform, SocialPlatformId> = {
   [DbSocialPlatform.YOUTUBE]: "youtube",
   [DbSocialPlatform.TIKTOK]: "tiktok",
 };
-
-export const SOCIAL_LINKS_CACHE_TAG = "social-links";
 
 function toPublicLink(row: {
   platform: DbSocialPlatform;
@@ -118,7 +86,7 @@ export async function getAdminSocialLinks(): Promise<SocialLinkAdmin[]> {
 
   return SOCIAL_PLATFORM_ORDER.map((id, index) => {
     const meta = SOCIAL_PLATFORM_META[id];
-    const row = byPlatform.get(meta.db);
+    const row = byPlatform.get(PLATFORM_TO_DB[id]);
     if (row) return toAdminLink(row);
     return {
       id,
@@ -129,12 +97,6 @@ export async function getAdminSocialLinks(): Promise<SocialLinkAdmin[]> {
     };
   });
 }
-
-export type SocialLinkUpdate = {
-  platform: SocialPlatformId;
-  url: string;
-  isEnabled: boolean;
-};
 
 export function parseSocialLinkUpdates(
   items: unknown,
@@ -178,11 +140,11 @@ export function parseSocialLinkUpdates(
 export async function saveSocialLinkUpdates(updates: SocialLinkUpdate[]) {
   await db.$transaction(
     updates.map((item, index) => {
-      const meta = SOCIAL_PLATFORM_META[item.platform];
+      const platform = PLATFORM_TO_DB[item.platform];
       return db.siteSocialLink.upsert({
-        where: { platform: meta.db },
+        where: { platform },
         create: {
-          platform: meta.db,
+          platform,
           url: item.url,
           isEnabled: item.isEnabled,
           sortOrder: index,
@@ -200,11 +162,12 @@ export async function saveSocialLinkUpdates(updates: SocialLinkUpdate[]) {
 export async function ensureDefaultSocialLinks() {
   await db.$transaction(
     SOCIAL_PLATFORM_ORDER.map((id, index) => {
+      const platform = PLATFORM_TO_DB[id];
       const meta = SOCIAL_PLATFORM_META[id];
       return db.siteSocialLink.upsert({
-        where: { platform: meta.db },
+        where: { platform },
         create: {
-          platform: meta.db,
+          platform,
           url: meta.defaultUrl,
           isEnabled: true,
           sortOrder: index,

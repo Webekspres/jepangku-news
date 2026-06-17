@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { Share2, ExternalLink } from "lucide-react";
@@ -16,7 +15,7 @@ import {
   SOCIAL_PLATFORM_META,
   type SocialLinkAdmin,
   type SocialPlatformId,
-} from "@/lib/social-links";
+} from "@/lib/social-links-config";
 
 type DraftLink = SocialLinkAdmin;
 

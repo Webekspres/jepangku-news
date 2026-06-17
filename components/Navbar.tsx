@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import AssetImage from "@/components/AssetImage";
 import { useRouter } from "next/navigation";
 import {
   useAuth,
@@ -205,7 +205,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                 className="flex shrink-0 items-center gap-2"
                 data-testid="navbar-logo"
               >
-                <Image
+                <AssetImage
                   src="/assets/images/logo/logo-04.svg"
                   alt="Jepangku Berita"
                   width={160}

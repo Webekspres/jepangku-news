@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import AssetImage from "@/components/AssetImage";
 import { useRouter } from "next/navigation";
 import { useAuth, getAuthLoginPath, getAuthRegisterPath, isAuthUser } from "@/contexts/AuthContext";
 import { getContributorCta } from "@/lib/contributor";
@@ -26,7 +26,7 @@ export default function Footer() {
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-white">
           <div className="col-span-2 md:col-span-1">
-          <Image
+          <AssetImage
               src="/assets/images/logo/Logo-02-dark.svg"
               alt="Jepangku"
               width={160}
