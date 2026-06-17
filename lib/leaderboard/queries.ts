@@ -21,7 +21,7 @@ async function aggregateScores(
 ): Promise<ScoreRow[]> {
   const bounds = getPeriodBounds(period);
 
-  if (period === 'all-time') {
+  if (period === 'sepanjang-waktu') {
     return db.$queryRaw<ScoreRow[]>`
       SELECT
         pt.user_id,
@@ -139,7 +139,7 @@ async function fetchViewerScore(
 ): Promise<RankedScoreRow | null> {
   const bounds = getPeriodBounds(period);
 
-  if (period === 'all-time') {
+  if (period === 'sepanjang-waktu') {
     const rows = await db.$queryRaw<RankedScoreRow[]>`
       WITH scores AS (
         SELECT

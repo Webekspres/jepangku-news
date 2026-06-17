@@ -37,7 +37,7 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="section-label text-jepang-orange mb-3">Jelajahi</h4>
+            <p className="section-label text-jepang-orange mb-3">Jelajahi</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -74,7 +74,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="section-label text-jepang-orange mb-3">Kategori</h4>
+            <p className="section-label text-jepang-orange mb-3">Kategori</p>
             <ul className="space-y-2 text-sm">
               {NAV_CATEGORIES.map((cat) => (
                 <li key={cat.slug}>
@@ -89,7 +89,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="section-label text-jepang-orange mb-3">Informasi</h4>
+            <p className="section-label text-jepang-orange mb-3">Informasi</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -166,7 +166,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="section-label text-jepang-orange mb-3">Akun</h4>
+            <p className="section-label text-jepang-orange mb-3">Akun</p>
             <ul className="space-y-2 text-sm">
               {loading && isSignedIn ? (
                 <>
@@ -231,13 +231,13 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-zinc-500 font-mono">
+          <p className="text-xs text-zinc-400 font-mono">
             &copy; 2026 JEPANGKU. SEMUA HAK DILINDUNGI. DIBUAT OLEH{" "}
             <Link href={"https://webekspres.id"} className="font-bold">
               WEBEKSPRES
             </Link>
           </p>
-          <p className="font-japanese text-xs text-zinc-500 tracking-wide">
+          <p className="font-japanese text-xs text-zinc-400 tracking-wide">
             日本語ポータル | INDONESIA
           </p>
         </div>

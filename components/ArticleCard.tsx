@@ -51,9 +51,11 @@ export default function ArticleCard({
               src={coverUrl}
               alt={article.title}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
+              sizes="(max-width: 1024px) 100vw, calc(100vw - 360px)"
               className="object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-300"
               priority={priority}
+              fetchPriority={priority ? "high" : "auto"}
+              quality={priority ? 80 : 75}
             />
           </div>
         )}
@@ -150,9 +152,11 @@ export default function ArticleCard({
               src={coverUrl}
               alt={article.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               priority={priority}
+              fetchPriority={priority ? "high" : "auto"}
+              quality={75}
             />
           </div>
         ) : (

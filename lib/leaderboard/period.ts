@@ -1,17 +1,17 @@
 const JAKARTA_TZ = 'Asia/Jakarta';
 
-export type LeaderboardPeriod = 'weekly' | 'monthly' | 'all-time';
+export type LeaderboardPeriod = 'weekly' | 'monthly' | 'sepanjang-waktu';
 
 export const LEADERBOARD_PERIOD_LABELS: Record<LeaderboardPeriod, string> = {
   weekly: 'Minggu ini',
   monthly: 'Bulan ini',
-  'all-time': 'Sepanjang waktu',
+  'sepanjang-waktu': 'Sepanjang waktu',
 };
 
 export const LEADERBOARD_PERIOD_SHORT: Record<LeaderboardPeriod, string> = {
   weekly: 'Mingguan',
   monthly: 'Bulanan',
-  'all-time': 'All-time',
+  'sepanjang-waktu': 'Sepanjang waktu',
 };
 
 function jakartaParts(now: Date) {
@@ -82,12 +82,12 @@ export function getPeriodBounds(
   period: LeaderboardPeriod,
   now = new Date(),
 ): { start: Date; end: Date } | null {
-  if (period === 'all-time') return null;
+  if (period === 'sepanjang-waktu') return null;
   if (period === 'weekly') return getJakartaWeekBounds(now);
   return getJakartaMonthBounds(now);
 }
 
 export function parseLeaderboardPeriod(value: string | null): LeaderboardPeriod {
-  if (value === 'monthly' || value === 'all-time') return value;
+  if (value === 'monthly' || value === 'sepanjang-waktu') return value;
   return 'weekly';
 }

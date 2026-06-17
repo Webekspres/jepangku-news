@@ -43,9 +43,6 @@ export default function SidebarAdSlot({
       aria-label="Partner advertisement"
       data-testid={testId}
     >
-      <p className="section-label mb-2 text-center lg:text-left">
-        パートナー / PARTNER
-      </p>
       {banner.linkUrl ? (
         <a
           href={banner.linkUrl}

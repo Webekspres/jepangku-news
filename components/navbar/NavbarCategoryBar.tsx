@@ -34,7 +34,9 @@ export default function NavbarCategoryBar({
       )}
       style={{ backgroundColor: "var(--color-jepang-red)" }}
     >
-      <div className="mx-auto flex h-10 max-w-7xl items-center gap-2 px-4">
+      <div className="mx-auto flex h-10 max-w-7xl items-center justify-between gap-2 px-4">
+        <div className="flex items-center gap-2">
+
         <button
           type="button"
           onClick={onSidebarOpen}
@@ -46,7 +48,7 @@ export default function NavbarCategoryBar({
         </button>
 
         <nav
-          className="thin-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+          className="thin-scrollbar hidden lg:flex min-w-0 flex-1 items-center gap-1 overflow-x-auto "
           aria-label="Kategori artikel"
         >
           {NAV_CATEGORIES.map((cat) => {
@@ -59,7 +61,7 @@ export default function NavbarCategoryBar({
                   "shrink-0 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider transition-colors",
                   isActive
                     ? "text-white underline decoration-2 underline-offset-4"
-                    : "text-white/85 hover:text-white",
+                    : "text-white hover:text-white/90",
                 )}
                 data-testid={`nav-category-${cat.slug}`}
               >
@@ -68,6 +70,7 @@ export default function NavbarCategoryBar({
             );
           })}
         </nav>
+        </div>
 
         <div className="flex shrink-0 items-center gap-0.5">
           <SocialMediaLinks testIdPrefix="navbar-social" />

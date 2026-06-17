@@ -30,8 +30,9 @@ export default function HomeHero() {
   const router = useRouter();
   const { user, isLoaded, isSignedIn, loading, clerkUser } = useAuth();
   const authUser = isAuthUser(user) ? user : null;
-  const showAuthenticated =
-    Boolean(authUser) || (isSignedIn && !loading && clerkUser);
+  const showAuthenticated = Boolean(
+    authUser || (isSignedIn && !loading && clerkUser),
+  );
 
   const [heroSearch, setHeroSearch] = useState("");
 

@@ -48,7 +48,7 @@ export default function NavbarSearchOverlay({
   return createPortal(
     <div
       className={cn(!open && "pointer-events-none")}
-      aria-hidden={!open}
+      {...(!open ? { inert: true } : {})}
       data-testid="navbar-search-overlay-root"
     >
       {/* Backdrop layar penuh — klik di luar navbar / konten untuk tutup */}

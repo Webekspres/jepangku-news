@@ -1,5 +1,6 @@
 "use client";
 
+import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeAdResponse } from "@/lib/home/types";
 
 type AdBannerSlotProps = {
@@ -9,8 +10,39 @@ type AdBannerSlotProps = {
 };
 
 export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps) {
-  if (loading || error || !data?.banner) {
+  if (loading) {
+    return (
+      <section className="py-8 bg-white" aria-hidden data-testid="home-ad-banner-loading">
+        <div className="px-4 mx-auto max-w-7xl">
+          <LazySectionSkeleton minHeight={120}>
+            <div className="h-[120px] rounded-lg border border-jepang-border bg-jepang-off-white animate-pulse" />
+          </LazySectionSkeleton>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
     return null;
+  }
+
+  if (!data?.banner) {
+    return (
+      <section
+        className="py-8 bg-white"
+        aria-label="Partner advertisement"
+        data-testid="home-ad-banner-empty"
+      >
+        <div className="px-4 mx-auto max-w-7xl">
+          <p className="section-label mb-3 text-center">パートナー / PARTNER</p>
+          <div className="flex min-h-[120px] items-center justify-center rounded-lg border border-dashed border-jepang-border bg-jepang-off-white px-6 text-center">
+            <p className="text-sm text-jepang-muted">
+              Slot iklan partner — segera hadir
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   const { banner } = data;
@@ -23,6 +55,8 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
       alt={alt}
       loading="lazy"
       decoding="async"
+      width={1200}
+      height={280}
       className="w-full h-auto max-h-[280px] object-cover rounded-lg border border-jepang-border bg-jepang-off-white"
       data-testid={`ad-banner-image-${banner.id}`}
     />

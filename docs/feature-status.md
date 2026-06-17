@@ -1,1143 +1,299 @@
-# 📌 Status Fitur & Prioritas — Jepangku News
+# Status Fitur & Checklist — Jepangku News
 
-Dokumen ini menyajikan status aktual implementasi fitur berdasarkan audit kode sumber, diurutkan dari
-yang masih perlu dibangun hingga yang sudah selesai. Diperbarui secara manual setiap ada perubahan
-signifikan pada fitur.
-
-> **Dokumentasi integrasi Core:** mulai dari `[docs/README.md](./README.md)` →
-> `[ecosystem-integration.md](./ecosystem-integration.md)`. Kontrak API:
-> `jepangku-core/docs/API.md`. Roadmap: `[development-roadmap.md](./development-roadmap.md)`.  
-> **Urutan dokumen:** Tujuan → **daftar prioritas** → pekerjaan aktif → belum selesai → sudah selesai → lampiran rencana teknis.  
-> **Rencana teknis detail:** [`backlog-plan.md`](./backlog-plan.md) · indeks: [`README.md`](./README.md)
+> **Diperbarui:** Juni 2026 (audit kode `jepangku-news`)  
+> **Legenda:** `[ ]` belum · `[~]` sebagian / ops / QA manual · `[x]` selesai (verified)  
+> **Rincian teknis:** [`backlog-plan.md`](./backlog-plan.md) · [`ecosystem-integration.md`](./ecosystem-integration.md) · [`development-roadmap.md`](./development-roadmap.md)
 
 ---
 
-## 🎯 Tujuan Utama
+## Belum Selesai — Urut Prioritas
 
-- Stabilkan portal lebih dulu: selesaikan bug, fitur, dan integrasi Core — soft launch konten ditunda
-- Lengkapi workflow artikel, quiz, polling, poin, dan leaderboard
-- Identitas lewat Core; poin & leaderboard portal tetap di News DB (Core v2.1 tidak menyimpan poin)
-- **Auth bridge:** Clerk ✅; integrasi Core Fase 1+3 **coded** ✅ — lihat `[ecosystem-integration.md](./ecosystem-integration.md)` §4
-- **Fase 0 dokumentasi** ✅ — kontrak v2 selaras dengan `jepangku-core/docs/ECOSYSTEM.md`
-- **Penyatuan shared auth** — sisa pekerjaan di [§ Belum Diimplementasi](#-belum-diimplementasi); selesai di [§ Sudah Diimplementasi](#-sudah-diimplementasi-verified)
+### 1. Homepage QA sebelum launch
 
----
+[x] Mobile: `overflow-x-clip` homepage + body; section tidak overflow horizontal  
+[~] Lighthouse dev (ngrok + `bun dev`): Mobile **34** / Desktop **53** — TTFB ngrok, bundle dev, ekstensi Chrome; **ulangi di production build** (`bun run build && bun start`) incognito  
+[x] Lighthouse perbaikan kode: `fetchPriority=high` LCP featured, `sizes` gambar, AVIF/WebP, preconnect Clerk, touch target carousel, kontras a11y, `inert` search overlay, `robots.ts`, manifest  
+[ ] E2E otomatis homepage (Playwright/Cypress)  
+[x] Empty state tiap section — feed, hari ini, TV, reaksi, poll/kuis/leaderboard, iklan partner (placeholder)  
+[x] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll (`useLazySection`)  
+[x] Section error isolated — satu API gagal tidak kosongkan halaman  
+[x] Lazy-load YouTube embed (`LazyYoutubeEmbed` di `/tv/[slug]`)  
+[x] Skeleton height fixed (`LazySectionSkeleton` + `minHeight`)  
+[x] `data-testid` section & wave (`LazySectionShell`, `data-home-wave`)
 
-## ✅ Daftar Prioritas — Urutan Pengerjaan *(Juni 2026)*
+### 2. Core deploy prod + Clerk webhook *(Fase B–C, koordinasi tim Core)*
 
-> **Diperbarui:** Juni 2026  
-> Urutan **paling dibutuhkan → paling kompleks**. Checklist `[ ]` / `[x]` di sini; rincian implementasi di [`backlog-plan.md`](./backlog-plan.md).  
-> Revisi UI Tier 1–4: ✅ selesai ([`backlog-plan.md` §1](./backlog-plan.md#1-revisi-uiux-juni-2026)).
+[~] Deploy Core staging/prod — lokal `GET /health` OK  
+[ ] Clerk webhook production → `POST /api/v1/auth/webhooks/clerk`
+[ ] Prod: sync `CORE_JWT_PUBLIC_KEY` production
 
-| Prio | Item | Fase | Status | Rencana |
-| :--: | :--- | :--: | :----: | :--- |
-| 1 | Homepage QA sebelum launch (mobile, empty state, wave, Lighthouse, E2E) | A | ⏳ | [§ QA Homepage](#qa-sebelum-launch-jepangkucom) |
-| 2 | Core deploy prod + Clerk webhook | B–C | ⏳ | [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14) |
-| 3 | Verifikasi Fase 4 (`bun run verify:core`) | C | ⏳ | [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14) |
-| 4 | Migrasi poin lokal + leaderboard News DB | C′ | ⏳ | [§ Migrasi poin](#-migrasi-poin-lokal--leaderboard-portal) |
-| 5 | Keamanan pre-production (Redis, moderasi AI, Sentry, backfill sanitasi) | A | ⏳ | [§ Keamanan](#️-keamanan--kualitas--pre-launch--production) |
-| 6 | **Kontributor** — waiting list + admin approve + gate upload | A″ | ⏳ | [backlog-plan §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) |
-| 7 | Kebijakan akun legacy (tanpa Clerk ID) | C | ⏳ | [§ Core & Cutover](#-core--cutover--sisa-operasional-fase-14) |
-| 8 | Halaman admin monitoring (`/activity`, admin poin/leaderboard/audit) | C′ / E | ⏳ | [§ Halaman](#-halaman--belum-ada--belum-selesai) · [§ Admin Monitoring](#️-admin-monitoring--audit--fase-e-portal) |
-| 9 | **Notifikasi** — modal daily poin + welcome + approve kontributor | C′ + E2 | ⏳ | [backlog-plan §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2) |
-| 10 | Integrasi LMS live (homepage teaser + katalog) | D | ⏳ | [§ QA Homepage — LMS](#integrasi-lms--lanjutan-koordinasi-jepangkulms) |
-| 11 | **Newsletter** — footer subscribe + admin CRUD + unsubscribe | E1 | ⏳ | [backlog-plan §3](./backlog-plan.md#3-newsletter-subscription--fase-e1) |
-| 12 | Notifikasi in-app lengkap (bell, artikel/komentar) | E2 | ⏳ | [§ Engagement & Sosial](#-engagement--sosial--fase-e-portal) |
-| 13 | Leaderboard monthly / all-time + export CSV poin | C′ / E | ⏳ | [§ Poin & Leaderboard](#-poin--leaderboard--fase-c-portal) |
-| 14 | Follow / subscribe kategori | E | ⏳ | [§ Engagement & Sosial](#-engagement--sosial--fase-e-portal) |
-| 15 | Admin activity audit log | E | ⏳ | [§ Admin Monitoring](#️-admin-monitoring--audit--fase-e-portal) |
-| 16 | Soft launch konten (30+ artikel) | A | ⏸️ | [§ Soft Launch](#-soft-launch--fase-a-ditunda) · [`soft-launch-content.md`](./soft-launch-content.md) |
-| 17 | Membership & payment global | E | ⏳ | [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de) |
-| 18 | Multi-app deploy, CI/CD, mobile/PWA | E | ⏳ | [§ Ekosistem Lanjutan](#-ekosistem-lanjutan--fase-de) |
+### 3. Verifikasi Fase 4 — `bun run verify:core`
 
-### Revisi UI/UX *(Juni 2026)*
+[ ] Registrasi baru — user Clerk → webhook Core → login News → Core JWT valid  
+[ ] Aktivitas poin — baca/share/bookmark/quiz/poll/komentar → satu entri `point_transactions`, tidak double  
+[ ] Daily login — sekali per hari per user di News DB  
+[ ] Admin — akun `PORTAL_ADMIN` akses `/admin/*`; non-admin ditolak  
+[ ] Leaderboard — konsisten agregasi poin News DB  
+[ ] Core down — graceful degrade + dokumentasi runbook  
+[ ] Staging end-to-end sebelum production cutover  
+[ ] Sync dokumen integrasi (`ecosystem-integration.md` §5)
 
-| Tier | Status | Keterangan |
-| :--: | :----: | :--- |
-| 1–4 | ✅ | Logo, warna, share, sidebar iklan, leaderboard layout, kategori, info sidebar, navbar drawer |
-| 5 | ⏳ → fase | Kontributor (**A″**), newsletter (**E1**), notifikasi (**C′/E2**) — tidak lagi tier terpisah; lihat tabel prioritas & [`backlog-plan.md`](./backlog-plan.md) |
+### 4. Kebijakan akun legacy
 
----
+[ ] User tanpa Clerk ID (JWT lama): force re-login Clerk atau hapus
 
-### 🏠 Homepage jepangku.com — **FASE QA**
+### 5. Keamanan & kualitas pre-production
 
-Implementasi Fase 0–7 selesai ✅. Sisa pekerjaan: QA sebelum launch + integrasi LMS live.  
-**Arsitektur:** API terpisah per wave + lazy load — bukan monolit `/api/homepage`.  
-Checklist selesai: [§ Homepage Ekosistem](#-homepage-ekosistem--landing-page-jepangkucom).
+[x] Rate limiting — Upstash / Redis / in-memory fallback (`lib/rate-limit.ts`)  
+[x] Input sanitasi HTML (`lib/sanitizer.ts`)  
+[x] Image moderation validasi file (`lib/image-moderation.ts` + `POST /api/upload`)  
+[x] Image moderation AI — kode HTTP generik siap  
+[ ] Image moderation AI — set `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY` di production  
+[x] Redis/Upstash — kode siap (`lib/rate-limit-store.ts`)  
+[x] Redis/Upstash — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` di production  
+[ ] Backfill sanitasi konten lama di DB
+[ ] Sentry SDK + alert channel terpusat
+[ ] Log drain / file persistence (export log Vercel)
 
-#### QA sebelum launch jepangku.com
+### 6. Kontributor & gate upload *(Fase A″)*
 
-[ ] Mobile: semua section scrollable, tidak overflow horizontal  
-[ ] Empty state tiap section (video / artikel hari ini / iklan / reaksi)  
-[ ] Network: Wave 1 saat load; Wave 2–4 hanya setelah scroll  
-[ ] Section error isolated — satu API gagal tidak kosongkan halaman  
-[ ] Lighthouse: lazy-load YouTube embed; skeleton height fixed  
-[ ] `data-testid` untuk section & wave baru (E2E)
-
-#### Integrasi LMS — lanjutan *(koordinasi jepangkuLMS)*
-
-[ ] Fase 2 LMS: `GET /api/public/courses` di jepangkuLMS  
-[ ] Fase 2 News: proxy `/api/home/lms-teaser` baca live dari LMS (ganti static cards)  
-[ ] Fase 3 LMS: katalog publik `/kursus` baca Prisma (single source of truth)
-
----
-
-### 📋 Portal & Ekosistem — Pekerjaan Lain *(paralel / setelah fondasi homepage)*
-
-#### Sekarang — Core, halaman, keamanan
-
-[ ] **Core deploy prod** + Clerk webhook → `POST /api/v1/auth/webhooks/clerk`
-[ ] **Verifikasi Fase 4** — registrasi, poin, daily login, admin, leaderboard, staging E2E (`bun run verify:core`)  
-[ ] **Kebijakan akun legacy** — user tanpa Clerk ID: force re-login atau hapus  
-[ ] **Halaman belum ada** — `/activity`, admin leaderboard/points/activity-log  
-[ ] **Keamanan pre-production** — image moderation AI, Redis/Upstash, backfill sanitasi, Sentry, log drain  
-[ ] **Migrasi poin lokal** — kembalikan `point_transactions`; lepas ketergantungan `awardXp()` / Core leaderboard (lihat § Migrasi poin lokal)
-
-#### Berikutnya — Fase A″ / C′ / E *(paralel setelah fondasi)*
-
-[ ] **Kontributor + gate upload** — Fase A″ · [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a)  
-[ ] **Notifikasi daily poin + welcome** — C′/E2 · [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2)  
-[ ] **Newsletter subscription** — E1 · [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1)  
-[ ] **Follow / subscribe kategori** — Fase E  
-[ ] **Monthly & all-time leaderboard** — C′/E  
-[ ] **Export riwayat poin CSV**, riwayat aktivitas `/activity`  
-[ ] **Admin activity audit log**
-
-#### Ditunda — soft launch konten
-
-[ ] Seed 30+ artikel untuk soft launch *(tidak diprioritaskan sementara)*
-
-> Checklist lengkap per area: [§ Belum Diimplementasi](#-belum-diimplementasi) · yang sudah selesai: [§ Sudah Diimplementasi](#-sudah-diimplementasi-verified)
-
----
-
-## ⏱️ Prioritas Pengerjaan Berikutnya
-
-Fokus mengikuti [Daftar Prioritas](#-daftar-prioritas--urutan-pengerjaan-juni-2026) **Prio 1–8** dulu, lalu engagement (9–15). Rincian teknis: [`backlog-plan.md`](./backlog-plan.md).
-
-1. **Homepage QA + Core cutover** (Prio 1–3) — mobile/Lighthouse/E2E; deploy Core; `verify:core`
-2. **Fondasi poin News DB** (Prio 4) — prasyarat daily poin modal & leaderboard akurat
-3. **Hardening production** (Prio 5) — Redis, moderasi AI, monitoring
-4. **Kontributor & gate upload** (Prio 6) — [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a)
-5. **Notifikasi & newsletter** (Prio 9–12) — setelah C′ + kontributor; [`backlog-plan.md` §3–4](./backlog-plan.md)
-
-Portal user-facing utama + revisi UI Tier 1–4 ✅ — sisa pekerjaan di tabel prioritas & [§ Belum Diimplementasi](#-belum-diimplementasi).
-
-### Ditunda — soft launch konten
-
-Konten 30+ artikel **Prio 16** — lihat [§ Soft Launch](#-soft-launch--fase-a-ditunda) · [`soft-launch-content.md`](./soft-launch-content.md)
-
----
-
-## 🚧 Belum Diimplementasi
-
-### 🔗 Core & Cutover — Sisa Operasional *(Fase 1–4)*
-
-Kontrak teknis: `[ecosystem-integration.md](./ecosystem-integration.md)` · API: `jepangku-core/docs/API.md` · **Target:** login Clerk → user di Core → News pakai Clerk ID sebagai FK → **poin di News DB** (Core v2.1 tanpa poin).
-
-
-| Fase  | Fokus                   | Repo utama      | Status                               |
-| ----- | ----------------------- | --------------- | ------------------------------------ |
-| **1** | Core siap melayani News | `jepangku-core` | 🔄 lokal OK; deploy prod + webhook ⏳ |
-| **2** | News bridge             | `jepangku-news` | ✅ selesai                            |
-| **3** | Cutover penuh           | `jepangku-news` | ✅ kode + migrasi lokal selesai       |
-| **4** | Verifikasi & cleanup    | keduanya        | ⏳                                    |
-
-
-#### Fase 1 — Core *(koordinasi tim Core)*
-
-[~] **Deploy Core** — staging/prod; lokal `bun run start` + `GET /health` OK
-[ ] **Clerk webhook** — endpoint production/ngrok ke `POST /api/v1/auth/webhooks/clerk`
-
-#### Fase 2 — Sisa bridge
-
-[ ] **Kebijakan akun legacy** — user tanpa Clerk ID (JWT lama): force re-login Clerk atau hapus
-
-#### Fase 4 — Verifikasi penyatuan
-
-[ ] **Registrasi baru** — user Clerk → webhook Core → login News → Core JWT valid
-[ ] **Aktivitas poin** — baca artikel, share, bookmark, quiz, poll, komentar → satu entri di `point_transactions` News, tidak double
-[ ] **Daily login** — sekali per hari per user di News DB
-[ ] **Admin** — akun `PORTAL_ADMIN` akses `/admin/*`; non-editor ditolak
-[ ] **Leaderboard** — konsisten dengan agregasi poin News DB (bukan Core XP)
-[ ] **Core down** — keputusan: graceful degrade (baca artikel OK, award queue/retry) — dokumentasikan di runbook
-[ ] **Staging end-to-end** — checklist QA sebelum production cutover
-[ ] **Update dokumen ini** — tandai item selesai; sync `ecosystem-integration.md` §5
-
-#### Production cutover
-
-[ ] **Prod:** Core deploy + Clerk webhook + sync `CORE_JWT_PUBLIC_KEY` production
-[ ] Verifikasi E2E staging/prod — `bun run verify:core`
-
-#### Gap identitas Core — koordinasi *(tidak memblok cutover minimal)*
-
-[ ] Username global di Core — **sementara tetap News DB**
-[ ] Profil extended (bio) di Core — **sementara tetap `user_profiles` News**
-[ ] Spend poin, membership, notifikasi — Fase lanjutan
-
-### 🔄 Migrasi poin lokal & leaderboard portal
-
-Selaras **Core v2.1** — poin dan leaderboard **bukan** tanggung jawab Core.
-
-[ ] Schema: kembalikan `point_transactions` (+ optional `daily_login_rewards`) di News DB
-[ ] `lib/points.ts`: tulis ledger lokal; hentikan ketergantungan `awardXp()` untuk aktivitas portal
-[ ] `GET /api/points/my` — baca dari News DB (bukan `currentPoints` JWT/Core)
-[ ] `GET /api/leaderboard/weekly` — agregasi 7 hari dari `point_transactions` (bukan `GET /api/v1/leaderboard`)
-[ ] `lib/home/queries/engagement.ts` — leaderboard preview dari News DB
-[ ] Navbar / profile — saldo poin dari News DB atau cache lokal
-[ ] Update `scripts/verify-core-integration.ts` — pisahkan verifikasi identitas Core vs poin News
-
-### 📦 Halaman — Belum Ada / Belum Selesai
-
-[ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user
-[ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard dari admin
-[ ] `app/(admin)/admin/points/page.tsx` — monitor semua transaksi poin
-[ ] `app/(admin)/admin/activity-log/page.tsx` — audit log aksi admin
-
-### ⚙️ Keamanan & Kualitas — *pre-launch / production*
-
-[~~] **Image moderation AI wajib di production** — set `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY` (HTTP API generik; bisa wrapper AWS Rekognition, Google Vision, Sightengine, dll.)
-[~~] **Konfigurasi Redis/Upstash di production** — set `UPSTASH_REDIS_REST_*` atau `REDIS_URL` sebelum go-live multi-instance Vercel
-[ ] **Backfill sanitasi konten lama di DB** — re-sanitize artikel/info page yang sudah ada sebelum sanitasi diterapkan
-[ ] **Sentry SDK + alert channel terpusat** — ganti/extend monitoring webhook-only
-[ ] **Log drain / file persistence** — export log dari Vercel ke storage terpusat
-
-### 👤 Kontributor & Gate Upload — *Fase A″ (revisi produk)*
-
-Rencana lengkap: [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) · UI CTA ✅ (Tier 4).
-
+[x] Halaman placeholder `/contributor/apply`  
+[x] CTA kontributor di navbar/sidebar (`lib/contributor.ts` — hardcode ADMIN)  
 [ ] Schema `ContributorApplication` (atau role `CONTRIBUTOR`) + migrasi  
 [ ] API apply + status kontributor  
 [ ] Gate `POST /api/articles/create` & halaman submit/edit  
 [ ] Admin antrian approve/reject (`/admin/contributors`)  
-[ ] Form `/contributor/apply` (ganti placeholder)  
-[ ] `lib/contributor.ts` — baca status DB, bukan hardcode ADMIN  
+[ ] Form `/contributor/apply` fungsional (ganti placeholder)  
+[ ] `lib/contributor.ts` — baca status DB  
 [ ] Sinkron semua entry point (sidebar, footer, profile, my-articles)
 
-### 📧 Newsletter — *Fase E1*
+### 7. Halaman belum ada / admin monitoring *(Fase C′ / E)*
 
-Rencana: [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1). Terpisah dari follow/subscribe kategori.
+[ ] `app/(user)/activity/page.tsx` — riwayat aktivitas user  
+[ ] `app/(admin)/admin/leaderboard/page.tsx` — monitor leaderboard *(nav: comingSoon)*  
+[ ] `app/(admin)/admin/points/page.tsx` — monitor transaksi poin *(nav: comingSoon)*  
+[ ] `app/(admin)/admin/activity-log/page.tsx` — audit log admin *(nav: comingSoon)*  
+[ ] Activity audit log — siapa approve/reject apa, kapan  
+[ ] Point transaction summary di admin — total per periode, breakdown tipe  
+[ ] User growth tracking — grafik registrasi per hari/minggu
+
+### 8. Notifikasi portal *(Fase C′ + E2)*
+
+[x] Navbar bell UI placeholder (`NavbarNotifications.tsx`)  
+[x] Sembunyikan bell untuk guest (`Navbar.tsx`)  
+[ ] Model `Notification` + API read/mark-read  
+[ ] Modal daily poin (first session/hari)  
+[ ] Welcome user baru  
+[ ] Notif kontributor approved *(butuh Fase A″)*  
+[ ] Navbar bell fungsional — artikel approve/reject, komentar
+
+### 9. Newsletter *(Fase E1)*
 
 [ ] Model `NewsletterSubscription`  
 [ ] Footer form + `POST /api/newsletter/subscribe`  
 [ ] Admin CRUD `/admin/newsletter`  
 [ ] Halaman unsubscribe (wajib login akun yang sama)  
-[ ] Email template + SMTP *(opsional fase lanjutan)*
+[ ] Email template + SMTP *(opsional)*
 
-### 🔔 Notifikasi Portal — *Fase C′ + E2*
+### 10. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*
 
-Rencana: [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2).
+[x] LMS teaser statis — `HomeLmsTeaser.tsx` + `GET /api/home/lms-teaser`  
+[ ] `GET /api/public/courses` di jepangkuLMS  
+[ ] News proxy `/api/home/lms-teaser` baca live dari LMS  
+[ ] Katalog publik `/kursus` di LMS baca Prisma (single source of truth)
 
-[ ] Model `Notification` + API read/mark-read  
-[ ] Modal daily poin (first session/hari, bukan bell) — butuh C′  
-[ ] Welcome user baru  
-[ ] Notif kontributor approved — butuh Fase A″  
-[ ] Navbar bell fungsional (artikel/komentar) — Fase E2 lanjutan
+### 11. Engagement lanjutan *(Fase E)*
 
-### 💬 Engagement & Sosial — *Fase E (portal)*
+[ ] Follow / subscribe kategori + notifikasi artikel baru  
+[ ] Export riwayat poin CSV milik user  
+[ ] Monthly / all-time quiz leaderboard per quiz  
+[ ] Riwayat aktivitas lengkap di `/activity`
 
-[ ] **Follow / subscribe kategori** — user subscribe kategori + notifikasi artikel baru  
-[ ] **In-app notifications lanjutan** — artikel approve/reject, komentar *(melengkapi § Notifikasi Portal)*
+### 12. Soft launch konten *(Prio 16 — ditunda)*
 
-### 🏆 Poin & Leaderboard — *Fase C′ (News DB)*
-
-[ ] **Monthly leaderboard poin** — rolling window 30 hari dari `point_transactions`
-[ ] **All-time leaderboard poin** — total poin portal sepanjang waktu
-[ ] **Monthly / all-time quiz leaderboard per quiz** — agregasi poin per kuis
-[ ] **Export riwayat poin** — download CSV transaksi poin milik user (News DB)
-[ ] **Riwayat aktivitas lengkap** — viewer `/activity` dari ledger News
-
-> **LMS** (repo terpisah): XP + level dari Core, badge lokal — lihat `jepangkuLMS` & `jepangku-core/docs/API.md`.
-
-### 🛡️ Admin Monitoring & Audit — *Fase E (portal)*
-
-[ ] **Activity audit log** — log semua aksi admin: siapa approve apa, siapa reject apa, kapan
-[ ] **Monitor leaderboard di admin** — data dari agregasi poin News DB
-[ ] **Monitor point transactions di admin** — semua transaksi poin News, filter by user/tipe/periode
-[ ] **Point transaction summary di admin** — total poin per periode, breakdown by activity type
-[ ] **User growth tracking** — grafik registrasi user per hari/minggu
-
-### 🌐 Ekosistem Lanjutan — *Fase D/E*
-
-[ ] **LMS integration** — `kursus.jepangku.com` shared user (Clerk/Core); XP+badge di LMS, poin di News (Fase D)
-[ ] Scaffold LMS — `@clerk/nextjs` + Clerk app sama; `User.id` = Clerk ID; `lib/core/` award XP; badge lokal LMS
-[ ] **Super-admin / role hierarchy** — role `editor`, `moderator`, `instructor`, `student` (Fase E)
-[ ] **Membership & payment** — plan, subscription, payment global (Fase E)
-[ ] **Admin pusat** — admin lintas aplikasi (Fase E)
-[ ] **Multi-app deployment** — subdomain production per app (Fase E)
-[ ] **CI/CD pipeline** — otomasi deploy ke Vercel / VPS (Fase E)
-[ ] **Mobile app** — React Native atau PWA (Fase E)
-
-### 🚀 Soft Launch — *Fase A (ditunda)*
-
-**Target:** 30–50 artikel + konten siap rilis publik. **Tidak diprioritaskan** sampai bug, fitur, dan integrasi Core selesai.
-
-
-| Kategori          | Jumlah Artikel | Status      |
-| ----------------- | -------------- | ----------- |
-| News              | 6–10           | ⏳ Persiapan |
-| Travel            | 6–8            | ⏳ Persiapan |
-| Culture           | 4–6            | ⏳ Persiapan |
-| Entertainment     | 6–10           | ⏳ Persiapan |
-| Lifestyle         | 4–6            | ⏳ Persiapan |
-| Work in Japan     | 3–5            | ⏳ Persiapan |
-| Study in Japan    | 3–5            | ⏳ Persiapan |
-| Review Produk     | 3–5            | ⏳ Persiapan |
-| Event             | 3–5            | ⏳ Persiapan |
-| **Total Artikel** | **38–60**      | ⏳ Persiapan |
-
-
-[ ] Riset topik dan sumber untuk setiap kategori
-[ ] Penulisan draft artikel (minimal 30 artikel untuk soft launch)
-[ ] Penyuntingan dan quality check
-[ ] Pengumpulan/pembuatan thumbnail/cover image
-[ ] Konfigurasi kategori dan tag di admin
-[ ] Publikasi artikel secara bertahap atau sekaligus
+[ ] Riset topik dan sumber per kategori  
+[ ] Penulisan draft artikel (minimal 30 artikel)  
+[ ] Penyuntingan dan quality check  
+[ ] Thumbnail/cover image  
+[ ] Konfigurasi kategori dan tag di admin  
+[ ] Publikasi artikel  
 [ ] Testing: homepage, search, filter, leaderboard, quiz, poll
 
-**Referensi:** `docs/soft-launch-content.md` — template lengkap dan guideline penulisan artikel per kategori
+### 13. Ekosistem lanjutan *(Fase D/E)*
+
+[ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
+[ ] Super-admin / role hierarchy (`editor`, `moderator`, `instructor`, `student`)  
+[ ] Membership & payment global  
+[ ] Admin pusat lintas aplikasi  
+[ ] Multi-app deployment (subdomain production)  
+[ ] CI/CD pipeline otomatis  
+[ ] Mobile app / PWA  
+[ ] Username global di Core *(sementara News DB)*  
+[ ] Profil extended (bio) di Core *(sementara `user_profiles` News)*  
+[ ] Spend poin, membership, notifikasi global — fase lanjutan
 
 ---
 
-## ✅ Sudah Diimplementasi (Verified)
+## Sudah Diimplementasi — Verified
 
-### 🏠 Homepage Ekosistem — Landing Page jepangku.com
+### Homepage ekosistem — jepangku.com
 
-**Arsitektur:** `lib/home/queries/*` + 7 endpoint `/api/home/*` + lazy load per wave (`hooks/useLazySection.ts`).  
-Smoke test: `bun run verify:home` (`scripts/verify-home-waves.ts`).
-
-#### Infrastruktur & API
-
-[x] Ekstrak query dari `/api/homepage` → `lib/home/queries/feed.ts` (+ tv, ads, lms-teaser, reactions, engagement, categories-editorial)  
-[x] `GET /api/home/feed` — Wave 1: featured, trending, todayArticles (timezone Asia/Jakarta)  
+[x] `lib/home/queries/*` — feed, categories-editorial, tv, ads, lms-teaser, reactions, engagement  
+[x] `GET /api/home/feed` — Wave 1: featured, trending, todayArticles (Asia/Jakarta)  
 [x] `GET /api/home/categories-editorial` — Wave 2 lazy  
-[x] `GET /api/home/tv`, `/api/home/ads`, `/api/home/lms-teaser`, `/api/home/reactions` — Wave 3 lazy  
+[x] `GET /api/home/tv`, `/ads`, `/lms-teaser`, `/reactions` — Wave 3 lazy  
 [x] `GET /api/home/engagement` — Wave 4 lazy (poll, quiz, leaderboard)  
-[x] Monolit `/api/homepage` deprecated → dihapus setelah migrasi  
-[x] `LazySectionSkeleton.tsx`, `LazySectionShell`, refactor `page.tsx` (tanpa `loadData()` global)
-
-#### Section UI (§1–§10)
-
+[x] Monolit `/api/homepage` dihapus (`bun run verify:home`)  
+[x] `hooks/useLazySection.ts`, `LazySectionShell`, `LazySectionSkeleton`  
 [x] §1 Featured + Trending — carousel, grid proporsional  
-[x] §2 Hero ekosistem — `HomeHero.tsx`, quick links, search, CTA auth/guest, `asanoha-bg`  
-[x] §3 Hari Ini — label `今日 / HARI INI`, query Jakarta, fallback `< 3` artikel  
-[x] §4 Kategori editorial — `CategoryEditorialSection.tsx`, mapping `lib/home/editorial-groups.ts`, seed `halal-in-japan` + `entertainment`  
-[x] §5 Jepangku TV — model `Video`, admin `/admin/videos`, `JepangkuTvSection.tsx`, halaman `/tv`  
+[x] §2 Hero ekosistem — `HomeHero.tsx`, quick links, search, CTA auth/guest  
+[x] §3 Hari Ini — label `今日 / HARI INI`, fallback `< 3` artikel  
+[x] §4 Kategori editorial — `CategoryEditorialSection.tsx`, `lib/home/editorial-groups.ts`  
+[x] §5 Jepangku TV — model `Video`, admin `/admin/videos`, `/tv`, `/tv/[slug]`  
 [x] §6 Advertisement — model `AdSlot`, admin `/admin/ads`, `AdBannerSlot.tsx`  
-[x] §7 LMS teaser — `HomeLmsTeaser.tsx` + `GET /api/home/lms-teaser` (static cards Fase 1)  
-[x] §8 Reaksi komunitas — `HomeReactionsSection.tsx` + `GET /api/home/reactions`  
-[x] §9–10 Poll, Kuis, Leaderboard — `HomeEngagementSection.tsx`  
-[x] Navbar — sembunyikan bell notifikasi saat guest
+[x] §7 LMS teaser — static cards Fase 1  
+[x] §8 Reaksi komunitas — `HomeReactionsSection.tsx`  
+[x] §9–10 Poll, Kuis, Leaderboard — `HomeEngagementSection.tsx`
 
-### 🔗 Penyatuan Shared Auth & Core Service — Fase 2 & 3
+### Revisi UI/UX *(Tier 1–4, Juni 2026)*
 
-Kontrak: `[ecosystem-integration.md](./ecosystem-integration.md)` · Env dev: `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*` — lihat §6.
+[x] Logo & warna brand baru  
+[x] Navbar redesign + drawer sidebar (`NavbarSidebar.tsx`)  
+[x] Share flow & leaderboard layout  
+[x] Kategori editorial & info sidebar  
+[x] Sidebar iklan artikel (`ArticleSidebarAd.tsx`)
 
-#### Fase 1 — selesai (lokal)
+### Poin & leaderboard — News DB *(Fase C′)*
 
-[x] **DATABASE_URL lokal** — `postgresql://root:root@localhost:5432/jepangku_core` di `jepangku-core/.env`
-[x] **Satu Clerk Application** — News & Core `CLERK_SECRET_KEY` selaras
-[x] **Seed activity types News** di Core (`prisma/seed.ts`): `ARTICLE_SHARED`, `ARTICLE_BOOKMARKED`, `POLL_VOTED`, `COMMENT_CREATED`, `NEWS_QUIZ_COMPLETED`; `READ_ARTICLE`, `DAILY_LOGIN` sudah ada
-[x] **Role admin portal** — `bun run db:sync-clerk` assign `PORTAL_ADMIN` (atau legacy `NEWS_EDITOR`) untuk admin test
-[x] **Smoke test lokal** — sync Clerk, `POST /api/v1/gamification/award`, shadow token (`CORE_SHADOW_ENABLED`)
+[x] Schema `point_transactions` di News DB  
+[x] `lib/points.ts` — tulis ledger lokal (`awardPoints`, `getUserPointBalance`)  
+[x] `checkDailyLogin()` — daily login via `point_transactions`  
+[x] `GET /api/points/my` — saldo + 100 transaksi terakhir dari News DB  
+[x] `GET /api/leaderboard` + `/weekly` — agregasi dari `point_transactions`  
+[x] `lib/leaderboard/queries.ts` — weekly, monthly, all-time (Asia/Jakarta)  
+[x] `lib/home/queries/engagement.ts` — leaderboard preview dari News DB  
+[x] Halaman `/leaderboard` — tab mingguan / bulanan / all-time  
+[x] Navbar & profil — saldo dari `/api/user/gamification` (News DB)  
+[x] `scripts/verify-core-integration.ts` — verifikasi leaderboard portal  
+[x] `awardXp()` Core — tidak dipakai aktivitas portal (hanya `lib/core/gamification.ts`)
 
-#### Fase 2 — News bridge
+### Penyatuan auth & Core — Fase 2 & 3
 
-[x] **Env News** — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_SHADOW_ENABLED`, `CORE_DUAL_WRITE_ENABLED`
-[x] `**lib/core/`** — `client.ts`, `auth.ts`, `gamification.ts`, `types.ts`, `activity-map.ts`, `config.ts`, `index.ts`
-[x] **Shadow integration** — hook setelah login/JIT, log `core.shadow.token.*`, feature flag
-[x] **Skrip sync** — `jepangku-core`: `bun run db:sync-clerk` (Clerk → Core + `PORTAL_ADMIN`)
-[x] **Dual-write poin** *(historis, pre-cutover)* — `dual-write.ts` + mapping activity + log mismatch
+[x] Env News — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*`  
+[x] `lib/core/` — client, auth, gamification, types, activity-map, config  
+[x] Migrasi DB — FK Clerk ID; `users.id` = Clerk ID  
+[x] Core JWT — cookie `core_session` via `lib/core/session.ts`  
+[x] `getCurrentUser()` / `getCurrentAdmin()` / `hasNewsAdminAccess()`  
+[x] Skrip sync — `bun run db:sync-clerk` (Clerk → Core + `PORTAL_ADMIN`)  
+[x] Seed activity types News di Core  
+[x] Smoke test lokal Core + shadow *(historis, pre-cutover)*
 
-#### Fase 3 — Cutover penuh ke Core
+### Auth & akun — Clerk bridge
 
-[x] **Migrasi DB** — `20260609120000_phase3_core_cutover`: FK → Clerk ID; `users.id` = Clerk ID; drop `clerk_id`, `total_points`, `password_hash`
-[x] **Core JWT** — cookie `core_session` via `lib/core/session.ts` + `/api/auth/me`
-[x] **Auth refactor** — `getCurrentUser()`, `getCurrentAdmin()` / `hasNewsAdminAccess()`; `SessionUser.totalPoints` dari Core JWT
-[x] **Cutover identitas** — FK Clerk ID, Core JWT, admin gate dari Core roles
-[~~] **Poin via Core** — *sementara* `awardXp()` ke Core (pra-v2.1); **target:** ledger `point_transactions` News DB
-[~~] **UI & API poin** — UI ada; **target:** saldo/leaderboard dari News DB, bukan Core XP/`currentPoints`
-[x] **Hapus obsolete** — tabel `point_transactions`, `daily_login_rewards`; dual-write & shadow dihapus; seed tanpa poin lokal
+[x] `@clerk/nextjs` + `/sign-in`, `/sign-up`  
+[x] JIT user provisioning (`lib/auth/clerk-user.ts`)  
+[x] `SessionUser` abstraction + feature flag `AUTH_PROVIDER`  
+[x] `proxy.ts` — proteksi route user/admin + logging API  
+[x] `/login`, `/register` redirect ke Clerk; API lokal disabled (410)  
+[x] Email verification, forgot password, OAuth — via Clerk  
+[x] Username change cooldown 14 hari  
+[x] `GET /api/auth/me`, logout Clerk/local
 
-### 🚀 Soft Launch — Halaman Statis
+### Artikel — publik, user & admin
 
-[x] About
-[x] Contact
-[x] Advertise
-[x] Media Partner
-[x] Career
-[x] Internship
-[x] Privacy Policy
-[x] Terms of Service
-[x] Disclaimer
+[x] CRUD API artikel — list, detail, create, update, delete, my-articles  
+[x] Read complete (+2 poin), share (+5), bookmark (+1)  
+[x] Revisions & review history — penulis + admin  
+[x] Admin — create, edit published, archive, bulk, export CSV/JSON  
+[x] Draft autosave & preview sebelum submit  
+[x] Halaman — `/articles`, `/articles/[slug]`, submit, edit, my-articles  
+[x] Scroll detection read complete + banner poin
 
-### ⚙️ Keamanan & Kualitas — *Fase A (portal)*
+### Quiz & polling
 
-[x] **Rate limiting** — `lib/rate-limit.ts` + `lib/rate-limit-store.ts`: backend Upstash REST / `REDIS_URL` / in-memory fallback otomatis; endpoint: submit/update artikel, vote, share, comment, reaction, quiz attempt, upload, read-complete, bookmark; log 429 + fallback saat Redis error. Rate limit auth via Clerk (bukan API login/register lokal)
-[x] **Input sanitasi HTML** — `sanitize-html` via `lib/sanitizer.ts`: write + read artikel, komentar plain-text, profil, quiz/poll admin, info pages; whitelist tag/atribut; img hanya `http`/`https` (tanpa `data:` URI)
-[x] **Image moderation (validasi file)** — `lib/image-moderation.ts`: magic bytes JPEG/PNG/GIF/WebP, cek MIME vs isi file, ukuran 100 B–10 MB; dipanggil di `POST /api/upload`
-[x] **Image moderation (AI opsional)** — HTTP generik `IMAGE_MODERATION_ENDPOINT` + `IMAGE_MODERATION_API_KEY`; payload base64; reject jika `decision: reject` atau `moderation: unsafe`; tanpa env = skip (warn di prod)
-[x] **Monitoring & alerting** — `lib/monitoring.ts`: `captureException` + webhook opsional `MONITORING_WEBHOOK_URL`; `GET /api/health` cek koneksi DB
-[x] **Logging structured** — `lib/logger.ts` JSON console + `proxy.ts` log semua `/api/*` (requestId, method, path, IP); log rate limit, moderasi, exception
+[x] API quiz — list, detail, attempt (one-attempt, scoring, poin)  
+[x] API poll — list, detail, vote (multi-question, duplicate guard, poin)  
+[x] Halaman publik `/quizzes`, `/quizzes/[slug]`, `/polls`, `/polls/[slug]`  
+[x] Admin CRUD quiz & poll (multi-question builder, image upload)
 
-### 🔐 Auth & Akun — *Clerk bridge + fallback JWT lokal (Fase B portal)*
+### Bookmark, komentar & reaksi
 
-[x] **Integrasi Clerk di portal** — `@clerk/nextjs`, halaman `/sign-in` & `/sign-up`, `proxy.ts` proteksi route user/admin (Clerk) + fallback JWT lokal
-[x] **Kolom `clerk_id` di DB portal** — migration `users.clerk_id` (unique, nullable); `password_hash` nullable untuk akun Clerk-only
-[x] **JIT user provisioning** — upsert/find `users` by `clerk_id` (link by email jika ada); sync via `lib/auth/clerk-user.ts`
-[x] **Refactor `lib/auth.ts`** — `getCurrentUser()` / `getCurrentAdmin()` dual path: Clerk session + lookup DB portal, atau JWT lokal
-[x] **Abstraction session user** — tipe `SessionUser` (`lib/auth/types.ts`); API route tetap pakai helper auth
-[x] **Feature flag auth** — `AUTH_PROVIDER=local|clerk` + `NEXT_PUBLIC_AUTH_PROVIDER` (rollback ke JWT lokal)
-[x] **Deprecate auth lokal** — `/login` & `/register` redirect ke `/sign-in` & `/sign-up`; API login/register disabled (410)
-[x] **Email verification** — Clerk
-[x] **Forgot password / password reset** — Clerk
-[x] **OAuth login** — Clerk (konfigurasi di Clerk Dashboard)
-[x] **Session management UI** — Clerk User Profile / Account
-[x] `@clerk/nextjs` + `ClerkProvider` (saat `AUTH_PROVIDER=clerk`)
-[x] Halaman `/sign-in`, `/sign-up` (Clerk UI); `/login`, `/register` redirect ke Clerk bila perlu
-[x] `users.clerk_id` + JIT provisioning (`lib/auth/clerk-user.ts`)
-[x] `SessionUser` abstraction; `getCurrentUser()` / `getCurrentAdmin()` dual provider
-[x] `AUTH_PROVIDER` / `NEXT_PUBLIC_AUTH_PROVIDER` feature flag
-[x] `proxy.ts`: proteksi route + logging API (Clerk `auth.protect` atau cookie JWT lokal)
-[x] Register: validasi uniqueness email/username, bcrypt hash, JWT cookie (mode `local`)
-[x] Login: mendukung email atau username, cek status banned, JWT cookie (mode `local`)
-[x] Logout: clear cookie (local) / Clerk `signOut` (clerk)
-[x] `GET /api/auth/me`: session user (Clerk JIT atau JWT)
-[x] Daily login points: `checkDailyLogin()` saat login/provisi Clerk
-[x] Username change cooldown 14 hari (field `usernameChangedAt`, enforced di API + UI profile edit)
+[x] Bookmark — API + halaman `/bookmarks`  
+[x] Komentar polimorfik — thread 1 level, moderasi admin, +2 poin  
+[x] Reaksi 9 emoji (artikel/poll/quiz) + jempol komentar  
+[x] Admin moderasi komentar — `/admin/comments`  
+[x] Halaman browse reaksi — `/reactions/[type]`
 
-### 📰 Artikel — Publik, User & Admin
+### Search & discovery
 
-[x] `GET /api/articles`: search (title, excerpt, content), filter kategori (by slug), filter tag, sort (latest/popular/trending), pagination
-[x] `GET /api/articles/[slug]`: increment view count, related articles by category, tags resolved
-[x] `POST /api/articles/create`: auth required, slug generation, resolve kategori, create/link tag, status DRAFT atau PENDING_REVIEW
-[x] `GET /api/articles/my`: daftar artikel milik user, termasuk catatan review terakhir
-[x] `PUT /api/articles/[slug]/update`: ownership check, hanya DRAFT/REJECTED yang bisa diedit user, admin bisa update semua status
-[x] `DELETE /api/articles/[slug]/delete`: ownership check, PUBLISHED tidak bisa dihapus non-admin
-[x] `POST /api/articles/[slug]/read-complete`: +2 poin sekali per artikel, anti-duplikat via `awardPoints()`, update `readCompletedAt` di ArticleView
-[x] `GET /api/articles/[slug]/share`: cek status `hasShared` per user
-[x] `POST /api/articles/[slug]/share`: +5 poin, satu kali per user, increment `shareCount`, simpan record ArticleShare
-[x] `GET /api/articles/[slug]/reviews`: riwayat review artikel (status + reviewer), hanya penulis
-[x] `GET /api/articles/[slug]/revisions`: riwayat revisi konten artikel, hanya penulis
-[x] `lib/article-audit.ts`: pencatatan revisi konten, status review, lastEditedBy admin
-[x] Admin edit artikel: `changeNote` wajib; tercatat di `article_revisions`
-[x] `components/ui/article-activity-modal.tsx`: modal gabungan riwayat revisi + review untuk penulis
-[x] Banner "+2 POINTS AWARDED" muncul di halaman artikel setelah read complete
-[x] Scroll detection di halaman detail artikel — trigger saat user sampai akhir konten
-[x] **Admin: create artikel langsung dari panel** — `admin/articles/create`, `POST /api/admin/articles` (publish langsung / draft / antrian review)
-[x] **Admin: edit artikel published** — `admin/articles/[id]/edit`, slug published tidak berubah otomatis saat judul diedit
-[x] **Admin: archive artikel** — status `ARCHIVED` dari form edit + bulk archive
-[x] **Admin: bulk action artikel** — checkbox di list + `POST /api/admin/articles/bulk` (approve/reject/archive/delete)
-[x] **Admin: export data CSV/JSON** — `GET /api/admin/articles/export` (artikel; mengikuti filter aktif)
-[x] **Admin artikel: filter + sort lengkap** — filter author, kategori, tanggal, search, sort latest/oldest/popular/published
-[x] **Pagination di my-articles** — saat ini list mungkin tanpa pagination jika artikel banyak
-[x] **Draft autosave** — simpan draft otomatis selama user mengetik di form submit/edit artikel
-[x] **Preview sebelum submit** — user bisa preview artikel sebelum submit untuk review
-[x] `app/(user)/submit-article`: RichTextEditor, image upload, pilih kategori/tag, simpan sebagai draft atau submit untuk review
-[x] `app/(user)/edit-article/[id]`: pre-populate form dari API, flow submit sama dengan create
-[x] `app/(user)/my-articles`: filter by status, preview catatan penolakan, aksi edit/submit/hapus, modal riwayat review
-[x] `app/(public)/articles/page.tsx`: search box, filter kategori, filter tag (toggle panel via URL param `?tag=`), sort latest/popular/trending, pagination, tag populer
-[x] `app/(public)/articles/[slug]/page.tsx`: read complete detection, bookmark toggle, share tracking, related articles, tag klikabel → filter artikel
+[x] `/search?q=` + `GET /api/search` (artikel + quiz + poll)  
+[x] `/trending` — sort `weeklyViewCount`  
+[x] `/explore` — tag populer + kategori  
+[x] `GET /api/tags/popular` + tag klikabel di artikel  
+[x] Navbar & hero search → `/search`
 
-### 🧩 Quiz
+### Profile & author discovery
 
-[x] `GET /api/quizzes`: daftar quiz, filter by status
-[x] `GET /api/quizzes/[slug]`: detail quiz dengan questions + options (jawaban benar disembunyikan dari response)
-[x] `POST /api/quizzes/[slug]/attempt`: one-attempt guard, per-answer scoring, award base points + bonus per-correct via `awardPoints()`
-[x] Halaman list quiz publik
-[x] Halaman detail quiz + submit jawaban
-[x] Hasil quiz langsung tampil setelah submit
+[x] Profil user — `/profile`, `/profile/edit`, avatar upload  
+[x] Profil publik penulis — `/profile/[username]`  
+[x] `AuthorProfileCard`, `AuthorLink`, statistik penulis publik
 
-### 📊 Polling / Voting
+### Analytics konten — admin
 
-[x] `GET /api/polls`: daftar polling, filter status, total votes per poll dihitung
-[x] `GET /api/polls/[slug]`: detail polling, persentase per opsi dihitung
-[x] `POST /api/polls/[slug]/vote`: multi-question support, duplicate guard per pertanyaan per user, award poin satu kali per poll
-[x] Halaman list polling publik
-[x] Halaman detail polling + vote + hasil
+[x] `/admin/analytics` — ringkasan  
+[x] `/admin/analytics/content` — ranking performa artikel  
+[x] `/admin/analytics/categories` — statistik per kategori  
+[x] `/admin/analytics/articles/[id]` — grafik views harian  
+[x] `/admin/analytics/quizzes/[id]` — attempt, skor, pass rate  
+[x] `/admin/analytics/polls/[id]` — breakdown vote
 
-### 🔖 Bookmark
+### Upload & infrastruktur
 
-[x] `GET /api/bookmarks`: list artikel yang di-bookmark user
-[x] `POST /api/bookmarks/[articleId]`: bookmark artikel, soft-delete aware (restore jika pernah di-bookmark), +1 poin (hanya sekali)
-[x] `DELETE /api/bookmarks/[articleId]`: soft-delete (set `deletedAt`), decrement `bookmarkCount`
-[x] Poin bookmark tidak diberikan ulang jika user hapus lalu bookmark ulang artikel yang sama
-[x] `app/(user)/bookmarks`: list artikel yang di-bookmark
+[x] `POST /api/upload` — R2 + validasi + moderasi  
+[x] `lib/r2.ts`, `lib/db.ts`, `lib/logger.ts`, `lib/monitoring.ts`  
+[x] `GET /api/health` — cek DB  
+[x] `lib/slug.ts`, `lib/article-tags.ts`, `lib/admin-articles-query.ts`  
+[x] `RichTextEditor`, confirm modal, review history modal
 
-### 💬 Engagement & Sosial — *Fase A (portal)*
+### Admin — halaman & API
 
-[x] **Sistem komentar** — komentar pada artikel, polling, dan kuis (model polimorfik), thread 1 level (balasan), edit/hapus milik sendiri, moderasi admin (sembunyikan/hapus), +2 poin sekali per target
-[x] **Reaction / like artikel** — sistem reaksi polimorfik (`Reaction`, target ARTICLE/POLL/QUIZ/COMMENT). Konten: 9 reaksi (Love, Lol, Cute, Win, WTF, OMG, Geeky, Scary, Fail) dengan bar di atas kolom komentar; komentar: jempol naik/turun. Satu reaksi aktif per user per target (klik = toggle/ganti), tanpa poin, rate limit 30/menit
-[x] Model `Comment` polimorfik (`targetType` ARTICLE/POLL/QUIZ + `targetId`), thread 1 level via `parentId`, soft-delete (`deletedAt`), moderasi (`status` VISIBLE/HIDDEN)
-[x] `GET /api/comments?targetType=&targetId=`: thread publik (komentar HIDDEN/terhapus jadi placeholder bila punya balasan tampil)
-[x] `POST /api/comments`: auth required, validasi + sanitasi plain-text (maks 1000), rate limit 10/menit, verifikasi target ada, +2 poin sekali per target via `awardPoints()`
-[x] `PATCH/DELETE /api/comments/[id]`: edit & soft-delete milik sendiri (admin bisa hapus semua)
-[x] `GET /api/admin/comments`: list moderasi dengan filter status/tipe + search + pagination
-[x] `PATCH/DELETE /api/admin/comments/[id]`: sembunyikan/tampilkan + hapus permanen
-[x] `components/CommentSection.tsx`: komponen reusable (form, balasan, edit, hapus, kontrol moderasi admin inline) — terpasang di halaman detail artikel, polling, kuis
-[x] `app/(admin)/admin/comments/page.tsx`: halaman moderasi + tautan di dashboard admin
+[x] Dashboard `/admin` — stats, quick actions, pending preview  
+[x] Artikel — list, create, edit, review queue, bulk, export  
+[x] Kategori, tag, homepage featured/hot, info pages  
+[x] Users — list, detail, role/status, transaksi poin di detail  
+[x] Videos CRUD, Ads CRUD  
+[x] Quizzes & polls CRUD + analytics link
 
-### 🏆 Leaderboard & Poin — *Portal (mingguan)*
+### Halaman publik & statis
 
-[x] Halaman leaderboard mingguan publik (`/leaderboard`)
-[x] Halaman points user (`/points`) + ikon per tipe aktivitas
-[~~] `GET /api/leaderboard/weekly` — **sementara** proxy Core XP (`all-time`); **target:** agregasi 7 hari dari `point_transactions` News
-[~~] `GET /api/points/my` — **sementara** dari profil Core/JWT; **target:** 100 transaksi terakhir dari News DB
-[~] `lib/points.ts` — **sementara** wrapper `awardXp()` Core; **target:** tulis `point_transactions` lokal
+[x] Homepage `/`  
+[x] About, Contact, Advertise, Media Partner, Career, Internship  
+[x] Privacy Policy, Terms of Service, Disclaimer  
+[x] `/points` — riwayat transaksi poin user  
+[x] `/contributor/apply` — placeholder info (bukan form apply)
 
-### 🔍 Search & Discovery — *Fase A (portal)*
+### Halaman — checklist path
 
-[x] **Dedicated search result page** — `/search?q=...` + `GET /api/search` dengan hasil artikel + quiz + poll sekaligus; Navbar & hero search mengarah ke `/search`
-[x] **Trending articles discovery** — halaman `/trending` (grid + pagination, sort `weeklyViewCount`); homepage sidebar pakai algoritma yang sama + link "Lihat Semua"
-[x] **Related tags di halaman artikel** — tag ditampilkan di detail artikel, klik → `/articles?tag=<slug>`
-[x] **Popular / trending tags** — `GET /api/tags/popular` (agregasi `articleTag`), komponen `PopularTags` di `/articles`, halaman `/explore` + nav "Jelajahi"
-[x] `GET /api/search?q=`: pencarian lintas artikel + kuis + polling (title/excerpt/content)
-[x] `GET /api/tags/popular`: tag diurutkan jumlah artikel (`articleTag` groupBy)
-[x] `GET /api/homepage`: trending sidebar memakai `weeklyViewCount` (konsisten dengan `sort=trending`)
-[x] `app/(public)/search/page.tsx`: hasil gabungan artikel + kuis + polling dari `GET /api/search`
-[x] `app/(public)/trending/page.tsx`: discovery artikel tren mingguan dengan pagination
-[x] `app/(public)/explore/page.tsx`: hub tag populer, kategori, link trending
-[x] Search icon di Navbar (desktop + mobile) redirect ke `/search?q=...`
-[x] Kategori di homepage sebagai shortcut ke `/articles?category=slug`
-
-### 👤 Profile & Discovery Author — *Fase A (portal)*
-
-[x] **Author profile publik** — `/profile/[username]` + `GET /api/profile/[username]` (hanya user `active`, tanpa email/poin); bio, avatar, artikel published, `AuthorProfileCard` di artikel (bawah reaction, atas komentar); `AuthorLink` di artikel/komentar/leaderboard
-[x] **Statistik penulis** — agregat publik: total artikel published, total views, total bookmark diterima (di profil publik & API)
-[x] `app/(public)/profile/[username]/page.tsx` — profil publik author (bio, stats, artikel published)
-[x] `components/AuthorProfileCard.tsx` + `AuthorLink.tsx` — kartu penulis & link ke profil
-
-### 📈 Analytics Konten — *Fase A (portal)*
-
-[x] **View analytics per artikel** — `article_views` time-series + `/admin/analytics/articles/[id]` (grafik harian, total vs unique visitors, periode 7/30/90 hari)
-[x] **Content performance report** — `/admin/analytics/content` ranking views/bookmark/share per periode + link ke detail grafik
-[x] **Admin: lihat statistik per kategori** — `/admin/analytics/categories` tabel + chart views & engagement per kategori
-[x] **Statistik detail per quiz di admin** — `/admin/analytics/quizzes/[id]` attempt, user unik, distribusi skor, pass rate ≥70%, tren harian
-[x] **Statistik detail per poll di admin** — `/admin/analytics/polls/[id]` breakdown per pertanyaan/opsi, tren vote harian
-
-### 👤 Profile User
-
-[x] `GET/PUT /api/profile`: get profile + stats, update displayName / bio / avatar
-[x] Halaman profil: stats dari API, recent points, quick actions
-[x] Edit profil: avatar upload, name/username (dengan cooldown 14 hari), displayName, bio
-[x] Avatar upload terintegrasi profile edit
-[x] `app/(user)/profile`: halaman profil user
-[x] `app/(user)/profile/edit`: form edit profil
-
-### 📤 Upload
-
-[x] `POST /api/upload`: auth required, validasi tipe image + max 10MB, `validateImageBuffer` + `moderateImage`, upload ke Cloudflare R2 (graceful fallback jika unconfigured), simpan record ke tabel `File`
-[x] `lib/r2.ts`: S3Client wrapper, `uploadToR2`, `deleteFromR2`, `getSignedUrlR2`, fallback path jika unconfigured
-[x] `lib/image-moderation.ts`: validasi magic bytes/MIME/ukuran + moderasi AI opsional via env
-
-### 🛡️ Admin — API
-
-[x] `GET /api/admin/stats`: count artikel/user/quiz/poll
-[x] `GET /api/admin/articles`: list artikel, filter status/author/kategori/tanggal/search/sort
-[x] `POST /api/admin/articles`: buat artikel admin (DRAFT, PENDING_REVIEW, PUBLISHED, ARCHIVED)
-[x] `GET /api/admin/articles/[id]`: detail artikel untuk form edit admin
-[x] `POST /api/admin/articles/bulk`: approve, reject, archive, delete massal
-[x] `GET /api/admin/articles/export`: export CSV atau JSON dengan filter yang sama
-[x] `GET /api/admin/articles/pending`: filter PENDING_REVIEW saja
-[x] `POST /api/admin/articles/[id]/approve`: set PUBLISHED, buat record ArticleReview
-[x] `POST /api/admin/articles/[id]/reject`: set REJECTED, buat record ArticleReview dengan catatan
-[x] `PUT /api/admin/articles/[id]/featured`: toggle `isFeatured`
-[x] `PUT /api/admin/articles/[id]/hot`: toggle `isHot`
-[x] `GET/POST /api/admin/tags`: list dengan usage count, buat tag baru dengan slug, duplicate guard
-[x] `DELETE /api/admin/tags/[id]`: guard hapus jika tag masih dipakai artikel
-[x] `GET/PUT /api/admin/users`: search/filter, update role + status user
-[x] `GET /api/admin/users/[id]`: detail user + artikel + transaksi poin + statistik
-[x] `GET/POST /api/admin/categories`: CRUD dengan slug generation, duplicate guard
-[x] `PATCH/DELETE /api/admin/categories/[id]`: update dengan rename check, delete dengan guard artikel
-[x] `GET /api/admin/homepage`: return featured + hot articles
-[x] `GET/POST /api/admin/polls`: list dengan filter, create dengan questions + options validasi
-[x] `GET/PATCH/DELETE /api/admin/polls/[id]`: edit semua field + replace questions, delete hanya DRAFT
-[x] `GET/POST /api/admin/quizzes`: list dengan filter, create dengan questions + options + correct answers
-[x] `GET/PATCH/DELETE /api/admin/quizzes/[id]`: edit semua field + replace questions, delete hanya DRAFT
-
-### 🛡️ Admin — Halaman
-
-[x] `app/(admin)/admin/page.tsx`: stats cards, quick action links, preview artikel pending
-[x] `app/(admin)/admin/homepage/page.tsx`: toggle featured/hot untuk semua artikel published, search, live data
-[x] `app/(admin)/admin/tags/page.tsx`: CRUD tag, usage count, guard hapus
-[x] `app/(admin)/admin/users/page.tsx`: list user dengan search + filter role, update role/status
-[x] `app/(admin)/admin/users/[id]/page.tsx`: detail user + statistik + transaksi poin
-[x] `app/(admin)/admin/articles/page.tsx`: list artikel admin, filter lengkap, bulk action, export, link edit
-[x] `app/(admin)/admin/articles/create/page.tsx`: buat artikel admin (publish langsung)
-[x] `app/(admin)/admin/articles/[id]/edit/page.tsx`: edit artikel semua status termasuk published
-[x] `app/(admin)/admin/articles/review/page.tsx`: queue review + detail + approve/reject dengan catatan
-[x] `app/(admin)/admin/categories/page.tsx`: CRUD kategori, toggle aktif/nonaktif, guard hapus, confirm modal
-[x] `app/(admin)/admin/quizzes/page.tsx`: list quiz, filter status, aksi aktivasi/hapus, link ke edit
-[x] `app/(admin)/admin/quizzes/create/page.tsx`: multi-question builder, marking jawaban benar, image upload per soal/opsi
-[x] `app/(admin)/admin/quizzes/[id]/edit/page.tsx`: load data existing, same builder seperti create
-[x] `app/(admin)/admin/polls/page.tsx`: list polling, filter status + tipe, aksi tutup/aktifkan/hapus
-[x] `app/(admin)/admin/polls/create/page.tsx`: multi-question builder, image upload, toggle guest vote
-[x] `app/(admin)/admin/polls/[id]/edit/page.tsx`: load data existing, same builder seperti create
-
-### 🌐 Halaman Publik
-
-[x] Homepage: featured article slider auto-advance, trending sidebar (`weeklyViewCount`), hero search → `/search`, latest articles grid, polls + quiz CTA, leaderboard preview, kategori grid
-[x] `app/(public)/page.tsx` — homepage (featured slider, trending, polls/quiz, leaderboard, kategori)
-[x] `app/(public)/polls/page.tsx`: list polling
-[x] `app/(public)/polls/[slug]/page.tsx`: detail polling, vote, hasil persentase
-[x] `app/(public)/quizzes/page.tsx`: list quiz
-[x] `app/(public)/quizzes/[slug]/page.tsx`: detail quiz, submit jawaban, hasil langsung
-[x] `app/(public)/leaderboard/page.tsx`: weekly leaderboard
-
-### 🔧 Utilities & Infrastruktur
-
-[x] `lib/auth.ts` + `lib/auth/`*: Clerk bridge, JWT lokal, `SessionUser`, feature flag
-[x] `lib/rate-limit.ts` + `lib/rate-limit-store.ts`: rate limit Upstash / Redis / in-memory + fallback
-[x] `lib/sanitizer.ts`: sanitasi HTML, plain-text, media URL
-[x] `lib/monitoring.ts` + `lib/logger.ts`: exception capture, webhook, structured JSON log
-[x] `lib/points.ts`: `awardPoints()` dengan idempotency via unique constraint + race condition handling
-[x] `lib/slug.ts`: `createSlug` (user content) dan `createAdminSlug` (admin content)
-[x] `lib/article-tags.ts`: `syncArticleTags`, `resolveCategoryId`
-[x] `lib/admin-articles-query.ts`: filter/sort query builder admin articles
-[x] `lib/db.ts`: Prisma client singleton
-[x] `lib/seed.ts`: auto-seed DB dipanggil saat register/login/categories
-[x] `components/ui/confirm-modal.tsx` + `useConfirm` hook: reusable confirm dialog
-[x] `components/ui/review-history-modal.tsx` + `useReviewHistory` hook: modal riwayat review artikel
-[x] `RichTextEditor` component: digunakan di submit/edit article
-
-### 📦 Checklist Halaman — Sudah Selesai
-
-[x] `app/(public)/profile/[username]/page.tsx` — profil publik author (bio, stats, artikel published)
-[x] `GET /api/profile/[username]` — profil & artikel publik penulis
-[x] `components/AuthorProfileCard.tsx` + `AuthorLink.tsx` — kartu penulis & link ke profil
-[x] `app/(public)/page.tsx` — homepage (featured slider, trending, polls/quiz, leaderboard, kategori)
-[x] `app/(public)/articles/page.tsx` — articles list (search, filter kategori, tag, sort)
-[x] `app/(public)/articles/[slug]/page.tsx` — article detail (read complete, bookmark, share, related)
-[x] `app/(public)/polls/page.tsx` — polls list
-[x] `app/(public)/polls/[slug]/page.tsx` — poll detail (vote, hasil)
-[x] `app/(public)/quizzes/page.tsx` — quizzes list
-[x] `app/(public)/quizzes/[slug]/page.tsx` — quiz detail (attempt, hasil langsung)
-[x] `app/(public)/leaderboard/page.tsx` — leaderboard mingguan
-[x] `app/(user)/bookmarks/page.tsx` — list artikel yang di-bookmark
-[x] `app/(user)/my-articles/page.tsx` — list artikel user + status + riwayat review
-[x] `app/(user)/points/page.tsx` — riwayat transaksi poin lengkap
-[x] `app/(user)/profile/page.tsx` — halaman profil (stats, recent points, quick actions)
-[x] `app/(user)/profile/edit/page.tsx` — edit profil (avatar, name, bio, username cooldown)
-[x] `app/(user)/submit-article/page.tsx` — submit artikel (RichTextEditor, upload, kategori, tag)
-[x] `app/(user)/edit-article/[id]/page.tsx` — edit artikel (pre-populate, same flow)
-[x] `app/(admin)/admin/page.tsx` — dashboard (stats, quick actions, pending preview)
-[x] `app/(admin)/admin/homepage/page.tsx` — manage featured/hot artikel (full functional)
-[x] `app/(admin)/admin/tags/page.tsx` — CRUD tag
-[x] `app/(admin)/admin/users/page.tsx` — list + search + filter + update role/status user
-[x] `app/(admin)/admin/users/[id]/page.tsx` — detail user (stats + poin + artikel)
-[x] `app/(admin)/admin/articles/page.tsx` — list artikel admin (filter status)
-[x] `app/(admin)/admin/articles/review/page.tsx` — review queue (approve/reject dengan catatan)
-[x] `app/(admin)/admin/categories/page.tsx` — CRUD kategori (toggle aktif, guard hapus)
-[x] `app/(admin)/admin/quizzes/page.tsx` — list quiz (filter, aktivasi, hapus)
-[x] `app/(admin)/admin/quizzes/create/page.tsx` — buat quiz (multi-question builder)
-[x] `app/(admin)/admin/quizzes/[id]/edit/page.tsx` — edit quiz
-[x] `app/(admin)/admin/polls/page.tsx` — list poll (filter, tutup, aktivasi, hapus)
-[x] `app/(admin)/admin/polls/create/page.tsx` — buat poll (multi-question builder)
-[x] `app/(admin)/admin/polls/[id]/edit/page.tsx` — edit poll
-[x] `app/(admin)/admin/articles/create/page.tsx` — admin buat artikel
-[x] `app/(admin)/admin/articles/[id]/edit/page.tsx` — admin edit artikel
+[x] `app/(public)/page.tsx`  
+[x] `app/(public)/articles/page.tsx` · `articles/[slug]/page.tsx`  
+[x] `app/(public)/polls/page.tsx` · `polls/[slug]/page.tsx`  
+[x] `app/(public)/quizzes/page.tsx` · `quizzes/[slug]/page.tsx`  
+[x] `app/(public)/leaderboard/page.tsx`  
+[x] `app/(public)/search/page.tsx` · `trending/page.tsx` · `explore/page.tsx`  
+[x] `app/(public)/profile/[username]/page.tsx`  
+[x] `app/(public)/tv/page.tsx` · `tv/[slug]/page.tsx`  
+[x] `app/(user)/bookmarks/page.tsx` · `my-articles/page.tsx` · `points/page.tsx`  
+[x] `app/(user)/profile/page.tsx` · `profile/edit/page.tsx`  
+[x] `app/(user)/submit-article/page.tsx` · `edit-article/[id]/page.tsx`  
+[x] `app/(user)/preview-article/[id]/page.tsx`  
+[x] `app/(admin)/admin/**` — dashboard, artikel, kategori, tag, users, quiz, poll, comments, videos, ads, analytics, info-pages, homepage
 
 ---
 
-## 🏠 Rencana Landing Page Ekosistem — jepangku.com
-
-> **Status:** ✅ Implementasi Fase 0–7 selesai — sisa QA launch + LMS Fase 2 (Juni 2026)  
-> **Catatan:** Dokumen lampiran — tracking aktif ada di [Daftar Pekerjaan](#-daftar-pekerjaan--prioritas-teratas) & [§ Sudah Diimplementasi](#-sudah-diimplementasi-verified)  
-> **Scope:** `app/(public)/page.tsx`, komponen homepage baru, **API terpisah per section + lazy load**, quick fix Navbar  
-> **Referensi UI:** [Japanese Station TV](https://japanesestation.com/japanese-station-tv), layout kategori portal berita JS
-
-### 1. Tujuan & Posisi Produk
-
-**jepangku.com** bukan lagi halaman “portal berita saja”, melainkan **pusat ekosistem Jepangku** — gerbang pertama pengunjung sebelum masuk ke produk anak:
-
-
-| Produk                         | Domain                                                 | Peran di landing                                                    |
-| ------------------------------ | ------------------------------------------------------ | ------------------------------------------------------------------- |
-| **Portal Berita** *(repo ini)* | `jepangku.com`                                         | Berita, trending, kategori, interaktif (poll/kuis/reaction)         |
-| **LMS Kursus Jepang**          | `kursus.jepangku.com` / dev: `dev.kursus.jepangku.com` | Belajar bahasa Jepang, JLPT, sertifikat                             |
-| **Core Service**               | `core.jepangku.com`                                    | Identitas global + XP/level (LMS) — *bukan poin/leaderboard portal* |
-
-
-**Prinsip UX:**
-
-1. **5 detik pertama** — pengunjung paham: “Ini portal Jepang untuk orang Indonesia: baca, tonton, belajar, ikut kuis.”
-2. **Satu scroll = satu cerita** — dari headline → konten hari ini → kategori → video → belajar → interaktif → komunitas.
-3. **CTA jelas per produk** — setiap section punya satu aksi utama (baca / tonton / daftar kursus / ikut poll).
-4. **Tidak overload** — section baru ditambah bertahap; skeleton & empty state harus rapi sebelum konten penuh.
-
-### 2. Alur Pengunjung (User Journey)
-
-```mermaid
-flowchart TD
-  A[Landing jepangku.com] --> B{Sudah login?}
-  B -->|Tidak| C[Hero + search + CTA Gabung]
-  B -->|Ya| D[Hero + search + poin badge di Navbar]
-  C --> E[Konten Hari Ini]
-  D --> E
-  E --> F[Kategori editorial JS-style]
-  F --> G[Jepangku TV]
-  G --> H[Slot Iklan]
-  H --> I[Belajar Bahasa Jepang → LMS]
-  I --> J[Reaksi komunitas emoji]
-  J --> K[Poll & Kuis + Leaderboard]
-  K --> L{Minat mendalam?}
-  L -->|Berita| M[/articles, /trending]
-  L -->|Belajar| N[kursus.jepangku.com]
-  L -->|Video| O[/tv atau halaman TV]
-```
-
-
-
-**Persona utama:**
-
-- **Pembaca casual** — scroll headline & kategori, klik artikel trending.
-- **Fan Jepang** — tonton Jepangku TV, reaksi emoji, ikut poll/kuis.
-- **Pelajar bahasa** — section LMS → katalog kursus di subdomain kursus.
-- **Kontributor** — Navbar “Buat Artikel”, leaderboard, daftar akun.
-
-### 3. Urutan Section Baru (Target)
-
-Menggantikan urutan homepage saat ini (featured → hero → terbaru → poll → leaderboard → kategori grid):
-
-
-| #   | Section                   | Status saat ini | Catatan                                         |
-| --- | ------------------------- | --------------- | ----------------------------------------------- |
-| 1   | **Featured + Trending**   | ✅ Selesai       | Wave 1 `/api/home/feed`                         |
-| 2   | **Hero Ekosistem**        | ✅ Selesai       | `HomeHero.tsx` static                           |
-| 3   | **Hari Ini**              | ✅ Selesai       | Timezone Asia/Jakarta + fallback                |
-| 4   | **Kategori Editorial**    | ✅ Selesai       | Wave 2 lazy; grid lama digabung                 |
-| 5   | **Jepangku TV**           | ✅ Selesai       | Wave 3 lazy + `/tv`                             |
-| 6   | **Advertisement**         | ✅ Selesai       | Wave 3 lazy + admin ads                         |
-| 7   | **Belajar Bahasa Jepang** | 🟡 Partial      | Teaser statis ✅; live LMS API ⏳                 |
-| 8   | **Reaksi Komunitas**      | ✅ Selesai       | Wave 3 lazy                                     |
-| 9   | **Polling & Kuis**        | ✅ Selesai       | Wave 4 lazy                                     |
-| 10  | **Leaderboard**           | ✅ Selesai       | Wave 4 lazy                                     |
-| 11  | **Jelajahi Kategori**     | ✅ Digabung      | Explore via `/explore` + View More per kolom §4 |
-
-
-### 3.1 Arsitektur Data — API Terpisah + Lazy Load per Section
-
-> **Keputusan:** **Jangan** memuat semua payload homepage ke satu `GET /api/homepage` yang monolit.  
-> Gunakan **endpoint kecil per domain data** + **fetch saat section hampir masuk viewport** (Intersection Observer).
-
-**Alasan:**
-
-
-| Masalah monolit `/api/homepage`                                 | Solusi terpisah + lazy                            |
-| --------------------------------------------------------------- | ------------------------------------------------- |
-| 10+ query Prisma + agregasi leaderboard sekaligus               | Hanya query yang section-nya butuh                |
-| Payload JSON besar (artikel + kategori blocks + video + reaksi) | Response kecil per wave; TTFB & parse lebih cepat |
-| User bounce sebelum scroll — query TV/LMS/reaksi sia-sia        | Query berat ditunda sampai user scroll            |
-| Satu endpoint error → seluruh halaman kosong                    | Section gagal load independen + retry per section |
-
-
-**Pola fetch (disarankan):**
-
-```mermaid
-sequenceDiagram
-  participant U as Pengunjung
-  participant P as page.tsx
-  participant S as Section + sentinel
-  participant API as API routes
-
-  U->>P: Buka jepangku.com
-  P->>API: Wave 1 — /api/home/feed (§1–3)
-  API-->>P: featured, trending, todayArticles
-  Note over P: Hero §2 = static, tanpa API
-
-  U->>P: Scroll — sentinel §4 masuk viewport
-  P->>API: Wave 2 — /api/home/categories-editorial
-  API-->>P: categoryBlocks
-
-  U->>P: Scroll — sentinel §5 masuk viewport
-  par Wave 3 paralel
-    P->>API: /api/home/tv
-    P->>API: /api/home/ads
-    P->>API: /api/home/lms-teaser
-    P->>API: /api/home/reactions
-  end
-
-  U->>P: Scroll — sentinel §9 masuk viewport
-  P->>API: Wave 4 — /api/home/engagement
-  API-->>P: polls, quizzes, leaderboard
-```
-
-
-
-**Pemetaan wave → section:**
-
-
-| Wave  | Trigger                           | Endpoint                              | Section | Catatan                                   |
-| ----- | --------------------------------- | ------------------------------------- | ------- | ----------------------------------------- |
-| **1** | `mount` (langsung)                | `GET /api/home/feed`                  | 1, 3    | Featured + trending + hari ini            |
-| —     | —                                 | *(tanpa API)*                         | 2       | Hero static + search client-side          |
-| **2** | sentinel §4 (`rootMargin: 400px`) | `GET /api/home/categories-editorial`  | 4       | Query berat (5 group × artikel)           |
-| **3** | sentinel §5                       | `GET /api/home/tv`                    | 5       |                                           |
-|       |                                   | `GET /api/home/ads?slot=homepage-mid` | 6       | Ringan                                    |
-|       |                                   | `GET /api/home/lms-teaser`            | 7       | Fase 1 bisa static JSON; Fase 2 proxy LMS |
-|       |                                   | `GET /api/home/reactions`             | 8       | Agregat reaksi                            |
-| **4** | sentinel §9                       | `GET /api/home/engagement`            | 9, 10   | Poll + quiz + leaderboard poin portal     |
-
-
-**Alternatif grouping** *(sesuai usulan scroll §2 → fetch §5–8):*
-
-- Wave 3 bisa di-trigger saat **§2 atau §4** pertama kali terlihat (lebih agresif preload), bukan menunggu §5.
-- Atur via `rootMargin` — mis. `'600px 0px'` = fetch ~1 layar sebelum section tampil.
-
-**Implementasi frontend:**
-
-```tsx
-// hooks/useLazySection.ts — pola per section
-function useLazySection<T>(endpoint: string, options?: { rootMargin?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [enabled, setEnabled] = useState(false);
-  const { data, isLoading, error } = useSWR(enabled ? endpoint : null, fetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 60_000,
-  });
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setEnabled(true); io.disconnect(); } },
-      { rootMargin: options?.rootMargin ?? '400px 0px' },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  return { ref, data, isLoading, error };
-}
-```
-
-- Setiap section component punya `**<div ref={sentinel} />**` di atas section + **skeleton** sampai `data` ready.
-- Fetch **sekali per session** (`enabled` → disconnect observer); jangan re-fetch setiap scroll bolak-balik.
-- Wave 3: `Promise.all` di parent atau 4 hook paralel — browser multiplex HTTP/2.
-
-**Implementasi backend:**
-
-
-| Endpoint                         | Query utama                             | Cache `Cache-Control`                      |
-| -------------------------------- | --------------------------------------- | ------------------------------------------ |
-| `/api/home/feed`                 | featured, trending, todayArticles       | `s-maxage=60, stale-while-revalidate=120`  |
-| `/api/home/categories-editorial` | 5 category blocks                       | `s-maxage=120, stale-while-revalidate=300` |
-| `/api/home/tv`                   | featuredVideo + latest 4                | `s-maxage=300`                             |
-| `/api/home/ads`                  | active slot by position                 | `s-maxage=60`                              |
-| `/api/home/lms-teaser`           | static / proxy LMS                      | `s-maxage=600`                             |
-| `/api/home/reactions`            | top reacted articles                    | `s-maxage=120`                             |
-| `/api/home/engagement`           | polls, quizzes, leaderboard poin portal | `s-maxage=60`                              |
-
-
-**Migrasi dari `/api/homepage` saat ini:**
-
-1. Ekstrak logic di `app/api/homepage/route.ts` ke `lib/home/queries/*.ts` (shared query functions).
-2. Endpoint baru memanggil helper yang sama — **DRY**, bukan copy-paste query.
-3. Pertahankan `GET /api/homepage` sementara sebagai **aggregator tipis** (delegasi ke helpers) untuk backward compat / E2E lama; tandai deprecated.
-4. `page.tsx` ganti satu `loadData()` → per-section lazy hooks.
-
-**Trade-off & mitigasi:**
-
-
-| Trade-off                                               | Mitigasi                                                                      |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Lebih banyak request HTTP                               | Wave kecil (4–7 request total); HTTP/2 paralel; cache CDN per endpoint        |
-| Konten bawah fold tidak ada di HTML awal (client fetch) | Wave 1 cukup untuk SEO headline; optional **SSR/RSC Wave 1** nanti jika perlu |
-| Flash skeleton saat scroll cepat                        | `rootMargin` agresif + skeleton height fixed (CLS)                            |
-| Leaderboard poin lambat                                 | Isolasi di Wave 4 — query agregasi News DB, bukan Core                        |
-
-
-**Kesimpulan:** ✅ **Memungkinkan dan direkomendasikan.** Monolit `/api/homepage` hanya cocok untuk homepage kecil; dengan 10+ section, pola **API terpisah + lazy load per viewport** lebih scalable dan ramah performa.
-
----
-
-### 4. Rincian Per Section
-
-#### 4.1 Hero Ekosistem (redesign)
-
-**Tujuan:** Komunikasikan identitas hub, bukan hanya tagline berita.
-
-**Konten:**
-
-- Label bilingual: `日本のポータル / PORTAL JEPANG`
-- Headline: *Berita, Budaya, Video & Belajar Bahasa Jepang*
-- Subtitle: satu kalimat tentang ekosistem (baca · tonton · belajar · dapat poin)
-- **Search bar** (horizontal: input + tombol) → `/search?q=`
-- **Quick links chips:** Berita · Jepangku TV · Kursus · Kuis · Poll
-- CTA: `Gabung Sekarang` (guest) / `Dashboard` (auth) — kanan pada desktop
-
-**Komponen:** perluas `SectionHeader` atau buat `HomeHero.tsx` dedicated.
-
-**Desain:** navy + `asanoha-bg`, kontras dengan section putih di bawahnya.
-
----
-
-#### 4.2 Hari Ini *(ganti “Berita Terbaru”)*
-
-**Tujuan:** Signal freshness — “apa yang baru hari ini”, ala portal berita profesional.
-
-**Perubahan copy:**
-
-- Label: `今日 / HARI INI`
-- Judul: **Artikel Hari Ini**
-- Link: `Lihat Semua` → `/articles?sort=latest`
-
-**API:** `GET /api/home/feed` — field `todayArticles` (Wave 1, fetch on mount).
-
-- Filter: artikel `publishedAt` dalam window 00:00–23:59 **Asia/Jakarta**
-- Fallback: jika `< 3` artikel hari ini, isi dengan artikel terbaru + badge “Terbaru”
-
-**UI:** grid 3 kolom (sama seperti sekarang), optional timestamp relatif.
-
----
-
-#### 4.3 Kategori Editorial *(referensi foto Japanese Station)*
-
-**Tujuan:** Kurasi editorial per vertical — bukan grid kategori generik.
-
-**Layout target:**
-
-```
-┌─────────────────────┬─────────────────────┐
-│  Anime Manga        │  Entertainment      │
-│  [featured besar]   │  [featured besar]   │
-│  + 3 list thumb     │  + 3 list thumb     │
-└─────────────────────┴─────────────────────┘
-┌──────────┬──────────┬──────────┐
-│ Lifestyle│ Culture  │ Halal JP │
-│ bullet   │ bullet   │ bullet   │
-│ headlines│ headlines│ headlines│
-└──────────┴──────────┴──────────┘
-```
-
-**Gap data kategori saat ini:**
-
-Seed DB (`prisma/seeder/data/categories.js`) punya: Anime, Manga, Culture, Travel, Food, Event, Technology, Lifestyle, Education, Fun — **belum ada** Entertainment, Halal In Japan, dan belum ada grouping “Anime Manga”.
-
-**Keputusan rencana:**
-
-1. **Fase A (tanpa migrasi berat):** mapping slug existing → group editorial di API:
-  - *Anime Manga* ← `anime`, `manga`, `fun`
-  - *Entertainment* ← `event`, `technology` (sementara)
-  - *Lifestyle* ← `lifestyle`, `food`, `travel`
-  - *Culture* ← `culture`, `education`
-  - *Halal In Japan* ← buat kategori baru `halal-in-japan` + seed
-2. **Fase B:** admin bisa set `categoryGroup` atau parent category di schema.
-
-**API:** `GET /api/home/categories-editorial` (Wave 2, lazy saat sentinel §4).
-
-```typescript
-{
-  slug: 'anime-manga',
-  title: 'Anime Manga',
-  featured: Article | null,
-  list: Article[] // 3 item dengan cover + meta
-}
-```
-
-**Komponen baru:** `CategoryEditorialBlock.tsx`, `CategoryListColumn.tsx`.
-
----
-
-#### 4.4 Jepangku TV *(referensi Japanese Station TV)*
-
-**Nama produk:** **Jepangku TV** (alternatif: *Jepangku Channel* — final saat implementasi)
-
-**Layout target** (orange/navy brand, bukan copy warna JS):
-
-```
-┌──────────────────────────────────────────────────┐
-│  ▶ Jepangku TV                          [header] │
-├────────────────────────────┬─────────────────────┤
-│  Featured embed (YouTube)  │  Sidebar 3–4 video  │
-│  + judul + tanggal         │  thumb + date + title│
-├────────────────────────────┴─────────────────────┤
-│              [ Lihat Semua Video ]               │
-└──────────────────────────────────────────────────┘
-```
-
-**Backend baru (belum ada):**
-
-
-| Item             | Detail                                                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Model `Video`    | `id`, `title`, `slug`, `youtubeId` / `embedUrl`, `thumbnailUrl`, `publishedAt`, `isFeatured`, `status`, `viewCount` |
-| API publik       | `GET /api/videos`, `GET /api/videos/[slug]`                                                                         |
-| Admin            | CRUD di `/admin/videos`                                                                                             |
-| Homepage payload | `GET /api/home/tv` (Wave 3, lazy)                                                                                   |
-
-
-**Halaman dedicated:** `/tv` atau `/jepangku-tv` — daftar lengkap + pagination (mirroring JS TV archive).
-
-**Embed:** YouTube iframe lazy-load; thumbnail dari `img.youtube.com/vi/{id}/hqdefault.jpg`.
-
----
-
-#### 4.5 Advertisement
-
-**Tujuan:** Slot monetisasi tanpa mengganggu UX — inspirasi billboard JS di homepage.
-
-**Opsi implementasi (urutan rekomendasi):**
-
-1. **Fase A — Admin banner statis:** model `AdSlot` / `HomepageBanner` dengan `position` (`homepage-mid`, `homepage-sidebar`), `imageUrl`, `linkUrl`, `alt`, `isActive`, `startAt`, `endAt`
-2. **Fase B — Rotasi & impression tracking** (opsional, post-launch)
-
-**UI:** full-width responsive banner antara TV dan LMS section; placeholder abu-abu dengan label “Partner” jika slot kosong (jangan tampilkan area kosong).
-
-**Admin:** extend `/admin/homepage` atau halaman `/admin/ads` baru.
-
----
-
-#### 4.6 Belajar Bahasa Jepang *(integrasi jepangkuLMS)*
-
-**Audit LMS (Juni 2026):** **tidak ada API publik** untuk list kursus di `jepangkuLMS`. Katalog publik `/kursus` masih pakai data statis `CATALOG_COURSES`; Prisma-backed catalog hanya di dashboard auth.
-
-**Strategi landing (fase berurutan):**
-
-
-| Fase                           | Pendekatan                                                                   | Data                                                                                                                                                                |
-| ------------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1** *(implementasi pertama)* | Section **keunggulan LMS** + CTA ke `https://dev.kursus.jepangku.com/kursus` | Hardcode 2–3 featured course card dari slug LMS (`jlpt-n5-kursus-lengkap`, dll.) — sinkron manual dengan `jepangkuLMS/features/learning/components/courses-data.ts` |
-| **2**                          | LMS tambah `GET /api/public/courses` + CORS                                  | News proxy `GET /api/home/lms-teaser` (Wave 3, server-side)                                                                                                         |
-| **3**                          | Katalog LMS baca Prisma di `/kursus`                                         | Single source of truth                                                                                                                                              |
-
-
-**Konten section Fase 1:**
-
-- Headline: `学ぶ / BELAJAR BAHASA JEPANG`
-- 3 bullet keunggulan: JLPT N5–N1, progress tracking, sertifikat
-- Grid 2–3 course card (thumb, level badge N5/N4, CTA “Lihat Kursus”)
-- Footer CTA: `Jelajahi Semua Kursus → dev.kursus.jepangku.com`
-
-**Komponen:** `HomeLmsTeaser.tsx` — link external, `target="_blank"` + `rel="noopener"`.
-
----
-
-#### 4.7 Reaksi Komunitas (emoji)
-
-**Tujuan:** Social proof + highlight fitur unik Jepangku (9 emoji reaction sudah ada di detail artikel).
-
-**Yang sudah ada:** model `Reaction`, `ReactionBar.tsx`, `GET/POST /api/reactions`.
-
-**Yang perlu dibangun:**
-
-- Query agregat: artikel/konten dengan `reactionCount` tertinggi minggu ini
-- Homepage section: tampilkan bar emoji (`❤️ 😂 🥰 …`) + 3–5 kartu artikel “Paling Direaksi” dengan total reaksi & emoji dominan
-- Klik kartu → detail artikel; klik emoji (auth) → toggle reaction inline (reuse `ReactionBar` compact)
-
-**API:** `GET /api/home/reactions` (Wave 3, lazy).
-
----
-
-#### 4.8 Quick fix Navbar — notifikasi guest
-
-**Masalah:** `NavbarNotifications` dirender untuk guest dan auth (`Navbar.tsx` ~L282 & ~L387); bell placeholder membingungkan pengunjung belum login.
-
-**Perbaikan (scope kecil, bisa dilakukan terpisah):**
-
-- Render `<NavbarNotifications />` **hanya** saat `showAuthenticated === true`
-- Guest: sembunyikan bell sepenuhnya (notifikasi = Fase E Core, belum fungsional)
-
-**File:** `components/Navbar.tsx` — conditional render; tidak perlu ubah `NavbarNotifications.tsx`.
-
----
-
-### 5. Perubahan Backend & Data
-
-
-| Area                    | Perubahan                                                                                | Prioritas          |
-| ----------------------- | ---------------------------------------------------------------------------------------- | ------------------ |
-| `**lib/home/queries/`** | Ekstrak query shared dari `/api/homepage` saat ini                                       | Tinggi             |
-| `**/api/home/***`       | 7 endpoint wave (feed, categories-editorial, tv, ads, lms-teaser, reactions, engagement) | Tinggi             |
-| `/api/homepage`         | Deprecated — delegasi ke helpers; hapus setelah migrasi                                  | Rendah             |
-| Prisma                  | Model `Video`, `AdSlot`; optional `CategoryGroup`                                        | Tinggi             |
-| Seed                    | Kategori `halal-in-japan`, `entertainment`; mapping editorial                            | Sedang             |
-| Admin                   | Videos CRUD, banner/ads CRUD                                                             | Tinggi             |
-| LMS                     | `GET /api/public/courses` *(koordinasi tim LMS)*                                         | Fase 2             |
-| Navbar                  | Hide notifications for guest                                                             | Rendah (quick win) |
-| **Frontend**            | `useLazySection` + SWR per section; sentinel + skeleton                                  | Tinggi             |
-
-
----
-
-### 6. Komponen & File (Target Implementasi)
-
-```
-hooks/
-  useLazySection.ts              # Intersection Observer + SWR enabled gate
-
-lib/home/queries/
-  feed.ts                        # featured, trending, todayArticles
-  categories-editorial.ts
-  tv.ts
-  ads.ts
-  lms-teaser.ts
-  reactions.ts
-  engagement.ts                    # polls, quizzes, leaderboard
-
-app/api/home/
-  feed/route.ts
-  categories-editorial/route.ts
-  tv/route.ts
-  ads/route.ts
-  lms-teaser/route.ts
-  reactions/route.ts
-  engagement/route.ts
-
-components/home/
-  HomeHero.tsx                   # §2 — static, no fetch
-  HomeFeedSection.tsx            # §1+3 — Wave 1 on mount
-  HomeTodayArticles.tsx
-  CategoryEditorialSection.tsx   # §4 — Wave 2 lazy
-  JepangkuTvSection.tsx          # §5 — Wave 3 lazy
-  AdBannerSlot.tsx               # §6
-  HomeLmsTeaser.tsx              # §7
-  HomeReactionsSection.tsx       # §8
-  HomeEngagementSection.tsx      # §9+10 — Wave 4 lazy
-  LazySectionSkeleton.tsx        # shared placeholder
-
-app/(public)/tv/page.tsx
-app/api/videos/route.ts
-app/(admin)/admin/videos/...
-```
-
-Refactor `page.tsx`: **tidak ada** satu `fetch('/api/homepage')` global — setiap section (atau wave group) owns fetch via `useLazySection`. Hero §2 tanpa API.
-
----
-
-### 7. Fase Implementasi
-
-
-| Fase  | Deliverable                                                                         | Estimasi relatif | Dependensi                  |
-| ----- | ----------------------------------------------------------------------------------- | ---------------- | --------------------------- |
-| **0** | Dokumen ini ✅ + arsitektur API lazy                                                 | —                | —                           |
-| **1** | `lib/home/queries` + `/api/home/feed` + lazy hook; Hero, Hari Ini, hide notif guest | 1–2 hari         | Hanya News                  |
-| **2** | Kategori editorial + seed/mapping kategori                                          | 2–3 hari         | Konten artikel per kategori |
-| **3** | Jepangku TV (model + admin + section + `/tv`)                                       | 3–5 hari         | Konten video YouTube        |
-| **4** | Ad slot + admin banner                                                              | 1–2 hari         | Asset iklan                 |
-| **5** | LMS teaser (keunggulan + link dev)                                                  | 1 hari           | —                           |
-| **6** | Reaksi komunitas section                                                            | 2 hari           | Data reaksi existing        |
-| **7** | LMS public API + live course cards                                                  | 2–3 hari         | Koordinasi jepangkuLMS      |
-
-
-**Urutan disarankan:** 0 → 1 → 2 → 5 → 6 → 7 (engagement migrate) → 3 → 4 → LMS Fase 2
-
-> **Checklist implementasi:** lihat [Daftar Pekerjaan — Homepage](#-homepage-jepangkucom--fase-qa) (pending) & [§ Homepage Ekosistem](#-homepage-ekosistem--landing-page-jepangkucom) (selesai).
-
----
-
-## 📌 Referensi
-
-- `docs/README.md` — indeks dokumentasi News
-- `docs/backlog-plan.md` — rencana teknis (kontributor, newsletter, notifikasi, revisi UI)
-- `docs/ecosystem-integration.md` — kontrak cutover & keputusan arsitektur v2
-- `jepangku-core/docs/PHASE0-PHASE1.md` — runbook integrasi lintas-repo
-- `jepangku-core/docs/ECOSYSTEM.md` · `jepangku-core/docs/API.md` — spesifikasi Core
-- `docs/development-roadmap.md` — roadmap berfase (Fase 0–E)
-- `docs/technical-architecture.md` — stack & posisi ekosistem
-- `docs/feature-status.md` — dokumen ini (status + checklist penyatuan)
-- `.agents/04-project-steering.md` — prioritas proyek
-- `.agents/05-ecosystem-strategy.md` — visi produk (bagian 8–12 = v1)
-- `.agents/01-mvp-scope.md` · `.agents/02-user-flow.md` · `.agents/03-database-erd.md`
-- `docs/cloudflare-r2-setup.md` · `docs/soft-launch-content.md`
-
+## Referensi
+
+- [`docs/README.md`](./README.md) — indeks dokumentasi  
+- [`docs/backlog-plan.md`](./backlog-plan.md) — rencana kontributor, newsletter, notifikasi  
+- [`docs/ecosystem-integration.md`](./ecosystem-integration.md) — kontrak Core cutover  
+- [`docs/soft-launch-content.md`](./soft-launch-content.md) — guideline konten soft launch  
+- `jepangku-core/docs/API.md` · `jepangku-core/docs/ECOSYSTEM.md`

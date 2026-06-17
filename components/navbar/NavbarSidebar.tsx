@@ -123,7 +123,7 @@ export default function NavbarSidebar({
       <button
         type="button"
         className={cn(
-          "fixed inset-0 z-[60] cursor-default bg-black/40 transition-opacity duration-300 ease-out",
+          "fixed inset-0 z-60 cursor-default bg-black/40 transition-opacity duration-300 ease-out",
           isVisible ? "opacity-100" : "opacity-0",
         )}
         aria-label="Tutup menu"
@@ -133,7 +133,7 @@ export default function NavbarSidebar({
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-[61] flex h-full w-[min(100vw-3rem,320px)] flex-col bg-white shadow-2xl",
+          "fixed left-0 top-0 z-61 flex h-full w-[min(100vw-3rem,320px)] flex-col bg-white shadow-2xl",
           "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform",
           isVisible ? "translate-x-0" : "-translate-x-full",
         )}

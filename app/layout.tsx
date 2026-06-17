@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import ClientProviders from '@/components/ClientProviders';
+import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jepangku News | Portal Berita Jepang',
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: 'Jepangku News | Portal Berita Jepang',
+    template: '%s | Jepangku News',
+  },
   description: 'Portal media interaktif bertema Jepang untuk pembaca Indonesia. Baca artikel, ikuti quiz, vote, dan raih poin!',
   icons: {
     icon: [
@@ -25,8 +30,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className="h-full">
+      <head>
+        <link rel="preconnect" href="https://img.clerk.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://img.clerk.com" />
+      </head>
       <ClerkProvider>
-        <body className="thin-scrollbar min-h-full flex flex-col">
+        <body className="thin-scrollbar min-h-full flex flex-col overflow-x-clip">
           <ClientProviders>{children}</ClientProviders>
         </body>
       </ClerkProvider>

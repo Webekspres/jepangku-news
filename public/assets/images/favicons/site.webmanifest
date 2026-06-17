@@ -1,6 +1,9 @@
 {
+  "id": "/",
   "name": "Jepangku",
   "short_name": "Jepangku",
+  "lang": "id",
+  "start_url": "/",
   "icons": [
     {
       "src": "/assets/images/favicons/web-app-manifest-192x192.png",

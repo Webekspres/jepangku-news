@@ -80,7 +80,7 @@ export default function HomePage() {
   const featuredFallback = feed?.featuredFallback ?? null;
 
   return (
-    <div className="bg-white" data-testid="homepage">
+    <div className="bg-white overflow-x-clip" data-testid="homepage">
       <LazySectionShell sectionId="feed">
         <HomeFeedSection
           featuredArticles={featuredArticles}

@@ -58,8 +58,9 @@ export default function Navbar() {
   const authUser = isAuthUser(user) ? user : null;
   const showAuthSkeleton = !isLoaded || (isSignedIn && loading);
   const showGuest = isLoaded && !isSignedIn;
-  const showAuthenticated =
-    Boolean(authUser) || (isSignedIn && !loading && clerkUser);
+  const showAuthenticated = Boolean(
+    authUser || (isSignedIn && !loading && clerkUser),
+  );
 
   const displayName =
     authUser?.displayName ??
@@ -243,7 +244,7 @@ export default function Navbar() {
                     >
                       <Award size={14} strokeWidth={1.5} />
                       <span className="font-mono text-xs font-bold">{totalPoints}</span>
-                      <span className="text-[10px] font-medium tracking-wide">Poin</span>
+                      <span className="text-xs font-semibold tracking-wide">Poin</span>
                     </div>
 
                     <NavbarNotifications />

@@ -54,7 +54,7 @@ export default function SectionHeader({
               <div className="shrink-0 text-jepang-red">{icon}</div>
             ) : null}
             <div>
-              <p className="section-label mb-2">
+              <p className={cn("section-label mb-2", darkMode && "text-jepang-orange")}>
                 {label}
               </p>
               <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-4">

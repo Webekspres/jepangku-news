@@ -19,15 +19,15 @@ import {
 } from "@/lib/leaderboard/period";
 import type { LeaderboardEntry } from "@/lib/leaderboard/types";
 
-const PERIOD_OPTIONS: LeaderboardPeriod[] = ["weekly", "monthly", "all-time"];
+const PERIOD_OPTIONS: LeaderboardPeriod[] = ["weekly", "monthly", "sepanjang-waktu"];
 const LEADERBOARD_TOP_LIMIT = 10;
 
 const PERIOD_SUBTITLES: Record<LeaderboardPeriod, string> = {
   weekly:
-    "Peringkat berdasarkan poin yang dikumpulkan minggu kalender ini (Sen–Min, WIB). Format: poin periode / total.",
+    "Peringkat berdasarkan poin yang dikumpulkan minggu kalender ini (Sen-Min, WIB). Format: poin periode / total.",
   monthly:
     "Peringkat berdasarkan poin bulan kalender ini. Format: poin periode / total.",
-  "all-time": "Peringkat berdasarkan total poin portal sepanjang waktu.",
+  "sepanjang-waktu": "Peringkat berdasarkan total poin portal sepanjang waktu.",
 };
 
 export default function LeaderboardPage() {
@@ -91,13 +91,6 @@ export default function LeaderboardPage() {
               </button>
             ))}
           </div>
-          {period !== "all-time" ? (
-            <p className="mt-3 text-xs text-jepang-muted text-center">
-              Angka <span className="font-semibold text-jepang-red">kiri</span> ={" "}
-              {LEADERBOARD_PERIOD_LABELS[period].toLowerCase()} · angka{" "}
-              <span className="font-semibold">kanan</span> = total poin
-            </p>
-          ) : null}
         </div>
 
         <div className="max-w-3xl mx-auto">

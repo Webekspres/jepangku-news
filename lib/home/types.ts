@@ -1,4 +1,5 @@
 import type { HomeArticle } from "@/lib/home/article-include";
+import type { LeaderboardPeriod } from "@/lib/leaderboard/period";
 
 export type HomeFeedResponse = {
   featuredArticles: HomeArticle[];
@@ -34,7 +35,7 @@ export type HomeLeaderboardEntry = {
   avatarUrl: string | null;
   periodPoints: number;
   totalPoints: number;
-  period: "weekly" | "monthly" | "all-time";
+  period: LeaderboardPeriod;
   periodLabel: string;
 };
 
@@ -42,7 +43,7 @@ export type HomeEngagementResponse = {
   polls: HomePollSummary[];
   quizzes: HomeQuizSummary[];
   leaderboard: HomeLeaderboardEntry[];
-  leaderboardPeriod: "weekly" | "monthly" | "all-time";
+  leaderboardPeriod: LeaderboardPeriod;
   leaderboardPeriodLabel: string;
 };
 

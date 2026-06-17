@@ -35,7 +35,7 @@ export default function LeaderboardScore({
     );
   }
 
-  if (period === 'all-time') {
+  if (period === 'sepanjang-waktu') {
     return (
       <div className={isPodium ? 'text-center' : 'text-right'}>
         <p
