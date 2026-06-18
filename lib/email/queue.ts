@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
-import { getEmailQueueSecret, getQstashToken, isSmtpConfigured } from '@/lib/email/config';
+import { getEmailQueueSecret, getQstashToken, isEmailConfigured } from '@/lib/email/config';
 import { renderEmailTemplate } from '@/lib/email/templates';
-import { sendSmtpEmail } from '@/lib/email/transport';
+import { sendTransactionalEmail } from '@/lib/email/transport';
 import type { EmailTemplateId, QueueEmailInput } from '@/lib/email/types';
 import { logger } from '@/lib/logger';
 import { getSiteUrl } from '@/lib/site-url';
@@ -112,16 +112,16 @@ export async function processEmailOutbox(outboxId: string): Promise<void> {
     },
   });
 
-  if (!isSmtpConfigured()) {
+  if (!isEmailConfigured()) {
     await db.emailOutbox.update({
       where: { id: outboxId },
       data: {
         status: 'SKIPPED',
-        lastError: 'SMTP_NOT_CONFIGURED',
+        lastError: 'EMAIL_NOT_CONFIGURED',
         sentAt: null,
       },
     });
-    logger.info('email.send.skipped', { outboxId, reason: 'SMTP_NOT_CONFIGURED' });
+    logger.info('email.send.skipped', { outboxId, reason: 'EMAIL_NOT_CONFIGURED' });
     return;
   }
 
@@ -131,7 +131,7 @@ export async function processEmailOutbox(outboxId: string): Promise<void> {
       row.payload as never,
     );
 
-    await sendSmtpEmail({
+    await sendTransactionalEmail({
       to: row.toEmail,
       subject: rendered.subject || row.subject,
       html: rendered.html,

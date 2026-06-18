@@ -1,26 +1,27 @@
-export function isSmtpConfigured(): boolean {
-  return Boolean(
-    process.env.SMTP_HOST?.trim() &&
-      process.env.SMTP_FROM?.trim(),
-  );
+import { SITE_BRAND_NAME } from '@/lib/site-config';
+
+export function isEmailConfigured(): boolean {
+  return Boolean(getResendApiKey() && getEmailFromAddress());
 }
 
-export function getSmtpConfig() {
-  const host = process.env.SMTP_HOST?.trim();
-  const from = process.env.SMTP_FROM?.trim();
-  if (!host || !from) return null;
+export function getResendApiKey(): string | null {
+  return process.env.RESEND_API_KEY?.trim() || null;
+}
 
-  const port = Number(process.env.SMTP_PORT ?? 587);
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASSWORD?.trim();
+export function getEmailFromAddress(): string | null {
+  return process.env.EMAIL_FROM?.trim() || null;
+}
 
-  return {
-    host,
-    port: Number.isFinite(port) ? port : 587,
-    secure: port === 465,
-    auth: user && pass ? { user, pass } : undefined,
-    from,
-  };
+export function getEmailReplyTo(): string | null {
+  return process.env.EMAIL_REPLY_TO?.trim() || null;
+}
+
+/** Resend `from` header, e.g. `jepangKu <notifications@jepangku.com>`. */
+export function getEmailFromHeader(): string | null {
+  const from = getEmailFromAddress();
+  if (!from) return null;
+  const name = process.env.EMAIL_FROM_NAME?.trim() || SITE_BRAND_NAME;
+  return `${name} <${from}>`;
 }
 
 export function getEmailQueueSecret(): string | null {
