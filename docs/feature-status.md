@@ -8,14 +8,52 @@
 
 ## Belum Selesai — Urut Prioritas
 
-### 1. Verifikasi staging E2E *(Fase B–C, ops)*
+### 1. QA & Testing Aplikasi *(fokus aktif)*
 
-[x] Staging end-to-end sebelum production cutover — `bun run verify:staging` + checklist manual [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md) *(jalankan di URL staging)*  
-[x] Lighthouse production build — `bun run build && bun start` incognito (baseline post-ngrok dev: Mobile 34 / Desktop 53)
+Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md)** — functional + non-functional, diverifikasi terhadap kode.
+
+#### Otomatis & smoke
+
+[ ] Perluas E2E Playwright — auth, artikel, kuis, poll, profil, admin smoke  
+[x] Homepage E2E — `e2e/homepage.spec.ts`  
+[x] Notifikasi E2E (parsial) — `e2e/notifications.spec.ts`  
+[x] `bun run verify:home` — wave APIs homepage  
+[x] `bun run verify:core` — integrasi Core + ledger poin  
+[x] `bun run verify:notifications` — Jakarta session, dedupe, email hooks  
+[x] `bun run verify:staging` — cutover staging ([`runbooks/core-service-down.md`](./runbooks/core-service-down.md))
+
+#### Functional manual (per domain — centang di `testing-inventory.md`)
+
+[ ] **Autentikasi & akun** — login, logout, daftar, proteksi route, Core bridge  
+[ ] **Profil & data user** — edit profil, avatar, username cooldown, profil publik  
+[ ] **Artikel** — baca, workflow kontributor, review admin, poin read/share/bookmark  
+[ ] **Kuis & poll** — attempt/vote, poin, leaderboard kuis  
+[ ] **Video TV** — daftar, detail, embed lazy  
+[ ] **Engagement** — komentar, reaksi, bookmark, subscribe kategori  
+[ ] **Gamifikasi** — poin, daily login, leaderboard, activity, export CSV  
+[ ] **Notifikasi & email** — bell, SSE, modal welcome/daily, event hooks  
+[ ] **Newsletter** — subscribe footer, unsubscribe, admin  
+[ ] **Kontributor** — apply, approve, gate submit  
+[ ] **Homepage & discovery** — wave lazy, search, trending, explore, empty states  
+[ ] **LMS teaser** — placeholder + link UTM ke kursus  
+[ ] **Iklan** — slot homepage & artikel, admin CRUD  
+[ ] **Admin** — dashboard, users, analytics, moderasi, monitoring poin  
+[ ] **Halaman statis & navigasi** — footer, navbar, info pages
+
+#### Non-functional
+
+[x] Lighthouse production build — baseline: Mobile 34 / Desktop 53  
+[ ] Lighthouse re-run post-QA & dokumentasi skor terbaru  
+[ ] Keamanan — rate limit, sanitasi XSS, boundary admin API  
+[ ] Aksesibilitas — keyboard, kontras, touch target  
+[ ] Reliabilitas — Core down, section error isolation, health check  
+[ ] Kompatibilitas — mobile/tablet/desktop, Safari/Firefox smoke
 
 ---
 
-### 2. Soft launch konten *(ditunda)*
+## Ditunda — Bukan Prioritas Saat Ini
+
+### Soft launch konten
 
 [ ] Riset topik dan sumber per kategori  
 [ ] Penulisan draft artikel (minimal 30 artikel)  
@@ -23,11 +61,9 @@
 [ ] Thumbnail/cover image  
 [ ] Konfigurasi kategori dan tag di admin  
 [ ] Publikasi artikel  
-[ ] Testing: homepage, search, filter, leaderboard, quiz, poll
+[ ] Testing konten: homepage, search, filter, leaderboard, quiz, poll
 
----
-
-### 3. Ekosistem lanjutan *(Fase D/E)*
+### Ekosistem lanjutan *(Fase D/E)*
 
 [ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
 [ ] `GET /api/public/courses` di jepangkuLMS + katalog `/kursus` baca Prisma (single source of truth)  
@@ -341,6 +377,7 @@
 ## Referensi
 
 - [`docs/README.md`](./README.md) — indeks dokumentasi  
+- [`docs/testing-inventory.md`](./testing-inventory.md) — inventaris fitur & rencana QA  
 - [`docs/backlog-plan.md`](./backlog-plan.md) — rencana kontributor, newsletter, notifikasi  
 - [`docs/ecosystem-integration.md`](./ecosystem-integration.md) — kontrak Core cutover  
 - [`docs/soft-launch-content.md`](./soft-launch-content.md) — guideline konten soft launch  
