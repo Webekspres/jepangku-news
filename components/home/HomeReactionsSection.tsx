@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Smile } from "lucide-react";
 import ArticleCard from "@/components/ArticleCard";
+import ReactionIcon from "@/components/reactions/ReactionIcon";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeReactedArticle, HomeReactionsResponse } from "@/lib/home/types";
 import { cn } from "@/lib/utils";
@@ -110,7 +111,7 @@ export default function HomeReactionsSection({
                 )}
                 data-testid={`home-reaction-stat-${stat.type}`}
               >
-                <span className="text-2xl leading-none">{stat.emoji}</span>
+                <ReactionIcon src={stat.iconSrc} size={32} />
                 <span className="font-heading text-lg font-black tabular-nums">
                   {stat.count}
                 </span>
@@ -129,7 +130,7 @@ export default function HomeReactionsSection({
                 <ArticleCard
                   article={toArticleCardProps(article)}
                   reactionBadge={{
-                    emoji: article.dominantEmoji,
+                    iconSrc: article.dominantIconSrc,
                     label: article.dominantLabel,
                   }}
                 />

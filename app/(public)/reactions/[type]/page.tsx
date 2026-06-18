@@ -407,7 +407,7 @@ export default function ReactionBrowsePage() {
                     key={article.id}
                     article={article}
                     reactionBadge={{
-                      emoji: display.emoji,
+                      iconSrc: display.iconSrc,
                       label: `${article.reactionCount} ${display.label}`,
                     }}
                   />

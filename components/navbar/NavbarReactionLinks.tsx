@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ReactionIcon from "@/components/reactions/ReactionIcon";
 import { CONTENT_REACTIONS } from "@/lib/reactions-display";
 import { cn } from "@/lib/utils";
 
@@ -11,10 +12,11 @@ export default function NavbarReactionLinks({
   className,
   variant = "dark",
 }: NavbarReactionLinksProps) {
+  const iconSize = variant === "dark" ? 20 : 24;
   const linkClass =
     variant === "dark"
-      ? "flex h-7 shrink-0 items-center justify-center rounded px-1.5 text-base leading-none transition-colors hover:bg-white/10"
-      : "flex h-8 shrink-0 items-center justify-center rounded-md px-2 text-lg leading-none transition-colors hover:bg-jepang-off-white";
+      ? "flex h-7 shrink-0 items-center justify-center rounded px-1.5 transition-colors hover:bg-white/10"
+      : "flex h-8 shrink-0 items-center justify-center rounded-md px-2 transition-colors hover:bg-jepang-off-white";
   return (
     <nav
       className={cn(
@@ -33,7 +35,7 @@ export default function NavbarReactionLinks({
           aria-label={`Jelajahi konten dengan reaksi ${reaction.label}`}
           data-testid={`navbar-reaction-${reaction.key.toLowerCase()}`}
         >
-          {reaction.emoji}
+          <ReactionIcon src={reaction.iconSrc} size={iconSize} />
         </Link>
       ))}
     </nav>

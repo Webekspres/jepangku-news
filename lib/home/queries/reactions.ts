@@ -117,7 +117,7 @@ export async function fetchHomeReactions(): Promise<HomeReactionsResponse> {
         author: article.author,
         reactionTotal: agg.total,
         dominantReaction: dominant,
-        dominantEmoji: display.emoji,
+        dominantIconSrc: display.iconSrc,
         dominantLabel: display.label,
         reactionCounts: agg.counts,
       };
@@ -126,7 +126,7 @@ export async function fetchHomeReactions(): Promise<HomeReactionsResponse> {
 
   const emojiStats = CONTENT_REACTIONS.map((reaction) => ({
     type: reaction.key,
-    emoji: reaction.emoji,
+    iconSrc: reaction.iconSrc,
     label: reaction.label,
     count: globalCounts[reaction.key] ?? 0,
   }));

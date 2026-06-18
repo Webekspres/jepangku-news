@@ -1,151 +1,37 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { imageLoadingProps } from "@/lib/image-loading";
-import { useAuth } from "@/contexts/AuthContext";
-import { gamificationPatchFromResponse } from "@/lib/gamification-response";
-import { articlePageUrl } from "@/lib/site-url";
-import ArticleCard from "@/components/ArticleCard";
-import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
-import {
-  Bookmark,
-  Eye,
-  Calendar,
-  ChevronRight,
-  Award,
-  Tag as TagIcon,
-} from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
 import AuthorProfileCard from "@/components/AuthorProfileCard";
-import AuthorLink from "@/components/AuthorLink";
-import UserAvatar from "@/components/media/UserAvatar";
-import ArticleShareButtons from "@/components/ArticleShareButtons";
+import ArticleBreadcrumb from "@/components/articles/ArticleBreadcrumb";
+import ArticleCoverImage from "@/components/articles/ArticleCoverImage";
+import ArticleDetailContent from "@/components/articles/ArticleDetailContent";
+import ArticleDetailHero from "@/components/articles/ArticleDetailHero";
+import ArticleDetailMetaBar from "@/components/articles/ArticleDetailMetaBar";
+import ArticleReadCompleteBanner from "@/components/articles/ArticleReadCompleteBanner";
+import ArticleRelatedSection from "@/components/articles/ArticleRelatedSection";
 import ArticleSidebarAd from "@/components/articles/ArticleSidebarAd";
-import { categoryArticlesHref } from "@/components/navbar/nav-config";
+import ArticleTagList from "@/components/articles/ArticleTagList";
+import { useArticleDetail } from "@/hooks/useArticleDetail";
+import { articlePageUrl } from "@/lib/site-url";
 
 type ArticleDetailClientProps = {
   slug: string;
 };
 
 export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) {
-  const { user, refreshUser } = useAuth();
-  const router = useRouter();
-  const [article, setArticle] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [hasShared, setHasShared] = useState(false);
-  const [readCompleted, setReadCompleted] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const isLoading = loading && !article;
-
-  useEffect(() => {
-    loadArticle();
-    setReadCompleted(false);
-  }, [slug]);
-
-  useEffect(() => {
-    if (!user || readCompleted || !article) return;
-    const handleScroll = () => {
-      if (!contentRef.current) return;
-      const rect = contentRef.current.getBoundingClientRect();
-      if (rect.bottom - window.innerHeight < 100) markReadComplete();
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [user, article, readCompleted]);
-
-  const loadArticle = async () => {
-    setLoading(true);
-    try {
-      const data = await fetch(`/api/articles/${slug}`).then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      });
-      setArticle(data);
-
-      if (user) {
-        Promise.allSettled([
-          fetch("/api/bookmarks", { credentials: "include" })
-            .then((r) => r.json())
-            .then((bookmarks) => {
-              setIsBookmarked(
-                Array.isArray(bookmarks) &&
-                  bookmarks.some((b: any) => b.id === data.id),
-              );
-            }),
-          fetch(`/api/articles/${slug}/share`, { credentials: "include" })
-            .then((r) => (r.ok ? r.json() : { hasShared: false }))
-            .then((shareStatus) => {
-              setHasShared(shareStatus.hasShared || false);
-            }),
-        ]);
-      }
-    } catch {
-      router.push("/articles");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markReadComplete = async () => {
-    if (readCompleted || !article || !user) return;
-    setReadCompleted(true);
-    try {
-      const data = await fetch(`/api/articles/${slug}/read-complete`, {
-        method: "POST",
-        credentials: "include",
-      }).then((r) => r.json());
-      if (data.awarded) {
-        toast.success(`+${data.points} poin untuk membaca!`);
-        await refreshUser(gamificationPatchFromResponse(data));
-      }
-    } catch {}
-  };
-
-  const handleBookmark = async () => {
-    if (!user) {
-      toast.error("Silakan masuk untuk menyimpan artikel");
-      router.push("/sign-in");
-      return;
-    }
-    try {
-      if (isBookmarked) {
-        await fetch(`/api/bookmarks/${article.id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
-        setIsBookmarked(false);
-        toast.success("Bookmark dihapus");
-      } else {
-        const data = await fetch(`/api/bookmarks/${article.id}`, {
-          method: "POST",
-          credentials: "include",
-        }).then((r) => r.json());
-        setIsBookmarked(true);
-        if (data.pointsAwarded) {
-          toast.success("+1 poin untuk bookmark!");
-          await refreshUser(gamificationPatchFromResponse(data));
-        } else toast.success("Artikel disimpan");
-      }
-    } catch {
-      toast.error("Gagal menyimpan bookmark");
-    }
-  };
-
-  const handleShareComplete = async (
-    patch?: ReturnType<typeof gamificationPatchFromResponse>,
-  ) => {
-    setHasShared(true);
-    if (patch) {
-      await refreshUser(patch);
-    }
-  };
+  const {
+    article,
+    loading,
+    isLoading,
+    isBookmarked,
+    hasShared,
+    readCompleted,
+    contentRef,
+    user,
+    handleBookmark,
+    handleShareComplete,
+  } = useArticleDetail(slug);
 
   if (!article && !loading) return null;
 
@@ -157,243 +43,57 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
       <article className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="mx-auto w-full max-w-4xl min-w-0 lg:mx-0">
-            <nav
-              aria-label="Breadcrumb"
-              className="mb-6 flex min-w-0 flex-wrap items-center gap-1 text-xs font-semibold uppercase tracking-[0.15em]"
-              data-testid="article-breadcrumb"
-            >
-              <Link
-                href="/articles"
-                className="shrink-0 text-jepang-muted transition-colors hover:text-jepang-red"
-                data-testid="breadcrumb-articles"
-              >
-                Artikel
-              </Link>
+            <ArticleBreadcrumb
+              isLoading={isLoading}
+              title={article?.title}
+              category={article?.category}
+            />
 
-              {isLoading ? (
-                <>
-                  <ChevronRight size={12} className="shrink-0 text-jepang-muted" aria-hidden />
-                  <span className="h-4 w-20 animate-pulse rounded bg-jepang-border" />
-                  <ChevronRight size={12} className="shrink-0 text-jepang-muted" aria-hidden />
-                  <span className="h-4 w-40 max-w-[50vw] animate-pulse rounded bg-jepang-border" />
-                </>
-              ) : (
-                <>
-                  {article.category && (
-                    <>
-                      <ChevronRight size={12} className="shrink-0 text-jepang-muted" aria-hidden />
-                      <Link
-                        href={categoryArticlesHref(article.category.slug)}
-                        className="max-w-[40vw] truncate text-jepang-muted transition-colors hover:text-jepang-red sm:max-w-xs"
-                        data-testid="breadcrumb-category"
-                      >
-                        {article.category.name}
-                      </Link>
-                    </>
-                  )}
-                  <ChevronRight size={12} className="shrink-0 text-jepang-muted" aria-hidden />
-                  <span
-                    className="min-w-0 truncate text-foreground uppercase tracking-normal"
-                    aria-current="page"
-                    data-testid="breadcrumb-title"
-                    title={article.title}
-                  >
-                    {article.title}
-                  </span>
-                </>
-              )}
-            </nav>
+            <ArticleDetailHero
+              isLoading={isLoading}
+              title={article?.title}
+              excerpt={article?.excerpt}
+            />
 
-            <h1
-              className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6 leading-[1.05]"
-              data-testid="article-title"
-            >
-              {isLoading ? (
-                <div className="h-14 w-full max-w-3xl bg-jepang-red/10 animate-pulse" />
-              ) : (
-                article.title
-              )}
-            </h1>
+            <ArticleDetailMetaBar
+              isLoading={isLoading}
+              author={article?.author}
+              viewCount={article?.viewCount}
+              publishedAt={article?.publishedAt}
+              isBookmarked={isBookmarked}
+              bookmarkDisabled={loading}
+              onBookmark={handleBookmark}
+              slug={slug}
+              title={article?.title ?? ""}
+              shareUrl={shareUrl}
+              isAuthenticated={Boolean(user)}
+              hasShared={hasShared}
+              shareDisabled={loading || isLoading}
+              onShared={handleShareComplete}
+            />
 
-            {isLoading ? (
-              <div className="space-y-3 mb-6">
-                <div className="h-5 bg-jepang-red/10 animate-pulse w-full" />
-                <div className="h-5 bg-jepang-red/10 animate-pulse w-5/6" />
-              </div>
-            ) : (
-              article.excerpt && (
-                <p
-                  className="text-xl text-jepang-muted leading-relaxed mb-6 font-light"
-                  data-testid="article-excerpt"
-                >
-                  {article.excerpt}
-                </p>
-              )
-            )}
+            <ArticleCoverImage
+              isLoading={isLoading}
+              src={article?.coverImageUrl}
+              alt={article?.title ?? "Cover artikel"}
+            />
 
-            <div className="flex flex-wrap items-center gap-4 py-4 border-y border-jepang-border text-sm">
-              <div className="flex items-center gap-2">
-                {isLoading ? (
-                  <div className="w-8 h-8 bg-jepang-red/10 animate-pulse" />
-                ) : (
-                  <UserAvatar
-                    src={article.author?.avatarUrl}
-                    alt={article.author?.displayName || article.author?.name || "Penulis"}
-                    size={32}
-                    fallbackInitial={
-                      article.author?.displayName || article.author?.name
-                    }
-                    className="rounded-none border-foreground"
-                  />
-                )}
+            <ArticleDetailContent
+              ref={contentRef}
+              isLoading={isLoading}
+              html={article?.content}
+            />
 
-                <div>
-                  {isLoading ? (
-                    <>
-                      <div className="h-4 w-28 bg-jepang-red/10 animate-pulse mb-2" />
-                      <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                        PENULIS
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <AuthorLink
-                        username={article.author?.username}
-                        className="font-semibold text-sm"
-                      >
-                        {article.author?.displayName || article.author?.name || "Jepangku"}
-                      </AuthorLink>
-                      <p className="text-[10px] uppercase tracking-wider font-mono text-jepang-muted">
-                        @{article.author?.username || "jepangku"}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
+            {readCompleted && user && <ArticleReadCompleteBanner />}
 
-              <div className="flex items-center gap-1 text-jepang-muted font-mono text-xs uppercase tracking-wider">
-                <Eye size={14} strokeWidth={1.5} />
-                {isLoading ? (
-                  <>
-                    <span className="h-3 w-8 bg-jepang-red/10 animate-pulse inline-block" />
-                    <span>Dilihat</span>
-                  </>
-                ) : (
-                  `${article.viewCount} dilihat`
-                )}
-              </div>
-
-              <div className="flex items-center gap-1 text-jepang-muted font-mono text-xs uppercase tracking-wider">
-                <Calendar size={14} strokeWidth={1.5} />
-                {isLoading ? (
-                  <span className="h-3 w-20 bg-jepang-red/10 animate-pulse inline-block" />
-                ) : (
-                  article.publishedAt &&
-                  new Date(article.publishedAt).toLocaleDateString()
-                )}
-              </div>
-
-              <div className="flex gap-2 ml-auto">
-                <Button
-                  variant={isBookmarked ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleBookmark}
-                  disabled={loading}
-                  data-testid="bookmark-btn"
-                >
-                  <Bookmark
-                    size={14}
-                    strokeWidth={1.5}
-                    fill={isBookmarked ? "currentColor" : "none"}
-                  />
-                  Simpan
-                </Button>
-
-                <ArticleShareButtons
-                  slug={slug}
-                  title={article?.title ?? ""}
-                  url={shareUrl}
-                  isAuthenticated={Boolean(user)}
-                  hasShared={hasShared}
-                  onShared={handleShareComplete}
-                  disabled={loading || isLoading}
-                />
-              </div>
-            </div>
-
-            {isLoading ? (
-              <div className="my-8 -mx-4 md:mx-0">
-                <div className="h-72 w-full bg-jepang-red/10 animate-pulse" />
-              </div>
-            ) : (
-              article.coverImageUrl && (
-                <div className="my-8 -mx-4 md:mx-0 relative aspect-16/10 max-h-150 w-full overflow-hidden">
-                  <Image
-                    src={article.coverImageUrl}
-                    alt={article.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 768px"
-                    className="object-cover"
-                    {...imageLoadingProps(true)}
-                  />
-                </div>
-              )
-            )}
-
-            <div className="article-content" data-testid="article-content">
-              {isLoading ? (
-                <div className="space-y-4">
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-full" />
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-full" />
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-5/6" />
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-11/12" />
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-3/4" />
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-4/5" />
-                  <div className="h-5 bg-jepang-red/10 animate-pulse w-2/3" />
-                </div>
-              ) : (
-                <div
-                  ref={contentRef}
-                  dangerouslySetInnerHTML={{ __html: article.content }}
-                />
-              )}
-            </div>
-
-            {readCompleted && user && (
-              <div
-                className="mt-8 p-4 bg-jepang-red text-white flex items-center gap-3"
-                data-testid="read-complete-banner"
-              >
-                <Award size={20} strokeWidth={1.5} />
-                <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                  +2 POIN DIBERIKAN UNTUK MEMBACA
-                </p>
-              </div>
-            )}
-
-            {!isLoading && article.tags?.length > 0 && (
-              <div
-                className="flex flex-wrap items-center gap-2 mb-4"
-                data-testid="article-tags"
-              >
-                <TagIcon size={14} strokeWidth={1.5} className="text-jepang-muted shrink-0" />
-                {article.tags.map((t: { id: string; name: string; slug: string }) => (
-                  <Link
-                    key={t.id}
-                    href={`/articles?tag=${t.slug}`}
-                    className="text-xs font-mono uppercase tracking-wider border border-jepang-border px-2.5 py-1 hover:border-foreground hover:bg-foreground hover:text-white transition-colors"
-                    data-testid={`article-tag-${t.slug}`}
-                  >
-                    #{t.name}
-                  </Link>
-                ))}
-              </div>
+            {!isLoading && article && article.tags.length > 0 && (
+              <ArticleTagList tags={article.tags} />
             )}
 
             {article && (
               <>
                 <ReactionBar targetType="ARTICLE" targetId={article.id} />
-                {article.author?.username && (
+                {article.author.username && (
                   <AuthorProfileCard author={article.author} />
                 )}
                 <CommentSection targetType="ARTICLE" targetId={article.id} />
@@ -409,23 +109,10 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
         </div>
       </article>
 
-      {(isLoading ||
-        (article.relatedArticles && article.relatedArticles.length > 0)) && (
-        <section className="py-12 bg-jepang-off-white">
-          <div className="px-4 mx-auto max-w-7xl">
-            <h2 className="font-heading font-black text-2xl md:text-3xl tracking-tighter mb-6 pb-3 border-b border-jepang-border">
-              Artikel Terkait
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {isLoading
-                ? [1, 2, 3].map((key) => <ArticleCardSkeleton key={key} />)
-                : article.relatedArticles.map((rel: any) => (
-                    <ArticleCard key={rel.id} article={rel} />
-                  ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <ArticleRelatedSection
+        isLoading={isLoading}
+        articles={article?.relatedArticles}
+      />
     </div>
   );
 }

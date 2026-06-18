@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import AuthorLink from "@/components/AuthorLink";
+import ReactionIcon from "@/components/reactions/ReactionIcon";
 import { imageLoadingProps } from "@/lib/image-loading";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +29,7 @@ interface ArticleCardProps {
   variant?: "default" | "featured" | "compact";
   priority?: boolean;
   /** Label reaksi dominan (homepage reaksi komunitas) */
-  reactionBadge?: { emoji: string; label: string };
+  reactionBadge?: { iconSrc: string; label: string };
 }
 
 export default function ArticleCard({
@@ -170,8 +171,9 @@ export default function ArticleCard({
           <div className="flex items-center gap-2 mb-3">
             {article.category && <Badge>{article.category.name}</Badge>}
             {reactionBadge ? (
-              <Badge variant="red">
-                {reactionBadge.emoji} {reactionBadge.label}
+              <Badge variant="red" className="inline-flex items-center gap-1">
+                <ReactionIcon src={reactionBadge.iconSrc} size={14} />
+                {reactionBadge.label}
               </Badge>
             ) : null}
             {isHot && <Badge variant="red">HOT</Badge>}

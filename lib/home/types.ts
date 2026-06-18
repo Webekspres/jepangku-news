@@ -126,7 +126,7 @@ export type HomeLmsTeaserResponse = {
 
 export type HomeReactionEmojiStat = {
   type: string;
-  emoji: string;
+  iconSrc: string;
   label: string;
   count: number;
 };
@@ -141,7 +141,7 @@ export type HomeReactedArticle = {
   author: { name: string; username: string } | null;
   reactionTotal: number;
   dominantReaction: string;
-  dominantEmoji: string;
+  dominantIconSrc: string;
   dominantLabel: string;
   reactionCounts: Record<string, number>;
 };
