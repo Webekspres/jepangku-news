@@ -68,6 +68,8 @@ jobs:
             NEXT_PUBLIC_APP_URL=https://portalinfo.jepangku.com
             NEXT_PUBLIC_API_URL=https://portalinfo.jepangku.com/api
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_SIGN_IN_URL=https://portalinfo.jepangku.com/sign-in
+            NEXT_PUBLIC_CLERK_SIGN_UP_URL=https://portalinfo.jepangku.com/sign-up
           tags: |
             ${{ steps.meta.outputs.image }}:staging
             ${{ steps.meta.outputs.image }}:sha-${{ github.sha }}
