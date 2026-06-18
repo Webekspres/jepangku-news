@@ -14,6 +14,7 @@ import {
   EyeOff,
   Eye,
   ShieldCheck,
+  PenLine,
   ThumbsUp,
   ThumbsDown,
 } from "lucide-react";
@@ -223,9 +224,11 @@ function Avatar({ author }: { author: CommentAuthor }) {
 export default function CommentSection({
   targetType,
   targetId,
+  contentAuthorId: contentAuthorIdProp,
 }: {
   targetType: CommentTargetType;
   targetId: string;
+  contentAuthorId?: string | null;
 }) {
   const { user, refreshUser } = useAuth();
   const authUser = isAuthUser(user) ? user : null;
@@ -235,6 +238,9 @@ export default function CommentSection({
   const [comments, setComments] = useState<CommentNode[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [contentAuthorId, setContentAuthorId] = useState<string | null>(
+    contentAuthorIdProp ?? null,
+  );
 
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -273,6 +279,12 @@ export default function CommentSection({
     };
   }, [authUser, isAdmin]);
 
+  useEffect(() => {
+    if (contentAuthorIdProp) {
+      setContentAuthorId(contentAuthorIdProp);
+    }
+  }, [contentAuthorIdProp]);
+
   const reloadComments = useCallback(async () => {
     try {
       const res = await fetch(
@@ -283,6 +295,9 @@ export default function CommentSection({
       setComments(next);
       commentsRef.current = next;
       setTotal(data.total || 0);
+      if (typeof data.contentAuthorId === "string") {
+        setContentAuthorId(data.contentAuthorId);
+      }
       voteCommittedRef.current.clear();
       syncVoteCommitted(next, voteCommittedRef.current);
     } catch {
@@ -650,6 +665,8 @@ export default function CommentSection({
 
   const renderComment = (c: CommentNode, isReply = false) => {
     const isOwner = authUser?.id === c.author.id;
+    const isContentAuthor =
+      Boolean(contentAuthorId) && c.author.id === contentAuthorId;
     const placeholder = c.isDeleted
       ? "[Komentar ini telah dihapus]"
       : c.isHidden
@@ -676,6 +693,15 @@ export default function CommentSection({
             {c.author.isAdmin && (
               <Badge variant="red" className="text-[9px] px-1.5 py-0">
                 <ShieldCheck size={9} className="mr-0.5" /> ADMIN
+              </Badge>
+            )}
+            {isContentAuthor && (
+              <Badge
+                variant="outline"
+                className="border-jepang-red text-jepang-red text-[9px] px-1.5 py-0"
+                data-testid={`comment-author-badge-${c.id}`}
+              >
+                <PenLine size={9} className="mr-0.5" /> PENULIS
               </Badge>
             )}
             <span className="text-[11px] font-mono uppercase tracking-wider text-jepang-muted">

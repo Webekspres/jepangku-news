@@ -310,7 +310,7 @@ export default function PreviewArticlePage() {
             <Button variant="outline" asChild>
               <Link href="/my-articles">
                 <ArrowLeft size={14} strokeWidth={1.5} className="mr-1" />
-                Kembali ke My Articles
+                Kembali ke Artikel Saya
               </Link>
             </Button>
 

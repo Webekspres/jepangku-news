@@ -12,6 +12,7 @@ import {
   isValidTargetType,
   normalizeCommentContent,
   resolveCommentTarget,
+  resolveCommentTargetAuthorId,
   type CommentRecord,
 } from '@/lib/comments';
 import { summarizeCommentReactions } from '@/lib/reactions';
@@ -39,15 +40,18 @@ export async function GET(request: NextRequest) {
   });
 
   const viewer = await getCurrentUser(request).catch(() => null);
-  const reactions = await summarizeCommentReactions(
-    comments.map((c) => c.id),
-    viewer?.id ?? null,
-  );
+  const [reactions, contentAuthorId] = await Promise.all([
+    summarizeCommentReactions(
+      comments.map((c) => c.id),
+      viewer?.id ?? null,
+    ),
+    resolveCommentTargetAuthorId(targetType, targetId),
+  ]);
 
   const thread = buildPublicThread(comments as unknown as CommentRecord[], reactions);
   const total = comments.filter((c) => c.status === 'VISIBLE' && c.deletedAt === null).length;
 
-  return NextResponse.json({ comments: thread, total });
+  return NextResponse.json({ comments: thread, total, contentAuthorId });
 }
 
 // POST /api/comments  { targetType, targetId, content, parentId? }

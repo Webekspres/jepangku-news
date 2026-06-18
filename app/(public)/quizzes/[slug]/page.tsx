@@ -9,12 +9,13 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
-import { ArrowLeft, Award, CheckCircle2 } from "lucide-react";
+import { Award, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
+import QuizBreadcrumb from "@/components/quizzes/QuizBreadcrumb";
 
 export default function QuizDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -174,13 +175,7 @@ export default function QuizDetailPage() {
     <div className="bg-white min-h-screen" data-testid="quiz-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
-          <Link
-            href="/quizzes"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
-            data-testid="back-to-quizzes-link"
-          >
-            <ArrowLeft size={14} /> Kembali ke kuis
-          </Link>
+          <QuizBreadcrumb isLoading={isLoading} title={quiz?.title} />
 
           {!isLoading && quiz.thumbnailUrl && (
             <div className="relative mb-8 aspect-16/10 overflow-hidden rounded-lg border border-jepang-border bg-jepang-off-white">

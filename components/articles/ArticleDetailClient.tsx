@@ -61,7 +61,6 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
               viewCount={article?.viewCount}
               publishedAt={article?.publishedAt}
               isBookmarked={isBookmarked}
-              bookmarkDisabled={loading}
               onBookmark={handleBookmark}
               slug={slug}
               title={article?.title ?? ""}

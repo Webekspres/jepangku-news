@@ -12,7 +12,6 @@ type ArticleDetailMetaBarProps = {
   viewCount?: number;
   publishedAt?: string | null;
   isBookmarked: boolean;
-  bookmarkDisabled: boolean;
   onBookmark: () => void;
   slug: string;
   title: string;
@@ -29,7 +28,6 @@ export default function ArticleDetailMetaBar({
   viewCount,
   publishedAt,
   isBookmarked,
-  bookmarkDisabled,
   onBookmark,
   slug,
   title,
@@ -101,7 +99,7 @@ export default function ArticleDetailMetaBar({
           variant={isBookmarked ? "default" : "outline"}
           size="sm"
           onClick={onBookmark}
-          disabled={bookmarkDisabled}
+          disabled={isLoading}
           data-testid="bookmark-btn"
         >
           <Bookmark

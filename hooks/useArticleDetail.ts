@@ -7,6 +7,8 @@ import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import type { ArticleDetail } from "@/lib/articles/detail-types";
 import { toast } from "sonner";
 
+const BOOKMARK_DEBOUNCE_MS = 2_000;
+
 export function useArticleDetail(slug: string) {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
@@ -18,7 +20,21 @@ export function useArticleDetail(slug: string) {
   const [hasShared, setHasShared] = useState(false);
   const [readCompleted, setReadCompleted] = useState(false);
 
+  const isBookmarkedRef = useRef(false);
+  const committedBookmarkRef = useRef(false);
+  const articleIdRef = useRef<string | null>(null);
+  const bookmarkDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bookmarkSyncInFlightRef = useRef(false);
+
   const isLoading = loading && !article;
+
+  useEffect(() => {
+    isBookmarkedRef.current = isBookmarked;
+  }, [isBookmarked]);
+
+  useEffect(() => {
+    articleIdRef.current = article?.id ?? null;
+  }, [article?.id]);
 
   const loadArticle = useCallback(async () => {
     setLoading(true);
@@ -34,10 +50,12 @@ export function useArticleDetail(slug: string) {
           fetch("/api/bookmarks", { credentials: "include" })
             .then((r) => r.json())
             .then((bookmarks) => {
-              setIsBookmarked(
+              const bookmarked =
                 Array.isArray(bookmarks) &&
-                  bookmarks.some((b: { id: string }) => b.id === data.id),
-              );
+                bookmarks.some((b: { id: string }) => b.id === data.id);
+              setIsBookmarked(bookmarked);
+              isBookmarkedRef.current = bookmarked;
+              committedBookmarkRef.current = bookmarked;
             }),
           fetch(`/api/articles/${slug}/share`, { credentials: "include" })
             .then((r) => (r.ok ? r.json() : { hasShared: false }))
@@ -88,7 +106,88 @@ export function useArticleDetail(slug: string) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [article, markReadComplete, readCompleted, user]);
 
-  const handleBookmark = useCallback(async () => {
+  const flushBookmarkSync = useCallback(async () => {
+    const articleId = articleIdRef.current;
+    if (!articleId || !user) return;
+
+    const desired = isBookmarkedRef.current;
+    const committed = committedBookmarkRef.current;
+    if (desired === committed) return;
+    if (bookmarkSyncInFlightRef.current) return;
+
+    bookmarkSyncInFlightRef.current = true;
+    try {
+      if (desired) {
+        const res = await fetch(`/api/bookmarks/${articleId}`, {
+          method: "POST",
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal menyimpan bookmark");
+        committedBookmarkRef.current = true;
+        if (data.pointsAwarded) {
+          toast.success("+1 poin untuk bookmark!");
+          await refreshUser(gamificationPatchFromResponse(data));
+        } else {
+          toast.success("Artikel disimpan");
+        }
+      } else {
+        const res = await fetch(`/api/bookmarks/${articleId}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Gagal menghapus bookmark");
+        }
+        committedBookmarkRef.current = false;
+        toast.success("Bookmark dihapus");
+      }
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error ? e.message : "Gagal menyimpan bookmark";
+      toast.error(message);
+      setIsBookmarked(committedBookmarkRef.current);
+      isBookmarkedRef.current = committedBookmarkRef.current;
+    } finally {
+      bookmarkSyncInFlightRef.current = false;
+      if (isBookmarkedRef.current !== committedBookmarkRef.current) {
+        queueMicrotask(() => void flushBookmarkSync());
+      }
+    }
+  }, [refreshUser, user]);
+
+  const scheduleBookmarkSync = useCallback(() => {
+    if (bookmarkDebounceRef.current) clearTimeout(bookmarkDebounceRef.current);
+    bookmarkDebounceRef.current = setTimeout(() => {
+      bookmarkDebounceRef.current = null;
+      void flushBookmarkSync();
+    }, BOOKMARK_DEBOUNCE_MS);
+  }, [flushBookmarkSync]);
+
+  useEffect(() => {
+    return () => {
+      if (bookmarkDebounceRef.current) {
+        clearTimeout(bookmarkDebounceRef.current);
+        bookmarkDebounceRef.current = null;
+      }
+
+      const articleId = articleIdRef.current;
+      if (!articleId) return;
+
+      const desired = isBookmarkedRef.current;
+      const committed = committedBookmarkRef.current;
+      if (desired === committed) return;
+
+      void fetch(`/api/bookmarks/${articleId}`, {
+        method: desired ? "POST" : "DELETE",
+        credentials: "include",
+        keepalive: true,
+      });
+    };
+  }, []);
+
+  const handleBookmark = useCallback(() => {
     if (!user) {
       toast.error("Silakan masuk untuk menyimpan artikel");
       router.push("/sign-in");
@@ -96,31 +195,11 @@ export function useArticleDetail(slug: string) {
     }
     if (!article) return;
 
-    try {
-      if (isBookmarked) {
-        await fetch(`/api/bookmarks/${article.id}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
-        setIsBookmarked(false);
-        toast.success("Bookmark dihapus");
-      } else {
-        const data = await fetch(`/api/bookmarks/${article.id}`, {
-          method: "POST",
-          credentials: "include",
-        }).then((r) => r.json());
-        setIsBookmarked(true);
-        if (data.pointsAwarded) {
-          toast.success("+1 poin untuk bookmark!");
-          await refreshUser(gamificationPatchFromResponse(data));
-        } else {
-          toast.success("Artikel disimpan");
-        }
-      }
-    } catch {
-      toast.error("Gagal menyimpan bookmark");
-    }
-  }, [article, isBookmarked, refreshUser, router, user]);
+    const next = !isBookmarkedRef.current;
+    setIsBookmarked(next);
+    isBookmarkedRef.current = next;
+    scheduleBookmarkSync();
+  }, [article, router, scheduleBookmarkSync, user]);
 
   const handleShareComplete = useCallback(
     async (patch?: ReturnType<typeof gamificationPatchFromResponse>) => {
