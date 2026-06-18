@@ -68,6 +68,8 @@ jobs:
             NEXT_PUBLIC_APP_URL=https://portalinfo.jepangku.com
             NEXT_PUBLIC_API_URL=https://portalinfo.jepangku.com/api
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_CLERK_SIGN_IN_URL=https://portalinfo.jepangku.com/sign-in
+            NEXT_PUBLIC_CLERK_SIGN_UP_URL=https://portalinfo.jepangku.com/sign-up
           tags: |
             ${{ steps.meta.outputs.image }}:staging
             ${{ steps.meta.outputs.image }}:sha-${{ github.sha }}
@@ -138,17 +140,20 @@ jobs:
           source .env
           set +a
 
-          # 1) Migrate first
+          # 1) Always pull latest migrator image
+          docker pull ghcr.io/webekspres/jepangku-news:migrate-staging
+          
+          # 2) Run migration
           docker run --rm \
             --network jepangku_staging_net \
             -e DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@jepangku_staging_db:5432/stg_jepangku_portal" \
             ghcr.io/webekspres/jepangku-news:migrate-staging
-
-          # 2) Pull + start app (runner image)
+          
+          # 3) Pull + start app
           docker compose pull portal-berita
           docker compose up -d --force-recreate portal-berita
 
-          # 3) Wait for Next.js
+          # 4) Wait for Next.js
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:3011/ >/dev/null 2>&1; then
               echo "Health OK"
