@@ -1,10 +1,17 @@
 "use client";
 
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { AlertTriangle, Info, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, Info, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 /* ─── Variant config ─────────────────────────────────── */
 type ModalVariant = "danger" | "warning" | "info";
@@ -67,33 +74,11 @@ export function ConfirmModal({
   const { icon: Icon, iconClass, confirmClass } = VARIANT_STYLES[variant];
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        {/* Backdrop */}
-        <DialogPrimitive.Overlay
-          className={cn(
-            "fixed inset-0 z-50 bg-black/50",
-            /* animate-in / animate-out via Tailwind data-state */
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-          )}
-        />
-
-        {/* Panel */}
-        <DialogPrimitive.Content
-          className={cn(
-            // layout
-            "fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2",
-            // style
-            "rounded-lg border border-jepang-border bg-white p-6 shadow-jepang-lg",
-            // animation — slide up + fade in, slide down + fade out
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-            "data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4",
-            "duration-200",
-          )}
-          // clicking outside closes
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent
+          className="w-full max-w-sm rounded-lg border border-jepang-border bg-white p-6 shadow-jepang-lg"
           onInteractOutside={() => !loading && onOpenChange(false)}
           onEscapeKeyDown={() => !loading && onOpenChange(false)}
         >
@@ -103,15 +88,14 @@ export function ConfirmModal({
           </div>
 
           {/* Title */}
-          <DialogPrimitive.Title className="font-heading font-black text-xl tracking-tight mb-1">
+          <DialogTitle className="font-heading font-black text-xl tracking-tight mb-1">
             {title}
-          </DialogPrimitive.Title>
+          </DialogTitle>
 
-          {/* Description */}
           {description && (
-            <DialogPrimitive.Description className="text-sm text-jepang-muted mb-5">
+            <DialogDescription className="text-sm text-jepang-muted mb-5">
               {description}
-            </DialogPrimitive.Description>
+            </DialogDescription>
           )}
 
           {/* Actions */}
@@ -140,9 +124,9 @@ export function ConfirmModal({
               {cancelLabel}
             </Button>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
 

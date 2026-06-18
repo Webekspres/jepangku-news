@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { MotionHoverScale } from "@/components/ui/motion";
 import { ArrowRight, Play, Tv } from "lucide-react";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeTvResponse, PublicVideoSummary } from "@/lib/home/types";
@@ -54,14 +55,16 @@ function VideoThumbnailLink({
       className="group relative block aspect-video w-full overflow-hidden bg-jepang-navy"
       data-testid={`tv-thumbnail-${video.slug}`}
     >
-      <Image
-        src={video.thumbnailUrl}
-        alt={video.title}
-        fill
-        sizes={sizes}
-        className="object-cover transition-transform duration-500 group-hover:scale-105"
-        {...imageLoadingProps(priority)}
-      />
+      <MotionHoverScale className="absolute inset-0">
+        <Image
+          src={video.thumbnailUrl}
+          alt={video.title}
+          fill
+          sizes={sizes}
+          className="object-cover"
+          {...imageLoadingProps(priority)}
+        />
+      </MotionHoverScale>
       <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
       <span className="absolute inset-0 flex items-center justify-center">
         <span

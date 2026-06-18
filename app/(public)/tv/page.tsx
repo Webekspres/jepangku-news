@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { MotionHoverScale } from "@/components/ui/motion";
 import { imageLoadingProps } from "@/lib/image-loading";
 import { Play, Tv } from "lucide-react";
 import SectionHeader from "@/components/SectionHeader";
@@ -21,14 +22,16 @@ function VideoCard({ video }: { video: PublicVideoSummary }) {
       data-testid={`video-card-${video.slug}`}
     >
       <div className="relative aspect-video overflow-hidden bg-jepang-off-white">
-        <Image
-          src={video.thumbnailUrl}
-          alt={video.title}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          {...imageLoadingProps(false)}
-        />
+        <MotionHoverScale className="absolute inset-0">
+          <Image
+            src={video.thumbnailUrl}
+            alt={video.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+            {...imageLoadingProps(false)}
+          />
+        </MotionHoverScale>
         <span className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-jepang-red text-white">
             <Play size={20} fill="currentColor" className="ml-0.5" />

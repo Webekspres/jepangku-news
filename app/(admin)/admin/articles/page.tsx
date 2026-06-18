@@ -30,7 +30,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
@@ -98,31 +105,24 @@ function RejectArticleModal({
         : "";
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
-        <DialogPrimitive.Content
-          className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
-            "rounded-lg border border-jepang-border bg-white p-6 shadow-jepang-lg",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-            "duration-200",
-          )}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent
+          className="w-full max-w-md rounded-lg border border-jepang-border bg-white p-6 shadow-jepang-lg"
           onInteractOutside={() => !loading && onOpenChange(false)}
           onEscapeKeyDown={() => !loading && onOpenChange(false)}
         >
           <div className="mb-4 text-amber-500">
             <XCircle size={28} strokeWidth={1.5} />
           </div>
-          <DialogPrimitive.Title className="font-heading font-black text-xl tracking-tight mb-1">
+          <DialogTitle className="font-heading font-black text-xl tracking-tight mb-1">
             Tolak artikel?
-          </DialogPrimitive.Title>
+          </DialogTitle>
           {description && (
-            <DialogPrimitive.Description className="text-sm text-jepang-muted mb-4">
+            <DialogDescription className="text-sm text-jepang-muted mb-4">
               {description}
-            </DialogPrimitive.Description>
+            </DialogDescription>
           )}
           <div className="space-y-2 mb-5">
             <Label htmlFor="reject-note-modal">Catatan Penolakan (wajib)</Label>
@@ -159,9 +159,9 @@ function RejectArticleModal({
               Batal
             </Button>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
 

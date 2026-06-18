@@ -1,11 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ImageIcon, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { uploadMediaFile } from "@/lib/upload-media";
 import { cn } from "@/lib/utils";
 
@@ -89,26 +96,26 @@ export default function ArticleImageInsertDialog({
   };
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={handleOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-70 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay className="z-70" />
+        <DialogContent
           className={cn(
-            "fixed left-1/2 top-1/2 z-71 w-[min(100vw-1.5rem,32rem)] -translate-x-1/2 -translate-y-1/2",
+            "z-71 w-[min(100vw-1.5rem,32rem)]",
             "border border-jepang-border bg-white shadow-xl",
           )}
           data-testid="article-image-insert-dialog"
         >
           <div className="flex items-center justify-between border-b border-jepang-border px-4 py-3">
             <div>
-              <DialogPrimitive.Title className="font-heading font-bold text-lg">
+              <DialogTitle className="font-heading font-bold text-lg">
                 Sisipkan Gambar
-              </DialogPrimitive.Title>
+              </DialogTitle>
               <p className="text-xs text-jepang-muted mt-0.5">
                 Gambar dioptimasi otomatis (WebP, maks. 1200px) lalu disimpan ke R2
               </p>
             </div>
-            <DialogPrimitive.Close asChild>
+            <DialogClose asChild>
               <button
                 type="button"
                 className="rounded-md p-1.5 text-jepang-muted hover:bg-jepang-off-white"
@@ -116,7 +123,7 @@ export default function ArticleImageInsertDialog({
               >
                 <X size={18} />
               </button>
-            </DialogPrimitive.Close>
+            </DialogClose>
           </div>
 
           <div className="space-y-4 px-4 py-4">
@@ -194,11 +201,11 @@ export default function ArticleImageInsertDialog({
           </div>
 
           <div className="flex gap-2 border-t border-jepang-border px-4 py-3">
-            <DialogPrimitive.Close asChild>
+            <DialogClose asChild>
               <Button type="button" variant="outline" className="flex-1">
                 Batal
               </Button>
-            </DialogPrimitive.Close>
+            </DialogClose>
             <Button
               type="button"
               className="flex-1"
@@ -209,8 +216,8 @@ export default function ArticleImageInsertDialog({
               Sisipkan
             </Button>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }

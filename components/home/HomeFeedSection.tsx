@@ -8,6 +8,7 @@ import TrendingArticleSkeleton from "@/components/skeletons/TrendingArticleSkele
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeArticle } from "@/lib/home/article-include";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type HomeFeedSectionProps = {
@@ -79,11 +80,10 @@ export default function HomeFeedSection({
             <div className="min-w-0 flex flex-col">
               {slideCount > 0 ? (
                 <div className="relative flex-1 overflow-hidden rounded-lg border border-jepang-border shadow-jepang">
-                  <div
-                    className="flex h-full transition-transform duration-700 ease-in-out"
-                    style={{
-                      transform: `translateX(-${featuredIndex * 100}%)`,
-                    }}
+                  <motion.div
+                    className="flex h-full"
+                    animate={{ x: `-${featuredIndex * 100}%` }}
+                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
                   >
                     {featuredArticles.map((article, idx) => (
                       <div key={article.id} className="w-full shrink-0">
@@ -94,7 +94,7 @@ export default function HomeFeedSection({
                         />
                       </div>
                     ))}
-                  </div>
+                  </motion.div>
 
                   {slideCount > 1 && (
                     <>

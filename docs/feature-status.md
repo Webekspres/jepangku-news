@@ -10,11 +10,11 @@
 
 ### 1. Newsletter *(Fase E1)*
 
-[ ] Model `NewsletterSubscription`  
-[ ] Footer form + `POST /api/newsletter/subscribe`  
-[ ] Admin CRUD `/admin/newsletter`  
-[ ] Halaman unsubscribe (wajib login akun yang sama)  
-[ ] Email template + SMTP *(shared dengan outbox § Notifikasi)*
+[x] Model `NewsletterSubscription`  
+[x] Footer form + `POST /api/newsletter/subscribe`  
+[x] Admin CRUD `/admin/newsletter`  
+[x] Halaman unsubscribe (wajib login akun yang sama)  
+[x] Email template + Resend outbox *(shared dengan outbox § Notifikasi)*
 
 ---
 
@@ -25,7 +25,7 @@
 
 ---
 
-### 3. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*
+### 3. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*    
 
 [ ] `GET /api/public/courses` di jepangkuLMS  
 [ ] News proxy `/api/home/lms-teaser` baca live dari LMS  

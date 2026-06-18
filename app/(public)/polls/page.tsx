@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { MotionHoverScale } from "@/components/ui/motion";
 import { imageLoadingProps } from "@/lib/image-loading";
 import { MessageSquare, Award, BarChart3, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,14 +65,16 @@ function PollCard({ poll }: { poll: any }) {
         data-testid={`poll-card-${poll.slug}`}
       >
         <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
-          <Image
-            src={thumbnailUrl!}
-            alt={poll.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            {...imageLoadingProps(false)}
-          />
+          <MotionHoverScale className="absolute inset-0">
+            <Image
+              src={thumbnailUrl!}
+              alt={poll.title}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover"
+              {...imageLoadingProps(false)}
+            />
+          </MotionHoverScale>
         </div>
         <div className="flex flex-1 flex-col gap-2 p-5">
           {metaRow}

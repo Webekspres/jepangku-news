@@ -140,6 +140,7 @@ model User {
   auditLogs             AuditLog[]
   notifications         Notification[]
   emailOutbox           EmailOutbox[]
+  newsletterSubscriptions NewsletterSubscription[]
 
   @@map("users")
 }
@@ -730,4 +731,21 @@ model EmailOutbox {
   @@unique([userId, dedupeKey], map: "email_outbox_user_dedupe_unique")
   @@index([status, scheduledAt])
   @@map("email_outbox")
+}
+
+model NewsletterSubscription {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  userId           String?   @map("user_id")
+  isActive         Boolean   @default(true) @map("is_active")
+  unsubscribeToken String    @unique @map("unsubscribe_token")
+  subscribedAt     DateTime  @default(now()) @map("subscribed_at")
+  unsubscribedAt   DateTime? @map("unsubscribed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, subscribedAt(sort: Desc)])
+  @@map("newsletter_subscriptions")
 }

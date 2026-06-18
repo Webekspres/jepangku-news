@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MotionHoverScale } from "@/components/ui/motion";
 import { formatArticleDate } from "@/lib/home/format-article-date";
 import { imageLoadingProps } from "@/lib/image-loading";
 import type { EditorialFeaturedColumn } from "@/lib/home/types";
@@ -42,14 +43,16 @@ export default function CategoryFeaturedColumn({
           data-testid={`editorial-featured-main-${slug}`}
         >
           {featured.coverImageUrl ? (
-            <Image
-              src={featured.coverImageUrl}
-              alt={featured.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              {...imageLoadingProps(imagePriority)}
-            />
+            <MotionHoverScale className="absolute inset-0">
+              <Image
+                src={featured.coverImageUrl}
+                alt={featured.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+                {...imageLoadingProps(imagePriority)}
+              />
+            </MotionHoverScale>
           ) : (
             <div className="absolute inset-0 bg-jepang-navy" />
           )}

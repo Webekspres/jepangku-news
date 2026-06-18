@@ -2,7 +2,8 @@ export type EmailTemplateId =
   | 'article_rejected'
   | 'contributor_approved'
   | 'contributor_rejected'
-  | 'welcome_user';
+  | 'welcome_user'
+  | 'newsletter_subscribed';
 
 export type EmailTemplatePayload = {
   article_rejected: {
@@ -25,6 +26,11 @@ export type EmailTemplatePayload = {
     userName: string;
     homeUrl: string;
     leaderboardUrl: string;
+  };
+  newsletter_subscribed: {
+    userName: string;
+    homeUrl: string;
+    unsubscribeUrl: string;
   };
 };
 

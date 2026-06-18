@@ -1,9 +1,16 @@
 "use client";
 
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Loader2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   diffRevisionSnapshots,
   type RevisionFieldChange,
@@ -189,21 +196,21 @@ export default function ArticleRevisionDetailModal({
       : [];
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[min(100vw-1.5rem,42rem)] -translate-x-1/2 -translate-y-1/2 flex-col",
+            "flex max-h-[90vh] w-[min(100vw-1.5rem,42rem)] flex-col",
             "border border-jepang-border bg-white shadow-jepang-lg",
           )}
           data-testid="article-revision-detail-modal"
         >
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-jepang-border p-5">
             <div>
-              <DialogPrimitive.Title className="font-heading text-xl font-bold">
+              <DialogTitle className="font-heading text-xl font-bold">
                 {revision ? `Detail Revisi #${revision.revisionNumber}` : "Detail Revisi"}
-              </DialogPrimitive.Title>
+              </DialogTitle>
               {revision && (
                 <p className="mt-1 text-xs font-mono text-jepang-muted">
                   {revision.editor?.name || "Sistem"}
@@ -212,9 +219,9 @@ export default function ArticleRevisionDetailModal({
                 </p>
               )}
             </div>
-            <DialogPrimitive.Close className="p-1 text-jepang-muted hover:text-jepang-red">
+            <DialogClose className="p-1 text-jepang-muted hover:text-jepang-red">
               <X size={18} />
-            </DialogPrimitive.Close>
+            </DialogClose>
           </div>
 
           <div className={cn(THIN_SCROLLBAR_CLASS, "flex-1 overflow-y-auto p-5 space-y-5")}>
@@ -263,8 +270,8 @@ export default function ArticleRevisionDetailModal({
               </>
             ) : null}
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }

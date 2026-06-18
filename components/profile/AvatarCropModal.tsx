@@ -2,9 +2,16 @@
 
 import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Loader2, RotateCcw, RotateCw, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   AVATAR_OUTPUT_SIZE,
   getCroppedAvatarBlob,
@@ -58,26 +65,26 @@ export default function AvatarCropModal({
   if (!imageSrc) return null;
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-70 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay className="z-70" />
+        <DialogContent
           className={cn(
-            "fixed left-1/2 top-1/2 z-71 w-[min(100vw-1.5rem,28rem)] -translate-x-1/2 -translate-y-1/2",
+            "z-71 w-[min(100vw-1.5rem,28rem)]",
             "border border-jepang-border bg-white shadow-xl",
           )}
           data-testid="avatar-crop-modal"
         >
           <div className="flex items-center justify-between border-b border-jepang-border px-4 py-3">
             <div>
-              <DialogPrimitive.Title className="font-heading font-bold text-lg">
+              <DialogTitle className="font-heading font-bold text-lg">
                 Atur Foto Profil
-              </DialogPrimitive.Title>
+              </DialogTitle>
               <p className="text-xs text-jepang-muted mt-0.5">
                 Crop persegi {AVATAR_OUTPUT_SIZE}×{AVATAR_OUTPUT_SIZE}px
               </p>
             </div>
-            <DialogPrimitive.Close asChild>
+            <DialogClose asChild>
               <button
                 type="button"
                 className="rounded-md p-1.5 text-jepang-muted hover:bg-jepang-off-white"
@@ -85,7 +92,7 @@ export default function AvatarCropModal({
               >
                 <X size={18} />
               </button>
-            </DialogPrimitive.Close>
+            </DialogClose>
           </div>
 
           <div className="relative h-72 bg-jepang-navy">
@@ -150,11 +157,11 @@ export default function AvatarCropModal({
             </div>
 
             <div className="flex gap-2 pt-1">
-              <DialogPrimitive.Close asChild>
+              <DialogClose asChild>
                 <Button type="button" variant="outline" className="flex-1">
                   Batal
                 </Button>
-              </DialogPrimitive.Close>
+              </DialogClose>
               <Button
                 type="button"
                 className="flex-1"
@@ -173,8 +180,8 @@ export default function AvatarCropModal({
               </Button>
             </div>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }

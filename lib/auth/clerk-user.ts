@@ -5,6 +5,7 @@ import type { CoreJwtClaims } from '@/lib/core/session';
 import { isClerkUserId } from '@/lib/auth/clerk-id';
 import { checkDailyLogin } from '@/lib/points';
 import { queueWelcomeUserEmail } from '@/lib/notifications/email-hooks';
+import { linkNewsletterSubscriptionToUser } from '@/lib/newsletter/email';
 import { notifyWelcomeUser } from '@/lib/notifications/handlers/comment';
 import { toSessionUser } from './session';
 import { slugifyUsername } from '@/lib/username';
@@ -161,6 +162,7 @@ async function linkOrCreateLocalUser(
   await checkDailyLogin(created.id);
   void notifyWelcomeUser(created.id).catch(() => {});
   queueWelcomeUserEmail({ userId: created.id, email, name });
+  void linkNewsletterSubscriptionToUser(created.id, email).catch(() => {});
 
   return sessionUserFor(created, coreClaims);
 }

@@ -15,6 +15,7 @@ import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import { Badge } from "@/components/ui/badge";
+import { MotionHoverChevron } from "@/components/ui/motion";
 import { useAdSlot } from "@/hooks/useAdSlot";
 import type {
   HomeEngagementResponse,
@@ -83,10 +84,9 @@ function PollListItem({
           {poll.questionCount} pertanyaan
         </p>
       </div>
-      <ChevronRight
-        size={18}
-        className="mt-1 shrink-0 text-jepang-muted transition-transform group-hover:translate-x-0.5 group-hover:text-jepang-red"
-      />
+      <MotionHoverChevron className="mt-1 shrink-0 text-jepang-muted group-hover:text-jepang-red">
+        <ChevronRight size={18} />
+      </MotionHoverChevron>
     </Link>
   );
 }
@@ -115,10 +115,9 @@ function QuizListItem({
           {quiz.questionCount} pertanyaan · +10 poin
         </p>
       </div>
-      <ChevronRight
-        size={18}
-        className="mt-1 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-0.5 group-hover:text-jepang-orange"
-      />
+      <MotionHoverChevron className="mt-1 shrink-0 text-zinc-400 group-hover:text-jepang-orange">
+        <ChevronRight size={18} />
+      </MotionHoverChevron>
     </Link>
   );
 }

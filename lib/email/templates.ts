@@ -103,6 +103,25 @@ export function renderEmailTemplate<T extends EmailTemplateId>(
         text: `Selamat datang di ${SITE_BRAND_NAME}! Mulai di ${homeUrl}`,
       };
     }
+    case 'newsletter_subscribed': {
+      const p = payload as EmailTemplatePayload['newsletter_subscribed'];
+      const homeUrl = toAbsoluteUrl(p.homeUrl);
+      return {
+        subject: `Anda berlangganan newsletter ${SITE_BRAND_NAME}`,
+        html: layout(
+          'Terima kasih sudah berlangganan!',
+          `<p>Halo ${escapeHtml(p.userName)},</p>
+           <p>Anda akan menerima update artikel, kuis, dan highlight terbaru dari ${SITE_BRAND_NAME}.</p>
+           <p style="font-size:12px;color:#9ca3af;margin-top:16px;">
+             Tidak ingin menerima email ini?
+             <a href="${escapeHtml(p.unsubscribeUrl)}" style="color:#FF4B2B;">Berhenti berlangganan</a>
+           </p>`,
+          'Jelajahi Jepangku',
+          homeUrl,
+        ),
+        text: `Terima kasih berlangganan newsletter ${SITE_BRAND_NAME}. Berhenti berlangganan: ${p.unsubscribeUrl}`,
+      };
+    }
     default:
       throw new Error(`Unknown email template: ${template satisfies never}`);
   }

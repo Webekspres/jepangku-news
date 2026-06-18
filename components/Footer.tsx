@@ -3,6 +3,7 @@
 import Link from "next/link";
 import AssetImage from "@/components/AssetImage";
 import { useRouter } from "next/navigation";
+import FooterNewsletterForm from "@/components/FooterNewsletterForm";
 import { useAuth, getAuthLoginPath, getAuthRegisterPath, isAuthUser } from "@/contexts/AuthContext";
 import { getContributorCta } from "@/lib/contributor";
 import { imageLoadingProps } from "@/lib/image-loading";
@@ -34,9 +35,13 @@ export default function Footer() {
               className="h-40 w-auto mb-4"
               {...imageLoadingProps(false)}
             />
-            <p className="text-sm text-zinc-400 leading-relaxed">
+            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
               Portal media interaktif bertema Jepang untuk pembaca Indonesia.
             </p>
+            <p className="section-label text-jepang-orange mb-2">Newsletter</p>
+            <FooterNewsletterForm
+              defaultEmail={isAuthUser(user) ? user.email : ""}
+            />
           </div>
           <div>
             <p className="section-label text-jepang-orange mb-3">Jelajahi</p>

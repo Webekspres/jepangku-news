@@ -22,7 +22,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import type { ReviewEntry, RevisionEntry } from "@/components/ui/article-activity-modal";
 import { cn } from "@/lib/utils";
@@ -369,17 +376,17 @@ function ReviewStatusDetailModal({
   review: ReviewEntry;
 }) {
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 w-[min(100vw-1.5rem,28rem)] -translate-x-1/2 -translate-y-1/2 border border-jepang-border bg-white p-5 shadow-jepang-lg">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent className="w-[min(100vw-1.5rem,28rem)] border border-jepang-border bg-white p-5 shadow-jepang-lg">
           <div className="mb-4 flex items-start justify-between gap-3">
-            <DialogPrimitive.Title className="font-heading text-lg font-bold">
+            <DialogTitle className="font-heading text-lg font-bold">
               Detail Perubahan Status
-            </DialogPrimitive.Title>
-            <DialogPrimitive.Close className="text-jepang-muted hover:text-jepang-red">
+            </DialogTitle>
+            <DialogClose className="text-jepang-muted hover:text-jepang-red">
               <X size={18} />
-            </DialogPrimitive.Close>
+            </DialogClose>
           </div>
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <Badge variant="outline">
@@ -400,8 +407,8 @@ function ReviewStatusDetailModal({
             {review.reviewer?.role === "ADMIN" ? " (Admin)" : ""} ·{" "}
             {formatDate(review.reviewedAt)}
           </p>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }

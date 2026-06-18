@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Award, BarChart3, BookOpen, GraduationCap } from "lucide-react";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import { Button } from "@/components/ui/button";
+import { MotionHoverScale } from "@/components/ui/motion";
 import type { HomeLmsTeaserResponse, LmsTeaserCourse } from "@/lib/home/types";
 import { cn } from "@/lib/utils";
 
@@ -53,13 +54,15 @@ function CourseCard({ course }: { course: LmsTeaserCourse }) {
       data-testid={`lms-course-card-${course.slug}`}
     >
       <div className="relative aspect-16/10 overflow-hidden bg-jepang-navy">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={course.thumbnailUrl}
-          alt={course.title}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        <MotionHoverScale className="h-full w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={course.thumbnailUrl}
+            alt={course.title}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        </MotionHoverScale>
         <span
           className={cn(
             "absolute left-3 top-3 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
