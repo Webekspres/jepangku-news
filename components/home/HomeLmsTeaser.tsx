@@ -24,6 +24,36 @@ const LEVEL_BADGE: Record<LmsTeaserCourse["level"], string> = {
   N1: "bg-jepang-red text-white",
 };
 
+function LmsComingSoonPlaceholder({ catalogUrl }: { catalogUrl: string }) {
+  return (
+    <div
+      className="mb-10 rounded-xl border border-dashed border-white/25 bg-white/5 px-6 py-12 text-center"
+      data-testid="lms-coming-soon"
+    >
+      <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-jepang-orange/15">
+        <BookOpen size={28} className="text-jepang-orange" strokeWidth={1.5} aria-hidden />
+      </div>
+      <h3 className="font-heading text-xl font-bold tracking-tight text-white">
+        Katalog Kursus Segera Hadir
+      </h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-300">
+        Tim Jepangku sedang menyiapkan kursus JLPT interaktif. Sementara itu, kunjungi
+        portal LMS untuk info terbaru dan pendaftaran awal.
+      </p>
+      <Button
+        asChild
+        className="mt-6 bg-jepang-orange text-white hover:bg-jepang-orange/90"
+        data-testid="lms-placeholder-cta"
+      >
+        <Link href={catalogUrl} target="_blank" rel="noopener noreferrer">
+          Kunjungi Jepangku LMS
+          <ArrowRight size={16} />
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 function LmsSkeleton() {
   return (
     <LazySectionSkeleton minHeight={640} data-testid="lms-loading">
@@ -152,12 +182,17 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
           })}
         </ul>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          {data.courses.map((course) => (
-            <CourseCard key={course.slug} course={course} />
-          ))}
-        </div>
+        {data.source === "placeholder" || data.courses.length === 0 ? (
+          <LmsComingSoonPlaceholder catalogUrl={data.catalogUrl} />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            {data.courses.map((course) => (
+              <CourseCard key={course.slug} course={course} />
+            ))}
+          </div>
+        )}
 
+        {data.source === "live" && data.courses.length > 0 && (
         <div className="flex justify-center">
           <Button
             asChild
@@ -171,6 +206,7 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
             </Link>
           </Button>
         </div>
+        )}
       </div>
     </section>
   );

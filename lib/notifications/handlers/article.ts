@@ -5,6 +5,7 @@ import { getArticleViewHref } from '@/lib/article-view-url';
 import { createNotification } from '@/lib/notifications/create';
 import { notifyAdminsArticlePendingReview } from '@/lib/notifications/handlers/admin';
 import { queueArticleRejectedEmail } from '@/lib/notifications/email-hooks';
+import { notifyCategorySubscribersOfArticle } from '@/lib/category-subscriptions';
 
 export async function handleArticleStatusChanged(params: {
   articleId: string;
@@ -62,6 +63,7 @@ export async function handleArticleStatusChanged(params: {
       },
       priority: 'HIGH',
     });
+    await notifyCategorySubscribersOfArticle(article.id);
     return;
   }
 

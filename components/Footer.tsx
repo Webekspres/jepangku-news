@@ -25,7 +25,7 @@ export default function Footer() {
       data-testid="main-footer"
     >
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-white">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 text-white">
           <div className="col-span-2 md:col-span-1">
           <AssetImage
               src="/assets/images/logo/Logo-02-dark.svg"
@@ -38,10 +38,6 @@ export default function Footer() {
             <p className="text-sm text-zinc-400 leading-relaxed mb-4">
               Portal media interaktif bertema Jepang untuk pembaca Indonesia.
             </p>
-            <p className="section-label text-jepang-orange mb-2">Newsletter</p>
-            <FooterNewsletterForm
-              defaultEmail={isAuthUser(user) ? user.email : ""}
-            />
           </div>
           <div>
             <p className="section-label text-jepang-orange mb-3">Jelajahi</p>
@@ -235,6 +231,12 @@ export default function Footer() {
                 </>
               )}
             </ul>
+          </div>
+          <div>
+            <p className="section-label text-jepang-orange mb-2">Newsletter</p>
+            <FooterNewsletterForm
+              defaultEmail={isAuthUser(user) ? user.email : ""}
+            />
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">

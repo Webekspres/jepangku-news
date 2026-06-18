@@ -99,6 +99,7 @@ enum NotificationType {
   COMMENT_ON_ARTICLE
   COMMENT_REPLY
   WELCOME
+  NEW_ARTICLE_IN_CATEGORY
 }
 
 enum NotificationPriority {
@@ -141,6 +142,7 @@ model User {
   notifications         Notification[]
   emailOutbox           EmailOutbox[]
   newsletterSubscriptions NewsletterSubscription[]
+  categorySubscriptions CategorySubscription[]
 
   @@map("users")
 }
@@ -217,8 +219,23 @@ model Category {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   articles    Article[]
+  subscriptions CategorySubscription[]
 
   @@map("categories")
+}
+
+model CategorySubscription {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@index([categoryId])
+  @@map("category_subscriptions")
 }
 
 model Tag {

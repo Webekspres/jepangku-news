@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
 import QuizBreadcrumb from "@/components/quizzes/QuizBreadcrumb";
+import QuizLeaderboard from "@/components/quizzes/QuizLeaderboard";
 
 export default function QuizDetailPage() {
   const { slug } = useParams<{ slug: string }>()!;
@@ -394,6 +395,7 @@ export default function QuizDetailPage() {
 
           {quiz && (
             <>
+              <QuizLeaderboard slug={slug} />
               <ReactionBar targetType="QUIZ" targetId={quiz.id} />
               <CommentSection targetType="QUIZ" targetId={quiz.id} />
             </>

@@ -8,41 +8,14 @@
 
 ## Belum Selesai — Urut Prioritas
 
-### 1. Newsletter *(Fase E1)*
+### 1. Verifikasi staging E2E *(Fase B–C, ops)*
 
-[x] Model `NewsletterSubscription`  
-[x] Footer form + `POST /api/newsletter/subscribe`  
-[x] Admin CRUD `/admin/newsletter`  
-[x] Halaman unsubscribe (wajib login akun yang sama)  
-[x] Email template + Resend outbox *(shared dengan outbox § Notifikasi)*
+[x] Staging end-to-end sebelum production cutover — `bun run verify:staging` + checklist manual [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md) *(jalankan di URL staging)*  
+[x] Lighthouse production build — `bun run build && bun start` incognito (baseline post-ngrok dev: Mobile 34 / Desktop 53)
 
 ---
 
-### 2. Verifikasi staging E2E *(Fase B–C, ops)*
-
-[~] Staging end-to-end sebelum production cutover — `bun run verify:staging` + checklist manual [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md) *(jalankan di URL staging)*  
-[ ] Lighthouse production build — `bun run build && bun start` incognito (baseline post-ngrok dev: Mobile 34 / Desktop 53)
-
----
-
-### 3. Integrasi LMS live *(Fase D, koordinasi jepangkuLMS)*    
-
-[ ] `GET /api/public/courses` di jepangkuLMS  
-[ ] News proxy `/api/home/lms-teaser` baca live dari LMS  
-[ ] Katalog publik `/kursus` di LMS baca Prisma (single source of truth)
-
----
-
-### 4. Engagement lanjutan *(Fase E)*
-
-[ ] Follow / subscribe kategori + notifikasi artikel baru  
-[ ] Export riwayat poin CSV milik user  
-[ ] Monthly / all-time quiz leaderboard per quiz  
-[ ] Riwayat aktivitas lengkap di `/activity` (di luar ledger poin)
-
----
-
-### 5. Soft launch konten *(ditunda)*
+### 2. Soft launch konten *(ditunda)*
 
 [ ] Riset topik dan sumber per kategori  
 [ ] Penulisan draft artikel (minimal 30 artikel)  
@@ -54,9 +27,10 @@
 
 ---
 
-### 6. Ekosistem lanjutan *(Fase D/E)*
+### 3. Ekosistem lanjutan *(Fase D/E)*
 
 [ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
+[ ] `GET /api/public/courses` di jepangkuLMS + katalog `/kursus` baca Prisma (single source of truth)  
 [ ] Super-admin / role hierarchy (`editor`, `moderator`, `instructor`, `student`)  
 [ ] Profil extended (bio) di Core *(sementara `user_profiles` News)*  
 [ ] Spend poin, membership — fase lanjutan apabila ada
@@ -64,6 +38,27 @@
 ---
 
 ## Sudah Diimplementasi — Verified
+
+### Newsletter *(Fase E1)*
+
+[x] Model `NewsletterSubscription`  
+[x] Footer form + `POST /api/newsletter/subscribe`  
+[x] Admin CRUD `/admin/newsletter`  
+[x] Halaman unsubscribe (wajib login akun yang sama)  
+[x] Email template + Resend outbox *(shared dengan outbox § Notifikasi)*
+
+### Engagement lanjutan *(Fase E)*
+
+[x] Follow / subscribe kategori + notifikasi artikel baru  
+[x] Export riwayat poin CSV milik user  
+[x] Monthly / all-time quiz leaderboard per quiz  
+[x] Riwayat aktivitas lengkap di `/activity` (di luar ledger poin)
+
+### Integrasi LMS — News consumer *(Fase D, koordinasi jepangkuLMS)*
+
+[x] Domain LMS — staging `dev.kursus.jepangku.com`, prod `kursus.jepangku.com` (`lib/lms/constants.ts`)  
+[x] News proxy `/api/home/lms-teaser` — fetch live `GET /api/public/courses`, fallback placeholder (`HomeLmsTeaser.tsx`)  
+[x] `lib/lms/client.ts` + tipe kontrak `lib/lms/types.ts`
 
 ### Notifikasi portal *(Fase E2 — News DB only, tanpa Core)*
 
@@ -151,7 +146,7 @@
 [x] §4 Kategori editorial — `CategoryEditorialSection.tsx`, `lib/home/editorial-groups.ts`  
 [x] §5 Jepangku TV — model `Video`, admin `/admin/videos`, `/tv`, `/tv/[slug]`  
 [x] §6 Advertisement — model `AdSlot`, admin `/admin/ads`, `AdBannerSlot.tsx`  
-[x] §7 LMS teaser — static cards Fase 1 (`HomeLmsTeaser.tsx`)  
+[x] §7 LMS teaser — live proxy + placeholder fallback (`HomeLmsTeaser.tsx`, `lib/lms/`)  
 [x] §8 Reaksi komunitas — `HomeReactionsSection.tsx`  
 [x] §9–10 Poll, Kuis, Leaderboard — `HomeEngagementSection.tsx`
 

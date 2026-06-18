@@ -118,7 +118,10 @@ export type LmsTeaserCourse = {
   href: string;
 };
 
+export type HomeLmsTeaserSource = "live" | "placeholder";
+
 export type HomeLmsTeaserResponse = {
+  source: HomeLmsTeaserSource;
   catalogUrl: string;
   highlights: LmsTeaserHighlight[];
   courses: LmsTeaserCourse[];
