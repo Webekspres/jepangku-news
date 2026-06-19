@@ -24,6 +24,7 @@ export default function Footer() {
       className="bg-jepang-navy mt-24"
       data-testid="main-footer"
     >
+      {/* MENU JELAJAHI PINDAHKAN KE BAWAH AKUN FORM NESWLETTER PINDAHKAN KEBAWAH DESCRIPTION LOGO, DAN BUAT KOLOM DESKRIPTION LOGO LEBIH LEBAR DARI KOLOM LAINNYA DAN DEKRIPSI DI KOLOM SATU LEBIHH LEBAR DAN RATA KANAN */}
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 text-white">
           <div className="col-span-2 md:col-span-1">
@@ -233,7 +234,6 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <p className="section-label text-jepang-orange mb-2">Newsletter</p>
             <FooterNewsletterForm
               defaultEmail={isAuthUser(user) ? user.email : ""}
             />

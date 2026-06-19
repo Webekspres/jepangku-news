@@ -29,6 +29,7 @@ export default function NavbarCategoryBar({
   const activeCategory = pathname === "/articles" ? searchParams.get("category") : null;
 
   return (
+    // TODO: batasi jumlah kategori yang ditampilkan di navbar hanya 9 kategori saja sesuai pengaturan di admin
     <div
       data-testid="navbar-category-bar"
       className={cn(

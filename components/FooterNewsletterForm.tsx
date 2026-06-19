@@ -54,9 +54,6 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="newsletter-form">
-      <p className="text-sm text-zinc-300 leading-relaxed">
-        Dapatkan highlight artikel, kuis, dan update terbaru langsung ke email Anda.
-      </p>
       <div className="flex w-full flex-col gap-2">
         <Input
           type="email"

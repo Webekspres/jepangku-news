@@ -8,7 +8,70 @@
 
 ## Belum Selesai — Urut Prioritas
 
-### 1. QA & Testing Aplikasi *(fokus aktif)*
+> **Sumber TODO:** komentar `TODO:` di kode `jepangku-news` (audit Juni 2026)  
+> **Urutan:** mudah → sedang → besar · testing diprioritaskan setelah TODO selesai
+
+### 1. TODO dari Kode *(fokus aktif)*
+
+#### Tier A — Perbaikan kecil (CSS / teks / satu komponen)
+
+[ ] **`ArticleCard.tsx`** — gambar ikut `rounded` card; hilangkan overflow di sudut card  
+[ ] **`admin/users/[id]/page.tsx`** — breadcrumb: `Pengguna > Detail Pengguna > @username`  
+[ ] **`polls/[slug]/page.tsx`** — opsi poll yang dipilih/aktif lebih menonjol (warna merah, bukan hanya border)  
+[ ] **`HomeReactionsSection.tsx`** — perbesar icon reaksi, jadikan link, perkecil jarak count & label  
+[ ] **`HomeLmsTeaser.tsx`** — tambahkan logo Jepangku LMS (`jepangkunihongo`)  
+[ ] **Semua tabel admin** *(ref: `admin/homepage/page.tsx`)* — perbaiki border header tabel (background + rounded tidak rapi)
+
+#### Tier B — Card stats admin *(polanya sama: query agregat + `AdminCard`)*
+
+[ ] **`admin/info-pages/page.tsx`** — total halaman informasi  
+[ ] **`admin/articles/review/page.tsx`** — total review + total kontributor menunggu review  
+[ ] **`admin/social-links/page.tsx`** — total link sosial + total yang aktif  
+[ ] **`admin/homepage/page.tsx`** — total artikel pilihan utama & hot  
+[ ] **`admin/newsletter/page.tsx`** — total subscriber, subscriber dari user (email match), subscriber non-user  
+[ ] **`admin/ads/page.tsx`** — total banner + total banner aktif  
+[ ] **`admin/videos/page.tsx`** — total video, terbit, draft  
+[ ] **`admin/quizzes/page.tsx`** — total kuis, aktif, draft, tidak aktif  
+[ ] **`admin/polls/page.tsx`** — total polling, aktif, draft, ditutup  
+[ ] **`admin/contributors/page.tsx`** — total permohonan, disetujui, ditolak, menunggu  
+[ ] **`admin/users/page.tsx`** — total pengguna, aktif, diblokir, draft, tidak aktif  
+[ ] **`admin/comments/page.tsx`** — total komentar (artikel/kuis/poll), disembunyikan, dihapus + link ke komentar di aksi  
+[ ] **`admin/analytics/page.tsx`** — total views harian & lifetime semua konten  
+[ ] **`admin/articles/page.tsx`** — card artikel yang kehilangan kategori + filter di tabel
+
+#### Tier C — Perbaikan UX tabel & aksi admin
+
+[ ] **`Footer.tsx`** — pindahkan menu Jelajahi ke bawah Akun; form newsletter ke bawah deskripsi logo; kolom logo/deskripsi lebih lebar dari kolom lain; deskripsi kolom pertama lebih lebar & rata kanan  
+[ ] **`admin/newsletter/page.tsx`** — rapihkan UI tabel subscriber  
+[ ] **`admin/social-links/page.tsx`** — rapihkan UI tabel link sosial  
+[ ] **`admin/users/page.tsx`** — tombol jadikan admin untuk user berperan kontributor  
+[ ] **`admin/contributors/page.tsx`** — tabel dengan lihat detail permohonan + tombol setujui/tolak  
+[ ] **`admin/homepage/page.tsx`** — sederhanakan UX kurangi scroll berlebihan  
+[ ] **`admin/tags/page.tsx`** — sesuaikan UX tag seperti halaman kategori
+
+#### Tier D — Layout publik (aside / breadcrumb / section homepage)
+
+[ ] **`polls/[slug]/page.tsx`** — breadcrumb seperti artikel + aside: rekomendasi polling lain, artikel trending, iklan  
+[ ] **`quizzes/[slug]/page.tsx`** — aside: rekomendasi kuis lain, artikel trending, iklan  
+[ ] **`HomeTodaySection.tsx`** — tag popular lebih besar & menonjol; tampilkan `TrendingArticlesPanel` di aside
+
+#### Tier E — Fitur admin menengah *(form, preview, filter)*
+
+[ ] **`admin/info-pages/page.tsx`** — tombol preview di tabel + halaman preview admin  
+[ ] **`admin/categories/page.tsx`** — modal create/edit; hilangkan input hex & URL icon; toggle tampil di navbar (maks 9, sisanya disabled); card stats total kategori & `X/9` di navbar; rapihkan layout  
+[ ] **`NavbarCategoryBar.tsx`** — batasi kategori navbar maks 9 sesuai pengaturan admin *(terkait toggle kategori di admin)*  
+[ ] **`admin/ads/page.tsx`** — tabel: waktu aktif–berakhir, sisa hari, ukuran lebar/tinggi jelas; crop gambar saat upload (3 ukuran, seperti avatar); pisahkan komponen jelas
+
+#### Tier F — Refactor & bug besar
+
+[ ] **`admin/quizzes/page.tsx`** — pindahkan analytics ke `admin/quizzes/[id]/analytics`  
+[ ] **`admin/polls/page.tsx`** — pindahkan analytics ke `admin/polls/[id]/analytics`  
+[ ] **`admin/analytics/page.tsx`** — jadikan hub analytics lengkap: ringkasan + performa artikel, kuis, polling, pengguna (masing-masing halaman punya card stats); klik drill-down ke analytics per konten di menu masing-masing; hapus submenu lama di bawah ringkasan  
+[ ] **`admin/videos/page.tsx`** — **BUG:** video baru tidak muncul di `/admin/videos` & section homepage TV; featured tidak berfungsi; hanya satu video featured (pindah bintang ke video lain); debounce toggle featured agar tidak selalu skeleton
+
+---
+
+### 2. QA & Testing Aplikasi
 
 Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md)** — functional + non-functional, diverifikasi terhadap kode.
 
