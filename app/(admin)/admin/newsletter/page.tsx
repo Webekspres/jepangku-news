@@ -97,6 +97,8 @@ export default function AdminNewsletterPage() {
         </Button>
       }
     >
+      {/* TODO: tambahkan card stats untuk mengetahui total subscriber newsletter dan total subscriber newsletter dari user (yang emailnya ada di user) dan total subscriber newsletter yang bukan user*/}
+      {/* TODO: rapihkan UI tablenya agar UX nya nyaman */}
       <AdminToolbar>
         <AdminFilterButtons
           options={STATUS_FILTERS}

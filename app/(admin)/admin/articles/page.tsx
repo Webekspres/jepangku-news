@@ -540,6 +540,7 @@ export default function AdminArticlesPage() {
           </>
         }
       >
+        {/* TODO: kategori bisa saja dihapus dan kehilangan kategorinya untuk itu tambahkan card untuk menampilkan total yang kehilangan kategorinya dan tampilkan filternya di tabel */}
         <div data-testid="admin-articles-stats">
           <AdminStatCards
             loading={statsLoading}

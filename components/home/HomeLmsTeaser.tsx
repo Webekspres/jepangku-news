@@ -161,6 +161,7 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
               Kursus JLPT interaktif dengan progress tracking — powered by Jepangku LMS.
             </p>
           </div>
+          {/* TODO: tambahkan logo jepangku lms di sini (jepangkunihongo)*/}
         </div>
 
         <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">

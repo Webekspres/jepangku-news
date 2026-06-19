@@ -111,6 +111,7 @@ export default function HomeReactionsSection({
                 )}
                 data-testid={`home-reaction-stat-${stat.type}`}
               >
+                {/* TODO: perbesar ukuran iconnya dan buat jadi link perkecil jarak count dan labelnya */}
                 <ReactionIcon src={stat.iconSrc} size={32} />
                 <span className="font-heading text-lg font-black tabular-nums">
                   {stat.count}

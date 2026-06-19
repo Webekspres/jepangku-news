@@ -127,6 +127,8 @@ export default function AdminUsersPage() {
         }
         subtitle={loading ? "..." : `${users.length} PENGGUNA`}
       >
+        {/* TODO: tambahkan card stats untuk mengetahui total pengguna dan total pengguna yang aktif dan total pengguna yang diblokir dan total pengguna yang draft serta yang tidak aktid */}
+        {/* TODO: tambahkan tombol jadikan admin juga untuk yang jadi kontributor */}
         <AdminToolbar>
           <AdminFilterButtons
             options={roleFilters}

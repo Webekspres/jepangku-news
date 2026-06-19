@@ -84,6 +84,7 @@ export default function HomeTodaySection({
                 className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start"
                 data-testid="home-today-sidebar"
               >
+                {/* TODO: di aside buat tag popularnya lebih besar dan menonjol diatas ini tampilkan juga  yang sedang TrendingArticlesPanel*/}
                 <div
                   className="rounded-lg border border-jepang-border bg-white p-5 shadow-jepang"
                   aria-label="Topik populer"

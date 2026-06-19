@@ -66,6 +66,8 @@ export default function LeaderboardPage() {
         subtitle={PERIOD_SUBTITLES[period]}
       />
 
+      {/* tambahkan aside yang isinya ajakan untuk bergabung di jepangku jika belum terautentikasi jika sudah terautentikasi tampilkan ajakan menambah poin dengan menampilkan rekomendasi artikel, kuis dan polling, dibawah itu tampilkan iklan */}
+
       <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="max-w-3xl mx-auto mb-8">
           <div

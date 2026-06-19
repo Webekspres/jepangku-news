@@ -96,6 +96,7 @@ export default function AdminReviewArticles() {
       label="ANTRIAN REVIEW"
       title="Artikel Menunggu Review"
     >
+    {/* TODO: tambahkan card untuk mengetahui total review dan total kontributor yang menunggu review */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
           <AdminCard

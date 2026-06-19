@@ -169,6 +169,9 @@ export default function AdminPollsPage() {
           </Button>
         }
       >
+        {/* TODO: tambahkan card stats untuk mengetahui total polling dan total polling yang aktif dan total polling yang draft serta yang ditutup serta kuis juga*/}
+        {/* TODO: pindahkan halaman analytics ke halaman polling (admin/polls/[id]/analytics) */}
+        {/* tambahkan halaman admin/polls/[id] untuk melihat detail polling dan pertanyaannya */}
         <AdminToolbar>
           <AdminFilterButtons
             options={statusFilters}

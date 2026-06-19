@@ -39,6 +39,8 @@ export default function AdminInfoPagesPage() {
       title="Halaman Informasi"
       subtitle="Kelola konten halaman About, Contact, Privacy Policy, dan lainnya"
     >
+      {/* TODO: tambahkan card stats untuk mengetahui total halaman informasi */}
+      {/* TODO: TAMBAHKAN PREVIEW PAGE ADMIN DI TABLE TAMBAHKAN TOMBOL PREVIEW DAN BUAT PREVIEW PAGE ADMINNYA */}
       <AdminCard title="9 Halaman Informasi" variant="list" noPadding>
         {loading ? (
           <div className="space-y-4 p-5">

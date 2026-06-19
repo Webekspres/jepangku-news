@@ -120,6 +120,8 @@ export default function AdminContributorsPage() {
       title="Permohonan Kontributor"
       subtitle="Tinjau dan setujui pengguna yang ingin mengunggah artikel"
     >
+      {/* TODO: tambahkan card stats untuk mengetahui total permohonan kontributor dan total permohonan kontributor yang disetujui dan total permohonan kontributor yang ditolak dan total permohonan kontributor yang menunggu */}
+      {/* TODO: rapihkan UInya gunakan tabel dengan menu lihat detail permohonan kontributor dan tombol untuk menyetujui dan menolak */}
       <AdminToolbar>
         <AdminFilterButtons
           options={[...STATUS_FILTERS]}

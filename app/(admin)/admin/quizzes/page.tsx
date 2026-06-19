@@ -125,6 +125,9 @@ export default function AdminQuizzesPage() {
           </Button>
         }
       >
+        {/* TODO: tambahkan card stats untuk mengetahui total kuis dan total kuis yang aktif dan total kuis yang draft serta yang tidak aktid */}
+        {/* TODO: pindahkan halaman analytics ke halaman kuis (admin/quizzes/[id]/analytics) */}
+        {/* tambahkan halaman admin/quizzes/[id] untuk melihat detail kuis dan pertanyaannya */}
         <AdminToolbar>
           <AdminFilterButtons options={filters} value={filter} onChange={setFilter} />
         </AdminToolbar>

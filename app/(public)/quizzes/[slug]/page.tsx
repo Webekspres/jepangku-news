@@ -176,6 +176,7 @@ export default function QuizDetailPage() {
     <div className="bg-white min-h-screen" data-testid="quiz-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
+          {/* TODO:  tambahkan aside yangn isinya rekomendasi kuis lain dan dibawahnya artikel trending dibawahnya iklan */}
           <QuizBreadcrumb isLoading={isLoading} title={quiz?.title} />
 
           {!isLoading && quiz.thumbnailUrl && (

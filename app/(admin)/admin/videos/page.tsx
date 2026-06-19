@@ -144,6 +144,9 @@ export default function AdminVideosPage() {
           </Button>
         }
       >
+
+        {/* TODO: tambahkan card stats untuk mengetahui total video dan total video yang terbit dan total video yang draft */}
+        {/* TODO: TERDAPAT BUG SAAT VIDEO DITAMBAHKAN TIDAK MUNCUL DI HALAMANNYA DAN DI SECTION HOMEPAGE PUN TIDAK MUNCUL, SAAT MENJADIKAN FEATURED JUGA TIDAK BERFUNGSI, SAYA INGIN HANYA ADA SATU VIDEO YANG BISA DI JADIKAN FEATURED JIKA DI FEATURED SUDAH ADA DIPINDAH KE VIDEO LAIN MAKA PENANDANYA HANYA DIPINDAH BINTANGNYA DAN BERIKAN DEBOUNCE AGAR TIDAK SELALU MUNCUL SKELETON SAAT MENGEDIT FEATURED, ITU BURUK UNTUK UX */}
         <AdminToolbar>
           <AdminFilterButtons
             options={STATUS_FILTERS}

@@ -72,6 +72,8 @@ export default function AdminSocialLinksPage() {
       title="Sosial Media"
       subtitle="Kelola link profil yang tampil di navbar dan sidebar portal"
     >
+      {/* TODO: tambahkan card stats untuk mengetahui total link sosial media yang ada linknya dan total link sosial media yang aktif */}
+      {/* TODO: rapihkan UI tablenya agar UX nya nyaman */}
       <AdminCard title="Profil Sosial Media" variant="panel" noPadding>
         {loading ? (
           <div className="space-y-4 p-5">

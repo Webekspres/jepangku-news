@@ -148,6 +148,7 @@ export default function AdminCommentsPage() {
           </>
         }
       >
+        {/* TODO: tambahkan card stats untuk mengetahui total komentar, total komentar kuis artikel dan polling serta card stats untuk total artikel yang dsembunyikan dan dihapus dan berikan link untuk menuju komentarnya di menu aksinya */}
         <AdminToolbar>
           <AdminFilterButtons
             options={STATUS_FILTERS}

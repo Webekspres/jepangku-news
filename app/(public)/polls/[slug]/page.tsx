@@ -165,6 +165,7 @@ export default function PollDetailPage() {
     <div className="bg-white min-h-screen" data-testid="poll-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="max-w-3xl mx-auto">
+          {/* TODO: buat breadcrumb di sini seperti di artikel, tambahkan aside yangn isinya rekomendasi poling lain dan dibawahnya artikel trending dibawahnya iklan */}
           {/* Back */}
           <Link
             href="/polls"
@@ -293,6 +294,7 @@ export default function PollDetailPage() {
                         )}
                       </div>
 
+                        {/* TODO: buat opsi yang dipilih atau aktif lebih menonjol dengan warna merah jangan hanya border */}
                       {/* Options */}
                       <div className="space-y-2">
                         {q.options.map((opt, oIdx) => {

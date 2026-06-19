@@ -82,7 +82,9 @@ export default function AdminHomepagePage() {
         a.title.toLowerCase().includes(search.toLowerCase()),
       )
     : allArticles;
-
+    
+    // TODO: tambahkan card stats untuk menampilkan total artikel pilihan utama dan hot dan buat UXnya jadi lebih simple agar tidak terlalu banyak scroll
+    {/* TODO: perbaiki tampilan border karena header tabel punya warna background border dan roundednya jadi tidak rapih, ituberlaku di semua table admin */}
   return (
     <AdminPageLayout
       testId="admin-homepage-page"

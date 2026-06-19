@@ -57,6 +57,9 @@ export default function AnalyticsHubPage() {
       subtitle="Pusat laporan performa portal. Pilih jenis laporan di bawah — setiap halaman punya navigasi tab yang sama agar tidak tersesat."
       label="Analytics"
     >
+      {/* TODO: tambahkan card stats untuk mengetahui total views harian dan total views lifetime senua konten */}
+      {/* TODO: tidak ada lagi menu di bawah ini, halaman analytics sekarang adalah analytics lenkap konten secara total dan bisa diklik untuk melihat detail views harian dan lifetime perkontennya yang mengarah ke halaman analytics konten di menunya masing masing */}
+      {/* TODO:ganti menu analytics ini bukan hanya ringkasan, performa artikel, performa kuis, peforma polling dan terakhir performa pengguna pastikan disetiap halaman ada card statsnya */}
       <div className="mb-6 flex items-center gap-2 text-jepang-muted">
         <BarChart3 size={18} className="text-jepang-red" />
         <p className="text-sm">

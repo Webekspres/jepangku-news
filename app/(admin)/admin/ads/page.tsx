@@ -115,6 +115,8 @@ export default function AdminAdsPage() {
           </Button>
         }
       >
+        {/* TODO: tambahkan card stats untuk mengetahui total banner dan total banner yang aktif */}
+        {/* TODO: rapihkan UI tablenya agar UX nya nyaman tampilkan waktu aktif sampai waktu berakhir dan sisa hari, kemudian saya ingin ukuran lebar dan tinggi yang jelas sehingga ketiga gambar diupload ada crop gambar dulu, seperti saat upload foto profile, gunakan komponen yang sudah ada pastikan jelas pemisahan komponennya */}
         <AdminToolbar>
           <AdminFilterButtons
             options={POSITION_FILTERS}

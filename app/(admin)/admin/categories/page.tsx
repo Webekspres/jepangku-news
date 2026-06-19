@@ -97,6 +97,9 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  // TODO: buat dengan modal untuk form create dan edit kategori hilangkan inputan tidak penting seperti kode hexa dan url icon karena itu tidak dipakai di aplikasi, tambahkan togle untuk tampilkan di navbar dengan batas isi navbar 9 kategori saja jika lebih disable kategori lainnya yang tidak ditampilkan, kemudian layoutnya juga dirapihkan 
+  // TODO: di bagian atas adalah card yang berisi info kategori seperti total kategori dan total kategori di navbar misal 9/10 kategori yang ditampilkan di navbar
+
   // ── Toggle aktif/nonaktif ────────────────────────────────
   const handleToggleActive = async (cat: Category) => {
     try {

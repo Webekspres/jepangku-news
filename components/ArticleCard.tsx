@@ -160,6 +160,7 @@ export default function ArticleCard({
 
   return (
     <div className="group block relative h-full">
+      {/* TODO: perbaiki gambarnya, saat ini card punya rounded namun gambar tidak mengikuti rounded card malah overflow*/}
       <motion.div whileHover={{ borderColor: "var(--color-jepang-navy)" }} transition={{ duration: 0.2 }}>
       <Card className="group h-full bg-white border border-jepang-border relative">
         {coverUrl ? (
