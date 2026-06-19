@@ -18,11 +18,12 @@ test.describe('Notifications', () => {
     const res = await request.post('/api/internal/email/process', {
       data: { outboxId: '00000000-0000-0000-0000-000000000000' },
     });
-    // Dev without EMAIL_QUEUE_SECRET allows local processing; prod or secret → 401
+    // When EMAIL_QUEUE_SECRET is set, unauthenticated calls must be rejected.
+    // Without secret, the dev server may allow local processing (200) or fail lookup (500).
     if (process.env.EMAIL_QUEUE_SECRET) {
       expect(res.status()).toBe(401);
     } else {
-      expect([400, 401, 500]).toContain(res.status());
+      expect([200, 400, 401, 500]).toContain(res.status());
     }
   });
 

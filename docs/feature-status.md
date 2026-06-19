@@ -14,7 +14,7 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 
 #### Otomatis & smoke
 
-[ ] Perluas E2E Playwright — auth, artikel, kuis, poll, profil, admin smoke  
+[x] Perluas E2E Playwright — auth, artikel, kuis, poll, profil, admin smoke  
 [x] Homepage E2E — `e2e/homepage.spec.ts`  
 [x] Notifikasi E2E (parsial) — `e2e/notifications.spec.ts`  
 [x] `bun run verify:home` — wave APIs homepage  
