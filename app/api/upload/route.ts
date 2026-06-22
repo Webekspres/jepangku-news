@@ -4,7 +4,11 @@ import { getCurrentUser } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { uploadToR2 } from '@/lib/r2';
 import { db } from '@/lib/db';
-import { moderateImage, validateImageBuffer } from '@/lib/image-moderation';
+import {
+  moderateImage,
+  UploadClientError,
+  validateImageBuffer,
+} from '@/lib/image-moderation';
 import { optimizeImageBuffer, parseUploadPurpose } from '@/lib/image-optimize';
 import { enforceRateLimit } from '@/lib/rate-limit';
 
@@ -70,8 +74,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ url, path: fileName });
-  } catch (e: any) {
-    await captureException(e, { route: 'upload', userId: user?.id });
-    return NextResponse.json({ error: e.message || 'Upload failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Upload failed';
+    const status = e instanceof UploadClientError ? 400 : 500;
+    if (status === 500) {
+      await captureException(e, { route: 'upload', userId: user?.id });
+    }
+    return NextResponse.json({ error: message }, { status });
   }
 }

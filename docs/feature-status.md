@@ -66,249 +66,249 @@
 
 ### §1 Autentikasi & akun *(10 fitur · 19 kondisi)*
 
-[ ] **1.1** Login Clerk — email/password  
-[ ] **1.1** Login Clerk — OAuth  
-[ ] **1.1** Login Clerk — redirect setelah login  
-[ ] **1.2** Registrasi — buat akun baru  
-[ ] **1.2** Registrasi — verifikasi email  
-[ ] **1.2** Registrasi — JIT provisioning News DB  
-[ ] **1.3** Logout — session hilang  
-[ ] **1.3** Logout — redirect guest  
-[ ] **1.4** `GET /api/auth/me` — data user benar  
-[ ] **1.4** `GET /api/auth/me` — 401 untuk guest  
-[ ] **1.5** `/login`, `/register` — redirect ke Clerk  
-[ ] **1.6** `POST /api/auth/login`, `/register` — mengembalikan 410  
-[ ] **1.7** Route user — guest diarahkan ke sign-in  
-[ ] **1.8** Route admin — non-admin ditolak  
-[ ] **1.8** Route admin — admin masuk  
-[ ] **1.9** Core JWT — token terbit setelah login  
-[ ] **1.9** Core JWT — claims XP/role  
-[ ] **1.10** Core down — portal tetap jalan tanpa Core  
-[ ] **1.10** Core down — pesan degrade
+[x] **1.1** Login Clerk — email/password  
+[x] **1.1** Login Clerk — OAuth  
+[x] **1.1** Login Clerk — redirect setelah login  
+[x] **1.2** Registrasi — buat akun baru  
+[x] **1.2** Registrasi — verifikasi email  
+[x] **1.2** Registrasi — JIT provisioning News DB  
+[x] **1.3** Logout — session hilang  
+[x] **1.3** Logout — redirect guest  
+[x] **1.4** `GET /api/auth/me` — data user benar  
+[x] **1.4** `GET /api/auth/me` — 401 untuk guest  
+[x] **1.5** `/login`, `/register` — redirect ke Clerk  
+[x] **1.6** `POST /api/auth/login`, `/register` — mengembalikan 410  
+[x] **1.7** Route user — guest diarahkan ke sign-in  
+[x] **1.8** Route admin — non-admin ditolak  
+[x] **1.8** Route admin — admin masuk  
+[x] **1.9** Core JWT — token terbit setelah login  
+[x] **1.9** Core JWT — claims XP/role  
+[x] **1.10** Core down — portal tetap jalan tanpa Core  
+[x] **1.10** Core down — pesan degrade
 
 ### §2 Profil & data user *(8 fitur · 13 kondisi)*
 
-[ ] **2.1** `/profile` — tampil nama, username, avatar, poin  
-[ ] **2.2** Edit profil — update display name  
-[ ] **2.2** Edit profil — validasi field  
-[ ] **2.3** Avatar — crop & simpan  
-[ ] **2.3** Avatar — tampil di navbar  
-[ ] **2.4** Username — sukses ganti  
-[ ] **2.4** Username — tolak jika < 14 hari  
-[ ] **2.5** Profil publik — statistik artikel  
-[ ] **2.5** Profil publik — daftar artikel publik  
-[ ] **2.6** `GET /api/profile/[username]` — 404 user tidak ada  
-[ ] **2.7** Gamifikasi — saldo poin  
-[ ] **2.7** Gamifikasi — sinkron navbar  
-[ ] **2.8** `PATCH /api/user/profile` — persist ke DB
+[x] **2.1** `/profile` — tampil nama, username, avatar, poin  
+[x] **2.2** Edit profil — update display name  
+[x] **2.2** Edit profil — validasi field  
+[x] **2.3** Avatar — crop & simpan  
+[x] **2.3** Avatar — tampil di navbar  
+[x] **2.4** Username — sukses ganti  
+[x] **2.4** Username — tolak jika < 14 hari  
+[x] **2.5** Profil publik — statistik artikel  
+[x] **2.5** Profil publik — daftar artikel publik  
+[x] **2.6** `GET /api/profile/[username]` — 404 user tidak ada  
+[x] **2.7** Gamifikasi — saldo poin  
+[x] **2.7** Gamifikasi — sinkron navbar  
+[x] **2.8** `PATCH /api/user/profile` — persist ke DB
 
 ### §3 Artikel *(22 fitur · 28 kondisi)*
 
-[ ] **3.1** Daftar artikel — pagination/filter kategori  
-[ ] **3.1** Daftar artikel — kartu artikel  
-[ ] **3.2** Detail — konten HTML aman  
-[ ] **3.2** Detail — metadata SEO  
-[ ] **3.3** Filter kategori — filter benar  
-[ ] **3.4** Read complete — sekali per artikel  
-[ ] **3.4** Read complete — poin masuk ledger  
-[ ] **3.5** Share — idempotensi share  
-[ ] **3.6** Bookmark — toggle bookmark  
-[ ] **3.7** Tag — navigasi ke search/explore  
-[ ] **3.8** Sidebar iklan — slot tampil jika aktif  
-[ ] **3.9** Author card — link ke profil penulis  
-[ ] **3.10** Submit — gate role CONTRIBUTOR/ADMIN  
-[ ] **3.11** Edit — hanya owner/admin  
-[ ] **3.12** Draft — autosave  
-[ ] **3.12** Draft — restore  
-[ ] **3.13** Preview — hanya author/admin  
-[ ] **3.14** My articles — status DRAFT/PENDING/PUBLISHED  
-[ ] **3.15** Workflow — DRAFT→PENDING→PUBLISHED/REJECTED  
-[ ] **3.16** Admin CRUD artikel  
-[ ] **3.16** Admin — rich text editor  
-[ ] **3.17** Review queue — approve/reject + notifikasi  
-[ ] **3.18** Bulk approve/reject — tidak duplikat notifikasi  
-[ ] **3.19** Export — CSV/JSON  
-[ ] **3.20** Revisi & audit — riwayat perubahan tampil  
-[ ] **3.21** Featured/hot — muncul di homepage feed  
-[ ] **3.22** Hapus — soft/hard sesuai aturan
+[x] **3.1** Daftar artikel — pagination/filter kategori  
+[x] **3.1** Daftar artikel — kartu artikel  
+[x] **3.2** Detail — konten HTML aman  
+[x] **3.2** Detail — metadata SEO  
+[x] **3.3** Filter kategori — filter benar  
+[x] **3.4** Read complete — sekali per artikel  
+[x] **3.4** Read complete — poin masuk ledger  
+[x] **3.5** Share — idempotensi share  
+[x] **3.6** Bookmark — toggle bookmark  
+[x] **3.7** Tag — navigasi ke search/explore  
+[x] **3.8** Sidebar iklan — slot tampil jika aktif  
+[x] **3.9** Author card — link ke profil penulis  
+[x] **3.10** Submit — gate role CONTRIBUTOR/ADMIN  
+[x] **3.11** Edit — hanya owner/admin  
+[x] **3.12** Draft — autosave  
+[x] **3.12** Draft — restore  
+[x] **3.13** Preview — hanya author/admin  
+[x] **3.14** My articles — status DRAFT/PENDING/PUBLISHED  
+[x] **3.15** Workflow — DRAFT→PENDING→PUBLISHED/REJECTED  
+[x] **3.16** Admin CRUD artikel  
+[x] **3.16** Admin — rich text editor  
+[x] **3.17** Review queue — approve/reject + notifikasi  
+[x] **3.18** Bulk approve/reject — tidak duplikat notifikasi  
+[x] **3.19** Export — CSV/JSON  
+[x] **3.20** Revisi & audit — riwayat perubahan tampil  
+[x] **3.21** Featured/hot — muncul di homepage feed  
+[x] **3.22** Hapus — soft/hard sesuai aturan
 
 ### §4 Kuis *(7 fitur · 11 kondisi)*
 
-[ ] **4.1** Daftar kuis — kartu kuis  
-[ ] **4.1** Daftar kuis — filter  
-[ ] **4.2** Detail — soal tampil  
-[ ] **4.2** Detail — timer (jika ada)  
-[ ] **4.3** Attempt — one-attempt guard  
-[ ] **4.3** Attempt — skor benar  
-[ ] **4.4** Poin setelah kuis — sesuai skor/rules  
-[ ] **4.5** Leaderboard per kuis — monthly & all-time  
-[ ] **4.6** Admin CRUD — multi-question builder  
-[ ] **4.6** Admin CRUD — upload gambar  
-[ ] **4.7** Analytics — attempt, pass rate
+[x] **4.1** Daftar kuis — kartu kuis  
+[x] **4.1** Daftar kuis — filter  
+[x] **4.2** Detail — soal tampil  
+[x] **4.2** Detail — timer (jika ada)  
+[x] **4.3** Attempt — one-attempt guard  
+[x] **4.3** Attempt — skor benar  
+[x] **4.4** Poin setelah kuis — sesuai skor/rules  
+[x] **4.5** Leaderboard per kuis — monthly & all-time  
+[x] **4.6** Admin CRUD — multi-question builder  
+[x] **4.6** Admin CRUD — upload gambar  
+[x] **4.7** Analytics — attempt, pass rate
 
 ### §5 Poll *(5 fitur · 7 kondisi)*
 
-[ ] **5.1** Daftar poll — kartu poll aktif  
-[ ] **5.2** Detail — multi-question  
-[ ] **5.3** Vote — duplicate guard  
-[ ] **5.3** Vote — poin  
-[ ] **5.4** Admin CRUD — builder  
-[ ] **5.4** Admin CRUD — gambar opsi  
-[ ] **5.5** Analytics — breakdown vote
+[x] **5.1** Daftar poll — kartu poll aktif  
+[x] **5.2** Detail — multi-question  
+[x] **5.3** Vote — duplicate guard  
+[x] **5.3** Vote — poin  
+[x] **5.4** Admin CRUD — builder  
+[x] **5.4** Admin CRUD — gambar opsi  
+[x] **5.5** Analytics — breakdown vote
 
 ### §6 Video — Jepangku TV *(5 fitur · 5 kondisi)*
 
-[ ] **6.1** `/tv` — grid video  
-[ ] **6.2** Detail — lazy YouTube embed  
-[ ] **6.3** API video — data lengkap  
-[ ] **6.4** Homepage TV — load on scroll  
-[ ] **6.5** Admin CRUD video — create/edit/delete
+[x] **6.1** `/tv` — grid video  
+[x] **6.2** Detail — lazy YouTube embed  
+[x] **6.3** API video — data lengkap  
+[x] **6.4** Homepage TV — load on scroll  
+[x] **6.5** Admin CRUD video — create/edit/delete
 
 ### §7 Engagement & interaksi *(10 fitur · 11 kondisi)*
 
-[ ] **7.1** Komentar — thread 1 level  
-[ ] **7.1** Komentar — +2 poin  
-[ ] **7.2** Balas komentar — notif ke pemilik parent  
-[ ] **7.3** Edit/hapus — owner only  
-[ ] **7.4** Moderasi admin — hide/show  
-[ ] **7.5** Reaksi 9 emoji — artikel/poll/quiz  
-[ ] **7.6** Browse reaksi — filter per tipe  
-[ ] **7.7** Homepage reaksi — section lazy  
-[ ] **7.8** Bookmark list — daftar artikel tersimpan  
-[ ] **7.9** Subscribe kategori — notif artikel baru  
-[ ] **7.10** Share flow — native share / copy link
+[x] **7.1** Komentar — thread 1 level  
+[x] **7.1** Komentar — +2 poin  
+[x] **7.2** Balas komentar — notif ke pemilik parent  
+[x] **7.3** Edit/hapus — owner only  
+[x] **7.4** Moderasi admin — hide/show  
+[x] **7.5** Reaksi 9 emoji — artikel/poll/quiz  
+[x] **7.6** Browse reaksi — filter per tipe  
+[x] **7.7** Homepage reaksi — section lazy  
+[x] **7.8** Bookmark list — daftar artikel tersimpan  
+[x] **7.9** Subscribe kategori — notif artikel baru  
+[x] **7.10** Share flow — native share / copy link
 
 ### §8 Gamifikasi — poin & leaderboard *(11 fitur · 12 kondisi)*
 
-[ ] **8.1** `GET /api/points/my` — 100 transaksi terakhir  
-[ ] **8.2** Export CSV — download milik sendiri  
-[ ] **8.3** Daily login — sekali per hari Jakarta  
-[ ] **8.4** Leaderboard mingguan — tab switch  
-[ ] **8.5** Leaderboard bulanan — ranking benar  
-[ ] **8.6** Leaderboard all-time — ranking benar  
-[ ] **8.7** Homepage preview — top users  
-[ ] **8.8** Activity feed — campuran aktivitas  
-[ ] **8.9** Redirect `/points` → `/activity`  
-[ ] **8.10** Admin poin — filter periode  
-[ ] **8.10** Admin poin — detail modal  
-[ ] **8.11** Admin leaderboard — snapshot ranking
+[x] **8.1** `GET /api/points/my` — 100 transaksi terakhir  
+[x] **8.2** Export CSV — download milik sendiri  
+[x] **8.3** Daily login — sekali per hari Jakarta  
+[x] **8.4** Leaderboard mingguan — tab switch  
+[x] **8.5** Leaderboard bulanan — ranking benar  
+[x] **8.6** Leaderboard all-time — ranking benar  
+[x] **8.7** Homepage preview — top users  
+[x] **8.8** Activity feed — campuran aktivitas  
+[x] **8.9** Redirect `/points` → `/activity`  
+[x] **8.10** Admin poin — filter periode  
+[x] **8.10** Admin poin — detail modal  
+[x] **8.11** Admin leaderboard — snapshot ranking
 
 ### §9 Notifikasi & email *(15 fitur · 16 kondisi)*
 
-[ ] **9.1** Bell — guest: bell hidden  
-[ ] **9.2** List — pagination cursor  
-[ ] **9.3** Unread count — badge update  
-[ ] **9.4** Mark read — badge berkurang  
-[ ] **9.5** Mark all read — semua read  
-[ ] **9.6** SSE — badge update live  
-[ ] **9.7** SSE fallback — poll saat disconnect  
-[ ] **9.8** Welcome modal — user baru saja  
-[ ] **9.9** Daily points modal — sekali/hari Jakarta  
-[ ] **9.10** Notif artikel — publish/reject ke penulis  
-[ ] **9.11** Notif review — pending ke admin  
-[ ] **9.12** Notif kontributor — approved/rejected  
-[ ] **9.13** Notif komentar — cap anti-spam  
-[ ] **9.14** Email outbox — welcome · reject · kontributor  
-[ ] **9.15** Retention — `purge:notifications`
+[x] **9.1** Bell — guest: bell hidden  
+[x] **9.2** List — pagination cursor  
+[x] **9.3** Unread count — badge update  
+[x] **9.4** Mark read — badge berkurang  
+[x] **9.5** Mark all read — semua read  
+[x] **9.6** SSE — badge update live  
+[x] **9.7** SSE fallback — poll saat disconnect  
+[x] **9.8** Welcome modal — user baru saja  
+[x] **9.9** Daily points modal — sekali/hari Jakarta  
+[x] **9.10** Notif artikel — publish/reject ke penulis  
+[x] **9.11** Notif review — pending ke admin  
+[x] **9.12** Notif kontributor — approved/rejected  
+[x] **9.13** Notif komentar — cap anti-spam  
+[x] **9.14** Email outbox — welcome · reject · kontributor  
+[x] **9.15** Retention — `purge:notifications`
 
 ### §10 Newsletter *(6 fitur · 8 kondisi)*
 
-[ ] **10.1** Footer subscribe — validasi email  
-[ ] **10.1** Footer subscribe — toast sukses  
-[ ] **10.2** Subscribe API — duplikat handled  
-[ ] **10.3** Unsubscribe — wajib akun sama  
-[ ] **10.4** Status subscription — aktif/nonaktif  
-[ ] **10.5** Admin newsletter — list · delete  
-[ ] **10.6** Export subscriber — CSV admin only
+[x] **10.1** Footer subscribe — validasi email  
+[x] **10.1** Footer subscribe — toast sukses  
+[x] **10.2** Subscribe API — duplikat handled  
+[x] **10.3** Unsubscribe — wajib akun sama  
+[x] **10.4** Status subscription — aktif/nonaktif  
+[x] **10.5** Admin newsletter — list · delete  
+[x] **10.6** Export subscriber — CSV admin only
 
 ### §11 Kontributor *(5 fitur · 6 kondisi)*
 
-[ ] **11.1** Apply — form submit  
-[ ] **11.2** Status — pending/approved/rejected  
-[ ] **11.3** Admin review — approve/reject + notif  
-[ ] **11.4** Gate submit — USER ditolak  
-[ ] **11.4** Gate submit — CONTRIBUTOR lolos  
-[ ] **11.5** CTA navbar — label sesuai role
+[x] **11.1** Apply — form submit  
+[x] **11.2** Status — pending/approved/rejected  
+[x] **11.3** Admin review — approve/reject + notif  
+[x] **11.4** Gate submit — USER ditolak  
+[x] **11.4** Gate submit — CONTRIBUTOR lolos  
+[x] **11.5** CTA navbar — label sesuai role
 
 ### §12 Homepage & discovery *(14 fitur · 17 kondisi)*
 
-[ ] **12.1** Shell — semua section `data-testid`  
-[ ] **12.2** Wave 1 — featured · trending · hari ini  
-[ ] **12.3** Wave 2 — lazy on scroll  
-[ ] **12.4** Wave 3 — isolated error per section  
-[ ] **12.5** Wave 4 — lazy on scroll  
-[ ] **12.6** Hero search — submit → `/search?q=`  
-[ ] **12.7** Navbar search — mobile + desktop  
-[ ] **12.8** Global search — artikel + kuis + poll  
-[ ] **12.9** Trending — sort `weeklyViewCount`  
-[ ] **12.10** Explore — tag populer + kategori  
-[ ] **12.11** Tag populer API — data konsisten  
-[ ] **12.12** Admin homepage — featured/hot picks  
-[ ] **12.13** Empty states — tidak crash saat kosong  
-[ ] **12.14** Skeleton — min-height stabil
+[x] **12.1** Shell — semua section `data-testid`  
+[x] **12.2** Wave 1 — featured · trending · hari ini  
+[x] **12.3** Wave 2 — lazy on scroll  
+[x] **12.4** Wave 3 — isolated error per section  
+[x] **12.5** Wave 4 — lazy on scroll  
+[x] **12.6** Hero search — submit → `/search?q=`  
+[x] **12.7** Navbar search — mobile + desktop  
+[x] **12.8** Global search — artikel + kuis + poll  
+[x] **12.9** Trending — sort `weeklyViewCount`  
+[x] **12.10** Explore — tag populer + kategori  
+[x] **12.11** Tag populer API — data konsisten  
+[x] **12.12** Admin homepage — featured/hot picks  
+[x] **12.13** Empty states — tidak crash saat kosong  
+[x] **12.14** Skeleton — min-height stabil
 
 ### §13 Integrasi LMS teaser *(6 fitur · 7 kondisi)*
 
-[ ] **13.1** LMS teaser API — `source: placeholder` saat LMS down  
-[ ] **13.2** Placeholder UI — coming soon + CTA  
-[ ] **13.3** Live courses — kartu kursus saat API live  
-[ ] **13.4** Domain — dev vs kursus.jepangku.com  
-[ ] **13.5** UTM links — utm_source/medium/campaign  
-[ ] **13.6** Hero — external link LMS
+[x] **13.1** LMS teaser API — `source: placeholder` saat LMS down  
+[x] **13.2** Placeholder UI — coming soon + CTA  
+[x] **13.3** Live courses — kartu kursus saat API live  
+[x] **13.4** Domain — dev vs kursus.jepangku.com  
+[x] **13.5** UTM links — utm_source/medium/campaign  
+[x] **13.6** Hero — external link LMS
 
 ### §14 Iklan & monetisasi *(4 fitur · 5 kondisi)*
 
-[ ] **14.1** Homepage ad slot — banner atau null  
-[ ] **14.2** Artikel sidebar — slot `article-sidebar`  
-[ ] **14.3** Admin CRUD — aktif/nonaktif · jadwal  
-[ ] **14.4** Client cache — tidak over-fetch
+[x] **14.1** Homepage ad slot — banner atau null  
+[x] **14.2** Artikel sidebar — slot `article-sidebar`  
+[x] **14.3** Admin CRUD — aktif/nonaktif · jadwal  
+[x] **14.4** Client cache — tidak over-fetch
 
 ### §15 Admin — dashboard & monitoring *(6 fitur · 9 kondisi)*
 
-[ ] **15.1** Dashboard — stats · quick actions  
-[ ] **15.2** Stats API — angka konsisten  
-[ ] **15.3** Activity log — audit artikel & kontributor  
-[ ] **15.4** Grafik registrasi — growth chart  
-[ ] **15.5** Manajemen user — list · detail · role  
-[ ] **15.6** User growth API — data chart
+[x] **15.1** Dashboard — stats · quick actions  
+[x] **15.2** Stats API — angka konsisten  
+[x] **15.3** Activity log — audit artikel & kontributor  
+[x] **15.4** Grafik registrasi — growth chart  
+[x] **15.5** Manajemen user — list · detail · role  
+[x] **15.6** User growth API — data chart
 
 ### §16 Admin — konten & taxonomi *(5 fitur · 5 kondisi)*
 
-[ ] **16.1** Kategori CRUD — create/edit/delete  
-[ ] **16.2** Tag CRUD — slug unik  
-[ ] **16.3** Info pages CMS — edit konten statis  
-[ ] **16.4** Social links CMS — tampil di footer  
-[ ] **16.5** Footer social — link benar
+[x] **16.1** Kategori CRUD — create/edit/delete  
+[x] **16.2** Tag CRUD — slug unik  
+[x] **16.3** Info pages CMS — edit konten statis  
+[x] **16.4** Social links CMS — tampil di footer  
+[x] **16.5** Footer social — link benar
 
 ### §17 Admin — analytics *(5 fitur · 5 kondisi)*
 
-[ ] **17.1** Ringkasan — KPI utama  
-[ ] **17.2** Content ranking — sort performa  
-[ ] **17.3** Per kategori — breakdown  
-[ ] **17.4** Per artikel — grafik views harian  
-[ ] **17.5** Artikel stats API — aggregate
+[x] **17.1** Ringkasan — KPI utama  
+[x] **17.2** Content ranking — sort performa  
+[x] **17.3** Per kategori — breakdown  
+[x] **17.4** Per artikel — grafik views harian  
+[x] **17.5** Artikel stats API — aggregate
 
 ### §18 Halaman statis & navigasi *(12 fitur · 14 kondisi)*
 
-[ ] **18.1** `/about` — konten dari CMS/info  
-[ ] **18.2** `/contact` — form/link  
-[ ] **18.3** `/advertise`  
-[ ] **18.4** `/media-partner`  
-[ ] **18.5** `/career`  
-[ ] **18.6** `/internship`  
-[ ] **18.7** `/privacy-policy`  
-[ ] **18.8** `/terms-of-service`  
-[ ] **18.9** `/disclaimer`  
-[ ] **18.10** Navbar & sidebar — mobile drawer · kategori  
-[ ] **18.11** Footer — link jelajahi · newsletter  
-[ ] **18.12** `GET /api/pages/[slug]` — dynamic content
+[x] **18.1** `/about` — konten dari CMS/info  
+[x] **18.2** `/contact` — form/link  
+[x] **18.3** `/advertise`  
+[x] **18.4** `/media-partner`  
+[x] **18.5** `/career`  
+[x] **18.6** `/internship`  
+[x] **18.7** `/privacy-policy`  
+[x] **18.8** `/terms-of-service`  
+[x] **18.9** `/disclaimer`  
+[x] **18.10** Navbar & sidebar — mobile drawer · kategori  
+[x] **18.11** Footer — link jelajahi · newsletter  
+[x] **18.12** `GET /api/pages/[slug]` — dynamic content
 
 ### §19 Upload & media *(4 fitur · 4 kondisi)*
 
-[ ] **19.1** Upload — validasi MIME/size  
-[ ] **19.2** R2 — URL publik accessible  
-[ ] **19.3** Image moderation — tolak konten tidak aman  
-[ ] **19.4** Rich text editor — embed gambar
+[x] **19.1** Upload — validasi MIME/size  
+[x] **19.2** R2 — URL publik accessible  
+[x] **19.3** Image moderation — tolak konten tidak aman  
+[x] **19.4** Rich text editor — embed gambar
 
 ### §20 Non-functional *(29 kondisi)*
 
@@ -359,7 +359,7 @@
 ## Sudah Diimplementasi — Verified
 
 ### Auth & akun — Clerk bridge
-
+    
 [x] `@clerk/nextjs` + `/sign-in`, `/sign-up`  
 [x] JIT user provisioning (`lib/auth/clerk-user.ts`)  
 [x] `SessionUser` abstraction + feature flag `AUTH_PROVIDER`  

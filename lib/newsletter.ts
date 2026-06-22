@@ -2,17 +2,12 @@ import { randomBytes } from 'node:crypto';
 import type { NewsletterSubscription } from '@prisma/client';
 import { db } from '@/lib/db';
 import { queueNewsletterConfirmEmail } from '@/lib/newsletter/email';
+import {
+  isValidNewsletterEmail,
+  normalizeNewsletterEmail,
+} from '@/lib/newsletter/validation';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export function normalizeNewsletterEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-export function isValidNewsletterEmail(email: string): boolean {
-  const normalized = normalizeNewsletterEmail(email);
-  return normalized.length <= 320 && EMAIL_RE.test(normalized);
-}
+export { isValidNewsletterEmail, normalizeNewsletterEmail } from '@/lib/newsletter/validation';
 
 export function displayNameFromEmail(email: string): string {
   const local = email.split('@')[0] ?? 'Pembaca';

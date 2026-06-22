@@ -86,7 +86,7 @@ export default function AdminSocialLinksPage() {
     <AdminPageLayout
       testId="admin-social-links"
       title="Sosial Media"
-      subtitle="Kelola link profil yang tampil di navbar dan sidebar portal"
+      subtitle="Kelola link profil yang tampil di navbar, sidebar, dan footer portal"
       headerActions={
         <Button onClick={handleSave} disabled={loading || saving} data-testid="social-save">
           {saving ? "Menyimpan..." : "Simpan Perubahan"}

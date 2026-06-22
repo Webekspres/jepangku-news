@@ -27,6 +27,31 @@ test.describe("Newsletter — footer subscribe", () => {
     await expect(page.getByTestId("newsletter-success")).toHaveCount(0);
   });
 
+  test("§16.5 footer social links are visible with valid external hrefs", async ({
+    page,
+    request,
+  }) => {
+    const apiRes = await request.get("/api/social-links");
+    expect(apiRes.ok()).toBeTruthy();
+    const { links } = (await apiRes.json()) as {
+      links: { id: string; href: string }[];
+    };
+    test.skip(!links?.length, "No enabled social links in database");
+
+    await page.goto("/");
+    await scrollToFooter(page);
+    await expect(page.getByTestId("footer-social-links")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    for (const link of links) {
+      const anchor = page.getByTestId(`footer-social-${link.id}`);
+      await expect(anchor).toBeVisible();
+      await expect(anchor).toHaveAttribute("href", link.href);
+      await expect(anchor).toHaveAttribute("target", "_blank");
+    }
+  });
+
   test("POST /api/newsletter/subscribe rejects empty email", async ({ request }) => {
     const res = await request.post("/api/newsletter/subscribe", { data: { email: "" } });
     expect(res.status()).toBe(400);
@@ -40,7 +65,7 @@ test.describe("Newsletter — footer subscribe", () => {
     expect([200, 201, 429]).toContain(res.status());
     if (res.ok()) {
       const data = await res.json();
-      expect(data).toHaveProperty("subscription");
+      expect(data).toHaveProperty("ok", true);
     }
   });
 

@@ -58,6 +58,7 @@ export default function QuizLeaderboard({ slug }: QuizLeaderboardProps) {
               size="sm"
               variant={period === opt.value ? "default" : "outline"}
               onClick={() => setPeriod(opt.value)}
+              data-testid={`quiz-lb-period-${opt.value}`}
             >
               {opt.label}
             </Button>

@@ -79,6 +79,28 @@ test.describe("Search — navbar overlay", () => {
   });
 });
 
+test.describe("Search — navbar desktop", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/");
+    await expect(page.getByTestId("homepage")).toBeVisible();
+  });
+
+  test("desktop navbar search opens overlay and submits query", async ({
+    page,
+  }) => {
+    await expect(page.getByTestId("navbar-search-btn")).toBeVisible();
+    await page.getByTestId("navbar-search-btn").click();
+    await expect(page.getByTestId("navbar-search-overlay")).toBeVisible({
+      timeout: 10_000,
+    });
+    await page.getByTestId("navbar-search-input").fill("budaya");
+    await page.getByTestId("navbar-search-submit").click();
+    await expect(page).toHaveURL(/\/search\?q=budaya/, { timeout: 15_000 });
+    await expect(page.getByTestId("search-page")).toBeVisible();
+  });
+});
+
 test.describe("Search — global search page", () => {
   test("search page shows empty query prompt", async ({ page }) => {
     await page.goto("/search");
@@ -113,6 +135,44 @@ test.describe("Search — global search page", () => {
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toHaveProperty("articles");
+    expect(data).toHaveProperty("quizzes");
+    expect(data).toHaveProperty("polls");
+    expect(Array.isArray(data.articles)).toBe(true);
+    expect(Array.isArray(data.quizzes)).toBe(true);
+    expect(Array.isArray(data.polls)).toBe(true);
+  });
+
+  test("search page shows article quiz and poll sections when results exist", async ({
+    page,
+    request,
+  }) => {
+    const res = await request.get("/api/search?q=a&limit=5");
+    test.skip(!res.ok(), "Search API unavailable");
+    const data = await res.json();
+    const hasAny =
+      (data.articles?.length ?? 0) > 0 ||
+      (data.quizzes?.length ?? 0) > 0 ||
+      (data.polls?.length ?? 0) > 0;
+    test.skip(!hasAny, "No search results in database for broad query");
+
+    await page.goto("/search?q=a");
+    await expect(page.getByTestId("search-page")).toBeVisible();
+
+    if (data.articles?.length > 0) {
+      await expect(page.getByTestId("search-articles")).toBeVisible({
+        timeout: 20_000,
+      });
+    }
+    if (data.quizzes?.length > 0) {
+      await expect(page.getByTestId("search-quizzes")).toBeVisible({
+        timeout: 20_000,
+      });
+    }
+    if (data.polls?.length > 0) {
+      await expect(page.getByTestId("search-polls")).toBeVisible({
+        timeout: 20_000,
+      });
+    }
   });
 
   test("articles list page has local search", async ({ page }) => {

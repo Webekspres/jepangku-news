@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { isValidNewsletterEmail } from "@/lib/newsletter/validation";
 
 type FooterNewsletterFormProps = {
   defaultEmail?: string;
@@ -20,6 +21,10 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
     const trimmed = email.trim();
     if (!trimmed) {
       toast.error("Masukkan alamat email");
+      return;
+    }
+    if (!isValidNewsletterEmail(trimmed)) {
+      toast.error("Alamat email tidak valid");
       return;
     }
 

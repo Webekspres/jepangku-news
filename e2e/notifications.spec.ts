@@ -76,8 +76,8 @@ test.describe('Notifications — authenticated USER', () => {
     const res = await page.request.get('/api/notifications/unread-count');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
-    expect(data).toHaveProperty('count');
-    expect(typeof data.count).toBe('number');
+    expect(data).toHaveProperty('unreadCount');
+    expect(typeof data.unreadCount).toBe('number');
   });
 
   test('session API returns modal flags for USER', async ({ page }) => {

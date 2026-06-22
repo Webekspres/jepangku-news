@@ -6,6 +6,14 @@ import {
   type IntegrationContext,
 } from "../helpers/integration";
 
+function uniqueSubscribeInit(): RequestInit {
+  return {
+    headers: {
+      "x-forwarded-for": `newsletter-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    },
+  };
+}
+
 describe("API — newsletter", () => {
   let ctx: IntegrationContext;
 
@@ -16,22 +24,32 @@ describe("API — newsletter", () => {
   describe("POST /api/newsletter/subscribe", () => {
     it("returns 400 for invalid email", async () => {
       if (skipUnless(ctx, "server")) return;
-      const res = await clientFor(ctx).post("/api/newsletter/subscribe", {
-        email: "not-an-email",
-      });
+      const res = await clientFor(ctx).post(
+        "/api/newsletter/subscribe",
+        { email: "not-an-email" },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(400);
     });
 
     it("returns 400 for empty email", async () => {
       if (skipUnless(ctx, "server")) return;
-      const res = await clientFor(ctx).post("/api/newsletter/subscribe", { email: "" });
+      const res = await clientFor(ctx).post(
+        "/api/newsletter/subscribe",
+        { email: "" },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(400);
     });
 
     it("subscribes guest with valid email", async () => {
       if (skipUnless(ctx, "server")) return;
       const email = `newsletter+${Date.now()}@jepangku.com`;
-      const res = await clientFor(ctx).post("/api/newsletter/subscribe", { email });
+      const res = await clientFor(ctx).post(
+        "/api/newsletter/subscribe",
+        { email },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(200);
       const body = (await res.json()) as { ok: boolean; message: string };
       expect(body.ok).toBe(true);
@@ -42,7 +60,11 @@ describe("API — newsletter", () => {
       if (skipUnless(ctx, "server")) return;
       const local = `MixedCase${Date.now()}`;
       const email = `${local}@Jepangku.COM`;
-      const res = await clientFor(ctx).post("/api/newsletter/subscribe", { email });
+      const res = await clientFor(ctx).post(
+        "/api/newsletter/subscribe",
+        { email },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(200);
     });
 
@@ -50,8 +72,9 @@ describe("API — newsletter", () => {
       if (skipUnless(ctx, "server")) return;
       const email = `dup+${Date.now()}@jepangku.com`;
       const api = clientFor(ctx);
-      const first = await api.post("/api/newsletter/subscribe", { email });
-      const second = await api.post("/api/newsletter/subscribe", { email });
+      const init = uniqueSubscribeInit();
+      const first = await api.post("/api/newsletter/subscribe", { email }, init);
+      const second = await api.post("/api/newsletter/subscribe", { email }, init);
       expect(first.status).toBe(200);
       expect(second.status).toBe(200);
     });
@@ -60,25 +83,31 @@ describe("API — newsletter", () => {
       if (skipUnless(ctx, "auth")) return;
       const me = await clientFor(ctx, "USER").get("/api/auth/me");
       const user = (await me.json()) as { email: string };
-      const res = await clientFor(ctx, "USER").post("/api/newsletter/subscribe", {
-        email: user.email,
-      });
+      const res = await clientFor(ctx, "USER").post(
+        "/api/newsletter/subscribe",
+        { email: user.email },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(200);
     });
 
     it("rejects email without @ symbol", async () => {
       if (skipUnless(ctx, "server")) return;
-      const res = await clientFor(ctx).post("/api/newsletter/subscribe", {
-        email: "plainaddress",
-      });
+      const res = await clientFor(ctx).post(
+        "/api/newsletter/subscribe",
+        { email: "plainaddress" },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(400);
     });
 
     it("rejects extremely long email", async () => {
       if (skipUnless(ctx, "server")) return;
-      const res = await clientFor(ctx).post("/api/newsletter/subscribe", {
-        email: `${"a".repeat(300)}@example.com`,
-      });
+      const res = await clientFor(ctx).post(
+        "/api/newsletter/subscribe",
+        { email: `${"a".repeat(315)}@x.com` },
+        uniqueSubscribeInit(),
+      );
       expect(res.status).toBe(400);
     });
   });

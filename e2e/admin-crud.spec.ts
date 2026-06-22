@@ -137,4 +137,30 @@ test.describe("Admin CRUD — ADMIN smoke", () => {
     const data = await res.json();
     expect(Array.isArray(data)).toBe(true);
   });
+
+  test("admin homepage page loads featured and hot tabs", async ({ page }) => {
+    await page.goto("/admin/homepage");
+    await expect(page.getByTestId("admin-homepage-page")).toBeVisible({
+      timeout: 25_000,
+    });
+    await expect(page.getByTestId("homepage-tab-articles")).toBeVisible();
+    await expect(page.getByTestId("homepage-tab-featured")).toBeVisible();
+    await expect(page.getByTestId("homepage-tab-hot")).toBeVisible();
+    await expect(page.getByTestId("homepage-search")).toBeEditable({
+      timeout: 15_000,
+    });
+
+    await page.getByTestId("homepage-tab-featured").click();
+    await expect(page.getByText("PILIHAN UTAMA (0)")).toBeVisible();
+    await page.getByTestId("homepage-tab-hot").click();
+    await expect(page.getByText(/^HOT \(\d+\)$/)).toBeVisible();
+  });
+
+  test("admin homepage API returns featured and hot arrays", async ({ page }) => {
+    const res = await page.request.get("/api/admin/homepage");
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(Array.isArray(data.featured)).toBe(true);
+    expect(Array.isArray(data.hot)).toBe(true);
+  });
 });

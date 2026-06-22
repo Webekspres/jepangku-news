@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     db.article.count(),
     db.article.count({ where: { status: 'PENDING_REVIEW' } }),
     db.article.count({ where: { status: 'PUBLISHED' } }),
-    db.user.count({ where: { role: 'USER' } }),
+    db.user.count(),
     db.quiz.count(),
     db.poll.count(),
     getDashboardChartData(),

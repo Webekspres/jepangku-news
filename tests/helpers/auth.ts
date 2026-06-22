@@ -10,6 +10,25 @@ export function isClerkAuthConfigured(): boolean {
   return Boolean(process.env.CLERK_SECRET_KEY?.trim());
 }
 
+/** Align portal DB roles with Clerk test fixtures (idempotent). */
+export async function ensureClerkTestAccountRoles(): Promise<void> {
+  if (!process.env.DATABASE_URL?.trim()) return;
+
+  const { db } = await import("@/lib/db");
+  const fixes: Array<{ email: string; role: "USER" | "CONTRIBUTOR" | "ADMIN" }> = [
+    { email: CLERK_TEST_ACCOUNTS.USER.email, role: "USER" },
+    { email: CLERK_TEST_ACCOUNTS.CONTRIBUTOR.email, role: "CONTRIBUTOR" },
+    { email: CLERK_TEST_ACCOUNTS.ADMIN.email, role: "ADMIN" },
+  ];
+
+  for (const { email, role } of fixes) {
+    await db.user.updateMany({
+      where: { email },
+      data: { role },
+    });
+  }
+}
+
 /** Mint a Clerk session JWT for integration API calls (cached per role). */
 export async function getClerkSessionToken(
   role: Exclude<ClerkTestRole, "guest">,
@@ -23,20 +42,29 @@ export async function getClerkSessionToken(
   const account = CLERK_TEST_ACCOUNTS[role];
   const clerk = createClerkClient({ secretKey });
 
-  const users = await clerk.users.getUserList({
-    emailAddress: [account.email],
-    limit: 1,
-  });
-  const user = users.data[0];
-  if (!user) return null;
+  try {
+    const users = await clerk.users.getUserList({
+      emailAddress: [account.email],
+      limit: 1,
+    });
+    const user = users.data[0];
+    if (!user) return null;
 
-  const session = await clerk.sessions.createSession({ userId: user.id });
-  const tokenResult = await clerk.sessions.getToken(session.id, "session");
-  const jwt = tokenResult?.jwt;
-  if (!jwt) return null;
+    const session = await clerk.sessions.createSession({ userId: user.id });
+    // Default session JWT — do not pass a named template (e.g. "session" → 404).
+    const tokenResult = await clerk.sessions.getToken(session.id);
+    const jwt = tokenResult?.jwt;
+    if (!jwt) return null;
 
-  tokenCache.set(role, jwt);
-  return jwt;
+    tokenCache.set(role, jwt);
+    return jwt;
+  } catch (error) {
+    console.warn(
+      `Clerk session token unavailable for ${role}:`,
+      error instanceof Error ? error.message : String(error),
+    );
+    return null;
+  }
 }
 
 /** Preload session tokens for USER, CONTRIBUTOR, and ADMIN. */

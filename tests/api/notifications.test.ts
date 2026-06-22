@@ -59,8 +59,8 @@ describe("API — notifications", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/notifications/unread-count");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { count: number };
-      expect(typeof data.count).toBe("number");
+      const data = (await res.json()) as { unreadCount: number };
+      expect(typeof data.unreadCount).toBe("number");
     });
   });
 
@@ -117,12 +117,12 @@ describe("API — notifications", () => {
       expect(res.status).toBe(200);
       const session = (await res.json()) as {
         jakartaDate: string;
-        showWelcomeModal: boolean;
-        showDailyPointsModal: boolean;
+        showWelcome: boolean;
+        showDailyPoints: boolean;
       };
       expect(session.jakartaDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(typeof session.showWelcomeModal).toBe("boolean");
-      expect(typeof session.showDailyPointsModal).toBe("boolean");
+      expect(typeof session.showWelcome).toBe("boolean");
+      expect(typeof session.showDailyPoints).toBe("boolean");
     });
 
     it("PATCH session dismiss requires valid action", async () => {
@@ -137,8 +137,8 @@ describe("API — notifications", () => {
         dismissWelcome: true,
       });
       expect(res.status).toBe(200);
-      const session = (await res.json()) as { showWelcomeModal: boolean };
-      expect(session.showWelcomeModal).toBe(false);
+      const session = (await res.json()) as { showWelcome: boolean };
+      expect(session.showWelcome).toBe(false);
     });
 
     it("PATCH session can dismiss daily points modal", async () => {

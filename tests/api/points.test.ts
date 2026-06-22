@@ -122,10 +122,76 @@ describe("API — points", () => {
       expect(res.status).toBe(200);
     });
 
+    it("GET /api/leaderboard supports monthly period", async () => {
+      if (skipUnless(ctx, "server")) return;
+      const res = await clientFor(ctx).get("/api/leaderboard?period=monthly&limit=5");
+      expect(res.status).toBe(200);
+      const data = (await res.json()) as { period: string; items: { rank: number }[] };
+      expect(data.period).toBe("monthly");
+      if (data.items.length > 1) {
+        expect(data.items[0]!.rank).toBeLessThan(data.items[1]!.rank);
+      }
+    });
+
     it("GET /api/leaderboard supports all-time period", async () => {
       if (skipUnless(ctx, "server")) return;
-      const res = await clientFor(ctx).get("/api/leaderboard?period=all-time&limit=5");
+      const res = await clientFor(ctx).get("/api/leaderboard?period=sepanjang-waktu&limit=5");
       expect(res.status).toBe(200);
+      const data = (await res.json()) as { period: string; items: { rank: number }[] };
+      expect(data.period).toBe("sepanjang-waktu");
+      if (data.items.length > 1) {
+        expect(data.items[0]!.rank).toBeLessThan(data.items[1]!.rank);
+      }
+    });
+  });
+
+  describe("activity feed", () => {
+    it("GET /api/activity/feed returns 401 for guest", async () => {
+      if (skipUnless(ctx, "server")) return;
+      const res = await clientFor(ctx).get("/api/activity/feed");
+      expect(res.status).toBe(401);
+    });
+
+    it("GET /api/activity/feed returns items for USER", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "USER").get("/api/activity/feed");
+      expect(res.status).toBe(200);
+      const data = (await res.json()) as { items: { kind: string }[] };
+      expect(Array.isArray(data.items)).toBe(true);
+    });
+  });
+
+  describe("admin gamification", () => {
+    it("GET /api/admin/points returns 403 for USER", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "USER").get("/api/admin/points?period=30d");
+      expect(res.status).toBe(403);
+    });
+
+    it("GET /api/admin/points returns summary for ADMIN", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "ADMIN").get("/api/admin/points?period=7d");
+      expect(res.status).toBe(200);
+      const data = (await res.json()) as {
+        period: string;
+        recentTransactions: unknown[];
+      };
+      expect(data.period).toBe("7d");
+      expect(Array.isArray(data.recentTransactions)).toBe(true);
+    });
+
+    it("GET /api/admin/leaderboard returns snapshot for ADMIN", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "ADMIN").get(
+        "/api/admin/leaderboard?period=weekly&limit=10",
+      );
+      expect(res.status).toBe(200);
+      const data = (await res.json()) as {
+        items: { rank: number }[];
+        stats: { participants: number };
+      };
+      expect(Array.isArray(data.items)).toBe(true);
+      expect(typeof data.stats.participants).toBe("number");
     });
   });
 

@@ -76,6 +76,14 @@ test.describe("Gamification — activity & points (auth)", () => {
     await expectGuestRedirectToSignIn(page, "/activity");
   });
 
+  test("/points redirects to /activity", async ({ page }) => {
+    test.skip(!isE2EAuthAvailable(), E2E_AUTH_SKIP_REASON);
+    await signInAs(page, "USER");
+    await page.goto("/points");
+    await expect(page).toHaveURL(/\/activity/, { timeout: 15_000 });
+    await expect(page.getByTestId("activity-page")).toBeVisible();
+  });
+
   test("GET /api/points/my returns 401 for guest", async ({ request }) => {
     const res = await request.get("/api/points/my");
     expect(res.status()).toBe(401);

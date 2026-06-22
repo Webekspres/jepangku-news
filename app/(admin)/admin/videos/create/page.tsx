@@ -51,6 +51,7 @@ export default function AdminVideoCreatePage() {
       label="Jepangku TV"
       backHref="/admin/videos"
       backLabel="Daftar Video"
+      testId="admin-create-video-page"
     >
       <AdminCard>
           <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
@@ -61,6 +62,7 @@ export default function AdminVideoCreatePage() {
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="Judul video"
                 required
+                data-testid="video-title-input"
               />
             </div>
 
@@ -71,6 +73,7 @@ export default function AdminVideoCreatePage() {
                 onChange={(e) => setForm((f) => ({ ...f, youtubeUrl: e.target.value }))}
                 placeholder="https://youtube.com/watch?v=... atau dQw4w9WgXcQ"
                 required
+                data-testid="video-youtube-input"
               />
             </div>
 
@@ -113,7 +116,7 @@ export default function AdminVideoCreatePage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} data-testid="create-video-submit">
                 {saving ? "Menyimpan..." : "Simpan Video"}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.push("/admin/videos")}>

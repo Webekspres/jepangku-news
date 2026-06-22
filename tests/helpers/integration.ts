@@ -1,6 +1,7 @@
 import { expect } from "bun:test";
 import type { ClerkTestRole } from "../fixtures/clerk-accounts";
-import { preloadClerkTokens, isClerkAuthConfigured } from "./auth";
+import { CLERK_TEST_ACCOUNTS } from "../fixtures/clerk-accounts";
+import { preloadClerkTokens, isClerkAuthConfigured, ensureClerkTestAccountRoles } from "./auth";
 import { createApiClient } from "./api-client";
 import { getNewsBaseUrl, isNewsServerUp } from "./server";
 
@@ -18,6 +19,9 @@ export async function setupIntegration(): Promise<IntegrationContext> {
 
   const baseUrl = getNewsBaseUrl();
   const serverUp = await isNewsServerUp(baseUrl);
+  if (serverUp && isClerkAuthConfigured()) {
+    await ensureClerkTestAccountRoles();
+  }
   const tokens = serverUp ? await preloadClerkTokens() : {};
   const authAvailable =
     isClerkAuthConfigured() && Object.keys(tokens).length > 0;
@@ -59,6 +63,15 @@ export function clientFor(
 ) {
   if (role === "guest") return createApiClient(null);
   const token = ctx.tokens[role];
-  if (!token) throw new Error(`No Clerk token for role ${role}`);
+  if (!token) {
+    throw new Error(`No Clerk token for role ${role} — create ${CLERK_TEST_ACCOUNTS[role as Exclude<ClerkTestRole, "guest">]?.email ?? role} in Clerk dev`);
+  }
   return createApiClient(token);
+}
+
+export function hasRoleToken(
+  ctx: IntegrationContext,
+  role: Exclude<ClerkTestRole, "guest">,
+): boolean {
+  return Boolean(ctx.tokens[role]);
 }

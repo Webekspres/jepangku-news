@@ -25,16 +25,16 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 1.1 | Login via Clerk | `/sign-in` | ✅ | [ ] Email/password · [ ] OAuth · [ ] Redirect setelah login |
-| 1.2 | Registrasi via Clerk | `/sign-up` | ✅ | [ ] Buat akun baru · [ ] Verifikasi email · [ ] JIT provisioning News DB |
-| 1.3 | Logout | Navbar / API | ✅ `POST /api/auth/logout` | [ ] Session hilang · [ ] Redirect guest |
-| 1.4 | Session user | `GET /api/auth/me` | ✅ | [ ] Data user benar · [ ] 401 untuk guest |
-| 1.5 | Redirect legacy | `/login`, `/register` | ✅ | [ ] Redirect ke Clerk |
-| 1.6 | API auth lokal deprecated | `POST /api/auth/login`, `/register` | ✅ (410) | [ ] Mengembalikan 410 |
-| 1.7 | Proteksi route user | `/profile`, `/bookmarks`, dll. | ✅ `proxy.ts` | [ ] Guest diarahkan ke sign-in |
-| 1.8 | Proteksi route admin | `/admin/**` | ✅ | [ ] Non-admin ditolak · [ ] Admin masuk |
-| 1.9 | Core JWT bridge | cookie `core_session` | ✅ `lib/core/session.ts` | [ ] Token terbit setelah login · [ ] Claims XP/role |
-| 1.10 | Core down graceful | — | ✅ runbook | [ ] Portal tetap jalan tanpa Core · [ ] Pesan degrade |
+| 1.1 | Login via Clerk | `/sign-in` | ✅ | [x] Email/password · [x] OAuth · [x] Redirect setelah login |
+| 1.2 | Registrasi via Clerk | `/sign-up` | ✅ | [x] Buat akun baru · [x] Verifikasi email · [x] JIT provisioning News DB |
+| 1.3 | Logout | Navbar / API | ✅ `POST /api/auth/logout` | [x] Session hilang · [x] Redirect guest |
+| 1.4 | Session user | `GET /api/auth/me` | ✅ | [x] Data user benar · [x] 401 untuk guest |
+| 1.5 | Redirect legacy | `/login`, `/register` | ✅ | [x] Redirect ke Clerk |
+| 1.6 | API auth lokal deprecated | `POST /api/auth/login`, `/register` | ✅ (410) | [x] Mengembalikan 410 |
+| 1.7 | Proteksi route user | `/profile`, `/bookmarks`, dll. | ✅ `proxy.ts` | [x] Guest diarahkan ke sign-in |
+| 1.8 | Proteksi route admin | `/admin/**` | ✅ | [x] Non-admin ditolak · [x] Admin masuk |
+| 1.9 | Core JWT bridge | cookie `core_session` | ✅ `lib/core/session.ts` | [x] Token terbit setelah login · [x] Claims XP/role |
+| 1.10 | Core down graceful | — | ✅ runbook | [x] Portal tetap jalan tanpa Core · [x] Pesan degrade |
 
 ---
 
@@ -42,14 +42,14 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 2.1 | Profil milik sendiri | `/profile` 🔒 | ✅ | [ ] Tampil nama, username, avatar, poin |
-| 2.2 | Edit profil | `/profile/edit` 🔒 | ✅ | [ ] Update display name · [ ] Validasi field |
-| 2.3 | Upload avatar (crop) | `/profile/edit` + upload | ✅ `POST /api/upload` | [ ] Crop & simpan · [ ] Tampil di navbar |
-| 2.4 | Ganti username | API profile | ✅ cooldown 14 hari | [ ] Sukses · [ ] Tolak jika < 14 hari |
-| 2.5 | Profil publik penulis | `/profile/[username]` | ✅ | [ ] Statistik artikel · [ ] Daftar artikel publik |
-| 2.6 | API profil publik | `GET /api/profile/[username]` | ✅ | [ ] 404 user tidak ada |
-| 2.7 | Gamifikasi user | `GET /api/user/gamification` | ✅ | [ ] Saldo poin · [ ] Sinkron navbar |
-| 2.8 | Update profil API | `PATCH /api/user/profile` | ✅ | [ ] Persist ke DB |
+| 2.1 | Profil milik sendiri | `/profile` 🔒 | ✅ | [x] Tampil nama, username, avatar, poin |
+| 2.2 | Edit profil | `/profile/edit` 🔒 | ✅ | [x] Update display name · [x] Validasi field |
+| 2.3 | Upload avatar (crop) | `/profile/edit` + upload | ✅ `POST /api/upload` | [x] Crop & simpan · [x] Tampil di navbar |
+| 2.4 | Ganti username | API profile | ✅ cooldown 14 hari | [x] Sukses · [x] Tolak jika < 14 hari |
+| 2.5 | Profil publik penulis | `/profile/[username]` | ✅ | [x] Statistik artikel · [x] Daftar artikel publik |
+| 2.6 | API profil publik | `GET /api/profile/[username]` | ✅ | [x] 404 user tidak ada |
+| 2.7 | Gamifikasi user | `GET /api/user/gamification` | ✅ | [x] Saldo poin · [x] Sinkron navbar |
+| 2.8 | Update profil API | `PATCH /api/user/profile` | ✅ | [x] Persist ke DB |
 
 ---
 
@@ -57,28 +57,28 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 3.1 | Daftar artikel publik | `/articles` | ✅ | [ ] Pagination/filter kategori · [ ] Kartu artikel |
-| 3.2 | Detail artikel | `/articles/[slug]` | ✅ | [ ] Konten HTML aman · [ ] Metadata SEO |
-| 3.3 | Filter kategori | `/articles?category=` | ✅ | [ ] Filter benar |
-| 3.4 | Read complete (+2 poin) | scroll + API | ✅ `POST .../read-complete` | [ ] Sekali per artikel · [ ] Poin masuk ledger |
-| 3.5 | Share artikel (+5 poin) | share UI + API | ✅ `POST .../share` | [ ] Idempotensi share |
-| 3.6 | Bookmark (+1 poin) | detail + API | ✅ `POST/DELETE /api/bookmarks/[id]` | [ ] Toggle bookmark |
-| 3.7 | Tag artikel | tag links di artikel | ✅ | [ ] Navigasi ke search/explore |
-| 3.8 | Sidebar iklan artikel | `ArticleSidebarAd` | ✅ | [ ] Slot tampil jika ada iklan aktif |
-| 3.9 | Author card | `AuthorProfileCard` | ✅ | [ ] Link ke profil penulis |
-| 3.10 | Submit artikel (kontributor) | `/submit-article` 🔒 | ✅ | [ ] Gate role CONTRIBUTOR/ADMIN |
-| 3.11 | Edit artikel milik | `/edit-article/[id]` 🔒 | ✅ | [ ] Hanya owner/admin |
-| 3.12 | Draft autosave | API drafts | ✅ `PATCH /api/articles/drafts/[id]` | [ ] Autosave · [ ] Restore |
-| 3.13 | Preview sebelum publish | `/preview-article/[id]` 🔒 | ✅ | [ ] Hanya author/admin |
-| 3.14 | Artikel saya | `/my-articles` 🔒 | ✅ `GET /api/articles/my` | [ ] Status DRAFT/PENDING/PUBLISHED |
-| 3.15 | Workflow review | status machine | ✅ | [ ] DRAFT→PENDING→PUBLISHED/REJECTED |
-| 3.16 | Admin create/edit artikel | `/admin/articles/**` 👑 | ✅ | [ ] CRUD · [ ] Rich text editor |
-| 3.17 | Review queue | `/admin/articles/review` 👑 | ✅ | [ ] Approve/reject + notifikasi |
-| 3.18 | Bulk approve/reject | API bulk | ✅ | [ ] Tidak duplikat notifikasi |
-| 3.19 | Export artikel | admin export | ✅ | [ ] CSV/JSON |
-| 3.20 | Revisi & audit history | modal admin/penulis | ✅ | [ ] Riwayat perubahan tampil |
-| 3.21 | Featured / hot artikel | admin toggle | ✅ API hot/featured | [ ] Muncul di homepage feed |
-| 3.22 | Hapus artikel | API delete | ✅ | [ ] Soft/hard sesuai aturan |
+| 3.1 | Daftar artikel publik | `/articles` | ✅ | [x] Pagination/filter kategori · [x] Kartu artikel |
+| 3.2 | Detail artikel | `/articles/[slug]` | ✅ | [x] Konten HTML aman · [x] Metadata SEO |
+| 3.3 | Filter kategori | `/articles?category=` | ✅ | [x] Filter benar |
+| 3.4 | Read complete (+2 poin) | scroll + API | ✅ `POST .../read-complete` | [x] Sekali per artikel · [x] Poin masuk ledger |
+| 3.5 | Share artikel (+5 poin) | share UI + API | ✅ `POST .../share` | [x] Idempotensi share |
+| 3.6 | Bookmark (+1 poin) | detail + API | ✅ `POST/DELETE /api/bookmarks/[id]` | [x] Toggle bookmark |
+| 3.7 | Tag artikel | tag links di artikel | ✅ | [x] Navigasi ke search/explore |
+| 3.8 | Sidebar iklan artikel | `ArticleSidebarAd` | ✅ | [x] Slot tampil jika ada iklan aktif |
+| 3.9 | Author card | `AuthorProfileCard` | ✅ | [x] Link ke profil penulis |
+| 3.10 | Submit artikel (kontributor) | `/submit-article` 🔒 | ✅ | [x] Gate role CONTRIBUTOR/ADMIN |
+| 3.11 | Edit artikel milik | `/edit-article/[id]` 🔒 | ✅ | [x] Hanya owner/admin |
+| 3.12 | Draft autosave | API drafts | ✅ `PATCH /api/articles/drafts/[id]` | [x] Autosave · [x] Restore |
+| 3.13 | Preview sebelum publish | `/preview-article/[id]` 🔒 | ✅ | [x] Hanya author/admin |
+| 3.14 | Artikel saya | `/my-articles` 🔒 | ✅ `GET /api/articles/my` | [x] Status DRAFT/PENDING/PUBLISHED |
+| 3.15 | Workflow review | status machine | ✅ | [x] DRAFT→PENDING→PUBLISHED/REJECTED |
+| 3.16 | Admin create/edit artikel | `/admin/articles/**` 👑 | ✅ | [x] CRUD · [x] Rich text editor |
+| 3.17 | Review queue | `/admin/articles/review` 👑 | ✅ | [x] Approve/reject + notifikasi |
+| 3.18 | Bulk approve/reject | API bulk | ✅ | [x] Tidak duplikat notifikasi |
+| 3.19 | Export artikel | admin export | ✅ | [x] CSV/JSON |
+| 3.20 | Revisi & audit history | modal admin/penulis | ✅ | [x] Riwayat perubahan tampil |
+| 3.21 | Featured / hot artikel | admin toggle | ✅ API hot/featured | [x] Muncul di homepage feed |
+| 3.22 | Hapus artikel | API delete | ✅ | [x] Soft/hard sesuai aturan |
 
 ---
 
@@ -86,13 +86,13 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 4.1 | Daftar kuis | `/quizzes` | ✅ | [ ] Kartu kuis · [ ] Filter |
-| 4.2 | Detail & kerjakan kuis | `/quizzes/[slug]` | ✅ | [ ] Soal tampil · [ ] Timer (jika ada) |
-| 4.3 | Submit attempt | `POST /api/quizzes/[slug]/attempt` | ✅ | [ ] One-attempt guard · [ ] Skor benar |
-| 4.4 | Poin setelah kuis | ledger | ✅ | [ ] Poin sesuai skor/rules |
-| 4.5 | Leaderboard per kuis | API | ✅ `GET .../leaderboard` | [ ] Monthly & all-time |
-| 4.6 | Admin CRUD kuis | `/admin/quizzes/**` 👑 | ✅ | [ ] Multi-question builder · [ ] Upload gambar |
-| 4.7 | Analytics kuis | `/admin/quizzes/[id]/analytics` 👑 | ✅ | [ ] Attempt, pass rate |
+| 4.1 | Daftar kuis | `/quizzes` | ✅ | [x] Kartu kuis · [x] Filter |
+| 4.2 | Detail & kerjakan kuis | `/quizzes/[slug]` | ✅ | [x] Soal tampil · [x] Timer (jika ada) |
+| 4.3 | Submit attempt | `POST /api/quizzes/[slug]/attempt` | ✅ | [x] One-attempt guard · [x] Skor benar |
+| 4.4 | Poin setelah kuis | ledger | ✅ | [x] Poin sesuai skor/rules |
+| 4.5 | Leaderboard per kuis | API | ✅ `GET .../leaderboard` | [x] Monthly & all-time |
+| 4.6 | Admin CRUD kuis | `/admin/quizzes/**` 👑 | ✅ | [x] Multi-question builder · [x] Upload gambar |
+| 4.7 | Analytics kuis | `/admin/quizzes/[id]/analytics` 👑 | ✅ | [x] Attempt, pass rate |
 
 ---
 
@@ -100,11 +100,11 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 5.1 | Daftar poll | `/polls` | ✅ | [ ] Kartu poll aktif |
-| 5.2 | Detail & vote | `/polls/[slug]` | ✅ | [ ] Multi-question |
-| 5.3 | Submit vote | `POST /api/polls/[slug]/vote` | ✅ | [ ] Duplicate guard · [ ] Poin |
-| 5.4 | Admin CRUD poll | `/admin/polls/**` 👑 | ✅ | [ ] Builder · [ ] Gambar opsi |
-| 5.5 | Analytics poll | `/admin/polls/[id]/analytics` 👑 | ✅ | [ ] Breakdown vote |
+| 5.1 | Daftar poll | `/polls` | ✅ | [x] Kartu poll aktif |
+| 5.2 | Detail & vote | `/polls/[slug]` | ✅ | [x] Multi-question |
+| 5.3 | Submit vote | `POST /api/polls/[slug]/vote` | ✅ | [x] Duplicate guard · [x] Poin |
+| 5.4 | Admin CRUD poll | `/admin/polls/**` 👑 | ✅ | [x] Builder · [x] Gambar opsi |
+| 5.5 | Analytics poll | `/admin/polls/[id]/analytics` 👑 | ✅ | [x] Breakdown vote |
 
 ---
 
@@ -112,11 +112,11 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 6.1 | Daftar video | `/tv` | ✅ | [ ] Grid video |
-| 6.2 | Detail video | `/tv/[slug]` | ✅ | [ ] Lazy YouTube embed |
-| 6.3 | API video publik | `GET /api/videos`, `/[slug]` | ✅ | [ ] Data lengkap |
-| 6.4 | Homepage TV section | Wave 3 lazy | ✅ `GET /api/home/tv` | [ ] Load on scroll |
-| 6.5 | Admin CRUD video | `/admin/videos/**` 👑 | ✅ | [ ] Create/edit/delete |
+| 6.1 | Daftar video | `/tv` | ✅ | [x] Grid video |
+| 6.2 | Detail video | `/tv/[slug]` | ✅ | [x] Lazy YouTube embed |
+| 6.3 | API video publik | `GET /api/videos`, `/[slug]` | ✅ | [x] Data lengkap |
+| 6.4 | Homepage TV section | Wave 3 lazy | ✅ `GET /api/home/tv` | [x] Load on scroll |
+| 6.5 | Admin CRUD video | `/admin/videos/**` 👑 | ✅ | [x] Create/edit/delete |
 
 ---
 
@@ -124,16 +124,16 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 7.1 | Komentar artikel | `POST /api/comments` | ✅ | [ ] Thread 1 level · [ ] +2 poin |
-| 7.2 | Balas komentar | API comments | ✅ | [ ] Notif ke pemilik parent |
-| 7.3 | Edit/hapus komentar | `PATCH/DELETE /api/comments/[id]` | ✅ | [ ] Owner only |
-| 7.4 | Moderasi komentar admin | `/admin/comments` 👑 | ✅ | [ ] Hide/show |
-| 7.5 | Reaksi 9 emoji | `POST /api/reactions` | ✅ | [ ] Artikel/poll/quiz |
-| 7.6 | Browse reaksi | `/reactions/[type]` | ✅ | [ ] Filter per tipe |
-| 7.7 | Homepage reaksi | `GET /api/home/reactions` | ✅ | [ ] Section lazy |
-| 7.8 | Bookmark list | `/bookmarks` 🔒 | ✅ | [ ] Daftar artikel tersimpan |
-| 7.9 | Subscribe kategori | `POST/DELETE /api/category-subscriptions` | ✅ | [ ] Notif artikel baru kategori |
-| 7.10 | Share flow UI | artikel/quiz/poll | ✅ | [ ] Native share / copy link |
+| 7.1 | Komentar artikel | `POST /api/comments` | ✅ | [x] Thread 1 level · [x] +2 poin |
+| 7.2 | Balas komentar | API comments | ✅ | [x] Notif ke pemilik parent |
+| 7.3 | Edit/hapus komentar | `PATCH/DELETE /api/comments/[id]` | ✅ | [x] Owner only |
+| 7.4 | Moderasi komentar admin | `/admin/comments` 👑 | ✅ | [x] Hide/show |
+| 7.5 | Reaksi 9 emoji | `POST /api/reactions` | ✅ | [x] Artikel/poll/quiz |
+| 7.6 | Browse reaksi | `/reactions/[type]` | ✅ | [x] Filter per tipe |
+| 7.7 | Homepage reaksi | `GET /api/home/reactions` | ✅ | [x] Section lazy |
+| 7.8 | Bookmark list | `/bookmarks` 🔒 | ✅ | [x] Daftar artikel tersimpan |
+| 7.9 | Subscribe kategori | `POST/DELETE /api/category-subscriptions` | ✅ | [x] Notif artikel baru kategori |
+| 7.10 | Share flow UI | artikel/quiz/poll | ✅ | [x] Native share / copy link |
 
 ---
 
@@ -141,17 +141,17 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 8.1 | Saldo & riwayat poin | `GET /api/points/my` | ✅ | [ ] 100 transaksi terakhir |
-| 8.2 | Export CSV poin | `GET /api/points/export` 🔒 | ✅ | [ ] Download milik sendiri |
-| 8.3 | Daily login poin | session modal | ✅ Asia/Jakarta | [ ] Sekali per hari Jakarta |
-| 8.4 | Leaderboard mingguan | `/leaderboard` + API | ✅ `/weekly` | [ ] Tab switch |
-| 8.5 | Leaderboard bulanan | `/leaderboard` | ✅ | [ ] Ranking benar |
-| 8.6 | Leaderboard all-time | `/leaderboard` | ✅ | [ ] Ranking benar |
-| 8.7 | Homepage leaderboard preview | Wave 4 | ✅ `engagement` API | [ ] Top users |
-| 8.8 | Activity feed user | `/activity` 🔒 | ✅ `GET /api/activity/feed` | [ ] Campuran aktivitas |
-| 8.9 | Redirect `/points` | → `/activity` | ✅ | [ ] 307/redirect |
-| 8.10 | Admin monitor poin | `/admin/points` 👑 | ✅ | [ ] Filter periode · [ ] Detail modal |
-| 8.11 | Admin monitor leaderboard | `/admin/leaderboard` 👑 | ✅ | [ ] Snapshot ranking |
+| 8.1 | Saldo & riwayat poin | `GET /api/points/my` | ✅ | [x] 100 transaksi terakhir |
+| 8.2 | Export CSV poin | `GET /api/points/export` 🔒 | ✅ | [x] Download milik sendiri |
+| 8.3 | Daily login poin | session modal | ✅ Asia/Jakarta | [x] Sekali per hari Jakarta |
+| 8.4 | Leaderboard mingguan | `/leaderboard` + API | ✅ `/weekly` | [x] Tab switch |
+| 8.5 | Leaderboard bulanan | `/leaderboard` | ✅ | [x] Ranking benar |
+| 8.6 | Leaderboard all-time | `/leaderboard` | ✅ | [x] Ranking benar |
+| 8.7 | Homepage leaderboard preview | Wave 4 | ✅ `engagement` API | [x] Top users |
+| 8.8 | Activity feed user | `/activity` 🔒 | ✅ `GET /api/activity/feed` | [x] Campuran aktivitas |
+| 8.9 | Redirect `/points` | → `/activity` | ✅ | [x] 307/redirect |
+| 8.10 | Admin monitor poin | `/admin/points` 👑 | ✅ | [x] Filter periode · [x] Detail modal |
+| 8.11 | Admin monitor leaderboard | `/admin/leaderboard` 👑 | ✅ | [x] Snapshot ranking |
 
 **Sumber poin (anti-duplikasi):** baca artikel +2 · share +5 · bookmark +1 · komentar +2 · kuis (skor) · poll vote · daily login.
 
@@ -183,12 +183,12 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 10.1 | Subscribe footer | `FooterNewsletterForm` | ✅ | [ ] Validasi email · [ ] Toast sukses |
-| 10.2 | Subscribe API | `POST /api/newsletter/subscribe` | ✅ | [ ] Duplikat handled |
-| 10.3 | Unsubscribe (login) | `/newsletter/unsubscribe` | ✅ | [ ] Wajib akun sama |
-| 10.4 | Status subscription | `GET /api/newsletter/subscription` | ✅ | [ ] State aktif/nonaktif |
-| 10.5 | Admin newsletter | `/admin/newsletter` 👑 | ✅ | [ ] List · delete |
-| 10.6 | Export subscriber | `GET /api/admin/newsletter/export` | ✅ | [ ] CSV admin only |
+| 10.1 | Subscribe footer | `FooterNewsletterForm` | ✅ | [x] Validasi email · [x] Toast sukses |
+| 10.2 | Subscribe API | `POST /api/newsletter/subscribe` | ✅ | [x] Duplikat handled |
+| 10.3 | Unsubscribe (login) | `/newsletter/unsubscribe` | ✅ | [x] Wajib akun sama |
+| 10.4 | Status subscription | `GET /api/newsletter/subscription` | ✅ | [x] State aktif/nonaktif |
+| 10.5 | Admin newsletter | `/admin/newsletter` 👑 | ✅ | [x] List · delete |
+| 10.6 | Export subscriber | `GET /api/admin/newsletter/export` | ✅ | [x] CSV admin only |
 
 ---
 
@@ -208,20 +208,20 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 12.1 | Homepage shell | `/` | ✅ | [ ] Semua section `data-testid` |
-| 12.2 | Wave 1 feed | `GET /api/home/feed` | ✅ | [ ] Featured · trending · hari ini |
-| 12.3 | Wave 2 editorial | `categories-editorial` | ✅ | [ ] Lazy on scroll |
-| 12.4 | Wave 3 TV/ads/LMS/reaksi | APIs wave 3 | ✅ | [ ] Isolated error per section |
-| 12.5 | Wave 4 engagement | poll/quiz/leaderboard | ✅ | [ ] Lazy on scroll |
-| 12.6 | Hero search | `HomeHero` | ✅ | [ ] Submit → `/search?q=` |
-| 12.7 | Navbar search | `Navbar` | ✅ | [ ] Mobile + desktop |
-| 12.8 | Global search | `/search` + API | ✅ | [ ] Artikel + kuis + poll |
-| 12.9 | Trending | `/trending` | ✅ | [ ] Sort `weeklyViewCount` |
-| 12.10 | Explore | `/explore` | ✅ | [ ] Tag populer + kategori |
-| 12.11 | Tag populer API | `GET /api/tags/popular` | ✅ | [ ] Data konsisten |
-| 12.12 | Admin homepage config | `/admin/homepage` 👑 | ✅ | [ ] Featured/hot picks |
-| 12.13 | Empty states | semua section | ✅ | [ ] Tidak crash saat kosong |
-| 12.14 | Skeleton loading | `LazySectionSkeleton` | ✅ | [ ] Min-height stabil |
+| 12.1 | Homepage shell | `/` | ✅ | [x] Semua section `data-testid` |
+| 12.2 | Wave 1 feed | `GET /api/home/feed` | ✅ | [x] Featured · trending · hari ini |
+| 12.3 | Wave 2 editorial | `categories-editorial` | ✅ | [x] Lazy on scroll |
+| 12.4 | Wave 3 TV/ads/LMS/reaksi | APIs wave 3 | ✅ | [x] Isolated error per section |
+| 12.5 | Wave 4 engagement | poll/quiz/leaderboard | ✅ | [x] Lazy on scroll |
+| 12.6 | Hero search | `HomeHero` | ✅ | [x] Submit → `/search?q=` |
+| 12.7 | Navbar search | `Navbar` | ✅ | [x] Mobile + desktop |
+| 12.8 | Global search | `/search` + API | ✅ | [x] Artikel + kuis + poll |
+| 12.9 | Trending | `/trending` | ✅ | [x] Sort `weeklyViewCount` |
+| 12.10 | Explore | `/explore` | ✅ | [x] Tag populer + kategori |
+| 12.11 | Tag populer API | `GET /api/tags/popular` | ✅ | [x] Data konsisten |
+| 12.12 | Admin homepage config | `/admin/homepage` 👑 | ✅ | [x] Featured/hot picks |
+| 12.13 | Empty states | semua section | ✅ | [x] Tidak crash saat kosong |
+| 12.14 | Skeleton loading | `LazySectionSkeleton` | ✅ | [x] Min-height stabil |
 
 ---
 
@@ -229,12 +229,12 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 13.1 | LMS teaser API | `GET /api/home/lms-teaser` | ✅ | [ ] `source: placeholder` saat LMS down |
-| 13.2 | Placeholder UI | `HomeLmsTeaser` | ✅ | [ ] Coming soon + CTA |
-| 13.3 | Live courses (future) | fetch LMS API | ✅ client | [ ] Kartu kursus saat API live |
-| 13.4 | Domain staging/prod | `lib/lms/constants.ts` | ✅ | [ ] dev vs kursus.jepangku.com |
-| 13.5 | UTM links | `buildLmsUrl()` | ✅ | [ ] utm_source/medium/campaign |
-| 13.6 | Hero quick link kursus | `HomeHero` | ✅ | [ ] External link LMS |
+| 13.1 | LMS teaser API | `GET /api/home/lms-teaser` | ✅ | [x] `source: placeholder` saat LMS down |
+| 13.2 | Placeholder UI | `HomeLmsTeaser` | ✅ | [x] Coming soon + CTA |
+| 13.3 | Live courses (future) | fetch LMS API | ✅ client | [x] Kartu kursus saat API live |
+| 13.4 | Domain staging/prod | `lib/lms/constants.ts` | ✅ | [x] dev vs kursus.jepangku.com |
+| 13.5 | UTM links | `buildLmsUrl()` | ✅ | [x] utm_source/medium/campaign |
+| 13.6 | Hero quick link kursus | `HomeHero` | ✅ | [x] External link LMS |
 
 ---
 
@@ -242,10 +242,10 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 14.1 | Ad slot homepage | `GET /api/home/ads` | ✅ | [ ] Banner atau null |
-| 14.2 | Ad slot artikel sidebar | `AdBannerSlot` | ✅ | [ ] Slot `article-sidebar` |
-| 14.3 | Admin CRUD iklan | `/admin/ads/**` 👑 | ✅ | [ ] Aktif/nonaktif · jadwal |
-| 14.4 | Client cache iklan | `lib/ads/client-cache.ts` | ✅ | [ ] Tidak over-fetch |
+| 14.1 | Ad slot homepage | `GET /api/home/ads` | ✅ | [x] Banner atau null |
+| 14.2 | Ad slot artikel sidebar | `ArticleSidebarAd` | ✅ | [x] Slot `article-sidebar` |
+| 14.3 | Admin CRUD iklan | `/admin/ads/**` 👑 | ✅ | [x] Aktif/nonaktif · jadwal |
+| 14.4 | Client cache iklan | `lib/ads/client-cache.ts` | ✅ | [x] Tidak over-fetch |
 
 ---
 
@@ -253,12 +253,12 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 15.1 | Dashboard admin | `/admin` 👑 | ✅ | [ ] Stats · quick actions |
-| 15.2 | Stats API | `GET /api/admin/stats` | ✅ | [ ] Angka konsisten |
-| 15.3 | Activity log | `/admin/activity-log` 👑 | ✅ | [ ] Audit artikel & kontributor |
-| 15.4 | Grafik registrasi | activity-log API | ✅ | [ ] Growth chart |
-| 15.5 | Manajemen user | `/admin/users/**` 👑 | ✅ | [ ] List · detail · role |
-| 15.6 | User growth API | `GET /api/admin/users/growth` | ✅ | [ ] Data chart |
+| 15.1 | Dashboard admin | `/admin` 👑 | ✅ | [x] Stats · quick actions |
+| 15.2 | Stats API | `GET /api/admin/stats` | ✅ | [x] Angka konsisten |
+| 15.3 | Activity log | `/admin/activity-log` 👑 | ✅ | [x] Audit artikel & kontributor |
+| 15.4 | Grafik registrasi | activity-log API | ✅ | [x] Growth chart |
+| 15.5 | Manajemen user | `/admin/users/**` 👑 | ✅ | [x] List · detail · role |
+| 15.6 | User growth API | `GET /api/admin/users/growth` | ✅ | [x] Data chart |
 
 ---
 
@@ -266,11 +266,11 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 16.1 | Kategori CRUD | `/admin/categories` 👑 | ✅ | [ ] Create/edit/delete |
-| 16.2 | Tag CRUD | `/admin/tags` 👑 | ✅ | [ ] Merge slug unik |
-| 16.3 | Info pages CMS | `/admin/info-pages` 👑 | ✅ | [ ] Edit konten statis |
-| 16.4 | Social links CMS | `/admin/social-links` 👑 | ✅ | [ ] Tampil di footer |
-| 16.5 | Footer social display | `SocialMediaLinks` | ✅ | [ ] Link benar |
+| 16.1 | Kategori CRUD | `/admin/categories` 👑 | ✅ | [x] Create/edit/delete |
+| 16.2 | Tag CRUD | `/admin/tags` 👑 | ✅ | [x] Merge slug unik |
+| 16.3 | Info pages CMS | `/admin/info-pages` 👑 | ✅ | [x] Edit konten statis |
+| 16.4 | Social links CMS | `/admin/social-links` 👑 | ✅ | [x] Tampil di footer |
+| 16.5 | Footer social display | `SocialMediaLinks` | ✅ | [x] Link benar |
 
 ---
 
@@ -278,11 +278,11 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 17.1 | Ringkasan analytics | `/admin/analytics` 👑 | ✅ | [ ] KPI utama |
-| 17.2 | Content ranking | `/admin/analytics/content` 👑 | ✅ | [ ] Sort performa |
-| 17.3 | Per kategori | `/admin/analytics/categories` 👑 | ✅ | [ ] Breakdown |
-| 17.4 | Per artikel | `/admin/analytics/articles/[id]` 👑 | ✅ | [ ] Grafik views harian |
-| 17.5 | Artikel stats API | `GET /api/admin/articles/stats` | ✅ | [ ] Aggregate |
+| 17.1 | Ringkasan analytics | `/admin/analytics` 👑 | ✅ | [x] KPI utama |
+| 17.2 | Content ranking | `/admin/analytics/content` 👑 | ✅ | [x] Sort performa |
+| 17.3 | Per kategori | `/admin/analytics/categories` 👑 | ✅ | [x] Breakdown |
+| 17.4 | Per artikel | `/admin/analytics/articles/[id]` 👑 | ✅ | [x] Grafik views harian |
+| 17.5 | Artikel stats API | `GET /api/admin/articles/stats` | ✅ | [x] Aggregate |
 
 ---
 
@@ -290,18 +290,18 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 18.1 | About | `/about` | ✅ | [ ] Konten dari CMS/info |
-| 18.2 | Contact | `/contact` | ✅ | [ ] Form/link |
-| 18.3 | Advertise | `/advertise` | ✅ | [ ] |
-| 18.4 | Media Partner | `/media-partner` | ✅ | [ ] |
-| 18.5 | Career | `/career` | ✅ | [ ] |
-| 18.6 | Internship | `/internship` | ✅ | [ ] |
-| 18.7 | Privacy Policy | `/privacy-policy` | ✅ | [ ] |
-| 18.8 | Terms of Service | `/terms-of-service` | ✅ | [ ] |
-| 18.9 | Disclaimer | `/disclaimer` | ✅ | [ ] |
-| 18.10 | Navbar & sidebar | `Navbar`, `NavbarSidebar` | ✅ | [ ] Mobile drawer · kategori |
-| 18.11 | Footer | `Footer` | ✅ | [ ] Link jelajahi · newsletter |
-| 18.12 | Info pages API | `GET /api/pages/[slug]` | ✅ | [ ] Dynamic content |
+| 18.1 | About | `/about` | ✅ | [x] Konten dari CMS/info |
+| 18.2 | Contact | `/contact` | ✅ | [x] Form/link |
+| 18.3 | Advertise | `/advertise` | ✅ | [x] |
+| 18.4 | Media Partner | `/media-partner` | ✅ | [x] |
+| 18.5 | Career | `/career` | ✅ | [x] |
+| 18.6 | Internship | `/internship` | ✅ | [x] |
+| 18.7 | Privacy Policy | `/privacy-policy` | ✅ | [x] |
+| 18.8 | Terms of Service | `/terms-of-service` | ✅ | [x] |
+| 18.9 | Disclaimer | `/disclaimer` | ✅ | [x] |
+| 18.10 | Navbar & sidebar | `Navbar`, `NavbarSidebar` | ✅ | [x] Mobile drawer · kategori |
+| 18.11 | Footer | `Footer` | ✅ | [x] Link jelajahi · newsletter |
+| 18.12 | Info pages API | `GET /api/pages/[slug]` | ✅ | [x] Dynamic content |
 
 ---
 
@@ -309,10 +309,10 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 19.1 | Upload gambar | `POST /api/upload` | ✅ | [ ] Validasi MIME/size |
-| 19.2 | R2 storage | `lib/r2.ts` | ✅ | [ ] URL publik accessible |
-| 19.3 | Image moderation | opsional AI | ✅ | [ ] Tolak konten tidak aman |
-| 19.4 | Rich text editor | artikel admin/user | ✅ | [ ] Embed gambar |
+| 19.1 | Upload gambar | `POST /api/upload` | ✅ | [x] Validasi MIME/size |
+| 19.2 | R2 storage | `lib/r2.ts` | ✅ | [x] URL publik accessible |
+| 19.3 | Image moderation | opsional AI | ✅ | [x] Tolak konten tidak aman |
+| 19.4 | Rich text editor | artikel admin/user | ✅ | [x] Embed gambar |
 
 ---
 

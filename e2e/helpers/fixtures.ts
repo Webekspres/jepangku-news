@@ -11,6 +11,15 @@ export async function fetchFirstArticleSlug(
   return data.articles?.[0]?.slug ?? null;
 }
 
+export async function fetchFirstArticleId(
+  request: APIRequestContext,
+): Promise<string | null> {
+  const res = await request.get("/api/articles?limit=1");
+  if (!res.ok()) return null;
+  const data = (await res.json()) as Paginated<{ id: string }>;
+  return data.articles?.[0]?.id ?? null;
+}
+
 export async function fetchFirstAuthorUsername(
   request: APIRequestContext,
 ): Promise<string | null> {
@@ -63,8 +72,9 @@ export async function fetchFirstCategoryId(
 ): Promise<string | null> {
   const res = await request.get("/api/categories");
   if (!res.ok()) return null;
-  const data = (await res.json()) as { categories?: { id: string }[] };
-  return data.categories?.[0]?.id ?? null;
+  const data = (await res.json()) as { id: string }[] | { categories?: { id: string }[] };
+  const list = Array.isArray(data) ? data : data.categories;
+  return list?.[0]?.id ?? null;
 }
 
 export async function scrollToFooter(page: Page) {

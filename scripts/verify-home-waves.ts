@@ -35,7 +35,7 @@ async function main() {
       if (ok) {
         const json = await res.json();
         if (path.endsWith("/feed")) {
-          detail += ` featured=${json.featuredArticles?.length ?? 0}`;
+          detail += ` featured=${json.featuredArticles?.length ?? 0} trending=${json.trending?.length ?? 0} today=${json.todayArticles?.length ?? 0}`;
         } else if (path.includes("engagement")) {
           detail += ` polls=${json.polls?.length ?? 0} quizzes=${json.quizzes?.length ?? 0}`;
         } else if (path.includes("reactions")) {

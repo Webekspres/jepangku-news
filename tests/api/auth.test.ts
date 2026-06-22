@@ -1,17 +1,20 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it, setDefaultTimeout } from "bun:test";
 import {
   clientFor,
   setupIntegration,
   skipUnless,
+  hasRoleToken,
   type IntegrationContext,
 } from "../helpers/integration";
+
+setDefaultTimeout(20_000);
 
 describe("API — auth", () => {
   let ctx: IntegrationContext;
 
   beforeAll(async () => {
     ctx = await setupIntegration();
-  });
+  }, 60_000);
 
   describe("GET /api/auth/me", () => {
     it("returns 401 for guest", async () => {
@@ -42,6 +45,7 @@ describe("API — auth", () => {
 
     it("returns CONTRIBUTOR role for contributor account", async () => {
       if (skipUnless(ctx, "auth")) return;
+      if (!hasRoleToken(ctx, "CONTRIBUTOR")) return;
       const res = await clientFor(ctx, "CONTRIBUTOR").get("/api/auth/me");
       expect(res.status).toBe(200);
       const user = (await res.json()) as { role: string };

@@ -28,6 +28,7 @@
 
 # misc
 .DS_Store
+.uploads/
 *.pem
 *.mp4
 public/assets/images/logo/*.mp4

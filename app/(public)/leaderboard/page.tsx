@@ -82,6 +82,7 @@ export default function LeaderboardPage() {
                 role="tab"
                 aria-selected={period === option}
                 onClick={() => setPeriod(option)}
+                data-state={period === option ? "active" : "inactive"}
                 className={`flex-1 min-w-28 px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
                   period === option
                     ? "bg-jepang-red text-white"

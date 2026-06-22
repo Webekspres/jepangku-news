@@ -102,5 +102,18 @@ describe("API — admin boundary (403 non-admin)", () => {
       const res = await clientFor(ctx, "ADMIN").get("/api/admin/quizzes?limit=5");
       expect(res.status).toBe(200);
     });
+
+    it("GET /api/admin/newsletter returns 200 for ADMIN", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "ADMIN").get("/api/admin/newsletter?limit=5");
+      expect(res.status).toBe(200);
+    });
+
+    it("GET /api/admin/newsletter/export returns CSV for ADMIN", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "ADMIN").get("/api/admin/newsletter/export");
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toContain("text/csv");
+    });
   });
 });

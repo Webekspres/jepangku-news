@@ -5,6 +5,7 @@ import {
 } from "../tests/fixtures/clerk-accounts";
 import {
   E2E_AUTH_SKIP_REASON,
+  canSignInAs,
   isE2EAuthAvailable,
   signInAs,
 } from "./helpers/clerk-auth";
@@ -29,6 +30,7 @@ test.describe("Clerk E2E auth fixture", () => {
 
   test("CONTRIBUTOR sign-in can reach submit-article", async ({ page }) => {
     test.skip(!isE2EAuthAvailable(), E2E_AUTH_SKIP_REASON);
+    test.skip(!(await canSignInAs("CONTRIBUTOR")), "CONTRIBUTOR Clerk test user missing");
     await signInAs(page, "CONTRIBUTOR");
     await page.goto("/submit-article");
     await expect(page.getByTestId("submit-article-page")).toBeVisible({
