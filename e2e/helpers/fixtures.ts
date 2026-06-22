@@ -48,3 +48,25 @@ export async function expectGuestRedirectToSignIn(page: Page, path: string) {
   await expect(page).toHaveURL(/\/sign-in/, { timeout: 20_000 });
   await expect(page.getByTestId("sign-in-page")).toBeVisible();
 }
+
+export async function fetchFirstVideoSlug(
+  request: APIRequestContext,
+): Promise<string | null> {
+  const res = await request.get("/api/videos?limit=1");
+  if (!res.ok()) return null;
+  const data = (await res.json()) as { videos?: { slug: string }[] };
+  return data.videos?.[0]?.slug ?? null;
+}
+
+export async function fetchFirstCategoryId(
+  request: APIRequestContext,
+): Promise<string | null> {
+  const res = await request.get("/api/categories");
+  if (!res.ok()) return null;
+  const data = (await res.json()) as { categories?: { id: string }[] };
+  return data.categories?.[0]?.id ?? null;
+}
+
+export async function scrollToFooter(page: Page) {
+  await page.getByTestId("main-footer").scrollIntoViewIfNeeded();
+}

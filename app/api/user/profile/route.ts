@@ -4,17 +4,7 @@ import { db } from '@/lib/db';
 import { sanitizeMediaUrl, sanitizePlainField } from '@/lib/sanitizer';
 import { captureException } from '@/lib/monitoring';
 import { auditUserProfileUpdate } from '@/lib/audit-routes';
-
-const USERNAME_COOLDOWN_DAYS = 14;
-
-/** Hitung sisa hari cooldown username. Kembalikan 0 jika sudah boleh ganti. */
-function getUsernameCooldownDays(usernameChangedAt: Date | null): number {
-  if (!usernameChangedAt) return 0;
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const daysSince = (Date.now() - usernameChangedAt.getTime()) / msPerDay;
-  const remaining = USERNAME_COOLDOWN_DAYS - daysSince;
-  return remaining > 0 ? Math.ceil(remaining) : 0;
-}
+import { getUsernameCooldownDays, hasValidUsernameChars, hasValidUsernameLength } from '@/lib/username';
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser(request);
@@ -81,13 +71,13 @@ export async function PATCH(request: NextRequest) {
     if (typeof username !== 'string' || username.trim().length === 0) {
       return NextResponse.json({ error: 'Username tidak boleh kosong' }, { status: 400 });
     }
-    if (!/^[a-z0-9_]+$/.test(username)) {
+    if (!hasValidUsernameChars(username)) {
       return NextResponse.json(
         { error: 'Username hanya boleh mengandung huruf kecil, angka, dan underscore' },
         { status: 400 }
       );
     }
-    if (username.length < 3 || username.length > 30) {
+    if (!hasValidUsernameLength(username)) {
       return NextResponse.json({ error: 'Username harus 3–30 karakter' }, { status: 400 });
     }
 

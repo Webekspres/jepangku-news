@@ -16,53 +16,53 @@
 
 ### Fase 0 — Infrastruktur
 
-[ ] Setup Vitest atau `bun:test` + folder `tests/unit/`  
-[ ] Script `bun run test` (gabung unit + integration + E2E)  
-[ ] Script `bun run test:unit` · `test:integration` · `test:e2e` · `test:smoke`  
-[ ] Env test (`.env.test`) — DB, Clerk, Redis opsional  
-[ ] Akun uji Clerk: guest · USER · CONTRIBUTOR · ADMIN  
-[ ] `db:seed` konsisten untuk CI lokal  
-[ ] Dokumentasi cara jalankan satu perintah di `README.md`
+[x] Setup Vitest atau `bun:test` + folder `tests/unit/`  
+[x] Script `bun run test` (gabung unit + integration + E2E)  
+[x] Script `bun run test:unit` · `test:integration` · `test:e2e` · `test:smoke`  
+[x] Env test (`.env.test`) — DB, Clerk, Redis opsional  
+[x] Akun uji Clerk: guest · USER · CONTRIBUTOR · ADMIN  
+[x] `db:seed` konsisten untuk CI lokal  
+[x] Dokumentasi cara jalankan satu perintah di `README.md`
 
 ### Fase 1 — Unit test `lib/` *(target ~80–100 kasus)*
 
-[ ] `tests/unit/points.test.ts` — `awardPoints`, `checkDailyLogin`, anti-duplikat  
-[ ] `tests/unit/article-workflow.test.ts` — transisi status DRAFT→PENDING→PUBLISHED/REJECTED  
-[ ] `tests/unit/sanitizer.test.ts` — XSS payload HTML  
-[ ] `tests/unit/jakarta-calendar.test.ts` — bounds harian Asia/Jakarta  
-[ ] `tests/unit/notifications-dispatch.test.ts` — dedupe, group cap  
-[ ] `tests/unit/contributor.test.ts` — `canCreateArticles`, `getContributorCta`  
-[ ] `tests/unit/slug.test.ts` · `username.test.ts` — validasi & cooldown  
-[ ] `tests/unit/article-view-url.test.ts` — preview vs publik  
-[ ] `tests/unit/newsletter.test.ts` — normalisasi email, duplikat  
-[ ] `tests/unit/leaderboard-period.test.ts` — mingguan/bulanan/all-time
+[x] `tests/unit/points.test.ts` — `awardPoints`, `checkDailyLogin`, anti-duplikat  
+[x] `tests/unit/article-workflow.test.ts` — transisi status DRAFT→PENDING→PUBLISHED/REJECTED  
+[x] `tests/unit/sanitizer.test.ts` — XSS payload HTML  
+[x] `tests/unit/jakarta-calendar.test.ts` — bounds harian Asia/Jakarta  
+[x] `tests/unit/notifications-dispatch.test.ts` — dedupe, group cap  
+[x] `tests/unit/contributor.test.ts` — `canCreateArticles`, `getContributorCta`  
+[x] `tests/unit/slug.test.ts` · `username.test.ts` — validasi & cooldown  
+[x] `tests/unit/article-view-url.test.ts` — preview vs publik  
+[x] `tests/unit/newsletter.test.ts` — normalisasi email, duplikat  
+[x] `tests/unit/leaderboard-period.test.ts` — mingguan/bulanan/all-time
 
 ### Fase 2 — API integration *(target ~200 kasus)*
 
-[ ] `tests/api/auth.test.ts` — me, logout, 401/410  
-[ ] `tests/api/articles.test.ts` — CRUD, workflow, read-complete, share, bookmark  
-[ ] `tests/api/points.test.ts` — ledger, export CSV  
-[ ] `tests/api/quizzes.test.ts` — attempt, one-attempt, skor  
-[ ] `tests/api/polls.test.ts` — vote, duplicate guard  
-[ ] `tests/api/comments.test.ts` — thread, owner, moderasi  
-[ ] `tests/api/notifications.test.ts` — list, read, dedupe, session Jakarta  
-[ ] `tests/api/newsletter.test.ts` — subscribe, unsubscribe, duplikat  
-[ ] `tests/api/contributor.test.ts` — apply, status, gate  
-[ ] `tests/api/home.test.ts` — wave 1–4, cache headers  
-[ ] `tests/api/admin.test.ts` — boundary 403 non-admin
+[x] `tests/api/auth.test.ts` — me, logout, 401/410  
+[x] `tests/api/articles.test.ts` — CRUD, workflow, read-complete, share, bookmark  
+[x] `tests/api/points.test.ts` — ledger, export CSV  
+[x] `tests/api/quizzes.test.ts` — attempt, one-attempt, skor  
+[x] `tests/api/polls.test.ts` — vote, duplicate guard  
+[x] `tests/api/comments.test.ts` — thread, owner, moderasi  
+[x] `tests/api/notifications.test.ts` — list, read, dedupe, session Jakarta  
+[x] `tests/api/newsletter.test.ts` — subscribe, unsubscribe, duplikat  
+[x] `tests/api/contributor.test.ts` — apply, status, gate  
+[x] `tests/api/home.test.ts` — wave 1–4, cache headers  
+[x] `tests/api/admin.test.ts` — boundary 403 non-admin
 
 ### Fase 3 — E2E Playwright *(perluas dari 54 → ~150 kasus)*
 
-[ ] `e2e/contributor.spec.ts` — apply, gate submit, my-articles  
-[ ] `e2e/gamification.spec.ts` — daily modal, leaderboard tab, activity  
-[ ] `e2e/newsletter.spec.ts` — footer subscribe, unsubscribe  
-[ ] `e2e/engagement.spec.ts` — komentar, reaksi, bookmark list  
-[ ] `e2e/article-workflow.spec.ts` — submit→review→publish (CONTRIBUTOR + ADMIN)  
-[ ] `e2e/notifications.spec.ts` — perluas: bell login, SSE, welcome/daily modal  
-[ ] `e2e/tv.spec.ts` — daftar, detail, lazy embed  
-[ ] `e2e/search.spec.ts` — hero, navbar, global search  
-[ ] `e2e/admin-crud.spec.ts` — smoke CRUD kategori, tag, video, iklan  
-[ ] Login Clerk di fixture E2E (USER / CONTRIBUTOR / ADMIN)
+[x] `e2e/contributor.spec.ts` — apply, gate submit, my-articles  
+[x] `e2e/gamification.spec.ts` — daily modal, leaderboard tab, activity  
+[x] `e2e/newsletter.spec.ts` — footer subscribe, unsubscribe  
+[x] `e2e/engagement.spec.ts` — komentar, reaksi, bookmark list  
+[x] `e2e/article-workflow.spec.ts` — submit→review→publish (CONTRIBUTOR + ADMIN)  
+[x] `e2e/notifications.spec.ts` — perluas: bell login, SSE, welcome/daily modal  
+[x] `e2e/tv.spec.ts` — daftar, detail, lazy embed  
+[x] `e2e/search.spec.ts` — hero, navbar, global search  
+[x] `e2e/admin-crud.spec.ts` — smoke CRUD kategori, tag, video, iklan  
+[x] Login Clerk di fixture E2E (USER / CONTRIBUTOR / ADMIN)
 
 ### §1 Autentikasi & akun *(10 fitur · 19 kondisi)*
 

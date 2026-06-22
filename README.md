@@ -94,6 +94,30 @@ Core harus jalan di `http://localhost:8080`.
 
 ## Verifikasi & QA
 
+### Testing (satu perintah)
+
+```bash
+bun run test:db:prepare   # migrate + seed DB uji (.env.test) — pertama kali / CI
+bun dev                   # terminal lain — wajib untuk integration + E2E
+bun run test              # unit + integration + E2E (Playwright)
+```
+
+Per lapisan:
+
+```bash
+bun run test:unit         # bun:test — logika murni (tests/unit/)
+bun run test:integration  # HTTP API — butuh server jalan
+bun run test:e2e          # Playwright (e2e/) — ~185 kasus × 4 browser
+bun run test:e2e:ui       # Playwright UI mode
+bun run test:smoke        # unit + smoke API + homepage/auth Chromium
+```
+
+Akun uji Clerk (OTP `424242`): guest · `budi+clerk_test@jepangku.com` (USER) · `kontributor+clerk_test@jepangku.com` (CONTRIBUTOR) · `admin+clerk_test@jepangku.com` (ADMIN). Detail: [`tests/README.md`](tests/README.md).
+
+Env uji: salin/isi [`.env.test`](.env.test) (DB wajib; Clerk & Redis opsional untuk unit).
+
+### Skrip verifikasi manual
+
 ```bash
 bun run verify:core              # integrasi Core + ledger poin
 bun run verify:home              # wave APIs homepage
@@ -138,6 +162,7 @@ components/       # UI komponen (home, admin, notifications, …)
 lib/              # Business logic (core, auth, points, notifications, home, …)
 prisma/           # Schema portal (users.id = Clerk ID)
 scripts/          # verify:*, lighthouse, purge, backfill
+tests/            # bun:test unit + integration
 e2e/              # Playwright specs
 docs/             # Dokumentasi proyek
 .agents/          # Scope MVP & steering (historis)

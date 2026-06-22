@@ -50,6 +50,7 @@ const { VIDEOS_DATA } = require("./seeder/data/videos.js");
 const { ADS_DATA } = require("./seeder/data/ads.js");
 const {
   CLERK_TEST_ADMIN_EMAIL,
+  CLERK_TEST_CONTRIBUTOR_EMAIL,
   LEGACY_EMAIL_MIGRATIONS,
 } = require("./seeder/data/clerk-test-emails.js");
 
@@ -130,6 +131,45 @@ async function main() {
     console.log(`✅ Created admin: ${adminEmail} (${adminId})`);
   } else {
     console.log(`⏭  Admin already exists: ${adminEmail} (${admin.id})`);
+  }
+
+  // ── 1b. Contributor test user (Clerk + portal role CONTRIBUTOR) ───────
+  const contributorEmail =
+    process.env.CONTRIBUTOR_TEST_EMAIL || CLERK_TEST_CONTRIBUTOR_EMAIL;
+  const contributorId =
+    clerkByEmail.get(contributorEmail.toLowerCase()) ||
+    "seed_contributor_jepangku";
+
+  let contributor =
+    (await prisma.user.findUnique({ where: { id: contributorId } })) ||
+    (await prisma.user.findUnique({ where: { email: contributorEmail } })) ||
+    (await prisma.user.findUnique({ where: { username: "kontributor" } }));
+  if (!contributor) {
+    contributor = await prisma.user.create({
+      data: {
+        id: contributorId,
+        email: contributorEmail,
+        username: "kontributor",
+        name: "Kontributor Uji",
+        role: "CONTRIBUTOR",
+        status: "active",
+        profile: {
+          create: {
+            displayName: "Kontributor Uji",
+            bio: "Akun uji kontributor untuk QA otomatis.",
+          },
+        },
+      },
+    });
+    console.log(`✅ Created contributor: ${contributorEmail} (${contributorId})`);
+  } else if (contributor.role !== "CONTRIBUTOR") {
+    await prisma.user.update({
+      where: { id: contributor.id },
+      data: { role: "CONTRIBUTOR", email: contributorEmail },
+    });
+    console.log(`✅ Updated contributor role: ${contributorEmail}`);
+  } else {
+    console.log(`⏭  Contributor already exists: ${contributorEmail} (${contributor.id})`);
   }
 
   // ── 2. Sample users (Clerk ID or seed_* for dev content) ─────────────
