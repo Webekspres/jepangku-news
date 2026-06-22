@@ -3,8 +3,344 @@
 > **Diperbarui:** Juni 2026 (audit kode `jepangku-news`)  
 > **Status aplikasi:** ✅ **Sepenuhnya diimplementasi** — portal production-ready.  
 > **Sisa rencana:** hanya **§ Rencana Lanjutan** di bawah (ekosistem lintas-app; bisa nanti, bukan blokir rilis).  
-> **Legenda:** `[ ]` rencana lanjutan · `[x]` selesai (verified)  
-> **Rincian teknis:** [`backlog-plan.md`](./backlog-plan.md) · [`ecosystem-integration.md`](./ecosystem-integration.md) · [`development-roadmap.md`](./development-roadmap.md)
+> **Legenda:** `[ ]` belum · `[x]` selesai (verified)  
+> **Rincian teknis:** [`backlog-plan.md`](./backlog-plan.md) · [`ecosystem-integration.md`](./ecosystem-integration.md) · [`development-roadmap.md`](./development-roadmap.md)  
+> **Entry point per fitur:** [`testing-inventory.md`](./testing-inventory.md)
+
+---
+
+## Checklist Testing — Kerjakan
+
+> **160 fitur · ~197 kondisi fungsional · 29 non-functional.** Centang `[x]` saat otomatis atau manual QA lulus.  
+> **Target akhir:** `bun run test` = unit + integration + E2E.
+
+### Fase 0 — Infrastruktur
+
+[ ] Setup Vitest atau `bun:test` + folder `tests/unit/`  
+[ ] Script `bun run test` (gabung unit + integration + E2E)  
+[ ] Script `bun run test:unit` · `test:integration` · `test:e2e` · `test:smoke`  
+[ ] Env test (`.env.test`) — DB, Clerk, Redis opsional  
+[ ] Akun uji Clerk: guest · USER · CONTRIBUTOR · ADMIN  
+[ ] `db:seed` konsisten untuk CI lokal  
+[ ] Dokumentasi cara jalankan satu perintah di `README.md`
+
+### Fase 1 — Unit test `lib/` *(target ~80–100 kasus)*
+
+[ ] `tests/unit/points.test.ts` — `awardPoints`, `checkDailyLogin`, anti-duplikat  
+[ ] `tests/unit/article-workflow.test.ts` — transisi status DRAFT→PENDING→PUBLISHED/REJECTED  
+[ ] `tests/unit/sanitizer.test.ts` — XSS payload HTML  
+[ ] `tests/unit/jakarta-calendar.test.ts` — bounds harian Asia/Jakarta  
+[ ] `tests/unit/notifications-dispatch.test.ts` — dedupe, group cap  
+[ ] `tests/unit/contributor.test.ts` — `canCreateArticles`, `getContributorCta`  
+[ ] `tests/unit/slug.test.ts` · `username.test.ts` — validasi & cooldown  
+[ ] `tests/unit/article-view-url.test.ts` — preview vs publik  
+[ ] `tests/unit/newsletter.test.ts` — normalisasi email, duplikat  
+[ ] `tests/unit/leaderboard-period.test.ts` — mingguan/bulanan/all-time
+
+### Fase 2 — API integration *(target ~200 kasus)*
+
+[ ] `tests/api/auth.test.ts` — me, logout, 401/410  
+[ ] `tests/api/articles.test.ts` — CRUD, workflow, read-complete, share, bookmark  
+[ ] `tests/api/points.test.ts` — ledger, export CSV  
+[ ] `tests/api/quizzes.test.ts` — attempt, one-attempt, skor  
+[ ] `tests/api/polls.test.ts` — vote, duplicate guard  
+[ ] `tests/api/comments.test.ts` — thread, owner, moderasi  
+[ ] `tests/api/notifications.test.ts` — list, read, dedupe, session Jakarta  
+[ ] `tests/api/newsletter.test.ts` — subscribe, unsubscribe, duplikat  
+[ ] `tests/api/contributor.test.ts` — apply, status, gate  
+[ ] `tests/api/home.test.ts` — wave 1–4, cache headers  
+[ ] `tests/api/admin.test.ts` — boundary 403 non-admin
+
+### Fase 3 — E2E Playwright *(perluas dari 54 → ~150 kasus)*
+
+[ ] `e2e/contributor.spec.ts` — apply, gate submit, my-articles  
+[ ] `e2e/gamification.spec.ts` — daily modal, leaderboard tab, activity  
+[ ] `e2e/newsletter.spec.ts` — footer subscribe, unsubscribe  
+[ ] `e2e/engagement.spec.ts` — komentar, reaksi, bookmark list  
+[ ] `e2e/article-workflow.spec.ts` — submit→review→publish (CONTRIBUTOR + ADMIN)  
+[ ] `e2e/notifications.spec.ts` — perluas: bell login, SSE, welcome/daily modal  
+[ ] `e2e/tv.spec.ts` — daftar, detail, lazy embed  
+[ ] `e2e/search.spec.ts` — hero, navbar, global search  
+[ ] `e2e/admin-crud.spec.ts` — smoke CRUD kategori, tag, video, iklan  
+[ ] Login Clerk di fixture E2E (USER / CONTRIBUTOR / ADMIN)
+
+### §1 Autentikasi & akun *(10 fitur · 19 kondisi)*
+
+[ ] **1.1** Login Clerk — email/password  
+[ ] **1.1** Login Clerk — OAuth  
+[ ] **1.1** Login Clerk — redirect setelah login  
+[ ] **1.2** Registrasi — buat akun baru  
+[ ] **1.2** Registrasi — verifikasi email  
+[ ] **1.2** Registrasi — JIT provisioning News DB  
+[ ] **1.3** Logout — session hilang  
+[ ] **1.3** Logout — redirect guest  
+[ ] **1.4** `GET /api/auth/me` — data user benar  
+[ ] **1.4** `GET /api/auth/me` — 401 untuk guest  
+[ ] **1.5** `/login`, `/register` — redirect ke Clerk  
+[ ] **1.6** `POST /api/auth/login`, `/register` — mengembalikan 410  
+[ ] **1.7** Route user — guest diarahkan ke sign-in  
+[ ] **1.8** Route admin — non-admin ditolak  
+[ ] **1.8** Route admin — admin masuk  
+[ ] **1.9** Core JWT — token terbit setelah login  
+[ ] **1.9** Core JWT — claims XP/role  
+[ ] **1.10** Core down — portal tetap jalan tanpa Core  
+[ ] **1.10** Core down — pesan degrade
+
+### §2 Profil & data user *(8 fitur · 13 kondisi)*
+
+[ ] **2.1** `/profile` — tampil nama, username, avatar, poin  
+[ ] **2.2** Edit profil — update display name  
+[ ] **2.2** Edit profil — validasi field  
+[ ] **2.3** Avatar — crop & simpan  
+[ ] **2.3** Avatar — tampil di navbar  
+[ ] **2.4** Username — sukses ganti  
+[ ] **2.4** Username — tolak jika < 14 hari  
+[ ] **2.5** Profil publik — statistik artikel  
+[ ] **2.5** Profil publik — daftar artikel publik  
+[ ] **2.6** `GET /api/profile/[username]` — 404 user tidak ada  
+[ ] **2.7** Gamifikasi — saldo poin  
+[ ] **2.7** Gamifikasi — sinkron navbar  
+[ ] **2.8** `PATCH /api/user/profile` — persist ke DB
+
+### §3 Artikel *(22 fitur · 28 kondisi)*
+
+[ ] **3.1** Daftar artikel — pagination/filter kategori  
+[ ] **3.1** Daftar artikel — kartu artikel  
+[ ] **3.2** Detail — konten HTML aman  
+[ ] **3.2** Detail — metadata SEO  
+[ ] **3.3** Filter kategori — filter benar  
+[ ] **3.4** Read complete — sekali per artikel  
+[ ] **3.4** Read complete — poin masuk ledger  
+[ ] **3.5** Share — idempotensi share  
+[ ] **3.6** Bookmark — toggle bookmark  
+[ ] **3.7** Tag — navigasi ke search/explore  
+[ ] **3.8** Sidebar iklan — slot tampil jika aktif  
+[ ] **3.9** Author card — link ke profil penulis  
+[ ] **3.10** Submit — gate role CONTRIBUTOR/ADMIN  
+[ ] **3.11** Edit — hanya owner/admin  
+[ ] **3.12** Draft — autosave  
+[ ] **3.12** Draft — restore  
+[ ] **3.13** Preview — hanya author/admin  
+[ ] **3.14** My articles — status DRAFT/PENDING/PUBLISHED  
+[ ] **3.15** Workflow — DRAFT→PENDING→PUBLISHED/REJECTED  
+[ ] **3.16** Admin CRUD artikel  
+[ ] **3.16** Admin — rich text editor  
+[ ] **3.17** Review queue — approve/reject + notifikasi  
+[ ] **3.18** Bulk approve/reject — tidak duplikat notifikasi  
+[ ] **3.19** Export — CSV/JSON  
+[ ] **3.20** Revisi & audit — riwayat perubahan tampil  
+[ ] **3.21** Featured/hot — muncul di homepage feed  
+[ ] **3.22** Hapus — soft/hard sesuai aturan
+
+### §4 Kuis *(7 fitur · 11 kondisi)*
+
+[ ] **4.1** Daftar kuis — kartu kuis  
+[ ] **4.1** Daftar kuis — filter  
+[ ] **4.2** Detail — soal tampil  
+[ ] **4.2** Detail — timer (jika ada)  
+[ ] **4.3** Attempt — one-attempt guard  
+[ ] **4.3** Attempt — skor benar  
+[ ] **4.4** Poin setelah kuis — sesuai skor/rules  
+[ ] **4.5** Leaderboard per kuis — monthly & all-time  
+[ ] **4.6** Admin CRUD — multi-question builder  
+[ ] **4.6** Admin CRUD — upload gambar  
+[ ] **4.7** Analytics — attempt, pass rate
+
+### §5 Poll *(5 fitur · 7 kondisi)*
+
+[ ] **5.1** Daftar poll — kartu poll aktif  
+[ ] **5.2** Detail — multi-question  
+[ ] **5.3** Vote — duplicate guard  
+[ ] **5.3** Vote — poin  
+[ ] **5.4** Admin CRUD — builder  
+[ ] **5.4** Admin CRUD — gambar opsi  
+[ ] **5.5** Analytics — breakdown vote
+
+### §6 Video — Jepangku TV *(5 fitur · 5 kondisi)*
+
+[ ] **6.1** `/tv` — grid video  
+[ ] **6.2** Detail — lazy YouTube embed  
+[ ] **6.3** API video — data lengkap  
+[ ] **6.4** Homepage TV — load on scroll  
+[ ] **6.5** Admin CRUD video — create/edit/delete
+
+### §7 Engagement & interaksi *(10 fitur · 11 kondisi)*
+
+[ ] **7.1** Komentar — thread 1 level  
+[ ] **7.1** Komentar — +2 poin  
+[ ] **7.2** Balas komentar — notif ke pemilik parent  
+[ ] **7.3** Edit/hapus — owner only  
+[ ] **7.4** Moderasi admin — hide/show  
+[ ] **7.5** Reaksi 9 emoji — artikel/poll/quiz  
+[ ] **7.6** Browse reaksi — filter per tipe  
+[ ] **7.7** Homepage reaksi — section lazy  
+[ ] **7.8** Bookmark list — daftar artikel tersimpan  
+[ ] **7.9** Subscribe kategori — notif artikel baru  
+[ ] **7.10** Share flow — native share / copy link
+
+### §8 Gamifikasi — poin & leaderboard *(11 fitur · 12 kondisi)*
+
+[ ] **8.1** `GET /api/points/my` — 100 transaksi terakhir  
+[ ] **8.2** Export CSV — download milik sendiri  
+[ ] **8.3** Daily login — sekali per hari Jakarta  
+[ ] **8.4** Leaderboard mingguan — tab switch  
+[ ] **8.5** Leaderboard bulanan — ranking benar  
+[ ] **8.6** Leaderboard all-time — ranking benar  
+[ ] **8.7** Homepage preview — top users  
+[ ] **8.8** Activity feed — campuran aktivitas  
+[ ] **8.9** Redirect `/points` → `/activity`  
+[ ] **8.10** Admin poin — filter periode  
+[ ] **8.10** Admin poin — detail modal  
+[ ] **8.11** Admin leaderboard — snapshot ranking
+
+### §9 Notifikasi & email *(15 fitur · 16 kondisi)*
+
+[ ] **9.1** Bell — guest: bell hidden  
+[ ] **9.2** List — pagination cursor  
+[ ] **9.3** Unread count — badge update  
+[ ] **9.4** Mark read — badge berkurang  
+[ ] **9.5** Mark all read — semua read  
+[ ] **9.6** SSE — badge update live  
+[ ] **9.7** SSE fallback — poll saat disconnect  
+[ ] **9.8** Welcome modal — user baru saja  
+[ ] **9.9** Daily points modal — sekali/hari Jakarta  
+[ ] **9.10** Notif artikel — publish/reject ke penulis  
+[ ] **9.11** Notif review — pending ke admin  
+[ ] **9.12** Notif kontributor — approved/rejected  
+[ ] **9.13** Notif komentar — cap anti-spam  
+[ ] **9.14** Email outbox — welcome · reject · kontributor  
+[ ] **9.15** Retention — `purge:notifications`
+
+### §10 Newsletter *(6 fitur · 8 kondisi)*
+
+[ ] **10.1** Footer subscribe — validasi email  
+[ ] **10.1** Footer subscribe — toast sukses  
+[ ] **10.2** Subscribe API — duplikat handled  
+[ ] **10.3** Unsubscribe — wajib akun sama  
+[ ] **10.4** Status subscription — aktif/nonaktif  
+[ ] **10.5** Admin newsletter — list · delete  
+[ ] **10.6** Export subscriber — CSV admin only
+
+### §11 Kontributor *(5 fitur · 6 kondisi)*
+
+[ ] **11.1** Apply — form submit  
+[ ] **11.2** Status — pending/approved/rejected  
+[ ] **11.3** Admin review — approve/reject + notif  
+[ ] **11.4** Gate submit — USER ditolak  
+[ ] **11.4** Gate submit — CONTRIBUTOR lolos  
+[ ] **11.5** CTA navbar — label sesuai role
+
+### §12 Homepage & discovery *(14 fitur · 17 kondisi)*
+
+[ ] **12.1** Shell — semua section `data-testid`  
+[ ] **12.2** Wave 1 — featured · trending · hari ini  
+[ ] **12.3** Wave 2 — lazy on scroll  
+[ ] **12.4** Wave 3 — isolated error per section  
+[ ] **12.5** Wave 4 — lazy on scroll  
+[ ] **12.6** Hero search — submit → `/search?q=`  
+[ ] **12.7** Navbar search — mobile + desktop  
+[ ] **12.8** Global search — artikel + kuis + poll  
+[ ] **12.9** Trending — sort `weeklyViewCount`  
+[ ] **12.10** Explore — tag populer + kategori  
+[ ] **12.11** Tag populer API — data konsisten  
+[ ] **12.12** Admin homepage — featured/hot picks  
+[ ] **12.13** Empty states — tidak crash saat kosong  
+[ ] **12.14** Skeleton — min-height stabil
+
+### §13 Integrasi LMS teaser *(6 fitur · 7 kondisi)*
+
+[ ] **13.1** LMS teaser API — `source: placeholder` saat LMS down  
+[ ] **13.2** Placeholder UI — coming soon + CTA  
+[ ] **13.3** Live courses — kartu kursus saat API live  
+[ ] **13.4** Domain — dev vs kursus.jepangku.com  
+[ ] **13.5** UTM links — utm_source/medium/campaign  
+[ ] **13.6** Hero — external link LMS
+
+### §14 Iklan & monetisasi *(4 fitur · 5 kondisi)*
+
+[ ] **14.1** Homepage ad slot — banner atau null  
+[ ] **14.2** Artikel sidebar — slot `article-sidebar`  
+[ ] **14.3** Admin CRUD — aktif/nonaktif · jadwal  
+[ ] **14.4** Client cache — tidak over-fetch
+
+### §15 Admin — dashboard & monitoring *(6 fitur · 9 kondisi)*
+
+[ ] **15.1** Dashboard — stats · quick actions  
+[ ] **15.2** Stats API — angka konsisten  
+[ ] **15.3** Activity log — audit artikel & kontributor  
+[ ] **15.4** Grafik registrasi — growth chart  
+[ ] **15.5** Manajemen user — list · detail · role  
+[ ] **15.6** User growth API — data chart
+
+### §16 Admin — konten & taxonomi *(5 fitur · 5 kondisi)*
+
+[ ] **16.1** Kategori CRUD — create/edit/delete  
+[ ] **16.2** Tag CRUD — slug unik  
+[ ] **16.3** Info pages CMS — edit konten statis  
+[ ] **16.4** Social links CMS — tampil di footer  
+[ ] **16.5** Footer social — link benar
+
+### §17 Admin — analytics *(5 fitur · 5 kondisi)*
+
+[ ] **17.1** Ringkasan — KPI utama  
+[ ] **17.2** Content ranking — sort performa  
+[ ] **17.3** Per kategori — breakdown  
+[ ] **17.4** Per artikel — grafik views harian  
+[ ] **17.5** Artikel stats API — aggregate
+
+### §18 Halaman statis & navigasi *(12 fitur · 14 kondisi)*
+
+[ ] **18.1** `/about` — konten dari CMS/info  
+[ ] **18.2** `/contact` — form/link  
+[ ] **18.3** `/advertise`  
+[ ] **18.4** `/media-partner`  
+[ ] **18.5** `/career`  
+[ ] **18.6** `/internship`  
+[ ] **18.7** `/privacy-policy`  
+[ ] **18.8** `/terms-of-service`  
+[ ] **18.9** `/disclaimer`  
+[ ] **18.10** Navbar & sidebar — mobile drawer · kategori  
+[ ] **18.11** Footer — link jelajahi · newsletter  
+[ ] **18.12** `GET /api/pages/[slug]` — dynamic content
+
+### §19 Upload & media *(4 fitur · 4 kondisi)*
+
+[ ] **19.1** Upload — validasi MIME/size  
+[ ] **19.2** R2 — URL publik accessible  
+[ ] **19.3** Image moderation — tolak konten tidak aman  
+[ ] **19.4** Rich text editor — embed gambar
+
+### §20 Non-functional *(29 kondisi)*
+
+[ ] **P1** Lighthouse production — Mobile/Desktop baseline  
+[ ] **P2** LCP featured — `fetchPriority=high`  
+[ ] **P3** Homepage wave lazy — Wave 1 only on load  
+[ ] **P4** Image formats — AVIF/WebP + `sizes`  
+[ ] **P5** YouTube lazy embed — click-to-play  
+[ ] **P6** API cache headers — `s-maxage` home APIs  
+[ ] **S1** Rate limiting — flood API publik  
+[ ] **S2** HTML sanitasi — XSS komentar/artikel  
+[ ] **S3** Auth boundary — API admin 403 untuk user  
+[ ] **S4** Upload validation — file type spoofing  
+[ ] **S5** Internal email route — `EMAIL_QUEUE_SECRET`  
+[ ] **S6** CSRF/session — Clerk + cookie httpOnly  
+[ ] **A1** Kontras warna — WCAG AA  
+[ ] **A2** Keyboard nav — navbar, modal, form  
+[ ] **A3** Touch targets — carousel, mobile nav  
+[ ] **A4** `inert` search overlay — hero mobile  
+[ ] **A5** Screen reader — bell, modal notifikasi  
+[ ] **R1** Health check — `GET /api/health`  
+[ ] **R2** Core service down — graceful degrade  
+[ ] **R3** DB connection fail — graceful error  
+[ ] **R4** Section error isolation — satu home API gagal  
+[ ] **R5** Error monitoring webhook  
+[ ] **R6** Log drain  
+[ ] **R7** Redis fallback — tanpa Upstash lokal  
+[ ] **C1** Mobile 375px — no horizontal scroll  
+[ ] **C2** Tablet 768px  
+[ ] **C3** Desktop 1280px+  
+[ ] **C4** Chromium E2E — `bun run test:e2e`  
+[ ] **C5** Safari/Firefox smoke
 
 ---
 
@@ -216,7 +552,7 @@
 [x] `lib/jakarta-calendar.ts` — tanggal & bounds Asia/Jakarta  
 [x] `lib/notifications/queries.ts` — list, unread count, mark read, session bootstrap
 
-####REST API
+#### REST API
 
 [x] `GET /api/notifications` — list + cursor pagination + filter `unreadOnly`  
 [x] `GET /api/notifications/unread-count` — ringan untuk badge  
@@ -319,7 +655,8 @@
 
 ### QA & testing aplikasi
 
-Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md)** — functional + non-functional, diverifikasi terhadap kode.
+Checklist kerja lengkap ada di **[§ Checklist Testing — Kerjakan](#checklist-testing--kerjakan)** (bagian atas dokumen).  
+Inventaris entry point per fitur: **[`testing-inventory.md`](./testing-inventory.md)**.
 
 #### Otomatis & smoke
 
