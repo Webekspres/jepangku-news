@@ -1,10 +1,8 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
   Plus,
   Pencil,
   Download,
@@ -15,15 +13,32 @@ import {
   ChevronLeft,
   ChevronRight,
   Check,
+  FileText,
+  Eye,
+  BarChart3,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import {
+  AdminFilterButtons,
+  AdminSearchInput,
+  AdminToolbar,
+} from "@/components/admin/AdminToolbar";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
@@ -91,31 +106,24 @@ function RejectArticleModal({
         : "";
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
-        <DialogPrimitive.Content
-          className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2",
-            "bg-white border-2 border-foreground p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-            "duration-200",
-          )}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent
+          className="w-full max-w-md rounded-lg border border-jepang-border bg-white p-6 shadow-jepang-lg"
           onInteractOutside={() => !loading && onOpenChange(false)}
           onEscapeKeyDown={() => !loading && onOpenChange(false)}
         >
           <div className="mb-4 text-amber-500">
             <XCircle size={28} strokeWidth={1.5} />
           </div>
-          <DialogPrimitive.Title className="font-heading font-black text-xl tracking-tight mb-1">
+          <DialogTitle className="font-heading font-black text-xl tracking-tight mb-1">
             Tolak artikel?
-          </DialogPrimitive.Title>
+          </DialogTitle>
           {description && (
-            <DialogPrimitive.Description className="text-sm text-jepang-muted mb-4">
+            <DialogDescription className="text-sm text-jepang-muted mb-4">
               {description}
-            </DialogPrimitive.Description>
+            </DialogDescription>
           )}
           <div className="space-y-2 mb-5">
             <Label htmlFor="reject-note-modal">Catatan Penolakan (wajib)</Label>
@@ -152,9 +160,9 @@ function RejectArticleModal({
               Batal
             </Button>
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
 
@@ -167,10 +175,21 @@ function buildQuery(params: Record<string, string>) {
   return s ? `?${s}` : "";
 }
 
+type ArticleStats = {
+  total: number;
+  pendingReview: number;
+  published: number;
+  rejected: number;
+  archived: number;
+  totalViews: number;
+  missingCategory: number;
+};
+
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
+  const [stats, setStats] = useState<ArticleStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -182,11 +201,9 @@ export default function AdminArticlesPage() {
 
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [authorFilter, setAuthorFilter] = useState("");
+  const [missingCategoryFilter, setMissingCategoryFilter] = useState(false);
   const [sort, setSort] = useState("latest");
   const [search, setSearch] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
@@ -195,25 +212,31 @@ export default function AdminArticlesPage() {
 
   const filterQueryString = buildQuery({
     status: statusFilter,
-    categoryId: categoryFilter,
-    authorId: authorFilter,
+    categoryId: missingCategoryFilter ? "" : categoryFilter,
+    missingCategory: missingCategoryFilter ? "true" : "",
     sort,
     search,
-    dateFrom,
-    dateTo,
   });
 
   const queryString = buildQuery({
     status: statusFilter,
-    categoryId: categoryFilter,
-    authorId: authorFilter,
+    categoryId: missingCategoryFilter ? "" : categoryFilter,
+    missingCategory: missingCategoryFilter ? "true" : "",
     sort,
     search,
-    dateFrom,
-    dateTo,
     page: String(page),
     limit: String(PER_PAGE),
   });
+
+  const loadStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const data = await fetch("/api/admin/articles/stats").then((r) => r.json());
+      setStats(data);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
 
   const loadArticles = useCallback(async () => {
     setLoading(true);
@@ -229,16 +252,6 @@ export default function AdminArticlesPage() {
     setPage(Number(data?.page || page));
     setTotalPages(Number(data?.totalPages || 1));
     setTotalItems(Number(data?.total || list.length));
-
-    const authorMap = new Map<string, string>();
-    list.forEach((a: any) => {
-      if (a.author?.id) {
-        authorMap.set(a.author.id, a.author.name || a.author.username || a.author.id);
-      }
-    });
-    setAuthors(
-      Array.from(authorMap.entries()).map(([id, name]) => ({ id, name })),
-    );
     setSelected(new Set());
     setLoading(false);
   }, [queryString]);
@@ -248,10 +261,66 @@ export default function AdminArticlesPage() {
   }, [loadArticles]);
 
   useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
+  useEffect(() => {
     fetch("/api/admin/categories")
       .then((r) => r.json())
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
+
+  const applyStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    setMissingCategoryFilter(false);
+    setPage(1);
+  };
+
+  const applyMissingCategoryFilter = () => {
+    setMissingCategoryFilter(true);
+    setCategoryFilter("");
+    setStatusFilter("");
+    setPage(1);
+  };
+
+  const articleStatItems = [
+    {
+      label: "Total Artikel",
+      value: stats?.total ?? 0,
+      icon: FileText,
+      onClick: () => applyStatusFilter(""),
+      testId: "stat-total-artikel",
+    },
+    {
+      label: "Menunggu Review",
+      value: stats?.pendingReview ?? 0,
+      icon: CheckSquare,
+      highlight: true,
+      onClick: () => applyStatusFilter("PENDING_REVIEW"),
+      testId: "stat-menunggu-review",
+    },
+    {
+      label: "Dipublikasikan",
+      value: stats?.published ?? 0,
+      icon: Eye,
+      onClick: () => applyStatusFilter("PUBLISHED"),
+      testId: "stat-dipublikasikan",
+    },
+    {
+      label: "Total Views",
+      value: stats?.totalViews ?? 0,
+      icon: BarChart3,
+      testId: "stat-total-views",
+    },
+    {
+      label: "Tanpa Kategori",
+      value: stats?.missingCategory ?? 0,
+      icon: AlertTriangle,
+      highlight: (stats?.missingCategory ?? 0) > 0,
+      onClick: applyMissingCategoryFilter,
+      testId: "stat-tanpa-kategori",
+    },
+  ];
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -305,7 +374,7 @@ export default function AdminArticlesPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
           toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil`);
-          await loadArticles();
+          await Promise.all([loadArticles(), loadStats()]);
         } catch (e: unknown) {
           toast.error(e instanceof Error ? e.message : "Gagal memproses bulk");
         } finally {
@@ -320,6 +389,35 @@ export default function AdminArticlesPage() {
       `/api/admin/articles/export${filterQueryString}${filterQueryString ? "&" : "?"}format=${format}`,
       "_blank",
     );
+  };
+
+  const handleArchive = (articleId: string, title: string) => {
+    confirm({
+      title: "Arsipkan artikel?",
+      description: `"${title}" akan diarsipkan dan tidak tampil di situs.`,
+      confirmLabel: "Arsipkan",
+      variant: "warning",
+      onConfirm: async () => {
+        setActionLoading(articleId);
+        try {
+          const res = await fetch("/api/admin/articles/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: [articleId], action: "archive" }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Gagal mengarsipkan artikel");
+          }
+          toast.success("Artikel berhasil diarsipkan");
+          await Promise.all([loadArticles(), loadStats()]);
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal mengarsipkan artikel");
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   const handleApprove = (articleId: string) => {
@@ -339,7 +437,7 @@ export default function AdminArticlesPage() {
             throw new Error(data.error || "Gagal menyetujui artikel");
           }
           toast.success("Artikel disetujui dan dipublikasikan");
-          await loadArticles();
+          await Promise.all([loadArticles(), loadStats()]);
         } catch (e: unknown) {
           toast.error(e instanceof Error ? e.message : "Gagal menyetujui artikel");
         } finally {
@@ -411,7 +509,7 @@ export default function AdminArticlesPage() {
         toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil ditolak`);
       }
       closeRejectModal();
-      await loadArticles();
+      await Promise.all([loadArticles(), loadStats()]);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Gagal menolak artikel");
     } finally {
@@ -422,15 +520,15 @@ export default function AdminArticlesPage() {
   };
 
   const statusFilters = [
-    { v: "", l: "Semua" },
-    { v: "PENDING_REVIEW", l: "Review" },
-    { v: "PUBLISHED", l: "Dipublikasikan" },
-    { v: "REJECTED", l: "Ditolak" },
-    { v: "ARCHIVED", l: "Arsip" },
+    { value: "", label: "Semua" },
+    { value: "PENDING_REVIEW", label: "Review" },
+    { value: "PUBLISHED", label: "Dipublikasikan" },
+    { value: "REJECTED", label: "Ditolak" },
+    { value: "ARCHIVED", label: "Arsip" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-articles-page">
+    <>
       <ConfirmModal {...confirmProps} />
       <RejectArticleModal
         open={rejectModalOpen}
@@ -444,169 +542,106 @@ export default function AdminArticlesPage() {
         loading={rejectLoading}
       />
 
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <h1 className="font-heading font-black text-4xl tracking-tighter">
-              Semua Artikel
-            </h1>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleExport("csv")} data-testid="export-csv">
-                <Download size={14} className="mr-1" /> CSV
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleExport("json")} data-testid="export-json">
-                <Download size={14} className="mr-1" /> JSON
-              </Button>
-              <Button asChild data-testid="create-article-btn">
-                <Link href="/admin/articles/create">
-                  <Plus size={14} className="mr-1" /> Buat Artikel
-                </Link>
-              </Button>
-            </div>
-          </div>
+      <AdminPageLayout
+        testId="admin-articles-page"
+        title="Semua Artikel"
+        headerActions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => handleExport("csv")} data-testid="export-csv">
+              <Download size={14} className="mr-1" /> CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleExport("json")} data-testid="export-json">
+              <Download size={14} className="mr-1" /> JSON
+            </Button>
+            <Button asChild data-testid="create-article-btn">
+              <Link href="/admin/articles/create">
+                <Plus size={14} className="mr-1" /> Buat Artikel
+              </Link>
+            </Button>
+          </>
+        }
+      >
+        {/* Stats + filter tanpa kategori di toolbar */}
+        <div data-testid="admin-articles-stats">
+          <AdminStatCards
+            loading={statsLoading}
+            skeletonCount={5}
+            gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+            items={articleStatItems}
+          />
         </div>
-      </section>
 
-      <div className="px-4 mx-auto max-w-7xl py-8 space-y-6">
-        <Card className="border border-foreground p-4 space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {statusFilters.map((s) => (
-              <Button
-                key={s.v}
-                size="sm"
-                variant={statusFilter === s.v ? "black" : "outline"}
-                onClick={() => {
-                  setStatusFilter(s.v);
-                  setPage(1);
-                }}
-              >
-                {s.l}
-              </Button>
-            ))}
+        <AdminToolbar className="flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+          <AdminFilterButtons
+            options={statusFilters}
+            value={statusFilter}
+            onChange={applyStatusFilter}
+          />
+          {missingCategoryFilter && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMissingCategoryFilter(false);
+                setPage(1);
+              }}
+              data-testid="filter-missing-category-clear"
+            >
+              <AlertTriangle size={14} className="mr-1" />
+              Tanpa kategori (aktif) — Hapus filter
+            </Button>
+          )}
+          <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-[1fr_200px_200px] sm:ml-auto sm:w-auto">
+            <AdminSearchInput
+              value={search}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
+              placeholder="Cari judul atau ringkasan..."
+              className="w-full sm:w-auto"
+              testId="admin-article-search"
+            />
+            <Select
+              value={categoryFilter || "_all"}
+              onValueChange={(v) => {
+                setCategoryFilter(v === "_all" ? "" : v);
+                setMissingCategoryFilter(false);
+                setPage(1);
+              }}
+              disabled={missingCategoryFilter}
+            >
+              <SelectTrigger data-testid="filter-category">
+                <SelectValue placeholder="Kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Semua kategori</SelectItem>
+                {categories.map((c: { id: string; name: string }) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={sort}
+              onValueChange={(v) => {
+                setSort(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger data-testid="filter-sort">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="latest">Terbaru dibuat</SelectItem>
+                <SelectItem value="oldest">Terlama</SelectItem>
+                <SelectItem value="popular">Paling dilihat</SelectItem>
+                <SelectItem value="published">Terbaru publish</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Cari judul</Label>
-              <Input
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Judul atau ringkasan..."
-                data-testid="admin-article-search"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Kategori</Label>
-              <Select
-                value={categoryFilter || "_all"}
-                onValueChange={(v) => {
-                  setCategoryFilter(v === "_all" ? "" : v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger data-testid="filter-category">
-                  <SelectValue placeholder="Semua kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_all">Semua kategori</SelectItem>
-                  {categories.map((c: { id: string; name: string }) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Penulis</Label>
-              <Select
-                value={authorFilter || "_all"}
-                onValueChange={(v) => {
-                  setAuthorFilter(v === "_all" ? "" : v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger data-testid="filter-author">
-                  <SelectValue placeholder="Semua penulis" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_all">Semua penulis</SelectItem>
-                  {authors.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Urutkan</Label>
-              <Select
-                value={sort}
-                onValueChange={(v) => {
-                  setSort(v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger data-testid="filter-sort">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="latest">Terbaru dibuat</SelectItem>
-                  <SelectItem value="oldest">Terlama</SelectItem>
-                  <SelectItem value="popular">Paling dilihat</SelectItem>
-                  <SelectItem value="published">Terbaru publish</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Dari tanggal</Label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => {
-                  setDateFrom(e.target.value);
-                  setPage(1);
-                }}
-                data-testid="filter-date-from"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs uppercase tracking-wider">Sampai tanggal</Label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => {
-                  setDateTo(e.target.value);
-                  setPage(1);
-                }}
-                data-testid="filter-date-to"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button
-                variant="black"
-                onClick={() => {
-                  if (page === 1) loadArticles();
-                  else setPage(1);
-                }}
-                data-testid="apply-filters"
-              >
-                Terapkan Filter
-              </Button>
-            </div>
-          </div>
-        </Card>
+        </AdminToolbar>
 
         {selected.size > 0 && (
           <div className="flex flex-wrap gap-2 p-4 border border-foreground bg-jepang-off-white">
@@ -657,7 +692,12 @@ export default function AdminArticlesPage() {
           </div>
         )}
 
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading && articles.length === 0 ? "..." : totalItems} ARTIKEL`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -681,7 +721,7 @@ export default function AdminArticlesPage() {
 
             <TableBody>
               {loading && articles.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     <TableCell colSpan={7}>
                       <SkeletonBox height="1rem" width="100%" />
@@ -709,7 +749,13 @@ export default function AdminArticlesPage() {
                       />
                     </TableCell>
                     <TableCell className="font-semibold max-w-xs truncate">
-                      {article.title}
+                      <Link
+                        href={`/admin/articles/${article.id}`}
+                        className="hover:text-jepang-red hover:underline"
+                        data-testid={`view-article-${article.id}`}
+                      >
+                        {article.title}
+                      </Link>
                     </TableCell>
                     <TableCell className="text-jepang-muted">
                       {article.author?.name || "-"}
@@ -726,7 +772,7 @@ export default function AdminArticlesPage() {
                       {article.viewCount || 0}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-1">
                         {article.status === "PENDING_REVIEW" && (
                           <>
                             <Button
@@ -749,14 +795,53 @@ export default function AdminArticlesPage() {
                             </Button>
                           </>
                         )}
-                        <Button variant="outline" size="sm" asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                          className="border border-jepang-border hover:border-foreground"
+                          title="Lihat"
+                        >
+                          <Link
+                            href={`/admin/articles/${article.id}`}
+                            data-testid={`view-article-action-${article.id}`}
+                          >
+                            <Eye size={14} strokeWidth={1.5} />
+                            <span className="sr-only">Lihat</span>
+                          </Link>
+                        </Button>
+                        {article.status !== "ARCHIVED" &&
+                          article.status !== "PENDING_REVIEW" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                handleArchive(article.id, article.title)
+                              }
+                              disabled={actionLoading === article.id}
+                              className="border border-jepang-border hover:border-foreground"
+                              title="Arsipkan"
+                              data-testid={`archive-article-${article.id}`}
+                            >
+                              <Archive size={14} strokeWidth={1.5} />
+                              <span className="sr-only">Arsipkan</span>
+                            </Button>
+                          )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          title="Ubah"
+                        >
                           <Link
                             href={`/admin/articles/${article.id}/edit`}
                             data-testid={`edit-article-${article.id}`}
                           >
-                            <Pencil size={14} className="mr-1" /> Ubah
+                            <Pencil size={14} className="mr-1" />
+                            <span className="sr-only">Ubah</span>
                           </Link>
                         </Button>
+
                       </div>
                     </TableCell>
                   </TableRow>
@@ -764,7 +849,7 @@ export default function AdminArticlesPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
+        </AdminCard>
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider">
@@ -794,7 +879,7 @@ export default function AdminArticlesPage() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </AdminPageLayout>
+    </>
   );
 }

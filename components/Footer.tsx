@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import AssetImage from "@/components/AssetImage";
 import { useRouter } from "next/navigation";
-import { useAuth, isAuthUser } from "@/contexts/AuthContext";
+import FooterNewsletterForm from "@/components/FooterNewsletterForm";
+import { useAuth, getAuthLoginPath, getAuthRegisterPath, isAuthUser } from "@/contexts/AuthContext";
+import { getContributorCta } from "@/lib/contributor";
+import { imageLoadingProps } from "@/lib/image-loading";
+import { NAV_CATEGORIES, categoryArticlesHref } from "@/components/navbar/nav-config";
 
 export default function Footer() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, isSignedIn } = useAuth();
   const router = useRouter();
+  const contributorCta = getContributorCta(isAuthUser(user) ? user : null);
 
   const handleLogout = async () => {
     await logout();
@@ -16,99 +21,48 @@ export default function Footer() {
 
   return (
     <footer
-      className="bg-jepang-black text-white mt-24"
+      className="bg-jepang-navy mt-24"
       data-testid="main-footer"
     >
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <Image
-              src="/assets/images/logo/Logo-02-dark.svg"
-              alt="Jepangku"
-              width={160}
-              height={48}
-              className="h-40 w-auto mb-4"
-            />
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              Portal media interaktif bertema Jepang untuk pembaca Indonesia.
-            </p>
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-8 text-white">
+          <div className="col-span-2 md:col-span-3">
+            <div className="flex flex-col items-start">
+              <AssetImage
+                src="/assets/images/logo/Logo-02-dark.svg"
+                alt="Jepangku"
+                width={160}
+                height={48}
+                className="h-40 w-auto mb-4"
+                {...imageLoadingProps(false)}
+              />
+              <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-sm">
+                Portal media interaktif bertema Jepang untuk pembaca Indonesia.
+              </p>
+              <div className="w-full max-w-sm">
+                <FooterNewsletterForm
+                  defaultEmail={""}
+                />
+              </div>
+            </div>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Jelajahi</h4>
+            <p className="section-label text-jepang-orange mb-3">Kategori</p>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/articles"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Artikel
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/quizzes"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Kuis
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/polls"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Polling
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/leaderboard"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Peringkat
-                </Link>
-              </li>
+              {NAV_CATEGORIES.map((cat) => (
+                <li key={cat.slug}>
+                  <Link
+                    href={categoryArticlesHref(cat.slug)}
+                    className="hover:text-jepang-red transition-colors"
+                  >
+                    {cat.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Kategori</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/articles?category=anime"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Anime
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles?category=manga"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Manga
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles?category=culture"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Budaya
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles?category=food"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Kuliner
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="small-caps text-jepang-red mb-3">Informasi</h4>
+            <p className="section-label text-jepang-orange mb-3">Informasi</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -185,13 +139,13 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="small-caps text-jepang-red mb-3">Akun</h4>
+            <p className="section-label text-jepang-orange mb-3">Akun</p>
             <ul className="space-y-2 text-sm">
-              {loading ? (
+              {loading && isSignedIn ? (
                 <>
                   <li className="h-4 w-24 bg-zinc-800 animate-pulse" />
                 </>
-              ) : isAuthUser(user) ? (
+              ) : isSignedIn ? (
                 <>
                   <li>
                     <Link
@@ -211,10 +165,10 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/submit-article"
+                      href={contributorCta.href}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Kirim Artikel
+                      {contributorCta.label}
                     </Link>
                   </li>
                 </>
@@ -222,7 +176,7 @@ export default function Footer() {
                 <>
                   <li>
                     <Link
-                      href="/login"
+                      href={getAuthLoginPath()}
                       className="hover:text-jepang-red transition-colors"
                     >
                       Masuk
@@ -230,7 +184,7 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/register"
+                      href={getAuthRegisterPath()}
                       className="hover:text-jepang-red transition-colors"
                     >
                       Daftar
@@ -238,25 +192,62 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link
-                      href="/submit-article"
+                      href={contributorCta.href}
                       className="hover:text-jepang-red transition-colors"
                     >
-                      Kirim Artikel
+                      {contributorCta.label}
                     </Link>
                   </li>
                 </>
               )}
             </ul>
           </div>
+          <div>
+            <p className="section-label text-jepang-orange mb-3">Jelajahi</p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href="/articles"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Artikel
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/quizzes"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Kuis
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/polls"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Polling
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/leaderboard"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Peringkat
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
         <div className="mt-12 pt-6 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-zinc-500 font-mono">
+          <p className="text-xs text-zinc-400 font-mono">
             &copy; 2026 JEPANGKU. SEMUA HAK DILINDUNGI. DIBUAT OLEH{" "}
             <Link href={"https://webekspres.id"} className="font-bold">
               WEBEKSPRES
             </Link>
           </p>
-          <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">
+          <p className="font-japanese text-xs text-zinc-400 tracking-wide">
             日本語ポータル | INDONESIA
           </p>
         </div>

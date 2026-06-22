@@ -1,160 +1,179 @@
 # Jepangku News
 
-> Portal berita interaktif bertema Jepang untuk pembaca Indonesia — artikel, quiz, polling, leaderboard, dan sistem poin.
+Portal berita interaktif bertema Jepang — artikel, kuis, polling, leaderboard, gamifikasi, dan admin CMS lengkap.
 
-[![Node.js][node-image]][node-url]
-[![Next.js][next-image]][next-url]
-[![TypeScript][ts-image]][ts-url]
+[Next.js](https://nextjs.org/)
+[TypeScript](https://www.typescriptlang.org/)
+[Status](docs/feature-status.md)
 
-Jepangku News adalah aplikasi **full-stack** berbasis **Next.js App Router + TypeScript** yang menggabungkan konten berita dengan fitur interaktif untuk meningkatkan engagement pengguna. Pembaca dapat menikmati artikel seputar budaya Jepang, anime, manga, dan lifestyle, sambil mengikuti quiz, polling, dan mengumpulkan poin.
-
-MVP single-app sudah tercapai. Pengembangan lanjutan berfokus pada **Fase A** — menstabilkan portal untuk soft launch — sambil menyiapkan arsitektur agar siap menjadi ekosistem multi-app (Core Service, LMS, Clerk) di fase berikutnya. Deployment saat ini menggunakan **Vercel**.
-
-<img width="1894" height="913" alt="Screenshot 2026-06-05 090602" src="https://github.com/user-attachments/assets/27767331-f2c5-4839-a195-afa4a17c63c2" />
+## Ringkasan proyek
 
 
-## Installation
+|                |                                                    |
+| -------------- | -------------------------------------------------- |
+| **Nama**       | Jepangku News (portal berita ekosistem Jepangku)   |
+| **Status**     | ✅ **Sepenuhnya diimplementasi** — production-ready |
+| **Production** | [jepangku.com](https://jepangku.com)               |
+| **Staging**    | `dev.jepangku.com`                                 |
+| **Repo**       | Private — [Webekspres](https://webekspres.id)      |
+| **Diperbarui** | Juni 2026                                          |
 
-**Prasyarat:** Node.js 18+, Bun (disarankan) atau npm, Git, akun Neon PostgreSQL. Cloudflare R2 opsional untuk development (ada graceful fallback).
 
-**macOS & Linux:**
+### Domain ekosistem
 
-```sh
+
+| App                   | Production            | Peran                                                 |
+| --------------------- | --------------------- | ----------------------------------------------------- |
+| **News** *(repo ini)* | `jepangku.com`        | Artikel, kuis, poll, poin, leaderboard portal         |
+| **Core**              | `core.jepangku.com`   | Identitas global, JWT, XP/level (LMS)                 |
+| **LMS**               | `kursus.jepangku.com` | Kursus & badge *(integrasi penuh = rencana lanjutan)* |
+
+
+### Stack teknis
+
+Next.js 16 · React 19 · TypeScript · Clerk · Prisma 7 · PostgreSQL · Cloudflare R2 · Upstash Redis · Resend · **jepangku-core** (`lib/core/`)
+
+### Fitur utama (semua selesai)
+
+- Auth Clerk SSO + bridge Core JWT
+- Artikel dengan workflow kontributor (apply → review → publish)
+- Kuis, polling, komentar, reaksi emoji, bookmark
+- Gamifikasi poin & leaderboard (ledger `point_transactions` di News DB)
+- Homepage wave lazy-load (10 section: feed, TV, iklan, LMS teaser, engagement)
+- Notifikasi realtime (bell + SSE), email outbox, modal daily poin & welcome
+- Newsletter subscribe/unsubscribe + admin
+- Admin CMS — artikel, users, analytics, moderasi, monitoring poin
+- Keamanan — rate limit, sanitasi XSS, upload moderation, security headers
+
+### Rencana lanjutan *(bukan blokir rilis)*
+
+Hanya integrasi ekosistem lintas-app — lihat `[docs/feature-status.md](docs/feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)`:
+
+- LMS integration penuh (shared Clerk/Core di kursus)
+- Katalog `/kursus` single source of truth dari jepangkuLMS
+- Role hierarchy super-admin lintas app
+- Profil extended (bio) di Core
+- Spend poin & membership
+
+---
+
+## Quick start
+
+```bash
 git clone https://github.com/Webekspres/jepangku-news.git
 cd jepangku-news
 bun install
 cp .env.example .env.local
 bunx prisma generate
+bun run db:push    # atau migrate sesuai workflow tim
+bun dev            # http://localhost:3000
 ```
 
-**Windows (PowerShell):**
-
-```powershell
-git clone https://github.com/Webekspres/jepangku-news.git
-cd jepangku-news
-bun install
-Copy-Item .env.example .env.local
-bunx prisma generate
-```
-
-Isi `.env.local` sesuai `.env.example`:
+Isi `.env.local` dari `[.env.example](.env.example)`. Variabel penting:
 
 ```env
-DATABASE_URL="postgresql://user:password@host:port/database"
-JWT_SECRET="your-secret-key"
-JWT_EXPIRATION=86400
-R2_ACCOUNT_ID="your-account-id"
-R2_ACCESS_KEY_ID="your-access-key-id"
-R2_ACCESS_KEY_SECRET="your-access-key-secret"
-R2_BUCKET_NAME="jepangku-storage"
-R2_PUBLIC_URL="https://your-bucket-id.r2.cloudflarestorage.com"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_API_URL="http://localhost:3000/api"
-NODE_ENV="development"
+# Clerk (satu app dengan Core & LMS)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+# Core
+CORE_API_URL=http://localhost:8080
+CORE_SERVICE_TOKEN=<sama dengan jepangku-core>
+CORE_JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+CORE_JWT_ISSUER=https://core.jepangku.com
+CORE_JWT_AUDIENCE=jepangku
 ```
 
-> Variabel `NEXT_PUBLIC_*` diekspos ke browser. Jangan commit `.env.local`.
-> Jalankan `bun prisma db seed` hanya jika membuat instance database baru.
+Sync public key dari Core dev:
 
-## Usage example
-
-Jalankan server development:
-
-```sh
-bun dev
+```bash
+cd ../jepangku-core && bun run jwt:sync-public-key-to-clients
 ```
 
-Buka [http://localhost:3000](http://localhost:3000). Contoh alur penggunaan:
+Core harus jalan di `http://localhost:8080`.
 
-**Pembaca (guest):** jelajahi artikel di `/articles`, ikuti quiz di `/quizzes`, vote polling di `/polls`, lihat peringkat di `/leaderboard`.
+## Verifikasi & QA
 
-**Pengguna terdaftar:** daftar/masuk, bookmark artikel, submit artikel untuk review, kumpulkan poin, kelola profil di `/profile`.
+### Testing (satu perintah)
 
-**Admin:** akses dashboard di `/admin` — kelola artikel, kategori, tag, quiz, polling, user, dan homepage banner.
-
-Contoh request API:
-
-```sh
-# Daftar artikel dengan filter
-curl "http://localhost:3000/api/articles?sort=latest&page=1"
-
-# Leaderboard mingguan
-curl "http://localhost:3000/api/leaderboard/weekly"
+```bash
+bun run test:db:prepare   # migrate + seed DB uji (.env.test) — pertama kali / CI
+bun dev                   # terminal lain — wajib untuk integration + E2E
+bun run test              # unit + integration + E2E (Playwright)
 ```
 
-_Untuk dokumentasi lengkap fitur, API, dan status implementasi, lihat [docs/feature-status.md](docs/feature-status.md) dan [docs/development-roadmap.md](docs/development-roadmap.md)._
+Per lapisan:
 
-## Development setup
-
-Instal dependensi dan jalankan perintah development:
-
-```sh
-bun install
-bunx prisma generate
-bun dev          # development server (Turbopack)
-bun run build    # prisma generate + production build
-bun run start    # production server
-bun run lint     # ESLint
+```bash
+bun run test:unit         # bun:test — logika murni (tests/unit/)
+bun run test:integration  # HTTP API — butuh server jalan
+bun run test:e2e          # Playwright (e2e/) — ~185 kasus × 4 browser
+bun run test:e2e:ui       # Playwright UI mode
+bun run test:smoke        # unit + smoke API + homepage/auth Chromium
 ```
 
-**Struktur proyek:**
+Akun uji Clerk (OTP `424242`): guest · `budi+clerk_test@jepangku.com` (USER) · `kontributor+clerk_test@jepangku.com` (CONTRIBUTOR) · `admin+clerk_test@jepangku.com` (ADMIN). Detail: [`tests/README.md`](tests/README.md).
 
+Env uji: salin/isi [`.env.test`](.env.test) (DB wajib; Clerk & Redis opsional untuk unit).
+
+### Skrip verifikasi manual
+
+```bash
+bun run verify:core              # integrasi Core + ledger poin
+bun run verify:home              # wave APIs homepage
+bun run verify:notifications     # notifikasi + email hooks
+bun run verify:non-functional    # 47 checks (keamanan, a11y, reliabilitas)
+bun run verify:staging           # cutover staging
+bun run test:e2e                 # Playwright (Chromium, Firefox, WebKit)
+bun run lighthouse:audit         # skor performa (butuh production build)
 ```
-app/
-├── (public)/    # Homepage, artikel, quiz, poll, leaderboard
-├── (user)/      # Profil, bookmark, submit artikel, poin
-├── (admin)/     # Admin dashboard & management
-├── (auth)/      # Login & register
-└── api/         # API routes
-components/      # UI components
-lib/             # DB, auth, R2, points
-prisma/          # Schema, migrations, seed
-docs/            # Dokumentasi proyek
-.agents/         # Scope, user flow, ERD, steering
+
+Skor Lighthouse terbaru: `[docs/lighthouse-scores.md](docs/lighthouse-scores.md)` — Mobile **42** / Desktop **89**.
+
+## Alur integrasi
+
+```text
+Clerk login → exchange Core JWT (lib/core/auth.ts)
+    → verify signature (lib/core/verify-jwt.ts)
+    → profil + role dari Core claims / API
+    → poin portal dari News DB (bukan Core)
 ```
 
-**Tech stack:** Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 7 · PostgreSQL (Neon) · Cloudflare R2 · JWT + cookie
+## Dokumentasi
 
-**Deployment (Vercel):** hubungkan repo, set environment variables dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
-## Release History
+| Dokumen                                                                       | Isi                                             |
+| ----------------------------------------------------------------------------- | ----------------------------------------------- |
+| [docs/README.md](docs/README.md)                                              | Indeks dokumentasi                              |
+| [docs/feature-status.md](docs/feature-status.md)                              | **Status lengkap** — selesai + rencana lanjutan |
+| [docs/testing-inventory.md](docs/testing-inventory.md)                        | Inventaris fitur & QA                           |
+| [docs/ecosystem-integration.md](docs/ecosystem-integration.md)                | Kontrak cutover News ↔ Core                     |
+| [docs/development-roadmap.md](docs/development-roadmap.md)                    | Roadmap fase (arsip)                            |
+| [docs/backlog-plan.md](docs/backlog-plan.md)                                  | Arsip rencana teknis (selesai)                  |
+| [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md)                    | Setup media R2                                  |
+| [jepangku-core/docs/PHASE0-PHASE1.md](../jepangku-core/docs/PHASE0-PHASE1.md) | Runbook integrasi lintas-repo                   |
 
-* **Fase A** *(aktif)*
-  * ADD: Hardening keamanan, engagement (komentar, like), profil publik author
-  * ADD: Search & discovery, analytics konten, soft launch (konten + halaman statis)
-* **MVP** *(0.1.0 — tercapai)*
-  * ADD: Auth (register, login, logout, daily login points)
-  * ADD: Artikel (listing, detail, submit, review workflow, bookmark, share, read-complete points)
-  * ADD: Quiz & polling (attempt, vote, scoring, points)
-  * ADD: Leaderboard mingguan & riwayat poin
-  * ADD: Admin dashboard (artikel, kategori, tag, quiz, poll, user, homepage)
-  * ADD: Upload ke Cloudflare R2, profil user dengan avatar
-* **0.0.1**
-  * Work in progress — scaffold Next.js + Prisma + auth dasar
 
-## Meta
+## Struktur repo
 
-[Webekspres](https://webekspres.id) – [GitHub](https://github.com/Webekspres)
+```text
+app/              # Routes (public, user, admin, auth)
+components/       # UI komponen (home, admin, notifications, …)
+lib/              # Business logic (core, auth, points, notifications, home, …)
+prisma/           # Schema portal (users.id = Clerk ID)
+scripts/          # verify:*, lighthouse, purge, backfill
+tests/            # bun:test unit + integration
+e2e/              # Playwright specs
+docs/             # Dokumentasi proyek
+.agents/          # Scope MVP & steering (historis)
+```
 
-Proyek private. Dikembangkan oleh [Webekspres](https://webekspres.id).
+## Deploy
 
-[https://github.com/Webekspres/jepangku-news](https://github.com/Webekspres/jepangku-news)
+**Vercel** — set env dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
-## Contributing
+Runbook Core down: [docs/runbooks/core-service-down.md](docs/runbooks/core-service-down.md).
 
-1. Fork it ([https://github.com/Webekspres/jepangku-news/fork](https://github.com/Webekspres/jepangku-news/fork))
-2. Create your feature branch (`git checkout -b feature/nama-fitur`)
-3. Commit your changes (`git commit -am 'Add some namaFitur'`)
-4. Push to the branch (`git push origin feature/nama-fitur`)
-5. Create a new Pull Request
+---
 
-Ikuti prioritas di [docs/development-roadmap.md](docs/development-roadmap.md) dan update [docs/feature-status.md](docs/feature-status.md) setelah menyelesaikan fitur signifikan.
-
-<!-- Badge links -->
-
-[node-image]: https://img.shields.io/badge/Node.js-18%2B-green
-[node-url]: https://nodejs.org/
-[next-image]: https://img.shields.io/badge/Next.js-16%2B-black
-[next-url]: https://nextjs.org/
-[ts-image]: https://img.shields.io/badge/TypeScript-5%2B-blue
-[ts-url]: https://www.typescriptlang.org/
+Dikembangkan oleh [Webekspres](https://webekspres.id) 

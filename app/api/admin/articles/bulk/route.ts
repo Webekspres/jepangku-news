@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { recordStatusReview, setLastEditor } from '@/lib/article-audit';
+import { auditArticleDelete } from '@/lib/audit-routes';
 
 const ALLOWED_ACTIONS = ['approve', 'reject', 'archive', 'delete'] as const;
 
@@ -101,6 +102,11 @@ export async function POST(request: NextRequest) {
           }
           case 'delete': {
             await db.article.delete({ where: { id: article.id } });
+            auditArticleDelete(
+              admin,
+              { id: article.id, title: article.title },
+              true,
+            );
             results.push({ id: article.id, ok: true });
             break;
           }

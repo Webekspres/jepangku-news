@@ -1,10 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import AssetImage from "@/components/AssetImage";
 import { useRouter } from "next/navigation";
-import { useAuth, isAuthUser } from "@/contexts/AuthContext";
+import {
+  useAuth,
+  isAuthUser,
+  getAuthLoginPath,
+  getAuthRegisterPath,
+} from "@/contexts/AuthContext";
+import { NavbarLayerThreeSkeleton } from "@/components/navbar/NavbarSkeleton";
+import NavbarSearchOverlay from "@/components/navbar/NavbarSearchOverlay";
+import NavbarNotifications from "@/components/navbar/NavbarNotifications";
+import NavbarCategoryBar from "@/components/navbar/NavbarCategoryBar";
+import NavbarSidebar from "@/components/navbar/NavbarSidebar";
+import UserAvatar from "@/components/media/UserAvatar";
+import { NAV_LINKS } from "@/components/navbar/nav-config";
+import { getContributorCta, canCreateArticles } from "@/lib/contributor";
+import { imageLoadingProps } from "@/lib/image-loading";
+import type { SocialLink } from "@/lib/site-config";
 import {
   Menu,
   X,
@@ -15,7 +30,6 @@ import {
   Award,
   LayoutDashboard,
   PenSquare,
-  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,63 +41,60 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function Navbar() {
-  const { user, logout } = useAuth();
+export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
+  const { user, displayPoints, logout, loading, isLoaded, isSignedIn, clerkUser } =
+    useAuth();
   const router = useRouter();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [topVisible, setTopVisible] = useState(true);
-  const [bottomVisible, setBottomVisible] = useState(true);
+  const [layerThreeVisible, setLayerThreeVisible] = useState(true);
 
   const lastScrollY = useRef(0);
   const ticking = useRef(false);
-  const authUser = isAuthUser(user) ? user : null;
-
-  const topVisibleRef = useRef(true);
-  const bottomVisibleRef = useRef(true);
+  const layerThreeVisibleRef = useRef(true);
   const scrollAccumulator = useRef(0);
   const scrollDirection = useRef<"up" | "down" | null>(null);
 
-  const updateTopVisible = (visible: boolean) => {
-    if (topVisibleRef.current !== visible) {
-      topVisibleRef.current = visible;
-      setTopVisible(visible);
+  const authUser = isAuthUser(user) ? user : null;
+  const showAuthSkeleton = !isLoaded || (isSignedIn && loading);
+  const showGuest = isLoaded && !isSignedIn;
+  const showAuthenticated = Boolean(
+    authUser || (isSignedIn && !loading && clerkUser),
+  );
+
+  const displayName =
+    authUser?.displayName ??
+    clerkUser?.fullName ??
+    clerkUser?.firstName ??
+    "Akun";
+  const displayUsername =
+    authUser?.username ?? clerkUser?.username ?? clerkUser?.id?.slice(-8) ?? "user";
+  const avatarUrl = authUser?.avatarUrl ?? clerkUser?.imageUrl ?? null;
+  const totalPoints = displayPoints;
+  const isAdmin = authUser?.role === "ADMIN";
+  const contributorCta = getContributorCta(authUser);
+
+  const updateLayerThreeVisible = (visible: boolean) => {
+    if (layerThreeVisibleRef.current !== visible) {
+      layerThreeVisibleRef.current = visible;
+      setLayerThreeVisible(visible);
     }
   };
-
-  const updateBottomVisible = (visible: boolean) => {
-    if (bottomVisibleRef.current !== visible) {
-      bottomVisibleRef.current = visible;
-      setBottomVisible(visible);
-    }
-  };
-
-  const navLinks = [
-    { path: "/", label: "Beranda" },
-    { path: "/articles", label: "Artikel" },
-    { path: "/explore", label: "Jelajahi" },
-    { path: "/quizzes", label: "Kuis" },
-    { path: "/polls", label: "Polling" },
-    { path: "/leaderboard", label: "Peringkat" },
-  ];
 
   useEffect(() => {
     const updateNavbar = () => {
+      if (searchOpen || sidebarOpen) return;
+
       const currentY = window.scrollY || window.pageYOffset;
       const deltaY = currentY - lastScrollY.current;
 
-      // Determine step direction
       let stepDirection: "up" | "down" | null = null;
-      if (deltaY > 0) {
-        stepDirection = "down";
-      } else if (deltaY < 0) {
-        stepDirection = "up";
-      }
+      if (deltaY > 0) stepDirection = "down";
+      else if (deltaY < 0) stepDirection = "up";
 
-      // Accumulate scroll distance in the same direction
       if (stepDirection !== null) {
         if (scrollDirection.current !== stepDirection) {
           scrollDirection.current = stepDirection;
@@ -93,31 +104,16 @@ export default function Navbar() {
         }
       }
 
-      // 1. Hysteresis for Top Spacer (black bar, height ~20px)
-      if (topVisibleRef.current) {
-        if (currentY > 40) {
-          updateTopVisible(false);
-        }
-      } else {
-        if (currentY <= 5) {
-          updateTopVisible(true);
-        }
-      }
-
-      // 2. Cumulative Hysteresis/Buffer for Bottom Spacer (red bar, height ~40px)
       const isAtTop = currentY <= 5;
       const isInTopSafeZone = currentY <= 40;
 
       if (isAtTop) {
-        updateBottomVisible(true);
+        updateLayerThreeVisible(true);
       } else if (!isInTopSafeZone) {
-        // We use a 50px threshold. Since the bottom spacer height change is 40px,
-        // this 50px threshold is larger than the layout shift, completely breaking
-        // any infinite vibration/jitter loops.
         if (scrollDirection.current === "down" && scrollAccumulator.current > 50) {
-          updateBottomVisible(false);
+          updateLayerThreeVisible(false);
         } else if (scrollDirection.current === "up" && scrollAccumulator.current < -50) {
-          updateBottomVisible(true);
+          updateLayerThreeVisible(true);
         }
       }
 
@@ -133,13 +129,18 @@ export default function Navbar() {
     };
 
     updateNavbar();
-
     window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [searchOpen, sidebarOpen]);
 
-    return () => {
-      window.removeEventListener("scroll", onScroll);
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSearchOpen(false);
     };
-  }, []);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [searchOpen]);
 
   const handleLogout = async () => {
     await logout();
@@ -148,340 +149,291 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!searchQuery.trim()) return;
-
     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery("");
     setSearchOpen(false);
     setMobileOpen(false);
+    setSidebarOpen(false);
+  };
+
+  const openSearch = () => {
+    setMobileOpen(false);
+    setSidebarOpen(false);
+    setSearchOpen(true);
+  };
+
+  const openSidebar = () => {
+    setMobileOpen(false);
+    setSearchOpen(false);
+    setSidebarOpen(true);
   };
 
   return (
     <header className="sticky top-0 z-50" data-testid="main-navbar-wrapper">
-      <div
-        data-testid="header-top-spacer"
-        className={`w-full overflow-hidden transition-all duration-300 ease-out ${
-          topVisible ? "h-7 opacity-100" : "h-0 opacity-0"
-        }`}
-        style={{ backgroundColor: "var(--color-jepang-black)" }}
+      <NavbarSearchOverlay
+        open={searchOpen}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        onSubmit={handleSearch}
+        onClose={() => setSearchOpen(false)}
       />
 
-      <div
-        data-testid="main-navbar"
-        className="relative z-10"
-        style={{ backgroundColor: "var(--color-jepang-off-white)" }}
-      >
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex h-16 items-center justify-between">
-            <Link
-              href="/"
-              className="flex items-center gap-2"
-              data-testid="navbar-logo"
-            >
-              <Image
-                src="/assets/images/logo/Logo-03.svg"
-                alt="Jepangku Berita"
-                width={140}
-                height={48}
-                className="h-50 w-50"
-                priority
-              />
-            </Link>
+      <Suspense fallback={null}>
+        <NavbarSidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          showAuthenticated={showAuthenticated}
+          showGuest={showGuest}
+          showAuthSkeleton={showAuthSkeleton}
+          authUser={authUser}
+          displayName={displayName}
+          onLogout={handleLogout}
+          socialLinks={socialLinks}
+        />
+      </Suspense>
 
-            <div className="hidden items-center gap-8 md:flex">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  href={link.path}
-                  className="text-sm font-semibold uppercase tracking-wider text-foreground transition-colors hover:text-jepang-red"
-                  data-testid={`nav-link-${link.label.toLowerCase()}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSearchOpen((value) => !value)}
-                className="p-2 text-foreground transition-colors hover:text-jepang-red"
-                aria-label="Cari artikel"
-                data-testid="navbar-search-btn"
+      <div className="relative">
+        <div
+          data-testid="navbar-layer-2"
+          className="border-b border-jepang-border"
+          style={{ backgroundColor: "var(--color-jepang-off-white)" }}
+        >
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="flex h-14 items-center justify-between gap-4">
+              <Link
+                href="/"
+                className="flex shrink-0 items-center gap-2"
+                data-testid="navbar-logo"
               >
-                {searchOpen ? (
-                  <X size={18} strokeWidth={1.5} />
-                ) : (
-                  <Search size={18} strokeWidth={1.5} />
-                )}
-              </button>
+                <AssetImage
+                  src="/assets/images/logo/logo-04.svg"
+                  alt="Jepangku Berita"
+                  width={160}
+                  height={42}
+                  className="h-9 w-auto"
+                  {...imageLoadingProps(true)}
+                />
+              </Link>
 
-              {authUser ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="hidden md:inline-flex"
-                    data-testid="navbar-submit-article"
+              <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 lg:flex">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.path}
+                    href={link.path}
+                    className="whitespace-nowrap text-sm font-semibold text-jepang-navy transition-colors hover:text-jepang-orange"
+                    data-testid={`nav-link-${link.label.toLowerCase()}`}
                   >
-                    <Link href="/submit-article">
-                      <PenSquare size={14} strokeWidth={1.5} />
-                      Buat Artikel
-                    </Link>
-                  </Button>
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
 
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                {showAuthSkeleton ? (
                   <div
-                    className="hidden items-center gap-2 bg-jepang-red px-3 py-2 text-white md:flex"
-                    data-testid="user-points-display"
+                    className="flex items-center gap-2"
+                    data-testid="navbar-auth-skeleton"
+                    aria-hidden
                   >
-                    <Award size={14} strokeWidth={1.5} />
-
-                    <span className="font-mono text-xs font-bold">
-                      {authUser.totalPoints || 0}
-                    </span>
-
-                    <span className="text-[10px] uppercase tracking-wider">
-                      POIN
-                    </span>
+                    <div className="hidden h-8 w-20 animate-pulse rounded-lg bg-jepang-border/70 sm:block" />
+                    <div className="h-9 w-9 animate-pulse rounded-full bg-jepang-border/70" />
+                    <div className="h-9 w-9 animate-pulse rounded-full bg-jepang-border/70" />
                   </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
-                        data-testid="user-menu-button"
-                      >
-                        {authUser.avatarUrl ? (
-                          <img
-                            src={authUser.avatarUrl}
-                            alt={authUser.name}
-                            className="h-9 w-9 border border-foreground object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-9 w-9 items-center justify-center border border-foreground bg-foreground text-sm font-bold text-white">
-                            {authUser.name?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-60"
-                      data-testid="user-dropdown-menu"
+                ) : showAuthenticated ? (
+                  <>
+                    <div
+                      className="hidden items-center gap-2 rounded-lg bg-jepang-orange px-3 py-1.5 text-white sm:flex"
+                      data-testid="user-points-display"
                     >
-                      <DropdownMenuLabel>
-                        <p className="text-sm font-semibold normal-case tracking-normal">
-                          {authUser.name}
-                        </p>
-                        <p className="font-mono text-xs font-normal text-jepang-muted">
-                          @{authUser.username}
-                        </p>
-                      </DropdownMenuLabel>
+                      <Award size={14} strokeWidth={1.5} />
+                      <span className="font-mono text-xs font-bold">{totalPoints}</span>
+                      <span className="text-xs font-semibold tracking-wide">Poin</span>
+                    </div>
 
-                      <DropdownMenuSeparator />
+                    <NavbarNotifications />
 
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/profile"
-                          className="cursor-pointer"
-                          data-testid="menu-profile"
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
+                          data-testid="user-menu-button"
                         >
-                          <User size={16} strokeWidth={1.5} />
-                          Profil
-                        </Link>
-                      </DropdownMenuItem>
+                          <UserAvatar
+                            src={avatarUrl}
+                            alt={displayName}
+                            size={36}
+                          />
+                        </button>
+                      </DropdownMenuTrigger>
 
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/my-articles"
-                          className="cursor-pointer"
-                          data-testid="menu-my-articles"
-                        >
-                          <FileText size={16} strokeWidth={1.5} />
-                          Artikel Saya
-                        </Link>
-                      </DropdownMenuItem>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-60"
+                        data-testid="user-dropdown-menu"
+                      >
+                        <DropdownMenuLabel>
+                          <p className="text-sm font-semibold normal-case tracking-normal">
+                            {displayName}
+                          </p>
+                          <p className="font-mono text-xs font-normal text-jepang-muted">
+                            @{displayUsername}
+                          </p>
+                        </DropdownMenuLabel>
 
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/bookmarks"
-                          className="cursor-pointer"
-                          data-testid="menu-bookmarks"
-                        >
-                          <Bookmark size={16} strokeWidth={1.5} />
-                          Tersimpan
-                        </Link>
-                      </DropdownMenuItem>
+                        <DropdownMenuSeparator />
 
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/points"
-                          className="cursor-pointer"
-                          data-testid="menu-points"
-                        >
-                          <Award size={16} strokeWidth={1.5} />
-                          Riwayat Poin
-                        </Link>
-                      </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile" className="cursor-pointer" data-testid="menu-profile">
+                            <User size={16} strokeWidth={1.5} />
+                            Profil
+                          </Link>
+                        </DropdownMenuItem>
 
-                      {authUser.role === "ADMIN" && (
-                        <>
-                          <DropdownMenuSeparator />
-
+                        {canCreateArticles(authUser) ? (
                           <DropdownMenuItem asChild>
                             <Link
-                              href="/admin"
-                              className="cursor-pointer bg-jepang-off-white"
-                              data-testid="menu-admin"
+                              href="/my-articles"
+                              className="cursor-pointer"
+                              data-testid="menu-my-articles"
                             >
-                              <LayoutDashboard size={16} strokeWidth={1.5} />
-                              Dasbor Admin
+                              <FileText size={16} strokeWidth={1.5} />
+                              Artikel Saya
                             </Link>
                           </DropdownMenuItem>
-                        </>
-                      )}
+                        ) : null}
 
-                      <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/bookmarks"
+                            className="cursor-pointer"
+                            data-testid="menu-bookmarks"
+                          >
+                            <Bookmark size={16} strokeWidth={1.5} />
+                            Tersimpan
+                          </Link>
+                        </DropdownMenuItem>
 
-                      <DropdownMenuItem
-                        onClick={handleLogout}
-                        className="cursor-pointer text-jepang-red focus:text-jepang-red"
-                        data-testid="menu-logout"
-                      >
-                        <LogOut size={16} strokeWidth={1.5} />
-                        Keluar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : user === false ? (
-                <div className="hidden items-center gap-2 md:flex">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    asChild
-                    data-testid="navbar-login-btn"
-                  >
-                    <Link href="/login">Masuk</Link>
-                  </Button>
+                        <DropdownMenuItem asChild>
+                          <Link href="/activity" className="cursor-pointer" data-testid="menu-points">
+                            <Award size={16} strokeWidth={1.5} />
+                            Aktivitas Saya
+                          </Link>
+                        </DropdownMenuItem>
 
-                  <Button size="sm" asChild data-testid="navbar-register-btn">
-                    <Link href="/register">Daftar</Link>
-                  </Button>
-                </div>
-              ) : null}
+                        {isAdmin && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href="/admin"
+                                className="cursor-pointer bg-jepang-off-white"
+                                data-testid="menu-admin"
+                              >
+                                <LayoutDashboard size={16} strokeWidth={1.5} />
+                                Dasbor Admin
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
+                        )}
 
-              <button
-                className="p-2 md:hidden"
-                onClick={() => setMobileOpen((value) => !value)}
-                data-testid="mobile-menu-toggle"
-                aria-label="Buka menu"
-              >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem
+                          onClick={handleLogout}
+                          className="cursor-pointer text-jepang-red focus:text-jepang-red"
+                          data-testid="menu-logout"
+                        >
+                          <LogOut size={16} strokeWidth={1.5} />
+                          Keluar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                ) : showGuest ? (
+                  <>
+                    <div className="hidden items-center gap-2 sm:flex">
+                      <Button variant="ghost" size="sm" asChild data-testid="navbar-login-btn">
+                        <Link href={getAuthLoginPath()}>Masuk</Link>
+                      </Button>
+                      <Button size="sm" asChild data-testid="navbar-register-btn">
+                        <Link href={getAuthRegisterPath()}>Daftar</Link>
+                      </Button>
+                    </div>
+                  </>
+                ) : null}
+
+                <button
+                  type="button"
+                  className="rounded-md p-2 lg:hidden"
+                  onClick={() => setMobileOpen((v) => !v)}
+                  data-testid="mobile-menu-toggle"
+                  aria-label="Buka menu"
+                >
+                  {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
+        <Suspense fallback={<NavbarLayerThreeSkeleton />}>
+          <NavbarCategoryBar
+            visible={layerThreeVisible}
+            onSearchOpen={openSearch}
+            onSidebarOpen={openSidebar}
+            socialLinks={socialLinks}
+          />
+        </Suspense>
       </div>
-
-      {searchOpen && (
-        <div
-          className="border-t border-jepang-border bg-white px-4 py-3"
-          data-testid="navbar-search-bar"
-        >
-          <form onSubmit={handleSearch} className="mx-auto flex max-w-7xl gap-2">
-            <input
-              autoFocus
-              type="text"
-              placeholder="Cari artikel, topik, atau tag..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 border border-jepang-border bg-white px-4 py-2.5 text-sm text-foreground focus:border-foreground focus:outline-none"
-              data-testid="navbar-search-input"
-            />
-
-            <button
-              type="submit"
-              className="bg-jepang-red px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:bg-jepang-red-hover"
-              data-testid="navbar-search-submit"
-            >
-              Cari
-            </button>
-          </form>
-        </div>
-      )}
-
-      <div
-        data-testid="header-bottom-spacer"
-        className={`w-full overflow-hidden transition-all duration-500 ease-out ${
-          bottomVisible ? "h-10 opacity-100" : "h-0 opacity-0"
-        }`}
-        style={{ backgroundColor: "var(--color-jepang-red)" }}
-      />
 
       {mobileOpen && (
         <div
-          className="border-t border-jepang-border bg-white md:hidden"
+          className="border-t border-jepang-border bg-white lg:hidden"
           data-testid="mobile-menu"
         >
           <div className="space-y-2 px-4 py-3">
-            <form
-              onSubmit={handleSearch}
-              className="flex gap-2 border-b border-jepang-border pb-3"
-            >
-              <input
-                type="text"
-                placeholder="Cari artikel..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 border border-jepang-border bg-white px-3 py-2 text-sm focus:border-foreground focus:outline-none"
-                data-testid="mobile-search-input"
-              />
-
-              <button
-                type="submit"
-                className="bg-jepang-red px-3 py-2 text-white"
-                aria-label="Cari"
-              >
-                <Search size={16} strokeWidth={1.5} />
-              </button>
-            </form>
-
-            {navLinks.map((link) => (
+            {NAV_LINKS.map((link) => (
               <Link
                 key={link.path}
                 href={link.path}
                 onClick={() => setMobileOpen(false)}
-                className="block py-2 text-sm font-semibold uppercase tracking-wider hover:text-jepang-red"
+                className="block py-2 text-sm font-semibold hover:text-jepang-orange"
                 data-testid={`mobile-nav-${link.label.toLowerCase()}`}
               >
                 {link.label}
               </Link>
             ))}
 
-            {user === false && (
+            {contributorCta.disabled ? (
+              <span
+                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-muted cursor-not-allowed"
+                data-testid="mobile-contributor-cta"
+              >
+                <PenSquare size={16} strokeWidth={1.5} />
+                {contributorCta.label}
+              </span>
+            ) : (
+              <Link
+                href={contributorCta.href}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
+                data-testid="mobile-contributor-cta"
+              >
+                <PenSquare size={16} strokeWidth={1.5} />
+                {contributorCta.label}
+              </Link>
+            )}
+
+            {showGuest && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="flex-1"
-                  data-testid="mobile-login-btn"
-                >
-                  <Link href="/login" onClick={() => setMobileOpen(false)}>
+                <Button variant="outline" size="sm" asChild className="flex-1" data-testid="mobile-login-btn">
+                  <Link href={getAuthLoginPath()} onClick={() => setMobileOpen(false)}>
                     Masuk
                   </Link>
                 </Button>
-
-                <Button
-                  size="sm"
-                  asChild
-                  className="flex-1"
-                  data-testid="mobile-register-btn"
-                >
-                  <Link href="/register" onClick={() => setMobileOpen(false)}>
+                <Button size="sm" asChild className="flex-1" data-testid="mobile-register-btn">
+                  <Link href={getAuthRegisterPath()} onClick={() => setMobileOpen(false)}>
                     Daftar
                   </Link>
                 </Button>

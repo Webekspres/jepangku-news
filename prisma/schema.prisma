@@ -8,6 +8,7 @@ generator client {
 
 enum Role {
   USER
+  CONTRIBUTOR
   ADMIN
 }
 
@@ -34,6 +35,26 @@ enum PollStatus {
   DRAFT
   ACTIVE
   CLOSED
+}
+
+enum VideoStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContributorApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  X
+  YOUTUBE
+  TIKTOK
 }
 
 enum CommentTargetType {
@@ -68,28 +89,43 @@ enum ReactionType {
   THUMB_DOWN
 }
 
+enum NotificationType {
+  ARTICLE_APPROVED
+  ARTICLE_REJECTED
+  ARTICLE_PENDING_REVIEW
+  CONTRIBUTOR_APPLICATION_PENDING
+  CONTRIBUTOR_APPROVED
+  CONTRIBUTOR_REJECTED
+  COMMENT_ON_ARTICLE
+  COMMENT_REPLY
+  WELCOME
+  NEW_ARTICLE_IN_CATEGORY
+}
+
+enum NotificationPriority {
+  NORMAL
+  HIGH
+}
+
 model User {
-  id               String            @id @default(uuid())
+  /// Clerk User ID — same as jepangku-core users.id (global identity anchor)
+  id               String            @id
   email            String            @unique
   username         String            @unique
-  passwordHash     String            @map("password_hash")
   name             String
   role             Role              @default(USER)
   avatarUrl        String?           @map("avatar_url")
   status           String            @default("active") // "active", "inactive", "banned"
-  totalPoints      Int               @default(0) @map("total_points")
   usernameChangedAt DateTime?        @map("username_changed_at")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   lastLoginAt      DateTime?         @map("last_login_at")
-  
+
   profile          UserProfile?
   articles         Article[]
   bookmarks        Bookmark[]
   quizAttempts     QuizAttempt[]
   pollVotes        PollVote[]
-  pointTransactions PointTransaction[]
-  dailyLoginRewards DailyLoginReward[]
   files            File[]
   articleShares    ArticleShare[]
   articlesLastEdited Article[]       @relation("ArticleLastEditor")
@@ -99,21 +135,76 @@ model User {
   reactions          Reaction[]
   articleViews       ArticleView[]
   infoPagesUpdated   InfoPage[]      @relation("InfoPageEditor")
+  pointTransactions  PointTransaction[]
+  contributorApplications ContributorApplication[] @relation("ContributorApplications")
+  contributorReviews    ContributorApplication[] @relation("ContributorApplicationReviews")
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  emailOutbox           EmailOutbox[]
+  newsletterSubscriptions NewsletterSubscription[]
+  categorySubscriptions CategorySubscription[]
+  emailTemplateConfigsUpdated EmailTemplateConfig[] @relation("EmailTemplateEditor")
 
   @@map("users")
 }
 
-model UserProfile {
-  id          String   @id @default(uuid())
-  userId      String   @unique @map("user_id")
-  displayName String   @map("display_name")
-  bio         String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+model PointTransaction {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  sourceApp    String   @default("news") @map("source_app")
+  activityType String   @map("activity_type")
+  sourceType   String   @map("source_type")
+  sourceId     String?  @map("source_id")
+  points       Int
+  description  String?
+  occurredAt   DateTime @default(now()) @map("occurred_at")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sourceApp, activityType, sourceType, sourceId], map: "point_transactions_user_activity_unique")
+  @@index([userId, occurredAt(sort: Desc)])
+  @@index([occurredAt])
+  @@map("point_transactions")
+}
+
+model UserProfile {
+  id                     String    @id @default(uuid())
+  userId                 String    @unique @map("user_id")
+  displayName            String    @map("display_name")
+  bio                    String?
+  welcomedAt             DateTime? @map("welcomed_at")
+  lastDailyPointsModalAt DateTime? @map("last_daily_points_modal_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
+}
+
+model Notification {
+  id        String               @id @default(uuid())
+  userId    String               @map("user_id")
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  metadata  Json?
+  dedupeKey String?              @map("dedupe_key")
+  groupKey  String?              @map("group_key")
+  priority  NotificationPriority @default(NORMAL)
+  readAt    DateTime?            @map("read_at")
+  expiresAt DateTime?            @map("expires_at")
+  createdAt DateTime             @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey], map: "notifications_user_dedupe_unique")
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@index([userId, groupKey, createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@map("notifications")
 }
 
 model Category {
@@ -123,14 +214,30 @@ model Category {
   description String?
   iconUrl     String?   @map("icon_url")
   color       String?
-  isActive    Boolean   @default(true) @map("is_active")
-  sortOrder   Int       @default(0) @map("sort_order")
+  isActive      Boolean   @default(true) @map("is_active")
+  showInNavbar  Boolean   @default(false) @map("show_in_navbar")
+  sortOrder     Int       @default(0) @map("sort_order")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
-  
+
   articles    Article[]
+  subscriptions CategorySubscription[]
 
   @@map("categories")
+}
+
+model CategorySubscription {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@index([categoryId])
+  @@map("category_subscriptions")
 }
 
 model Tag {
@@ -139,7 +246,7 @@ model Tag {
   name      String
   slug      String       @unique
   createdAt DateTime     @default(now()) @map("created_at")
-  
+
   articles  ArticleTag[]
 
   @@map("tags")
@@ -445,38 +552,6 @@ model PollVote {
   @@map("poll_votes")
 }
 
-model PointTransaction {
-  id           String   @id @default(uuid())
-  userId       String   @map("user_id")
-  sourceApp    String   @default("news") @map("source_app")
-  activityType String   @map("activity_type")
-  sourceType   String   @map("source_type")
-  sourceId     String?  @map("source_id")
-  points       Int
-  description  String?
-  occurredAt   DateTime @default(now()) @map("occurred_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, sourceApp, activityType, sourceType, sourceId])
-  @@map("point_transactions")
-}
-
-model DailyLoginReward {
-  id                 String   @id @default(uuid())
-  userId             String   @map("user_id")
-  sourceApp          String   @default("news") @map("source_app")
-  rewardDate         String   @map("reward_date") // YYYY-MM-DD
-  pointsAwarded      Int      @map("points_awarded")
-  pointTransactionId String   @map("point_transaction_id")
-  createdAt          DateTime @default(now()) @map("created_at")
-
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("daily_login_rewards")
-}
-
 model File {
   id               String   @id @default(uuid())
   storagePath      String   @map("storage_path")
@@ -549,4 +624,164 @@ model Reaction {
   @@unique([targetType, targetId, userId])
   @@index([targetType, targetId])
   @@map("reactions")
+}
+
+model Video {
+  id           String      @id @default(uuid())
+  title        String
+  slug         String      @unique
+  description  String?
+  youtubeId    String      @map("youtube_id")
+  thumbnailUrl String?     @map("thumbnail_url")
+  status       VideoStatus @default(DRAFT)
+  isFeatured   Boolean     @default(false) @map("is_featured")
+  viewCount    Int         @default(0) @map("view_count")
+  publishedAt  DateTime?   @map("published_at")
+  createdBy    String?     @map("created_by")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt])
+  @@index([isFeatured, status])
+  @@map("videos")
+}
+
+model AdSlot {
+  id        String    @id @default(uuid())
+  position  String
+  title     String?
+  imageUrl  String    @map("image_url")
+  linkUrl   String?   @map("link_url")
+  altText   String?   @map("alt_text")
+  isActive  Boolean   @default(true) @map("is_active")
+  startAt   DateTime? @map("start_at")
+  endAt     DateTime? @map("end_at")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdBy String?   @map("created_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([position, isActive])
+  @@map("ad_slots")
+}
+
+model SiteSocialLink {
+  platform  SocialPlatform @id
+  url       String
+  isEnabled Boolean        @default(true) @map("is_enabled")
+  sortOrder Int            @default(0) @map("sort_order")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  @@map("site_social_links")
+}
+
+model ContributorApplication {
+  id           String                       @id @default(uuid())
+  userId       String                       @map("user_id")
+  motivation   String
+  portfolioUrl String?                      @map("portfolio_url")
+  status       ContributorApplicationStatus @default(PENDING)
+  adminNote    String?                      @map("admin_note")
+  reviewedById String?                      @map("reviewed_by_id")
+  reviewedAt   DateTime?                    @map("reviewed_at")
+  createdAt    DateTime                     @default(now()) @map("created_at")
+  updatedAt    DateTime                     @updatedAt @map("updated_at")
+
+  user       User  @relation("ContributorApplications", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("ContributorApplicationReviews", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("contributor_applications")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  sourceApp   String   @default("news") @map("source_app")
+  category    String
+  action      String
+  actorId     String?  @map("actor_id")
+  actorRole   Role?    @map("actor_role")
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  targetLabel String?  @map("target_label")
+  targetHref  String?  @map("target_href")
+  summary     String
+  note        String?
+  metadata    Json?
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([occurredAt(sort: Desc)])
+  @@index([category, occurredAt(sort: Desc)])
+  @@index([actorId, occurredAt(sort: Desc)])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
+enum EmailOutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model EmailOutbox {
+  id          String            @id @default(uuid())
+  userId      String            @map("user_id")
+  template    String
+  toEmail     String            @map("to_email")
+  subject     String
+  payload     Json
+  dedupeKey   String?           @map("dedupe_key")
+  status      EmailOutboxStatus @default(PENDING)
+  attempts    Int               @default(0)
+  lastError   String?           @map("last_error")
+  scheduledAt DateTime          @default(now()) @map("scheduled_at")
+  sentAt      DateTime?         @map("sent_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey], map: "email_outbox_user_dedupe_unique")
+  @@index([status, scheduledAt])
+  @@map("email_outbox")
+}
+
+model NewsletterSubscription {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  userId           String?   @map("user_id")
+  isActive         Boolean   @default(true) @map("is_active")
+  unsubscribeToken String    @unique @map("unsubscribe_token")
+  subscribedAt     DateTime  @default(now()) @map("subscribed_at")
+  unsubscribedAt   DateTime? @map("unsubscribed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, subscribedAt(sort: Desc)])
+  @@map("newsletter_subscriptions")
+}
+
+model EmailTemplateConfig {
+  id          String   @id @default(uuid())
+  templateId  String   @unique @map("template_id")
+  subject     String
+  heading     String
+  bodyHtml    String   @map("body_html") @db.Text
+  ctaLabel    String   @map("cta_label")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  updatedById String?  @map("updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation("EmailTemplateEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("email_template_configs")
 }

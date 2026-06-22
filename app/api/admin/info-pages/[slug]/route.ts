@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 import { captureException } from '@/lib/monitoring';
 import { isInfoPageSlug } from '@/lib/info-pages';
@@ -76,6 +77,13 @@ export async function PUT(
         isPublished: typeof isPublished === 'boolean' ? isPublished : existing.isPublished,
         updatedById: admin.id,
       },
+    });
+
+    auditAdminEntity(admin, 'info_page', 'update', {
+      type: 'info_page',
+      id: page.slug,
+      label: page.title,
+      href: `/admin/info-pages/${slug}/edit`,
     });
 
     return NextResponse.json({

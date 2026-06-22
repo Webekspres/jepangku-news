@@ -28,6 +28,9 @@ export async function resolveCommentTarget(
   targetType: CommentTargetType,
   targetId: string,
 ): Promise<{ title: string } | null> {
+  const authorId = await resolveCommentTargetAuthorId(targetType, targetId);
+  if (!authorId) return null;
+
   if (targetType === 'ARTICLE') {
     const article = await db.article.findFirst({
       where: { id: targetId, status: 'PUBLISHED' },
@@ -49,6 +52,34 @@ export async function resolveCommentTarget(
     select: { title: true },
   });
   return quiz ? { title: quiz.title } : null;
+}
+
+/** User ID penulis/pembuat konten yang dikomentari (artikel, poll, kuis). */
+export async function resolveCommentTargetAuthorId(
+  targetType: CommentTargetType,
+  targetId: string,
+): Promise<string | null> {
+  if (targetType === 'ARTICLE') {
+    const article = await db.article.findFirst({
+      where: { id: targetId, status: 'PUBLISHED' },
+      select: { authorId: true },
+    });
+    return article?.authorId ?? null;
+  }
+
+  if (targetType === 'POLL') {
+    const poll = await db.poll.findFirst({
+      where: { id: targetId, status: { in: ['ACTIVE', 'CLOSED'] } },
+      select: { createdBy: true },
+    });
+    return poll?.createdBy ?? null;
+  }
+
+  const quiz = await db.quiz.findFirst({
+    where: { id: targetId, status: { in: ['ACTIVE', 'INACTIVE'] } },
+    select: { createdBy: true },
+  });
+  return quiz?.createdBy ?? null;
 }
 
 /**

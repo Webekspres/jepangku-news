@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Save, Send, Upload, PenSquare } from "lucide-react";
+import { Save, Send, Upload, PenSquare, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,11 +17,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import SectionHeader from "@/components/SectionHeader";
+import ContributorGate from "@/components/ContributorGate";
 import RichTextEditor from "@/components/RichTextEditor";
+import { uploadMediaFile } from "@/lib/upload-media";
+import {
+  canEditOnUserPortal,
+  isAdminAuthor,
+  submitSuccessMessage,
+  userPortalEditSubtitle,
+} from "@/lib/article-workflow";
 
 export default function EditArticlePage() {
   const { id } = useParams<{ id: string }>()!;
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = isAuthUser(user) && isAdminAuthor(user);
   const [categories, setCategories] = useState<any[]>([]);
   const [article, setArticle] = useState<any>(null);
   const [form, setForm] = useState({
@@ -47,6 +58,11 @@ export default function EditArticlePage() {
           ? articles.find((a) => a.id === id)
           : null;
         if (found) {
+          if (!canEditOnUserPortal(found.status)) {
+            toast.error("Artikel tidak dapat diedit pada status ini");
+            router.replace("/my-articles");
+            return;
+          }
           setArticle(found);
           setForm({
             title: found.title || "",
@@ -70,15 +86,7 @@ export default function EditArticlePage() {
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const data = await fetch("/api/upload", {
-        method: "POST",
-        body: fd,
-      }).then((r) => {
-        if (!r.ok) throw new Error("Upload failed");
-        return r.json();
-      });
+      const data = await uploadMediaFile(file, "cover");
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
       toast.success("Gambar berhasil diupload");
     } catch {
@@ -116,11 +124,7 @@ export default function EditArticlePage() {
         const e = await res.json();
         throw new Error(e.error);
       }
-      toast.success(
-        status === "DRAFT"
-          ? "Draft berhasil disimpan"
-          : "Artikel berhasil dikirim untuk direview",
-      );
+      toast.success(submitSuccessMessage(status as "DRAFT" | "PUBLISHED" | "PENDING_REVIEW", isAdmin));
       router.push("/my-articles");
     } catch (e: any) {
       toast.error(e.message || "Gagal menyimpan artikel");
@@ -132,7 +136,7 @@ export default function EditArticlePage() {
   if (fetching) {
     return (
       <div className="bg-white min-h-screen">
-        <div className="border-b-2 border-foreground bg-jepang-off-white px-4 py-12">
+        <div className="border-b border-jepang-border bg-jepang-off-white px-4 py-12">
           <div className="mx-auto max-w-7xl space-y-3">
             <div className="h-3 w-24 bg-jepang-border animate-pulse" />
             <div className="h-10 w-80 bg-jepang-border animate-pulse" />
@@ -148,11 +152,12 @@ export default function EditArticlePage() {
   }
 
   return (
+    <ContributorGate>
     <div className="bg-white min-h-screen" data-testid="edit-article-page">
       <SectionHeader
         label="UBAH ARTIKEL"
         title="Edit Artikel"
-        subtitle="Artikel akan direview ulang oleh admin setelah disubmit."
+        subtitle={userPortalEditSubtitle(isAdmin)}
         icon={<PenSquare size={16} strokeWidth={1.5} />}
       />
 
@@ -289,17 +294,29 @@ export default function EditArticlePage() {
               <Save size={14} strokeWidth={1.5} className="mr-1" />
               {loading ? "Menyimpan..." : "Simpan Draft"}
             </Button>
-            <Button
-              onClick={() => handleSubmit("PENDING_REVIEW")}
-              disabled={loading}
-              data-testid="submit-review-btn"
-            >
-              <Send size={14} strokeWidth={1.5} className="mr-1" />
-              {loading ? "Mengirim..." : "Kirim untuk Review"}
-            </Button>
+            {isAdmin ? (
+              <Button
+                onClick={() => handleSubmit("PUBLISHED")}
+                disabled={loading}
+                data-testid="publish-article-btn"
+              >
+                <Globe size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Mempublikasikan..." : "Publikasikan"}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleSubmit("PENDING_REVIEW")}
+                disabled={loading}
+                data-testid="submit-review-btn"
+              >
+                <Send size={14} strokeWidth={1.5} className="mr-1" />
+                {loading ? "Mengirim..." : "Kirim untuk Review"}
+              </Button>
+            )}
           </div>
         </div>
       </div>
     </div>
+    </ContributorGate>
   );
 }

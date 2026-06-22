@@ -3,7 +3,9 @@ import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { awardPoints } from '@/lib/points';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
+import { awardPoints, type AwardPointsResult } from '@/lib/points';
+import { auditPollVote } from '@/lib/audit-routes';
 
 export async function POST(
   request: NextRequest,
@@ -13,7 +15,7 @@ export async function POST(
     const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-    const blockedResponse = enforceRateLimit(request, 'poll-vote', {
+    const blockedResponse = await enforceRateLimit(request, 'poll-vote', {
       max: 6,
       windowMs: 60_000,
       message: 'Too many vote attempts. Please slow down.',
@@ -46,10 +48,52 @@ export async function POST(
   const alreadyVotedQuestions = new Set(existingVotes.map((v) => v.questionId));
 
   const toProcess = votes.filter((v) => !alreadyVotedQuestions.has(v.questionId));
-  if (toProcess.length === 0)
+  if (toProcess.length === 0) {
+    // Retry award bila vote sudah tercatat saat activity type belum ada di Core
+    if (existingVotes.length > 0 && poll.pointsReward > 0) {
+      const retry = await awardPoints(
+        user.id,
+        'poll_voted',
+        'poll',
+        poll.id,
+        poll.pointsReward,
+        `Voted in poll: ${poll.title}`,
+      );
+      if (retry.awarded) {
+        await db.pollVote.updateMany({
+          where: { pollId: poll.id, userId: user.id },
+          data: { isPointAwarded: true },
+        });
+        return NextResponse.json({
+          message: 'Pending points awarded',
+          pointsAwarded: poll.pointsReward,
+          ...gamificationFieldsFromAward(retry),
+        });
+      }
+    }
     return NextResponse.json({ error: 'You have already voted on all questions' }, { status: 400 });
+  }
 
-  // Validasi opsi dan simpan vote
+  // Award poin sekali per poll — sebelum simpan vote agar isPointAwarded akurat
+  const wasFirstVote = existingVotes.length === 0;
+  let award: AwardPointsResult = {
+    awarded: false,
+    currentPoints: null,
+    totalXp: null,
+    currentLevel: null,
+  };
+  if (wasFirstVote && poll.pointsReward > 0) {
+    award = await awardPoints(
+      user.id,
+      'poll_voted',
+      'poll',
+      poll.id,
+      poll.pointsReward,
+      `Voted in poll: ${poll.title}`,
+    );
+  }
+  const pointsGranted = award.awarded ? poll.pointsReward : 0;
+
   for (const v of toProcess) {
     const option = await db.pollOption.findFirst({
       where: { id: v.optionId, questionId: v.questionId },
@@ -66,8 +110,8 @@ export async function POST(
         questionId: v.questionId,
         optionId: v.optionId,
         userId: user.id,
-        pointsAwarded: poll.pointsReward,
-        isPointAwarded: true,
+        pointsAwarded: wasFirstVote ? poll.pointsReward : 0,
+        isPointAwarded: pointsGranted > 0,
       },
     });
 
@@ -77,22 +121,12 @@ export async function POST(
     });
   }
 
-  // Award poin hanya sekali per poll (saat pertama kali vote)
-  const wasFirstVote = existingVotes.length === 0;
-  if (wasFirstVote) {
-    await awardPoints(
-      user.id,
-      'poll_voted',
-      'poll',
-      poll.id,
-      poll.pointsReward,
-      `Voted in poll: ${poll.title}`,
-    );
-  }
+  auditPollVote(user, poll, toProcess.length);
 
   return NextResponse.json({
     message: 'Vote recorded',
-    pointsAwarded: wasFirstVote ? poll.pointsReward : 0,
+    pointsAwarded: pointsGranted,
+    ...gamificationFieldsFromAward(award),
   });
   } catch (e: unknown) {
     await captureException(e, { route: 'poll-vote' });

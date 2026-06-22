@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, getAuthLoginPath } from "@/contexts/AuthContext";
+import { hasNewsAdminAccess } from "@/lib/auth/types";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,24 +14,23 @@ export default function ProtectedRoute({
   children,
   requireAdmin = false,
 }: ProtectedRouteProps) {
-  const { user } = useAuth();
+  const { user, isLoaded, isSignedIn, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (user === null) return; // still loading
-
-    if (user === false) {
-      router.replace("/login");
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      router.replace(getAuthLoginPath());
       return;
     }
+    if (loading || user === null) return;
 
-    if (requireAdmin && (user as any).role !== "ADMIN") {
+    if (requireAdmin && user && !hasNewsAdminAccess(user)) {
       router.replace("/");
     }
-  }, [user, requireAdmin, router]);
+  }, [user, isLoaded, isSignedIn, loading, requireAdmin, router]);
 
-  // Loading state
-  if (user === null) {
+  if (!isLoaded || (isSignedIn && (loading || user === null))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
@@ -52,11 +52,10 @@ export default function ProtectedRoute({
     );
   }
 
-  // Not authenticated
-  if (user === false) return null;
+  if (!isSignedIn || user === false) return null;
 
   // Not admin when required
-  if (requireAdmin && (user as any).role !== "ADMIN") return null;
+  if (requireAdmin && user && !hasNewsAdminAccess(user)) return null;
 
   return <>{children}</>;
 }

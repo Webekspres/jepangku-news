@@ -2,16 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
+import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
+import {
+  getUserPortalSubmitStatuses,
+  resolveUserPortalSubmitStatus,
+} from '@/lib/article-workflow';
 import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
+import { auditArticleCreate } from '@/lib/audit-routes';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!canCreateArticles(user)) {
+    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+  }
 
-  const blockedResponse = enforceRateLimit(request, 'submit-article', {
+  const blockedResponse = await enforceRateLimit(request, 'submit-article', {
     max: 6,
     windowMs: 60_000,
     message: 'Too many article submissions. Please take a short break before trying again.',
@@ -34,8 +44,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
     }
 
-    const validStatuses = ['DRAFT', 'PENDING_REVIEW'];
-    const articleStatus = validStatuses.includes(status) ? status : 'DRAFT';
+    const isAdmin = user.role === 'ADMIN';
+    const validStatuses = getUserPortalSubmitStatuses(isAdmin);
+    const articleStatus = resolveUserPortalSubmitStatus(String(status || 'DRAFT'), isAdmin);
+
+    if (!validStatuses.includes(articleStatus)) {
+      return NextResponse.json({ error: 'Invalid article status' }, { status: 400 });
+    }
 
     const slug = createSlug(safeTitle);
 
@@ -58,6 +73,22 @@ export async function POST(request: NextRequest) {
 
     if (tags.length > 0) {
       await syncArticleTags(article.id, tags);
+    }
+
+    auditArticleCreate(
+      user,
+      { id: article.id, title: article.title, status: article.status },
+      'user',
+    );
+
+    if (article.status === 'PENDING_REVIEW') {
+      dispatchNotificationEventSafe({
+        type: 'article.status_changed',
+        articleId: article.id,
+        reviewerId: user.id,
+        previousStatus: 'DRAFT',
+        newStatus: 'PENDING_REVIEW',
+      });
     }
 
     return NextResponse.json(article, { status: 201 });

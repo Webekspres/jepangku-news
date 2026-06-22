@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 import {
   sanitizeMediaUrl,
@@ -107,6 +108,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
   }
 
+  auditAdminEntity(admin, 'quiz', 'update', {
+    type: 'quiz',
+    id,
+    label: (updateData.title as string | undefined) ?? quiz.title,
+    href: `/admin/quizzes/${id}/edit`,
+  });
+
   return NextResponse.json({ message: 'Quiz updated' });
 }
 
@@ -123,6 +131,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   if (quiz.status !== 'DRAFT') {
     return NextResponse.json({ error: 'Hanya kuis berstatus Draft yang dapat dihapus' }, { status: 400 });
   }
+
+  auditAdminEntity(admin, 'quiz', 'delete', { type: 'quiz', id: quiz.id, label: quiz.title, href: `/admin/quizzes/${id}/edit` });
 
   await db.quiz.delete({ where: { id } });
 

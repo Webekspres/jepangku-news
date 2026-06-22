@@ -1,9 +1,11 @@
-const { PrismaClient } = require("@prisma/client");
-const { PrismaNeon } = require("@prisma/adapter-neon");
-const bcrypt = require("bcryptjs");
+require("dotenv/config");
+const { createPrismaClient } = require("./create-client.js");
+const {
+  fetchClerkUsersByEmail,
+  resolvePortalUserId,
+} = require("./seeder/clerk-resolve.js");
 
-const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = createPrismaClient();
 
 // ---------------------------------------------------------------------------
 // DATA
@@ -44,6 +46,13 @@ const {
   EXTRA_POINT_ACTIVITIES,
 } = require("./seeder/data/user-activities.js");
 const { INFO_PAGES_DATA } = require("./seeder/data/info-pages.js");
+const { VIDEOS_DATA } = require("./seeder/data/videos.js");
+const { ADS_DATA } = require("./seeder/data/ads.js");
+const {
+  CLERK_TEST_ADMIN_EMAIL,
+  CLERK_TEST_CONTRIBUTOR_EMAIL,
+  LEGACY_EMAIL_MIGRATIONS,
+} = require("./seeder/data/clerk-test-emails.js");
 
 // ---------------------------------------------------------------------------
 // HELPERS
@@ -74,18 +83,40 @@ async function resolveUserByEmail(email) {
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // ── 1. Admin user ──────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@jepangku.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "JepangkuAdmin2025!";
+  for (const { from, to } of LEGACY_EMAIL_MIGRATIONS) {
+    const legacyUser = await prisma.user.findUnique({ where: { email: from } });
+    if (!legacyUser) continue;
 
-  let admin = await prisma.user.findUnique({ where: { email: adminEmail } });
+    const targetTaken = await prisma.user.findUnique({ where: { email: to } });
+    if (targetTaken && targetTaken.id !== legacyUser.id) {
+      console.warn(`⚠️  Skip email migration ${from} → ${to}: target already exists`);
+      continue;
+    }
+
+    await prisma.user.update({
+      where: { id: legacyUser.id },
+      data: { email: to },
+    });
+    console.log(`✅ Migrated user email: ${from} → ${to}`);
+  }
+
+  const clerkByEmail = await fetchClerkUsersByEmail();
+
+  // ── 1. Admin user (portal profile; Clerk ID = users.id) ───────────────
+  const adminEmail = process.env.ADMIN_EMAIL || CLERK_TEST_ADMIN_EMAIL;
+  const adminId =
+    clerkByEmail.get(adminEmail.toLowerCase()) || "seed_admin_jepangku";
+
+  let admin =
+    (await prisma.user.findUnique({ where: { id: adminId } })) ||
+    (await prisma.user.findUnique({ where: { email: adminEmail } })) ||
+    (await prisma.user.findUnique({ where: { username: "admin" } }));
   if (!admin) {
-    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     admin = await prisma.user.create({
       data: {
+        id: adminId,
         email: adminEmail,
         username: "admin",
-        passwordHash: hashedPassword,
         name: "Admin Jepangku",
         role: "ADMIN",
         status: "active",
@@ -97,32 +128,69 @@ async function main() {
         },
       },
     });
-    console.log(`✅ Created admin: ${adminEmail}`);
+    console.log(`✅ Created admin: ${adminEmail} (${adminId})`);
   } else {
-    console.log(`⏭  Admin already exists: ${adminEmail}`);
+    console.log(`⏭  Admin already exists: ${adminEmail} (${admin.id})`);
   }
 
-  // ── 2. Sample users ────────────────────────────────────────────────────
-  const defaultUserPassword = "UserJepangku2025!";
-  const hashedUserPassword = await bcrypt.hash(defaultUserPassword, 10);
+  // ── 1b. Contributor test user (Clerk + portal role CONTRIBUTOR) ───────
+  const contributorEmail =
+    process.env.CONTRIBUTOR_TEST_EMAIL || CLERK_TEST_CONTRIBUTOR_EMAIL;
+  const contributorId =
+    clerkByEmail.get(contributorEmail.toLowerCase()) ||
+    "seed_contributor_jepangku";
 
-  for (const userData of SAMPLE_USERS) {
-    const existing = await prisma.user.findUnique({
-      where: { email: userData.email },
+  let contributor =
+    (await prisma.user.findUnique({ where: { id: contributorId } })) ||
+    (await prisma.user.findUnique({ where: { email: contributorEmail } })) ||
+    (await prisma.user.findUnique({ where: { username: "kontributor" } }));
+  if (!contributor) {
+    contributor = await prisma.user.create({
+      data: {
+        id: contributorId,
+        email: contributorEmail,
+        username: "kontributor",
+        name: "Kontributor Uji",
+        role: "CONTRIBUTOR",
+        status: "active",
+        profile: {
+          create: {
+            displayName: "Kontributor Uji",
+            bio: "Akun uji kontributor untuk QA otomatis.",
+          },
+        },
+      },
     });
+    console.log(`✅ Created contributor: ${contributorEmail} (${contributorId})`);
+  } else if (contributor.role !== "CONTRIBUTOR") {
+    await prisma.user.update({
+      where: { id: contributor.id },
+      data: { role: "CONTRIBUTOR", email: contributorEmail },
+    });
+    console.log(`✅ Updated contributor role: ${contributorEmail}`);
+  } else {
+    console.log(`⏭  Contributor already exists: ${contributorEmail} (${contributor.id})`);
+  }
+
+  // ── 2. Sample users (Clerk ID or seed_* for dev content) ─────────────
+  for (const userData of SAMPLE_USERS) {
+    const userId = resolvePortalUserId(userData, clerkByEmail);
+    const existing =
+      (await prisma.user.findUnique({ where: { id: userId } })) ||
+      (await prisma.user.findUnique({ where: { email: userData.email } })) ||
+      (await prisma.user.findUnique({ where: { username: userData.username } }));
     if (existing) {
       console.log(`⏭  User exists: ${userData.email}`);
       continue;
     }
     await prisma.user.create({
       data: {
+        id: userId,
         email: userData.email,
         username: userData.username,
-        passwordHash: hashedUserPassword,
         name: userData.name,
         role: "USER",
         status: "active",
-        totalPoints: userData.totalPoints,
         profile: {
           create: {
             displayName: userData.displayName,
@@ -131,7 +199,7 @@ async function main() {
         },
       },
     });
-    console.log(`✅ Created user: ${userData.email}`);
+    console.log(`✅ Created user: ${userData.email} (${userId})`);
   }
 
   // ── 3. Categories ──────────────────────────────────────────────────────
@@ -147,6 +215,7 @@ async function main() {
           color: cat.color,
           sortOrder: i,
           isActive: true,
+          showInNavbar: i < 9,
         },
       });
       console.log(`✅ Created category: ${cat.name}`);
@@ -488,38 +557,7 @@ async function main() {
         USER_ACTIVITY_CONFIG[uIdx] ||
         USER_ACTIVITY_CONFIG[USER_ACTIVITY_CONFIG.length - 1];
 
-      // ── a. Daily Login Rewards ────────────────────────────────────────
-      for (let d = 0; d < cfg.loginDays; d++) {
-        const rewardDate = new Date(daysAgo(d));
-        const dateStr = rewardDate.toISOString().split("T")[0]; // YYYY-MM-DD
-
-        const existingLogin = await prisma.dailyLoginReward.findFirst({
-          where: { userId: user.id, rewardDate: dateStr },
-        });
-        if (existingLogin) continue;
-
-        const loginPoints = 5;
-        const tx = await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "daily_login",
-            sourceType: "login",
-            points: loginPoints,
-            description: `Daily login reward - ${dateStr}`,
-            occurredAt: rewardDate,
-          },
-        });
-        await prisma.dailyLoginReward.create({
-          data: {
-            userId: user.id,
-            rewardDate: dateStr,
-            pointsAwarded: loginPoints,
-            pointTransactionId: tx.id,
-          },
-        });
-      }
-
-      // ── b. Quiz Attempts ──────────────────────────────────────────────
+      // ── a. Quiz Attempts ──────────────────────────────────────────────
       const quizzesToAttempt = allQuizzes.slice(0, cfg.quizzes);
       for (const quiz of quizzesToAttempt) {
         const existingAttempt = await prisma.quizAttempt.findFirst({
@@ -579,18 +617,6 @@ async function main() {
           });
         }
 
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "quiz_completed",
-            sourceType: "quiz",
-            sourceId: quiz.id,
-            points: pointsAwarded,
-            description: `Completed quiz: ${quiz.title} (${correctCount}/${questions.length} correct)`,
-            occurredAt: attemptDate,
-          },
-        });
-
         console.log(
           `  ✅ Quiz attempt: ${user.email} → "${quiz.title}" (${correctCount}/${questions.length})`,
         );
@@ -635,18 +661,6 @@ async function main() {
           data: { voteCount: { increment: 1 } },
         });
 
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "poll_voted",
-            sourceType: "poll",
-            sourceId: poll.id,
-            points: poll.pointsReward,
-            description: `Voted on poll: ${poll.title}`,
-            occurredAt: voteDate,
-          },
-        });
-
         console.log(`  ✅ Poll vote: ${user.email} → "${poll.title}"`);
       }
 
@@ -668,23 +682,12 @@ async function main() {
           },
         });
 
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: "article_bookmarked",
-            sourceType: "article",
-            sourceId: article.id,
-            points: 2,
-            description: "Bookmarked an article",
-            occurredAt: bookmarkDate,
-          },
-        });
       }
       console.log(
         `  ✅ Bookmarks: ${user.email} → ${articlesToBookmark.length} articles`,
       );
 
-      // ── e. Extra point transactions (article reads, shares, etc.) ─────
+      // ── e. Article shares (tanpa ledger poin lokal — XP di Core) ─────
       let remainingExtra = cfg.extraPoints;
       let actIdx = 0;
       while (remainingExtra > 0 && actIdx < 20) {
@@ -692,18 +695,6 @@ async function main() {
         const pts = Math.min(act.points, remainingExtra);
         const articleId = allArticles[actIdx % allArticles.length]?.id;
         const occurredAt = daysAgo(randInt(0, 6));
-
-        await prisma.pointTransaction.create({
-          data: {
-            userId: user.id,
-            activityType: act.activityType,
-            sourceType: act.sourceType,
-            sourceId: act.sourceType === "article" ? articleId : null,
-            points: pts,
-            description: act.description,
-            occurredAt,
-          },
-        });
 
         if (act.activityType === "article_shared" && articleId) {
           const existingShare = await prisma.articleShare.findUnique({
@@ -727,9 +718,7 @@ async function main() {
         remainingExtra -= pts;
         actIdx++;
       }
-      console.log(
-        `  ✅ Extra transactions: ${user.email} → ~${cfg.extraPoints} pts`,
-      );
+      console.log(`  ✅ Extra shares: ${user.email}`);
     }
 
     console.log("✅ All user activities seeded.");
@@ -862,7 +851,7 @@ async function main() {
   // ── 13. Files ──────────────────────────────────────────────────────────
   for (const fileSpec of FILES_DATA) {
     const email =
-      fileSpec.user_email === "admin@jepangku.com"
+      fileSpec.user_email === CLERK_TEST_ADMIN_EMAIL
         ? adminEmail
         : fileSpec.user_email;
     const user = await resolveUserByEmail(email);
@@ -1001,7 +990,83 @@ async function main() {
   }
   console.log(`✅ Reactions seeded (${reactionsSeeded}).`);
 
-  // ── Info pages ─────────────────────────────────────────────────────────
+  // ── 16. Jepangku TV videos ─────────────────────────────────────────────
+  console.log("📺 Seeding videos...");
+  let videosSeeded = 0;
+  for (const video of VIDEOS_DATA) {
+    const publishedAt =
+      video.status === "PUBLISHED"
+        ? daysAgo(video.daysAgo ?? 0)
+        : null;
+    const thumbnailUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+
+    await prisma.video.upsert({
+      where: { slug: video.slug },
+      update: {
+        title: video.title,
+        description: video.description,
+        youtubeId: video.youtubeId,
+        thumbnailUrl,
+        status: video.status,
+        isFeatured: video.isFeatured,
+        viewCount: video.viewCount,
+        publishedAt,
+      },
+      create: {
+        title: video.title,
+        slug: video.slug,
+        description: video.description,
+        youtubeId: video.youtubeId,
+        thumbnailUrl,
+        status: video.status,
+        isFeatured: video.isFeatured,
+        viewCount: video.viewCount,
+        publishedAt,
+        createdBy: admin.id,
+      },
+    });
+    videosSeeded++;
+  }
+  console.log(`✅ Videos seeded (${videosSeeded}).`);
+
+  // ── 17. Ad slots ───────────────────────────────────────────────────────
+  console.log("📢 Seeding ad slots...");
+  let adsSeeded = 0;
+  for (const ad of ADS_DATA) {
+    const existing = await prisma.adSlot.findFirst({
+      where: { position: ad.position, title: ad.title },
+    });
+
+    if (existing) {
+      await prisma.adSlot.update({
+        where: { id: existing.id },
+        data: {
+          imageUrl: ad.imageUrl,
+          linkUrl: ad.linkUrl,
+          altText: ad.altText,
+          isActive: ad.isActive,
+          sortOrder: ad.sortOrder,
+        },
+      });
+    } else {
+      await prisma.adSlot.create({
+        data: {
+          position: ad.position,
+          title: ad.title,
+          imageUrl: ad.imageUrl,
+          linkUrl: ad.linkUrl,
+          altText: ad.altText,
+          isActive: ad.isActive,
+          sortOrder: ad.sortOrder,
+          createdBy: admin.id,
+        },
+      });
+    }
+    adsSeeded++;
+  }
+  console.log(`✅ Ad slots seeded (${adsSeeded}).`);
+
+  // ── 18. Info pages ─────────────────────────────────────────────────────
   console.log("📄 Seeding info pages...");
   for (const page of INFO_PAGES_DATA) {
     await prisma.infoPage.upsert({

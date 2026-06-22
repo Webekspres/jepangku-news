@@ -1,118 +1,212 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from './db';
+import { auth, clerkClient, currentUser, getAuth } from '@clerk/nextjs/server';
+import type { User } from '@clerk/backend';
+import type { ServerGetToken } from '@clerk/shared/types';
+import { ensureLocalUserFromClerk } from '@/lib/auth/clerk-user';
+import { resolveClerkSessionToken } from '@/lib/auth/clerk-token';
+import { applyCoreGamification } from '@/lib/auth/session';
+import { hasNewsAdminAccess } from '@/lib/auth/types';
+import {
+  establishCoreSession,
+  getCoreJwtClaims,
+  getCoreSessionToken,
+} from '@/lib/core/session';
+import type { SessionUser } from '@/lib/auth/types';
 
-const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'fallback-secret-for-development-only');
+export type { SessionUser } from '@/lib/auth/types';
+export { hasNewsAdminAccess, CORE_ADMIN_ROLES } from '@/lib/auth/types';
+export {
+  getAuthProvider,
+  getSignInPath,
+  getSignUpPath,
+  isClerkAuthEnabled,
+  isClerkAuthEnabledClient,
+} from '@/lib/auth/config';
 
-export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-}
+type ClerkAuthState = {
+  isAuthenticated: boolean;
+  userId: string | null;
+  getToken: ServerGetToken;
+};
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
-
-export function createAccessToken(userId: string, email: string, role?: string): string {
-  return jwt.sign(
-    {
-      sub: userId,
-      email: email,
-      role: role || 'USER',
-      type: 'access',
-    },
-    JWT_SECRET,
-    { expiresIn: '15m' }
+function isSessionAuthState(
+  authState: unknown,
+): authState is ClerkAuthState & { userId: string } {
+  return (
+    !!authState &&
+    typeof authState === 'object' &&
+    'userId' in authState &&
+    typeof (authState as ClerkAuthState).userId === 'string' &&
+    (authState as ClerkAuthState).userId!.length > 0 &&
+    'getToken' in authState &&
+    typeof (authState as ClerkAuthState).getToken === 'function'
   );
 }
 
-export function createRefreshToken(userId: string): string {
-  return jwt.sign(
-    {
-      sub: userId,
-      type: 'refresh',
-    },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-}
+async function syncSessionUser(
+  authState: ClerkAuthState & { userId: string },
+  clerkUser: User,
+  request?: NextRequest,
+): Promise<SessionUser | null> {
+  try {
+    let coreClaims = await getCoreJwtClaims();
+    const clerkToken = await resolveClerkSessionToken(authState, request);
 
-export async function getCurrentUser(request: NextRequest) {
-  let token = request.cookies.get('access_token')?.value;
+    const user = await ensureLocalUserFromClerk(clerkUser, coreClaims);
 
-  if (!token) {
-    const authHeader = request.headers.get('Authorization') || '';
-    if (authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
+    // Poin dari Core public API dulu — jangan tunggu exchange JWT (bisa gagal/lambat).
+    let sessionUser = await applyCoreGamification(user, coreClaims);
+
+    if (clerkToken && (!coreClaims || coreClaims.sub !== clerkUser.id)) {
+      coreClaims =
+        (await establishCoreSession(clerkToken, { maxAttempts: 1 })) ?? coreClaims;
+      if (coreClaims?.jepangku?.roles?.length) {
+        sessionUser = { ...sessionUser, coreRoles: coreClaims.jepangku.roles };
+      }
+      // Poin tetap dari applyCoreGamification (public API); klaim JWT sering basi.
     }
-  }
 
-  if (!token) {
+    return sessionUser;
+  } catch (e) {
+    console.error('Clerk JIT user sync failed:', e);
     return null;
+  }
+}
+
+async function authenticateClerkRequest(
+  request: NextRequest,
+): Promise<{
+  user: SessionUser;
+  clerkToken: string | null;
+} | null> {
+  const client = await clerkClient();
+  const requestState = await client.authenticateRequest(request, {
+    acceptsToken: ['session_token'],
+  });
+  const authState = requestState.toAuth();
+  if (!isSessionAuthState(authState)) return null;
+
+  const clerkUser = await client.users.getUser(authState.userId);
+  if (!clerkUser) return null;
+
+  const user = await syncSessionUser(authState, clerkUser, request);
+  if (!user) return null;
+
+  const clerkToken = await resolveClerkSessionToken(authState, request);
+  return { user, clerkToken };
+}
+
+async function resolveClerkAuthState(
+  request: NextRequest,
+): Promise<(ClerkAuthState & { userId: string }) | null> {
+  try {
+    const fromRequest = getAuth(request);
+    if (isSessionAuthState(fromRequest)) return fromRequest;
+  } catch {
+    // fall through
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    if (payload.type !== 'access') {
-      return null;
-    }
-
-    const user = await db.user.findUnique({
-      where: { id: payload.sub },
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    const { passwordHash, ...cleanUser } = user;
-    return {
-      ...cleanUser,
-      createdAt: cleanUser.createdAt.toISOString(),
-      updatedAt: cleanUser.updatedAt.toISOString(),
-      lastLoginAt: cleanUser.lastLoginAt?.toISOString() || null,
-    };
-  } catch (err) {
-    return null;
+    const fromMiddleware = await auth();
+    if (isSessionAuthState(fromMiddleware)) return fromMiddleware;
+  } catch {
+    // fall through
   }
+
+  const client = await clerkClient();
+  let req: NextRequest = request;
+
+  for (let pass = 0; pass < 2; pass += 1) {
+    const requestState = await client.authenticateRequest(req, {
+      acceptsToken: ['session_token'],
+    });
+    const authState = requestState.toAuth();
+    if (isSessionAuthState(authState)) return authState;
+
+    if (pass === 0 && request.headers.get('authorization')?.startsWith('Bearer ')) {
+      const headers = new Headers(request.headers);
+      headers.delete('authorization');
+      req = new NextRequest(request.url, { method: request.method, headers });
+      continue;
+    }
+    break;
+  }
+
+  return null;
 }
 
-export async function getCurrentAdmin(request: NextRequest) {
-  const user = await getCurrentUser(request);
-  if (!user || user.role !== 'ADMIN') {
-    return null;
+/** Authenticate from the incoming request (middleware headers, cookies, bearer). */
+export async function authenticateRequestUser(request: NextRequest): Promise<{
+  user: SessionUser;
+  clerkToken: string | null;
+} | null> {
+  const authState = await resolveClerkAuthState(request);
+  if (!authState) {
+    return authenticateClerkRequest(request);
   }
+
+  const client = await clerkClient();
+  const clerkUser = await client.users.getUser(authState.userId);
+  if (!clerkUser) return null;
+
+  const user = await syncSessionUser(authState, clerkUser, request);
+  if (!user) return null;
+
+  const clerkToken = await resolveClerkSessionToken(authState, request);
+  return { user, clerkToken };
+}
+
+async function getCurrentUserFromClerk(): Promise<SessionUser | null> {
+  const authState = await auth();
+  if (!isSessionAuthState(authState)) return null;
+
+  const clerkUser = await currentUser();
+  if (!clerkUser) return null;
+
+  return syncSessionUser(authState, clerkUser);
+}
+
+/** Resolves portal session from Clerk + Core JWT + JIT sync to local profile. */
+export async function getCurrentUser(request?: NextRequest): Promise<SessionUser | null> {
+  if (request) {
+    const result = await authenticateRequestUser(request);
+    return result?.user ?? null;
+  }
+  return getCurrentUserFromClerk();
+}
+
+export async function getCurrentAdmin(request?: NextRequest): Promise<SessionUser | null> {
+  const user = await getCurrentUser(request);
+  if (!user || !hasNewsAdminAccess(user)) return null;
   return user;
 }
 
-export function setAuthCookies(
+/** Attach Core session cookie to API response when establishing session. */
+export async function withCoreSessionCookie(
   response: NextResponse,
-  accessToken: string,
-  refreshToken: string
-) {
-  response.cookies.set({
-    name: 'access_token',
-    value: accessToken,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 900, // 15 minutes
-    path: '/',
-  });
+  clerkSessionToken: string,
+): Promise<NextResponse> {
+  const existing = await getCoreSessionToken();
+  if (existing) return response;
 
-  response.cookies.set({
-    name: 'refresh_token',
-    value: refreshToken,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 604800, // 7 days
-    path: '/',
-  });
+  const claims = await establishCoreSession(clerkSessionToken);
+  if (!claims) return response;
+
+  const token = await getCoreSessionToken();
+  if (token) {
+    const { coreSessionCookieOptions, CORE_SESSION_COOKIE } = await import('@/lib/core/session');
+    response.cookies.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
+  }
+
+  return response;
 }
 
-export function clearAuthCookies(response: NextResponse) {
-  response.cookies.delete('access_token');
-  response.cookies.delete('refresh_token');
+export function authProviderDisabledResponse(): NextResponse {
+  return NextResponse.json(
+    {
+      error: 'Local authentication is disabled. Use Clerk sign-in at /sign-in.',
+      code: 'LOCAL_AUTH_DISABLED',
+    },
+    { status: 410 },
+  );
 }

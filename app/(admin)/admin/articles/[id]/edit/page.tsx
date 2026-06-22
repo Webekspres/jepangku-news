@@ -1,21 +1,11 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  PenSquare,
-  Save,
-  Send,
-  Upload,
-  Archive,
-  Globe,
-  Check,
-  XCircle,
-} from "lucide-react";
+import { Upload } from "lucide-react";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import ArticleEditAside from "@/components/admin/ArticleEditAside";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import RichTextEditor from "@/components/RichTextEditor";
+import { uploadMediaFile } from "@/lib/upload-media";
 
 export default function AdminEditArticlePage() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +40,7 @@ export default function AdminEditArticlePage() {
   const [fetching, setFetching] = useState(true);
   const [rejectNote, setRejectNote] = useState("");
   const [changeNote, setChangeNote] = useState("");
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
@@ -87,14 +79,7 @@ export default function AdminEditArticlePage() {
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const data = await fetch("/api/upload", { method: "POST", body: fd }).then(
-        (r) => {
-          if (!r.ok) throw new Error("Upload failed");
-          return r.json();
-        },
-      );
+      const data = await uploadMediaFile(file, "cover");
       setForm((f) => ({ ...f, coverImageUrl: data.url }));
       toast.success("Gambar berhasil diupload");
     } catch {
@@ -142,6 +127,7 @@ export default function AdminEditArticlePage() {
       setArticleSlug(updated.slug || articleSlug);
       toast.success("Artikel diperbarui");
       setChangeNote("");
+      setHistoryRefreshKey((k) => k + 1);
       if (targetStatus !== status) {
         router.push("/admin/articles");
       }
@@ -236,44 +222,30 @@ export default function AdminEditArticlePage() {
 
   if (fetching) {
     return (
-      <div className="bg-white min-h-screen">
-        <div className="border-b-2 border-foreground bg-jepang-off-white px-4 py-12">
-          <div className="mx-auto max-w-7xl space-y-3">
-            <div className="h-3 w-24 bg-jepang-border animate-pulse" />
-            <div className="h-10 w-80 bg-jepang-border animate-pulse" />
-          </div>
-        </div>
-        <div className="px-4 mx-auto max-w-7xl py-12 space-y-6">
+      <AdminPageLayout
+        backHref="/admin/articles"
+        backLabel="Kembali ke Artikel"
+        title="Edit Artikel"
+      >
+        <div className="space-y-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-14 bg-jepang-border animate-pulse" />
           ))}
         </div>
-      </div>
+      </AdminPageLayout>
     );
   }
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-article-edit-page">
+    <AdminPageLayout
+      testId="admin-article-edit-page"
+      backHref="/admin/articles"
+      backLabel="Kembali ke Artikel"
+      title="Edit Artikel"
+    >
       <ConfirmModal {...confirmProps} />
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin/articles"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Artikel
-          </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2 flex items-center gap-2">
-            <PenSquare size={14} /> ADMIN
-          </p>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Edit Artikel
-          </h1>
-        </div>
-      </section>
-
-      <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">
               Judul <span className="text-jepang-red">*</span>
@@ -380,106 +352,27 @@ export default function AdminEditArticlePage() {
               placeholder="Tulis konten artikel di sini..."
             />
           </div>
-
-          <div className="space-y-2 border border-jepang-border bg-jepang-off-white p-4">
-            <Label htmlFor="change-note">
-              Catatan Perubahan (wajib){" "}
-              <span className="text-jepang-muted font-normal normal-case tracking-normal">
-                — terlihat oleh penulis di riwayat artikel
-              </span>
-            </Label>
-            <Textarea
-              id="change-note"
-              rows={2}
-              value={changeNote}
-              onChange={(e) => setChangeNote(e.target.value)}
-              placeholder="Jelaskan apa yang diubah dan alasannya..."
-              data-testid="admin-change-note"
-            />
-          </div>
-
-          <div className="pt-6 border-t border-jepang-border space-y-6">
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-              <Button
-                variant="outline"
-                onClick={() => saveArticle(status)}
-                disabled={loading}
-                data-testid="admin-save-changes"
-              >
-                <Save size={14} strokeWidth={1.5} className="mr-1" />
-                {loading ? "Menyimpan..." : "Simpan Perubahan"}
-              </Button>
-              {status === "PENDING_REVIEW" && (
-                <Button
-                  onClick={handleApprove}
-                  disabled={loading}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  data-testid="admin-approve"
-                >
-                  <Check size={14} strokeWidth={1.5} className="mr-1" />
-                  Setujui & Publikasikan
-                </Button>
-              )}
-              {status === "REJECTED" && (
-                <Button
-                  onClick={() => saveArticle("PUBLISHED")}
-                  disabled={loading}
-                  data-testid="admin-publish"
-                >
-                  <Globe size={14} strokeWidth={1.5} className="mr-1" />
-                  {loading ? "Menyimpan..." : "Publikasikan"}
-                </Button>
-              )}
-              {status !== "ARCHIVED" && status !== "PENDING_REVIEW" && (
-                <Button
-                  variant="outline"
-                  onClick={() => saveArticle("ARCHIVED")}
-                  disabled={loading}
-                  data-testid="admin-archive"
-                >
-                  <Archive size={14} strokeWidth={1.5} className="mr-1" />
-                  Arsipkan
-                </Button>
-              )}
-              {status === "ARCHIVED" && (
-                <Button
-                  variant="outline"
-                  onClick={() => saveArticle("PUBLISHED")}
-                  disabled={loading}
-                  data-testid="admin-republish"
-                >
-                  <Send size={14} strokeWidth={1.5} className="mr-1" />
-                  Publikasikan Ulang
-                </Button>
-              )}
-            </div>
-
-            {status === "PENDING_REVIEW" && (
-              <div className="space-y-2 max-w-xl border border-jepang-border p-4 bg-jepang-off-white">
-                <Label htmlFor="reject-note">Catatan Penolakan (wajib)</Label>
-                <Textarea
-                  id="reject-note"
-                  rows={3}
-                  value={rejectNote}
-                  onChange={(e) => setRejectNote(e.target.value)}
-                  placeholder="Jelaskan alasan artikel ini ditolak..."
-                  data-testid="reject-note-input"
-                />
-                <Button
-                  onClick={handleReject}
-                  disabled={loading}
-                  className="w-full sm:w-auto text-jepang-red border-jepang-red bg-transparent hover:bg-jepang-red hover:text-white"
-                  variant="outline"
-                  data-testid="admin-reject"
-                >
-                  <XCircle size={14} strokeWidth={1.5} className="mr-1" />
-                  Tolak Artikel
-                </Button>
-              </div>
-            )}
-          </div>
         </div>
+
+        <aside className="space-y-6 xl:sticky xl:top-6">
+          <ArticleEditAside
+            articleId={id}
+            status={status}
+            changeNote={changeNote}
+            onChangeNoteChange={setChangeNote}
+            onSaveChanges={() => saveArticle(status)}
+            onApprove={handleApprove}
+            onPublish={() => saveArticle("PUBLISHED")}
+            onArchive={() => saveArticle("ARCHIVED")}
+            onRepublish={() => saveArticle("PUBLISHED")}
+            rejectNote={rejectNote}
+            onRejectNoteChange={setRejectNote}
+            onReject={handleReject}
+            loading={loading}
+            refreshKey={historyRefreshKey}
+          />
+        </aside>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

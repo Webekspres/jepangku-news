@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
+import { auditQuizAttempt } from '@/lib/audit-routes';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
   const user = await getCurrentUser(request);
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const blocked = enforceRateLimit(request, 'quiz-attempt', {
+  const blocked = await enforceRateLimit(request, 'quiz-attempt', {
     max: 5,
     windowMs: 60_000,
     identifier: user.id,
@@ -75,39 +77,47 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const correctPoints = quiz.correctAnswerPoints * correctAnswers;
   const totalPoints = basePoints + correctPoints;
 
-  await db.quizAttempt.update({
-    where: { id: attempt.id },
-    data: { score, correctAnswers, pointsAwarded: totalPoints },
-  });
-
-  // Award base points for completing quiz (once per quiz)
-  await awardPoints(
+  let lastAward = await awardPoints(
     user.id,
     'quiz_completed',
     'quiz',
     quiz.id,
     basePoints,
-    `Completed quiz: ${quiz.title}`
+    `Completed quiz: ${quiz.title}`,
   );
+  let pointsGranted = lastAward.awarded ? basePoints : 0;
 
-  // Award correct answer points as a single transaction (once per quiz)
   if (correctAnswers > 0) {
-    await awardPoints(
+    const correctAward = await awardPoints(
       user.id,
       'quiz_correct_answers',
       'quiz',
       quiz.id,
       correctPoints,
-      `${correctAnswers} correct answers in quiz: ${quiz.title}`
+      `${correctAnswers} correct answers in quiz: ${quiz.title}`,
     );
+    lastAward = correctAward;
+    if (correctAward.awarded) pointsGranted += correctPoints;
   }
+
+  await db.quizAttempt.update({
+    where: { id: attempt.id },
+    data: { score, correctAnswers, pointsAwarded: pointsGranted },
+  });
+
+  auditQuizAttempt(user, quiz, {
+    correct: correctAnswers,
+    total: totalQuestions,
+    points: pointsGranted,
+  });
 
   return NextResponse.json({
     attemptId: attempt.id,
     score,
     correctAnswers,
     totalQuestions,
-    pointsAwarded: totalPoints,
+    pointsAwarded: pointsGranted,
+    ...gamificationFieldsFromAward(lastAward),
   });
   } catch (e) {
     await captureException(e, { route: 'quiz-attempt' });

@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+/blob-report/
 
 # next.js
 /.next/
@@ -26,6 +29,8 @@
 # misc
 .DS_Store
 *.pem
+*.mp4
+public/assets/images/logo/*.mp4
 
 # debug
 npm-debug.log*

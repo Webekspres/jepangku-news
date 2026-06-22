@@ -6,9 +6,12 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
-import SectionHeader from "@/components/SectionHeader";
-import { Eye, Bookmark, FileText, Calendar, ArrowRight } from "lucide-react";
+import ArticleRelatedSection from "@/components/articles/ArticleRelatedSection";
+import ArticleSidebarAd from "@/components/articles/ArticleSidebarAd";
+import type { Article } from "@/components/ArticleCard";
+import { Calendar, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import UserAvatar from "@/components/media/UserAvatar";
 
 type PublicProfile = {
   username: string;
@@ -16,17 +19,17 @@ type PublicProfile = {
   avatarUrl: string | null;
   bio: string | null;
   memberSince: string;
+  isContributor: boolean;
   stats: {
     publishedArticles: number;
-    totalViews: number;
-    totalBookmarks: number;
   };
 };
 
 function PublicProfileContent() {
   const { username } = useParams<{ username: string }>()!;
   const [profile, setProfile] = useState<PublicProfile | null>(null);
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -35,7 +38,7 @@ function PublicProfileContent() {
 
   useEffect(() => {
     setPage(1);
-    loadProfile(1, true);
+    void loadProfile(1, true);
   }, [username]);
 
   const loadProfile = async (pageNum: number, reset = false) => {
@@ -55,11 +58,15 @@ function PublicProfileContent() {
 
       setProfile(data.profile);
       const incoming = Array.isArray(data.articles) ? data.articles : [];
-      if (reset) setArticles(incoming);
-      else {
+      if (reset) {
+        setArticles(incoming);
+        setRelatedArticles(
+          Array.isArray(data.relatedArticles) ? data.relatedArticles : [],
+        );
+      } else {
         setArticles((prev) => {
           const ids = new Set(prev.map((a) => a.id));
-          return [...prev, ...incoming.filter((a: any) => !ids.has(a.id))];
+          return [...prev, ...incoming.filter((a: Article) => !ids.has(a.id))];
         });
       }
       setHasMore(!!data.hasMore);
@@ -75,20 +82,27 @@ function PublicProfileContent() {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-screen" data-testid="profile-loading">
-        <div className="px-4 mx-auto max-w-7xl py-12">
-          <div className="flex gap-6 mb-12 animate-pulse">
-            <div className="h-24 w-24 bg-jepang-border shrink-0" />
-            <div className="flex-1 space-y-3">
-              <div className="h-8 w-48 bg-jepang-border" />
-              <div className="h-4 w-32 bg-jepang-border" />
-              <div className="h-16 w-full max-w-xl bg-jepang-border" />
+      <div className="min-h-screen bg-white" data-testid="profile-loading">
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="min-w-0">
+              <div className="mb-10 flex animate-pulse items-start gap-5 border-b border-jepang-border pb-8">
+                <div className="h-20 w-20 shrink-0 rounded-full bg-jepang-border" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-7 w-40 bg-jepang-border" />
+                  <div className="h-4 w-28 bg-jepang-border" />
+                  <div className="h-14 max-w-xl bg-jepang-border" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {[...Array(2)].map((_, i) => (
+                  <ArticleCardSkeleton key={i} />
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(3)].map((_, i) => (
-              <ArticleCardSkeleton key={i} />
-            ))}
+            <aside className="hidden lg:block">
+              <div className="h-64 animate-pulse rounded-lg bg-jepang-border" />
+            </aside>
           </div>
         </div>
       </div>
@@ -97,15 +111,18 @@ function PublicProfileContent() {
 
   if (notFound || !profile) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center" data-testid="profile-not-found">
-        <div className="text-center px-4">
-          <h1 className="font-heading font-black text-3xl tracking-tighter mb-2">
+      <div
+        className="flex min-h-screen items-center justify-center bg-white"
+        data-testid="profile-not-found"
+      >
+        <div className="px-4 text-center">
+          <h1 className="mb-2 font-heading text-3xl font-black tracking-tighter">
             Profil tidak ditemukan
           </h1>
-          <p className="text-jepang-muted mb-6">
+          <p className="mb-6 text-jepang-muted">
             Pengguna @{username} tidak tersedia atau tidak aktif.
           </p>
-          <Link href="/articles" className="text-jepang-red font-semibold hover:underline">
+          <Link href="/articles" className="font-semibold text-jepang-red hover:underline">
             Kembali ke artikel
           </Link>
         </div>
@@ -119,111 +136,120 @@ function PublicProfileContent() {
   });
 
   return (
-    <div className="bg-white min-h-screen" data-testid="public-profile-page">
-      <SectionHeader
-        label="著者 / Penulis"
-        title={profile.displayName}
-        subtitle={`@${profile.username}`}
-      />
+    <div className="min-h-screen bg-white" data-testid="public-profile-page">
+      <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="mx-auto min-w-0 w-full max-w-4xl lg:mx-0">
+            <div className="mb-10 flex items-start gap-5 border-b border-jepang-border pb-8">
+              <UserAvatar
+                src={profile.avatarUrl}
+                alt={profile.displayName}
+                size={80}
+                fallbackInitial={profile.displayName}
+                className="shrink-0 self-start"
+                testId={profile.avatarUrl ? "profile-avatar" : "profile-avatar-fallback"}
+              />
 
-      <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="flex flex-col sm:flex-row gap-6 mb-10 pb-8 border-b-2 border-foreground">
-          {profile.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt={profile.displayName}
-              className="h-24 w-24 shrink-0 border-2 border-foreground object-cover"
-              data-testid="profile-avatar"
-            />
-          ) : (
-            <div
-              className="flex h-24 w-24 shrink-0 items-center justify-center border-2 border-foreground bg-foreground text-3xl font-bold text-white"
-              data-testid="profile-avatar-fallback"
-            >
-              {profile.displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            {profile.bio ? (
-              <p className="text-base leading-relaxed text-jepang-muted max-w-2xl" data-testid="profile-bio">
-                {profile.bio}
-              </p>
-            ) : (
-              <p className="text-sm italic text-jepang-muted" data-testid="profile-bio-empty">
-                Penulis belum menambahkan bio.
-              </p>
-            )}
-            <p className="mt-3 flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-jepang-muted">
-              <Calendar size={12} /> Bergabung {memberDate}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 mb-12 max-w-lg" data-testid="profile-stats">
-          <div className="border border-jepang-border p-4 text-center">
-            <FileText size={18} className="mx-auto mb-2 text-jepang-red" strokeWidth={1.5} />
-            <p className="font-mono font-black text-2xl">{profile.stats.publishedArticles}</p>
-            <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted mt-1">
-              Artikel
-            </p>
-          </div>
-          <div className="border border-jepang-border p-4 text-center">
-            <Eye size={18} className="mx-auto mb-2 text-jepang-red" strokeWidth={1.5} />
-            <p className="font-mono font-black text-2xl">{profile.stats.totalViews}</p>
-            <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted mt-1">
-              Views
-            </p>
-          </div>
-          <div className="border border-jepang-border p-4 text-center">
-            <Bookmark size={18} className="mx-auto mb-2 text-jepang-red" strokeWidth={1.5} />
-            <p className="font-mono font-black text-2xl">{profile.stats.totalBookmarks}</p>
-            <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted mt-1">
-              Bookmark
-            </p>
-          </div>
-        </div>
-
-        <h2 className="font-heading font-black text-2xl tracking-tighter mb-6 pb-3 border-b border-jepang-border">
-          Artikel Published
-          <span className="text-jepang-red ml-2">({profile.stats.publishedArticles})</span>
-        </h2>
-
-        {articles.length === 0 ? (
-          <p className="text-center text-jepang-muted py-12" data-testid="profile-no-articles">
-            Belum ada artikel published.
-          </p>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article) => (
-                <ArticleCard
-                  key={article.id}
-                  article={{
-                    ...article,
-                    author: {
-                      name: profile.displayName,
-                      username: profile.username,
-                    },
-                  }}
-                />
-              ))}
-            </div>
-            {hasMore && (
-              <div className="mt-10 text-center">
-                <Button
-                  variant="outline"
-                  onClick={() => loadProfile(page + 1)}
-                  disabled={loadingMore}
-                  data-testid="profile-load-more"
+              <div className="min-w-0 flex-1">
+                <h1
+                  className="font-heading text-2xl font-black tracking-tighter sm:text-3xl"
+                  data-testid="profile-display-name"
                 >
-                  {loadingMore ? "Memuat..." : "Muat Lebih Banyak"}
-                  <ArrowRight size={14} className="ml-2" />
-                </Button>
+                  {profile.displayName}
+                </h1>
+                <p
+                  className="mt-1 font-mono text-sm text-jepang-muted"
+                  data-testid="profile-username"
+                >
+                  @{profile.username}
+                </p>
+
+                {profile.bio ? (
+                  <p
+                    className="mt-4 max-w-2xl text-base leading-relaxed text-jepang-muted"
+                    data-testid="profile-bio"
+                  >
+                    {profile.bio}
+                  </p>
+                ) : (
+                  <p
+                    className="mt-4 text-sm italic text-jepang-muted"
+                    data-testid="profile-bio-empty"
+                  >
+                    Belum ada bio.
+                  </p>
+                )}
+
+                <p className="mt-3 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-jepang-muted">
+                  <Calendar size={12} /> Bergabung {memberDate}
+                </p>
               </div>
+            </div>
+
+            {profile.isContributor && (
+              <section data-testid="profile-articles-section">
+                <h2 className="mb-6 border-b border-jepang-border pb-3 font-heading text-xl font-black tracking-tighter">
+                  Artikel
+                  <span className="ml-2 text-jepang-red">
+                    ({profile.stats.publishedArticles})
+                  </span>
+                </h2>
+
+                {articles.length === 0 ? (
+                  <p
+                    className="py-10 text-center text-jepang-muted"
+                    data-testid="profile-no-articles"
+                  >
+                    Belum ada artikel published.
+                  </p>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                      {articles.map((article) => (
+                        <ArticleCard
+                          key={article.id}
+                          article={{
+                            ...article,
+                            author: {
+                              name: profile.displayName,
+                              username: profile.username,
+                            },
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {hasMore && (
+                      <div className="mt-10 text-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => void loadProfile(page + 1)}
+                          disabled={loadingMore}
+                          data-testid="profile-load-more"
+                        >
+                          {loadingMore ? "Memuat..." : "Muat Lebih Banyak"}
+                          <ArrowRight size={14} className="ml-2" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
             )}
-          </>
-        )}
+
+            <ArticleRelatedSection
+              embedded
+              isLoading={false}
+              articles={relatedArticles}
+              title="Rekomendasi Artikel"
+            />
+          </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <ArticleSidebarAd />
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );
@@ -233,7 +259,7 @@ export default function PublicProfilePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center text-jepang-muted">
+        <div className="flex min-h-screen items-center justify-center bg-white text-jepang-muted">
           Memuat...
         </div>
       }

@@ -1,11 +1,9 @@
 # ERD dan Struktur Database MVP Jepangku
 
 > **Catatan arah lanjutan:** ERD ini mendeskripsikan schema **portal berita single-app** (kondisi
-> saat ini). Pada fase ekosistem, tabel identitas & gamifikasi (`users`, `user_profiles`,
-> `point_transactions`, `daily_login_rewards`, `files`, `activity_logs`) akan **dipindah ke
-> Jepangku Core Service** sebagai tabel `core_*`, dan FK portal berubah menjadi `core_user_id`.
-> Detail migrasi ada di `.agents/05-ecosystem-strategy.md`; urutan pengerjaan di
-> `docs/development-roadmap.md`.
+> saat ini). Cutover ke Core v2: FK user = **Clerk ID** (= Core `users.id`), poin via
+> `POST /api/v1/gamification/award`. Kontrak: `docs/ecosystem-integration.md` dan
+> `jepangku-core/docs/ECOSYSTEM.md`. Urutan pengerjaan: `docs/development-roadmap.md`.
 
 ## 1. Ringkasan Desain Database
 

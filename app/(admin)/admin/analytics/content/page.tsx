@@ -1,12 +1,10 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageShell from "@/components/admin/AdminPageShell";
-import AnalyticsNav from "@/components/admin/AnalyticsNav";
 import PeriodSelector from "@/components/admin/PeriodSelector";
 import type { AnalyticsPeriod } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -43,8 +41,10 @@ export default function ContentPerformancePage() {
     <AdminPageShell
       title="Performa Artikel"
       subtitle={`Peringkat artikel berdasarkan aktivitas dalam periode: ${periodLabel || "..."}. Kolom angka = aktivitas di periode; angka kecil di bawah = total sepanjang waktu.`}
+      label="Analytics"
+      backHref="/admin/analytics"
+      backLabel="Kembali ke Ringkasan Analytics"
     >
-      <AnalyticsNav />
 
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <PeriodSelector value={period} onChange={setPeriod} />

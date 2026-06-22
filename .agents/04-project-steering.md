@@ -2,8 +2,8 @@
 
 Dokumen ini mengarahkan jalannya proyek agar tetap sesuai dengan arah ekosistem dan prioritas saat ini.
 
-> **Status:** MVP portal berita sudah tercapai. Arah berikutnya adalah ekosistem multi-app
-> (lihat `.agents/05-ecosystem-strategy.md`). Rencana pengerjaan berfase ada di
+> **Status:** MVP portal berita sudah tercapai. Integrasi ekosistem mengikuti kontrak Core v2
+> di `docs/ecosystem-integration.md` dan `jepangku-core/docs/ECOSYSTEM.md`. Rencana berfase:
 > `docs/development-roadmap.md`.
 
 ## 1. Tujuan Utama
@@ -26,39 +26,42 @@ Jepang untuk audiens Indonesia. Tahap saat ini berfokus pada:
 - Analytics konten: view analytics artikel, content performance, statistik kategori/quiz/poll
 - Soft launch: konten artikel + 9 halaman statis
 
-### Ditunda — menunggu Core Service
-- Auth lanjutan (email verification, OAuth, session) → **Clerk**
-- Variasi leaderboard, badge, export poin, activity log, notifikasi → **Core Service**
+### Ditunda — menunggu Core Service (Fase B–C)
+- Cutover poin & identitas global → **Core API** (`gamification/award`, Core JWT)
+- Variasi leaderboard global, badge lintas app → **Core** (Fase E sebagian sudah ada schema)
+
+### Selesai / bridge
+- Clerk di portal (Fase B2) — login, OAuth, verifikasi email, session UI
 
 ### Masa Depan
-- Jepangku Core Service (user/poin/role/badge/membership global)
-- LMS `kursus.jepangku.com`
-- Ekosistem `news`, `learn`, `admin`, `landing`
-- Self-hosted VPS / multi-app deployment after org migration
+- Cutover penuh News → Core (Fase C); FK user = Clerk ID
+- LMS `kursus.jepangku.com` (Fase D) — consumer Core dari awal
 
 ## 3. Deployment & Development Roadmap
 
 Detail checklist per fase ada di `docs/development-roadmap.md`.
 
-1. **Fase A**: Stabilkan MVP portal (user-facing + hardening + soft launch) — *aktif sekarang*
-2. **Fase B**: Bangun Jepangku Core Service + integrasi Clerk
-3. **Fase C**: Refactor portal jadi consumer Core (auth Clerk, poin via Core API, FK `core_user_id`)
-4. **Fase D**: Bangun LMS (`kursus.jepangku.com`)
-5. **Fase E**: Fitur ekosistem global (badge, leaderboard global, membership, notifikasi, admin pusat)
+1. **Fase 0**: Selaraskan dokumentasi & kontrak Core v2 — *selesai*
+2. **Fase A**: Stabilkan MVP portal (user-facing + hardening + soft launch) — *aktif*
+3. **Fase B**: Core siap + News bridge (shadow token, `lib/core/`)
+4. **Fase C**: Cutover News → consumer Core (FK Clerk ID, poin via API)
+5. **Fase D**: Bangun LMS — consumer Core dari hari pertama
+6. **Fase E**: Fitur ekosistem global (membership, notifikasi, admin pusat)
 
 Deployment infra: Vercel → fork repo ke organisasi GitHub → self-hosted VPS + CI/CD → multi-app.
 
 ## 4. Dokumen Referensi
 
+- `docs/README.md` — indeks dokumentasi
+- `docs/ecosystem-integration.md` — kontrak cutover News ↔ Core (v2)
+- `jepangku-core/docs/ECOSYSTEM.md` · `jepangku-core/docs/API.md` — spesifikasi Core
 - `.agents/01-mvp-scope.md`: scope MVP dan batasan fitur
 - `.agents/02-user-flow.md`: role permissions dan user/admin flow
-- `.agents/03-database-erd.md`: desain database dan model schema
-- `.agents/05-ecosystem-strategy.md`: arsitektur ekosistem & Core Service
-- `docs/development-roadmap.md`: rencana pengerjaan berfase (Fase A–E)
+- `.agents/03-database-erd.md`: desain database portal (catatan migrasi Clerk ID)
+- `.agents/05-ecosystem-strategy.md`: visi ekosistem (bagian 8–12 = desain v1)
+- `docs/development-roadmap.md`: rencana pengerjaan berfase (Fase 0–E)
 - `docs/feature-status.md`: status aktual per fitur
 - `docs/technical-architecture.md`: arsitektur teknis
-- `docs/cloudflare-r2-setup.md`: setup Cloudflare R2
-- `docs/soft-launch-content.md`: checklist konten soft launch
 
 ## 5. Kriteria Sukses MVP
 
@@ -70,14 +73,14 @@ Deployment infra: Vercel → fork repo ke organisasi GitHub → self-hosted VPS 
 
 ## 6. Integrasi Shared Core Service
 
-Arsitektur saat ini sudah menyiapkan atribut seperti `source_app` dan poin berbasis transaksi
-agar mudah dimigrasikan. Arah lanjutan adalah memindahkan data shared (user, profil, poin, file,
-role, badge, membership, notifikasi) ke **Jepangku Core Service**, dengan **Clerk** sebagai layanan
-authentication. Portal dan LMS menjadi consumer Core melalui API. Detail di
-`.agents/05-ecosystem-strategy.md`.
+Kontrak teknis canonical: **`docs/ecosystem-integration.md`** dan **`jepangku-core/docs/ECOSYSTEM.md`**.
 
-Prinsip transisi: jangan membangun versi portal untuk fitur yang akan menjadi milik Core (auth
-lanjutan, badge, variasi leaderboard, notifikasi, membership) agar tidak terjadi pekerjaan ganda.
+- **Clerk** — authentication (login, OAuth, MFA); webhook user **hanya ke Core**
+- **Core** — identitas global, XP/poin, role, badge, leaderboard (`users.id` = Clerk ID)
+- **Portal** — consumer Core untuk poin/role; username/bio tetap di DB News sampai Core siap
+
+Prinsip transisi: jangan membangun fitur Core-dependent baru di portal (badge global, membership,
+notifikasi) sebelum cutover Fase C. Detail pemetaan fase: `docs/development-roadmap.md`.
 
 ## 7. Risiko dan Mitigasi
 

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
+import { auditArticleShare } from '@/lib/audit-routes';
 
 export async function POST(
   request: NextRequest,
@@ -15,7 +17,7 @@ export async function POST(
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const blocked = enforceRateLimit(request, 'article-share', {
+  const blocked = await enforceRateLimit(request, 'article-share', {
     max: 10,
     windowMs: 60 * 60 * 1000,
     identifier: user.id,
@@ -56,7 +58,7 @@ export async function POST(
   });
 
   // Award points - use 5 points for article share
-  const pointsAwarded = await awardPoints(
+  const award = await awardPoints(
     user.id,
     'article_shared',
     'article',
@@ -65,7 +67,7 @@ export async function POST(
     `Shared article: ${article.title}`
   );
 
-  if (pointsAwarded) {
+  if (award.awarded) {
     await db.articleShare.update({
       where: { id: share.id },
       data: { isPointAwarded: true },
@@ -78,10 +80,13 @@ export async function POST(
     data: { shareCount: { increment: 1 } },
   });
 
+  auditArticleShare(user, article, shareMethod);
+
   return NextResponse.json({
     message: 'Share tracked successfully',
-    pointsAwarded,
-    points: pointsAwarded ? 5 : 0,
+    pointsAwarded: award.awarded,
+    points: award.awarded ? 5 : 0,
+    ...gamificationFieldsFromAward(award),
   });
   } catch (e) {
     await captureException(e, { route: 'article-share' });

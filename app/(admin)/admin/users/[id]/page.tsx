@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Award, FileText, Bookmark } from "lucide-react";
+import { Award, FileText, Bookmark } from "lucide-react";
+import { useAdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbContext";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   SkeletonBox,
   SkeletonAvatar,
@@ -30,134 +32,128 @@ export default function AdminUserDetailPage() {
       });
   }, [id]);
 
+  const breadcrumbCrumbs = useMemo(() => {
+    if (!id) return null;
+    if (loading) {
+      return [
+        { href: "/admin/users", label: "Pengguna" },
+        { label: "Detail Pengguna" },
+      ];
+    }
+    if (!data?.user) return null;
+    return [
+      { href: "/admin/users", label: "Pengguna" },
+      { label: "Detail Pengguna" },
+      { label: `@${data.user.username}` },
+    ];
+  }, [id, loading, data]);
+
+  useAdminBreadcrumbs(breadcrumbCrumbs);
+
   if (loading)
     return (
-      <div className="min-h-[60vh]">
-        <section className="border-b-2 border-foreground bg-jepang-off-white">
-          <div className="px-4 mx-auto max-w-7xl py-8 flex items-center gap-6">
-            <SkeletonAvatar size={64} />
-            <div className="flex-1">
-              <SkeletonBox height="1.6rem" width="40%" />
-              <div className="mt-2">
-                <SkeletonBox height="1rem" width="30%" />
-              </div>
-              <div className="flex gap-2 mt-3">
-                <SkeletonBox height="1.6rem" width="4rem" />
-                <SkeletonBox height="1.6rem" width="4rem" />
-              </div>
+      <AdminPageLayout
+        testId="admin-user-detail-page"
+        backHref="/admin/users"
+        backLabel="Kembali ke Pengguna"
+        title="Memuat..."
+      >
+        <div className="flex items-center gap-6 mb-8">
+          <SkeletonAvatar size={64} />
+          <div className="flex-1">
+            <SkeletonBox height="1.6rem" width="40%" />
+            <div className="mt-2">
+              <SkeletonBox height="1rem" width="30%" />
+            </div>
+            <div className="flex gap-2 mt-3">
+              <SkeletonBox height="1.6rem" width="4rem" />
+              <SkeletonBox height="1.6rem" width="4rem" />
             </div>
           </div>
-        </section>
+        </div>
 
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="p-5 border bg-white">
-                <SkeletonBox height="1rem" width="30%" />
-                <div className="mt-3">
-                  <SkeletonBox height="2rem" width="100%" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="p-5 border bg-white">
+              <SkeletonBox height="1rem" width="30%" />
+              <div className="mt-3">
+                <SkeletonBox height="2rem" width="100%" />
+              </div>
+              <div className="mt-2">
+                <SkeletonBox height="0.8rem" width="50%" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <AdminCard variant="list" title="ARTIKEL" noPadding className="mb-6">
+          <div className="divide-y divide-jepang-border">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <div key={i} className="p-4 flex items-center justify-between">
+                <div>
+                  <SkeletonBox height="1rem" width="12rem" />
+                  <div className="mt-1">
+                    <SkeletonBox height="0.8rem" width="8rem" />
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <SkeletonBox height="0.8rem" width="50%" />
-                </div>
+                <SkeletonBox height="1.6rem" width="4rem" />
               </div>
             ))}
           </div>
+        </AdminCard>
 
-          <Card className="border border-foreground mb-6">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                ARTIKEL
-              </p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="p-4 flex items-center justify-between"
-                  >
-                    <div>
-                      <SkeletonBox height="1rem" width="12rem" />
-                      <div className="mt-1">
-                        <SkeletonBox height="0.8rem" width="8rem" />
-                      </div>
-                    </div>
-                    <SkeletonBox height="1.6rem" width="4rem" />
+        <AdminCard variant="list" title="TRANSAKSI POIN TERBARU" noPadding>
+          <div className="divide-y divide-jepang-border">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+              <div key={i} className="p-4 flex items-center justify-between">
+                <div>
+                  <SkeletonBox height="1rem" width="12rem" />
+                  <div className="mt-1">
+                    <SkeletonBox height="0.8rem" width="8rem" />
                   </div>
-                ))}
+                </div>
+                <SkeletonBox height="1.6rem" width="4rem" />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border border-foreground">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                TRANSAKSI POIN TERBARU
-              </p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="p-4 flex items-center justify-between"
-                  >
-                    <div>
-                      <SkeletonBox height="1rem" width="12rem" />
-                      <div className="mt-1">
-                        <SkeletonBox height="0.8rem" width="8rem" />
-                      </div>
-                    </div>
-                    <SkeletonBox height="1.6rem" width="4rem" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            ))}
+          </div>
+        </AdminCard>
+      </AdminPageLayout>
     );
   if (!data) return null;
 
   const { user, articles, recentTransactions, stats } = data;
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-user-detail-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin/users"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
+    <AdminPageLayout
+      testId="admin-user-detail-page"
+      backHref="/admin/users"
+      backLabel="Kembali ke Pengguna"
+      title={user.name}
+      subtitle={`@${user.username} • ${user.email}`}
+      headerActions={
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={
+              user.role === "ADMIN"
+                ? "red"
+                : user.role === "CONTRIBUTOR"
+                  ? "warning"
+                  : "muted"
+            }
           >
-            <ArrowLeft size={14} /> Kembali ke Pengguna
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-foreground text-white flex items-center justify-center font-heading font-black text-2xl">
-              {user.name?.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h1 className="font-heading font-black text-3xl tracking-tighter">
-                {user.name}
-              </h1>
-              <p className="text-jepang-muted font-mono">
-                @{user.username} • {user.email}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant={user.role === "ADMIN" ? "red" : "muted"}>
-                  {user.role === "ADMIN" ? "ADMIN" : "PENGGUNA"}
-                </Badge>
-                <Badge variant={user.status === "active" ? "success" : "muted"}>
-                  {user.status === "active" ? "AKTIF" : "TIDAK AKTIF"}
-                </Badge>
-              </div>
-            </div>
-          </div>
+            {user.role === "ADMIN"
+              ? "ADMIN"
+              : user.role === "CONTRIBUTOR"
+                ? "KONTRIBUTOR"
+                : "PENGGUNA"}
+          </Badge>
+          <Badge variant={user.status === "active" ? "success" : "muted"}>
+            {user.status === "active" ? "AKTIF" : "TIDAK AKTIF"}
+          </Badge>
         </div>
-      </section>
-
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      }
+    >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {
               icon: Award,
@@ -194,13 +190,11 @@ export default function AdminUserDetailPage() {
           ))}
         </div>
 
-        <Card className="border border-foreground mb-6">
-          <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              ARTIKEL ({articles?.length || 0})
-            </p>
-          </CardHeader>
-          <CardContent className="p-0">
+        <AdminCard
+          variant="list"
+          title={`ARTIKEL (${articles?.length || 0})`}
+          noPadding
+        >
             {articles?.length > 0 ? (
               <div className="divide-y divide-jepang-border">
                 {articles.map((a: any) => (
@@ -231,16 +225,9 @@ export default function AdminUserDetailPage() {
                 Tidak ada artikel
               </p>
             )}
-          </CardContent>
-        </Card>
+        </AdminCard>
 
-        <Card className="border border-foreground">
-          <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              TRANSAKSI POIN TERBARU
-            </p>
-          </CardHeader>
-          <CardContent className="p-0">
+        <AdminCard variant="list" title="TRANSAKSI POIN TERBARU" noPadding>
             {recentTransactions?.length > 0 ? (
               <div className="divide-y divide-jepang-border">
                 {recentTransactions.map((t: any, i: number) => (
@@ -267,9 +254,7 @@ export default function AdminUserDetailPage() {
                 Tidak ada transaksi
               </p>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+    </AdminPageLayout>
   );
 }

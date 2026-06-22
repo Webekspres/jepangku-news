@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { createSlug } from '@/lib/slug';
 import {
   sanitizeMediaUrl,
@@ -105,6 +106,8 @@ export async function POST(request: NextRequest) {
       });
     }
   }
+
+  auditAdminEntity(admin, 'quiz', 'create', { type: 'quiz', id: quiz.id, label: quiz.title, href: `/admin/quizzes/${quiz.id}/edit` });
 
   return NextResponse.json({ message: 'Quiz created', id: quiz.id }, { status: 201 });
 }

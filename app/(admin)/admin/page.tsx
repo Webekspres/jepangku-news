@@ -1,10 +1,8 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
 import {
   FileText,
   Users,
@@ -12,31 +10,21 @@ import {
   MessageSquare,
   Eye,
   CheckSquare,
-  Tag,
-  Home,
-  LayoutGrid,
-  BarChart3,
-  FileType,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import SectionHeader from "@/components/SectionHeader";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import DashboardCharts from "@/components/admin/DashboardCharts";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [pendingArticles, setPendingArticles] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!loading && (!user || (user as any).role !== "ADMIN")) {
-      router.push("/");
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
-    if (!user || (user as any).role !== "ADMIN") return;
+    if (!user) return;
 
     Promise.all([
       fetch("/api/admin/stats").then((r) => r.json()),
@@ -46,8 +34,6 @@ export default function AdminDashboard() {
       setPendingArticles(Array.isArray(p) ? p.slice(0, 5) : []);
     });
   }, [user]);
-
-  if (loading || !user || (user as any).role !== "ADMIN") return null;
 
   const statCards = [
     {
@@ -90,58 +76,24 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-dashboard">
-      <SectionHeader
-        label="管理 / ADMIN"
-        title="Dashboard Admin"
-        subtitle="Kelola portal Jepangku"
-        className="border-b-2 border-foreground bg-foreground text-white"
-        data-testid="admin-dashboard-header"
-      />
+    <AdminPageLayout
+      testId="admin-dashboard"
+      title="Dashboard"
+      subtitle="Ringkasan portal Jepangku Berita"
+    >
+        <AdminStatCards
+          loading={!stats}
+          skeletonCount={6}
+          items={statCards.map((stat) => ({
+            label: stat.label,
+            value: stat.value,
+            icon: stat.icon,
+            highlight: stat.highlight,
+            href: stat.link,
+          }))}
+        />
 
-      <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-          {!stats
-            ? [1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="p-5 border bg-white">
-                  <SkeletonBox height="1rem" width="30%" className="mb-3" />
-                  <div className="my-3">
-                    <SkeletonBox height="2rem" width="100%" />
-                  </div>
-                  <SkeletonBox height="0.6rem" width="60%" />
-                </div>
-              ))
-            : statCards.map((stat, idx) => {
-                const Icon = stat.icon;
-
-                return (
-                  <Link
-                    key={idx}
-                    href={stat.link}
-                    className={`block p-5 border transition-colors ${
-                      (stat as any).highlight
-                        ? "bg-jepang-red text-white border-jepang-red hover:opacity-90"
-                        : "bg-white border-jepang-border hover:border-foreground"
-                    }`}
-                    data-testid={`stat-${stat.label
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}`}
-                  >
-                    <Icon size={20} strokeWidth={1.5} className="mb-3" />
-
-                    <p className="font-mono font-black text-3xl">
-                      {stat.value}
-                    </p>
-
-                    <p className="text-[10px] uppercase tracking-wider font-bold mt-1">
-                      {stat.label}
-                    </p>
-                  </Link>
-                );
-              })}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             href="/admin/articles/create"
             className="bg-foreground text-white p-6 hover:opacity-90 transition-opacity"
@@ -193,78 +145,13 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
-          {[
-            {
-              href: "/admin/users",
-              icon: Users,
-              label: "Kelola Pengguna",
-              testid: "action-manage-users",
-            },
-            {
-              href: "/admin/tags",
-              icon: Tag,
-              label: "Kelola Tag",
-              testid: "action-manage-tags",
-            },
-            {
-              href: "/admin/categories",
-              icon: LayoutGrid,
-              label: "Kelola Kategori",
-              testid: "action-manage-categories",
-            },
-            {
-              href: "/admin/homepage",
-              icon: Home,
-              label: "Pengaturan Beranda",
-              testid: "action-manage-homepage",
-            },
-            {
-              href: "/admin/comments",
-              icon: MessageSquare,
-              label: "Moderasi Komentar",
-              testid: "action-manage-comments",
-            },
-            {
-              href: "/admin/articles",
-              icon: FileText,
-              label: "Semua Artikel",
-              testid: "action-manage-articles",
-            },
-            {
-              href: "/admin/analytics",
-              icon: BarChart3,
-              label: "Analytics Konten",
-              testid: "action-analytics",
-            },
-            {
-              href: "/admin/info-pages",
-              icon: FileType,
-              label: "Halaman Informasi",
-              testid: "action-manage-info-pages",
-            },
-          ].map(({ href, icon: Icon, label, testid }) => (
-            <Link
-              key={href}
-              href={href}
-              className="border border-jepang-border hover:border-foreground p-4 transition-colors flex flex-col items-center text-center"
-              data-testid={testid}
-            >
-              <Icon size={20} strokeWidth={1.5} className="mb-2" />
+        <DashboardCharts charts={stats?.charts ?? null} loading={!stats} />
 
-              <p className="text-xs font-bold uppercase tracking-wider">
-                {label}
-              </p>
-            </Link>
-          ))}
-        </div>
-
-        <Card className="border border-foreground">
-          <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3 flex flex-row items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-              ARTIKEL MENUNGGU REVIEW TERBARU
-            </p>
-
+        <AdminCard
+          variant="list"
+          title="ARTIKEL MENUNGGU REVIEW TERBARU"
+          noPadding
+          headerAction={
             <Link
               href="/admin/articles/review"
               className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
@@ -272,9 +159,8 @@ export default function AdminDashboard() {
             >
               Lihat Semua →
             </Link>
-          </CardHeader>
-
-          <CardContent className="p-0">
+          }
+        >
             {pendingArticles.length === 0 && stats ? (
               <p className="p-6 text-center text-jepang-muted text-sm">
                 Tidak ada artikel yang menunggu review
@@ -325,9 +211,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+    </AdminPageLayout>
   );
 }

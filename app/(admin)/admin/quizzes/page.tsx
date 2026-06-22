@@ -1,14 +1,16 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Pencil, Zap, Trash2, BarChart2 } from "lucide-react";
+import { Plus, Pencil, Zap, Trash2, BarChart2, FileEdit, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -45,8 +47,22 @@ export default function AdminQuizzesPage() {
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    draft: number;
+    inactive: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/quizzes/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadQuizzes();
@@ -103,53 +119,72 @@ export default function AdminQuizzesPage() {
   };
 
   const filters = [
-    { v: "", l: "Semua" },
-    { v: "ACTIVE", l: "Aktif" },
-    { v: "DRAFT", l: "Draf" },
-    { v: "INACTIVE", l: "Tidak Aktif" },
+    { value: "", label: "Semua", testId: "quiz-filter-all" },
+    { value: "ACTIVE", label: "Aktif", testId: "quiz-filter-ACTIVE" },
+    { value: "DRAFT", label: "Draf", testId: "quiz-filter-DRAFT" },
+    { value: "INACTIVE", label: "Tidak Aktif", testId: "quiz-filter-INACTIVE" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-quizzes-page">
+    <>
       <ConfirmModal {...confirmProps} />
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
 
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="font-heading font-black text-4xl tracking-tighter">
-              Semua Kuis
-            </h1>
-            <Button asChild size="sm" data-testid="create-quiz-btn">
-              <Link href="/admin/quizzes/create">
-                <Plus size={14} className="mr-1" /> Buat Kuis
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <AdminPageLayout
+        testId="admin-quizzes-page"
+        title="Semua Kuis"
+        headerActions={
+          <Button asChild size="sm" data-testid="create-quiz-btn">
+            <Link href="/admin/quizzes/create">
+              <Plus size={14} className="mr-1" /> Buat Kuis
+            </Link>
+          </Button>
+        }
+      >
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={4}
+          gridClassName="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          items={[
+            {
+              label: "Total Kuis",
+              value: stats?.total ?? 0,
+              icon: Zap,
+              onClick: () => setFilter(""),
+              testId: "stat-total-kuis",
+            },
+            {
+              label: "Aktif",
+              value: stats?.active ?? 0,
+              icon: Zap,
+              onClick: () => setFilter("ACTIVE"),
+              testId: "stat-kuis-aktif",
+            },
+            {
+              label: "Draf",
+              value: stats?.draft ?? 0,
+              icon: FileEdit,
+              onClick: () => setFilter("DRAFT"),
+              testId: "stat-kuis-draft",
+            },
+            {
+              label: "Tidak Aktif",
+              value: stats?.inactive ?? 0,
+              icon: EyeOff,
+              onClick: () => setFilter("INACTIVE"),
+              testId: "stat-kuis-tidak-aktif",
+            },
+          ]}
+        />
+        <AdminToolbar>
+          <AdminFilterButtons options={filters} value={filter} onChange={setFilter} />
+        </AdminToolbar>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {filters.map((s) => (
-            <Button
-              key={s.v}
-              size="sm"
-              variant={filter === s.v ? "black" : "outline"}
-              onClick={() => setFilter(s.v)}
-              data-testid={`quiz-filter-${s.v || "all"}`}
-            >
-              {s.l}
-            </Button>
-          ))}
-        </div>
-
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading && quizzes.length === 0 ? "..." : quizzes.length} KUIS`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -166,7 +201,7 @@ export default function AdminQuizzesPage() {
 
             <TableBody>
               {loading && quizzes.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     {[...Array(8)].map((_, i) => (
                       <TableCell key={i}>
@@ -230,7 +265,7 @@ export default function AdminQuizzesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/admin/analytics/quizzes/${quiz.id}`)}
+                          onClick={() => router.push(`/admin/quizzes/${quiz.id}/analytics`)}
                           data-testid={`quiz-stats-${quiz.id}`}
                           className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
                         >
@@ -274,8 +309,8 @@ export default function AdminQuizzesPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+      </AdminPageLayout>
+    </>
   );
 }

@@ -1,14 +1,19 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Search, Users, Shield, User } from "lucide-react";
+import { Users, Shield, User, PenSquare, UserCheck, Ban, UserX, Sparkles } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import {
+  AdminFilterButtons,
+  AdminSearchInput,
+  AdminToolbar,
+} from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
   Table,
@@ -26,7 +31,22 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    banned: number;
+    inactive: number;
+    draft: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/users/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadUsers();
@@ -50,6 +70,7 @@ export default function AdminUsersPage() {
 
   const getRoleLabel = (role: string) => {
     if (role === "ADMIN") return "Admin";
+    if (role === "CONTRIBUTOR") return "Kontributor";
     return "Pengguna";
   };
 
@@ -74,6 +95,9 @@ export default function AdminUsersPage() {
         });
         toast.success("Role berhasil diperbarui");
         loadUsers();
+        fetch("/api/admin/users/stats")
+          .then((r) => r.json())
+          .then(setStats);
       },
     });
   };
@@ -96,87 +120,94 @@ export default function AdminUsersPage() {
         });
         toast.success("Status berhasil diperbarui");
         loadUsers();
+        fetch("/api/admin/users/stats")
+          .then((r) => r.json())
+          .then(setStats);
       },
     });
   };
 
   const roleFilters = [
-    { v: "", l: "Semua", t: "role-filter-all" },
-    { v: "ADMIN", l: "Admin", t: "role-filter-admin" },
-    { v: "USER", l: "Pengguna", t: "role-filter-user" },
+    { value: "", label: "Semua", testId: "role-filter-all" },
+    { value: "ADMIN", label: "Admin", testId: "role-filter-admin" },
+    { value: "CONTRIBUTOR", label: "Kontributor", testId: "role-filter-contributor" },
+    { value: "USER", label: "Pengguna", testId: "role-filter-user" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-users-page">
+    <>
       <ConfirmModal {...confirmProps} />
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-            data-testid="back-to-admin"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
 
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            MANAJEMEN PENGGUNA
-          </p>
+      <AdminPageLayout
+        testId="admin-users-page"
+        label="MANAJEMEN PENGGUNA"
+        title={
+          <>
+            <Users size={36} strokeWidth={1.5} className="inline mr-3" />
+            Semua Pengguna
+          </>
+        }
+        subtitle={loading ? "..." : `${users.length} PENGGUNA`}
+      >
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={5}
+          gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          items={[
+            {
+              label: "Total Pengguna",
+              value: stats?.total ?? users.length,
+              icon: Users,
+              testId: "stat-total-pengguna",
+            },
+            {
+              label: "Aktif",
+              value: stats?.active ?? 0,
+              icon: UserCheck,
+              testId: "stat-pengguna-aktif",
+            },
+            {
+              label: "Diblokir",
+              value: stats?.banned ?? 0,
+              icon: Ban,
+              testId: "stat-pengguna-diblokir",
+            },
+            {
+              label: "Belum Welcome",
+              value: stats?.draft ?? 0,
+              icon: Sparkles,
+              testId: "stat-pengguna-draft",
+            },
+            {
+              label: "Tidak Aktif",
+              value: stats?.inactive ?? 0,
+              icon: UserX,
+              testId: "stat-pengguna-tidak-aktif",
+            },
+          ]}
+        />
+        <AdminToolbar>
+          <AdminFilterButtons
+            options={roleFilters}
+            value={roleFilter}
+            onChange={setRoleFilter}
+          />
+          <AdminSearchInput
+            value={searchInput}
+            onChange={setSearchInput}
+            onSubmit={() => setSearch(searchInput)}
+            placeholder="Cari berdasarkan nama, username, atau email..."
+            className="flex-1 sm:max-w-none"
+            testId="user-search-input"
+          />
+        </AdminToolbar>
 
-          <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3">
-            <Users size={36} strokeWidth={1.5} /> Semua Pengguna
-          </h1>
-
-          <p className="text-jepang-muted font-mono uppercase tracking-wider text-sm mt-2">
-            {loading ? "..." : `${users.length} PENGGUNA`}
-          </p>
-        </div>
-      </section>
-
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        <div className="mb-6 space-y-3">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearch(searchInput);
-            }}
-            className="flex gap-2"
-          >
-            <Input
-              type="text"
-              placeholder="Cari berdasarkan nama, username, atau email..."
-              className="flex-1"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              data-testid="user-search-input"
-            />
-
-            <Button
-              type="submit"
-              variant="black"
-              size="icon"
-              data-testid="user-search-submit"
-            >
-              <Search size={16} strokeWidth={1.5} />
-            </Button>
-          </form>
-
-          <div className="flex gap-2">
-            {roleFilters.map((r) => (
-              <Button
-                key={r.v}
-                size="sm"
-                variant={roleFilter === r.v ? "black" : "outline"}
-                onClick={() => setRoleFilter(r.v)}
-                data-testid={r.t}
-              >
-                {r.l}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading ? "..." : users.length} PENGGUNA`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -192,7 +223,7 @@ export default function AdminUsersPage() {
 
             <TableBody>
               {loading && users.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -266,7 +297,7 @@ export default function AdminUsersPage() {
                     </TableCell>
 
                     <TableCell className="font-mono font-bold text-jepang-red">
-                      {user.totalPoints || 0}
+                      {user.totalPoints ?? '—'}
                     </TableCell>
 
                     <TableCell className="font-mono">
@@ -274,10 +305,22 @@ export default function AdminUsersPage() {
                     </TableCell>
 
                     <TableCell>
-                      <Badge variant={user.role === "ADMIN" ? "red" : "muted"}>
+                      <Badge
+                        variant={
+                          user.role === "ADMIN"
+                            ? "red"
+                            : user.role === "CONTRIBUTOR"
+                              ? "warning"
+                              : "muted"
+                        }
+                      >
                         {user.role === "ADMIN" ? (
                           <span className="inline-flex items-center gap-1">
                             <Shield size={10} /> Admin
+                          </span>
+                        ) : user.role === "CONTRIBUTOR" ? (
+                          <span className="inline-flex items-center gap-1">
+                            <PenSquare size={10} /> Kontributor
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1">
@@ -313,15 +356,47 @@ export default function AdminUsersPage() {
                         </Button>
 
                         {user.role === "USER" ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
-                            onClick={() => handleRoleChange(user.id, "ADMIN")}
-                            data-testid={`promote-${user.id}`}
-                          >
-                            Jadikan Admin
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                handleRoleChange(user.id, "CONTRIBUTOR")
+                              }
+                              data-testid={`promote-contributor-${user.id}`}
+                            >
+                              Jadikan Kontributor
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                              onClick={() => handleRoleChange(user.id, "ADMIN")}
+                              data-testid={`promote-${user.id}`}
+                            >
+                              Jadikan Admin
+                            </Button>
+                          </>
+                        ) : user.role === "CONTRIBUTOR" ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                              onClick={() => handleRoleChange(user.id, "ADMIN")}
+                              data-testid={`promote-admin-${user.id}`}
+                            >
+                              Jadikan Admin
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRoleChange(user.id, "USER")}
+                              data-testid={`demote-${user.id}`}
+                            >
+                              Jadikan Pengguna
+                            </Button>
+                          </>
                         ) : (
                           <Button
                             size="sm"
@@ -365,8 +440,8 @@ export default function AdminUsersPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+      </AdminPageLayout>
+    </>
   );
 }

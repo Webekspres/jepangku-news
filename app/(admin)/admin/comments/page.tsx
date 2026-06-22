@@ -1,20 +1,29 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   MessageSquare,
   Trash2,
   EyeOff,
   Eye,
-  Search,
+  ExternalLink,
+  FileText,
+  Zap,
+  Ban,
 } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import AdminPagination from "@/components/admin/AdminPagination";
+import {
+  AdminFilterButtons,
+  AdminSearchInput,
+  AdminToolbar,
+} from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
@@ -41,17 +50,17 @@ interface AdminComment {
 }
 
 const STATUS_FILTERS = [
-  { value: "", label: "Semua" },
-  { value: "VISIBLE", label: "Tampil" },
-  { value: "HIDDEN", label: "Disembunyikan" },
-  { value: "DELETED", label: "Dihapus" },
+  { value: "", label: "Semua", testId: "filter-status-all" },
+  { value: "VISIBLE", label: "Tampil", testId: "filter-status-VISIBLE" },
+  { value: "HIDDEN", label: "Disembunyikan", testId: "filter-status-HIDDEN" },
+  { value: "DELETED", label: "Dihapus", testId: "filter-status-DELETED" },
 ];
 
 const TYPE_FILTERS = [
-  { value: "", label: "Semua Tipe" },
-  { value: "ARTICLE", label: "Artikel" },
-  { value: "POLL", label: "Polling" },
-  { value: "QUIZ", label: "Kuis" },
+  { value: "", label: "Semua Tipe", testId: "filter-type-all" },
+  { value: "ARTICLE", label: "Artikel", testId: "filter-type-ARTICLE" },
+  { value: "POLL", label: "Polling", testId: "filter-type-POLL" },
+  { value: "QUIZ", label: "Kuis", testId: "filter-type-QUIZ" },
 ];
 
 const TARGET_PATH: Record<AdminComment["targetType"], string> = {
@@ -59,6 +68,11 @@ const TARGET_PATH: Record<AdminComment["targetType"], string> = {
   POLL: "/polls",
   QUIZ: "/quizzes",
 };
+
+function commentPublicHref(comment: AdminComment): string | null {
+  if (!comment.targetSlug) return null;
+  return `${TARGET_PATH[comment.targetType]}/${comment.targetSlug}#comment-${comment.id}`;
+}
 
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<AdminComment[]>([]);
@@ -70,7 +84,23 @@ export default function AdminCommentsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState<{
+    total: number;
+    articleComments: number;
+    quizComments: number;
+    pollComments: number;
+    hidden: number;
+    deleted: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/comments/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,11 +125,6 @@ export default function AdminCommentsPage() {
     load();
   }, [load]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    setQuery(search.trim());
-  };
 
   const moderate = async (id: string, action: "hide" | "unhide") => {
     try {
@@ -111,6 +136,9 @@ export default function AdminCommentsPage() {
       if (!res.ok) throw new Error((await res.json()).error);
       toast.success(action === "hide" ? "Komentar disembunyikan" : "Komentar ditampilkan");
       load();
+      fetch("/api/admin/comments/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch (e: any) {
       toast.error(e.message || "Gagal memoderasi");
     }
@@ -128,6 +156,9 @@ export default function AdminCommentsPage() {
           if (!res.ok) throw new Error((await res.json()).error);
           toast.success("Komentar dihapus permanen");
           load();
+          fetch("/api/admin/comments/stats")
+            .then((r) => r.json())
+            .then(setStats);
         } catch (e: any) {
           toast.error(e.message || "Gagal menghapus");
         }
@@ -136,90 +167,120 @@ export default function AdminCommentsPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-comments-page">
+    <>
       <ConfirmModal {...confirmProps} />
 
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            MODERASI KOMENTAR
-          </p>
-
-          <h1 className="font-heading font-black text-4xl tracking-tighter flex items-center gap-3">
-            <MessageSquare size={36} strokeWidth={1.5} /> Komentar
-          </h1>
-        </div>
-      </section>
-
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex flex-wrap gap-1">
-            {STATUS_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => {
-                  setStatus(f.value);
-                  setPage(1);
-                }}
-                className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  status === f.value
-                    ? "border-foreground bg-foreground text-white"
-                    : "border-jepang-border hover:border-foreground"
-                }`}
-                data-testid={`filter-status-${f.value || "all"}`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-1">
-            {TYPE_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => {
-                  setTargetType(f.value);
-                  setPage(1);
-                }}
-                className={`px-3 py-2 text-xs font-bold uppercase tracking-wider border transition-colors ${
-                  targetType === f.value
-                    ? "border-jepang-red bg-jepang-red text-white"
-                    : "border-jepang-border hover:border-foreground"
-                }`}
-                data-testid={`filter-type-${f.value || "all"}`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSearch} className="flex gap-2 ml-auto">
-            <Input
-              type="text"
-              placeholder="Cari isi komentar..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-56"
-              data-testid="comment-search-input"
-            />
-            <Button type="submit" variant="outline" size="sm">
-              <Search size={14} />
-            </Button>
-          </form>
-        </div>
+      <AdminPageLayout
+        testId="admin-comments-page"
+        label="MODERASI KOMENTAR"
+        title={
+          <>
+            <MessageSquare size={36} strokeWidth={1.5} className="inline mr-3" />
+            Komentar
+          </>
+        }
+      >
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={6}
+          gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+          items={[
+            {
+              label: "Total Komentar",
+              value: stats?.total ?? total,
+              icon: MessageSquare,
+              onClick: () => {
+                setStatus("");
+                setTargetType("");
+                setPage(1);
+              },
+              testId: "stat-total-komentar",
+            },
+            {
+              label: "Artikel",
+              value: stats?.articleComments ?? 0,
+              icon: FileText,
+              onClick: () => {
+                setTargetType("ARTICLE");
+                setPage(1);
+              },
+              testId: "stat-komentar-artikel",
+            },
+            {
+              label: "Kuis",
+              value: stats?.quizComments ?? 0,
+              icon: Zap,
+              onClick: () => {
+                setTargetType("QUIZ");
+                setPage(1);
+              },
+              testId: "stat-komentar-kuis",
+            },
+            {
+              label: "Polling",
+              value: stats?.pollComments ?? 0,
+              icon: MessageSquare,
+              onClick: () => {
+                setTargetType("POLL");
+                setPage(1);
+              },
+              testId: "stat-komentar-polling",
+            },
+            {
+              label: "Disembunyikan",
+              value: stats?.hidden ?? 0,
+              icon: EyeOff,
+              highlight: true,
+              onClick: () => {
+                setStatus("HIDDEN");
+                setPage(1);
+              },
+              testId: "stat-komentar-disembunyikan",
+            },
+            {
+              label: "Dihapus",
+              value: stats?.deleted ?? 0,
+              icon: Ban,
+              onClick: () => {
+                setStatus("DELETED");
+                setPage(1);
+              },
+              testId: "stat-komentar-dihapus",
+            },
+          ]}
+        />
+        <AdminToolbar>
+          <AdminFilterButtons
+            options={STATUS_FILTERS}
+            value={status}
+            onChange={(value) => {
+              setStatus(value);
+              setPage(1);
+            }}
+          />
+          <AdminFilterButtons
+            options={TYPE_FILTERS}
+            value={targetType}
+            onChange={(value) => {
+              setTargetType(value);
+              setPage(1);
+            }}
+          />
+          <AdminSearchInput
+            value={search}
+            onChange={setSearch}
+            onSubmit={() => {
+              setPage(1);
+              setQuery(search.trim());
+            }}
+            placeholder="Cari isi komentar..."
+            testId="comment-search-input"
+          />
+        </AdminToolbar>
 
         {loading ? (
-          <Card className="border border-foreground">
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
+          <AdminCard variant="list" noPadding>
+            <div className="divide-y divide-jepang-border">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="p-4 space-y-2">
                     <SkeletonBox height="0.8rem" width="30%" />
@@ -227,27 +288,18 @@ export default function AdminCommentsPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </AdminCard>
         ) : comments.length === 0 ? (
-          <div className="text-center py-24" data-testid="no-comments-admin">
-            <MessageSquare
-              size={48}
-              strokeWidth={1.5}
-              className="mx-auto mb-4 text-jepang-muted"
+          <div data-testid="no-comments-admin">
+            <AdminEmptyState
+              icon={MessageSquare}
+              title="Tidak ada komentar"
+              description="Tidak ada komentar yang cocok dengan filter."
             />
-            <p className="font-heading font-bold text-2xl mb-2">Tidak ada komentar</p>
-            <p className="text-jepang-muted">Tidak ada komentar yang cocok dengan filter.</p>
           </div>
         ) : (
-          <Card className="border border-foreground">
-            <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em]">
-                {total} KOMENTAR
-              </p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-jepang-border">
+          <AdminCard title={`${total} KOMENTAR`} variant="list" noPadding>
+            <div className="divide-y divide-jepang-border">
                 {comments.map((c) => (
                   <div
                     key={c.id}
@@ -295,6 +347,19 @@ export default function AdminCommentsPage() {
 
                       {!c.isDeleted && (
                         <div className="flex items-center gap-2">
+                          {commentPublicHref(c) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              className="border border-jepang-border"
+                              data-testid={`admin-view-comment-${c.id}`}
+                            >
+                              <Link href={commentPublicHref(c)!} target="_blank">
+                                <ExternalLink size={14} /> Lihat
+                              </Link>
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -330,35 +395,16 @@ export default function AdminCommentsPage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+          </AdminCard>
         )}
 
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Sebelumnya
-            </Button>
-            <span className="text-xs font-mono uppercase tracking-wider text-jepang-muted">
-              Hal {page} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          onPageChange={setPage}
+        />
+      </AdminPageLayout>
+    </>
   );
 }

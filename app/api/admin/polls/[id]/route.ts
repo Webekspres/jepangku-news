@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 import {
   sanitizeMediaUrl,
@@ -105,6 +106,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
   }
 
+  auditAdminEntity(admin, 'poll', 'update', {
+    type: 'poll',
+    id,
+    label: (updateData.title as string | undefined) ?? poll.title,
+    href: `/admin/polls/${id}/edit`,
+  });
+
   return NextResponse.json({ message: 'Poll updated' });
 }
 
@@ -125,6 +133,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   if (poll.status !== 'DRAFT') {
     return NextResponse.json({ error: 'Hanya polling berstatus Draft yang dapat dihapus' }, { status: 400 });
   }
+
+  auditAdminEntity(admin, 'poll', 'delete', { type: 'poll', id: poll.id, label: poll.title, href: `/admin/polls/${id}/edit` });
 
   await db.poll.delete({ where: { id } });
 

@@ -1,108 +1,117 @@
-import { db } from './db';
 import { Prisma } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { db } from '@/lib/db';
+import { getJakartaDateKey } from '@/lib/jakarta-calendar';
 
+export type AwardPointsResult = {
+  awarded: boolean;
+  currentPoints: number | null;
+  totalXp: number | null;
+  currentLevel: number | null;
+};
+
+const EMPTY_AWARD: AwardPointsResult = {
+  awarded: false,
+  currentPoints: null,
+  totalXp: null,
+  currentLevel: null,
+};
+
+const SOURCE_APP = 'news';
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
+  );
+}
+
+/** Sum of all portal point transactions for a user. */
+export async function getUserPointBalance(userId: string): Promise<number> {
+  const result = await db.pointTransaction.aggregate({
+    where: { userId, sourceApp: SOURCE_APP },
+    _sum: { points: true },
+  });
+  return result._sum.points ?? 0;
+}
+
+/**
+ * Award portal points — stored in News DB (`point_transactions`).
+ * `userId` must be the Clerk User ID (= portal users.id).
+ */
 export async function awardPoints(
   userId: string,
   activityType: string,
   sourceType: string,
   sourceId: string | null,
   points: number,
-  description?: string
-): Promise<boolean> {
+  description?: string,
+): Promise<AwardPointsResult> {
+  if (points <= 0) return EMPTY_AWARD;
+
   try {
-    // Quick check to avoid extra work
-    const existing = await db.pointTransaction.findFirst({
-      where: {
+    await db.pointTransaction.create({
+      data: {
         userId,
-        sourceApp: 'news',
+        sourceApp: SOURCE_APP,
         activityType,
         sourceType,
-        ...(sourceId ? { sourceId } : {}),
+        sourceId,
+        points,
+        description: description ?? null,
       },
     });
 
-    if (existing) return false;
+    const currentPoints = await getUserPointBalance(userId);
 
-    // Neon HTTP adapter tidak mendukung interactive transaction, jadi operasi
-    // dijalankan berurutan. Unique constraint pada pointTransaction mencegah
-    // duplikasi/race; user.totalPoints di-increment setelah transaksi tercatat.
-    try {
-      await db.pointTransaction.create({
-        data: {
-          userId,
-          sourceApp: 'news',
-          activityType,
-          sourceType,
-          sourceId: sourceId ?? null,
-          points,
-          description: description ?? null,
-          occurredAt: new Date(),
-        },
-      });
-    } catch (e) {
-      // Handle unique constraint violation (race condition)
-      if ((e as any)?.code === 'P2002' || (e as any)?.code === '23505') {
-        // Duplicate detected, treat as already awarded
-        return false;
-      }
-      throw e;
-    }
-
-    await db.user.update({
-      where: { id: userId },
-      data: { totalPoints: { increment: points } },
+    logger.info('points.award.ok', {
+      userId,
+      activityType,
+      points,
+      currentPoints,
     });
 
-    return true;
-  } catch (e) {
-    console.error('Error awarding points:', e);
-    return false;
+    return {
+      awarded: true,
+      currentPoints,
+      totalXp: null,
+      currentLevel: null,
+    };
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      const currentPoints = await getUserPointBalance(userId);
+      return { awarded: false, currentPoints, totalXp: null, currentLevel: null };
+    }
+
+    logger.warn('points.award.failed', {
+      userId,
+      activityType,
+      errorMessage: error instanceof Error ? error.message : 'unknown',
+    });
+    return EMPTY_AWARD;
   }
 }
 
+/** Daily login reward — idempotent via unique constraint per calendar day. */
 export async function checkDailyLogin(userId: string): Promise<boolean> {
-  try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = getJakartaDateKey();
+  const result = await awardPoints(userId, 'daily_login', 'system', today, 3);
+  return result.awarded;
+}
 
-    const existing = await db.dailyLoginReward.findFirst({
-      where: { userId, sourceApp: 'news', rewardDate: today },
-    });
-
-    if (existing) return false;
-
-    const points = 3;
-
-    const transaction = await db.pointTransaction.create({
-      data: {
-        userId,
-        sourceApp: 'news',
-        activityType: 'daily_login',
-        sourceType: 'system',
-        sourceId: null,
-        points,
-        description: 'Daily login reward',
-        occurredAt: new Date(),
-      },
-    });
-
-    await db.user.update({
-      where: { id: userId },
-      data: { totalPoints: { increment: points } },
-    });
-
-    await db.dailyLoginReward.create({
-      data: {
-        userId,
-        sourceApp: 'news',
-        rewardDate: today,
-        pointsAwarded: points,
-        pointTransactionId: transaction.id,
-      },
-    });
-
-    return true;
-  } catch (e) {
-    console.error('Error checking daily login:', e);
-    return false;
-  }
+/** Recent point transactions for a user. */
+export async function getUserPointTransactions(userId: string, limit = 100) {
+  return db.pointTransaction.findMany({
+    where: { userId, sourceApp: SOURCE_APP },
+    orderBy: { occurredAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      activityType: true,
+      sourceType: true,
+      sourceId: true,
+      points: true,
+      description: true,
+      occurredAt: true,
+    },
+  });
 }

@@ -4,14 +4,27 @@ import { db } from '@/lib/db';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status') || 'ACTIVE';
+  const limit = Number(searchParams.get('limit') || '12');
+  const page = Math.max(Number(searchParams.get('page') || '1'), 1);
 
-  const quizzes = await db.quiz.findMany({
-    where: { status: status.toUpperCase() as any },
-    orderBy: { createdAt: 'desc' },
-    include: { _count: { select: { questions: true } } },
+  const where = { status: status.toUpperCase() as 'ACTIVE' | 'DRAFT' | 'INACTIVE' };
+
+  const [total, quizzes] = await Promise.all([
+    db.quiz.count({ where }),
+    db.quiz.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { questions: true } } },
+      take: limit,
+      skip: (page - 1) * limit,
+    }),
+  ]);
+
+  return NextResponse.json({
+    total,
+    quizzes: quizzes.map((q) => ({
+      ...q,
+      questionCount: q._count.questions,
+    })),
   });
-
-  return NextResponse.json(
-    quizzes.map((q: typeof quizzes[number]) => ({ ...q, questionCount: q._count.questions }))
-  );
 }

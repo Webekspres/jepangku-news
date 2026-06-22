@@ -1,11 +1,10 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useState, useCallback, useEffect } from "react";
-import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -297,37 +296,29 @@ export default function AdminEditQuizPage() {
   /* ── Loading state ── */
   if (fetching) {
     return (
-      <div className="bg-white min-h-screen">
-        <section className="border-b-2 border-foreground bg-jepang-off-white">
-          <div className="px-4 mx-auto max-w-7xl py-8">
-            <SkeletonBox height="1rem" width="12rem" className="mb-4" />
-            <SkeletonBox height="2.5rem" width="16rem" />
-          </div>
-        </section>
-        <div className="px-4 mx-auto max-w-7xl py-8 space-y-4">
-          {[1, 2, 3].map((i) => <SkeletonBox key={i} height="3rem" width="100%" />)}
+      <AdminPageLayout
+        backHref="/admin/quizzes"
+        backLabel="Kembali ke Daftar Kuis"
+        title="Edit Kuis"
+      >
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <SkeletonBox key={i} height="3rem" width="100%" />
+          ))}
         </div>
-      </div>
+      </AdminPageLayout>
     );
   }
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-edit-quiz-page">
-      {/* Header */}
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link href="/admin/quizzes"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4">
-            <ArrowLeft size={14} /> Kembali ke Daftar Kuis
-          </Link>
-          <h1 className="font-heading font-black text-4xl tracking-tighter">Edit Kuis</h1>
-          <p className="text-jepang-muted mt-2">
-            Perbarui informasi, pertanyaan, dan pilihan jawaban kuis.
-          </p>
-        </div>
-      </section>
-
-      <div className="px-4 mx-auto max-w-7xl py-8 space-y-8">
+    <AdminPageLayout
+      testId="admin-edit-quiz-page"
+      backHref="/admin/quizzes"
+      backLabel="Kembali ke Daftar Kuis"
+      title="Edit Kuis"
+      subtitle="Perbarui informasi, pertanyaan, dan pilihan jawaban kuis."
+    >
+      <div className="space-y-8">
         {/* ── Info Kuis ── */}
         <section className="space-y-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
@@ -526,6 +517,6 @@ export default function AdminEditQuizPage() {
           </Button>
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

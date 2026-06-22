@@ -10,9 +10,15 @@ import {
   Bookmark as BookmarkIcon,
   BarChart3,
   Pencil,
+  PenSquare,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import UserAvatar from "@/components/media/UserAvatar";
+import {
+  canCreateArticles,
+  getContributorCta,
+} from "@/lib/contributor";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -23,7 +29,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      fetch("/api/articles/my").then((r) => r.json()),
+      canCreateArticles(user)
+        ? fetch("/api/articles/my").then((r) => r.json())
+        : Promise.resolve([]),
       fetch("/api/bookmarks").then((r) => r.json()),
       fetch("/api/points/my").then((r) => r.json()),
       fetch("/api/user/profile").then((r) => r.json()),
@@ -39,24 +47,44 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
+  const contributorCta = getContributorCta(user);
+  const articleActions = canCreateArticles(user)
+    ? [
+        {
+          href: "/submit-article",
+          icon: FileText,
+          label: "Kirim Artikel",
+          testid: "action-submit-article",
+        },
+        {
+          href: "/my-articles",
+          icon: FileText,
+          label: "Artikel Saya",
+          testid: "action-my-articles",
+        },
+      ]
+    : [
+        {
+          href: contributorCta.href,
+          icon: PenSquare,
+          label: contributorCta.label,
+          testid: "action-contributor-apply",
+        },
+      ];
+
   return (
     <div className="bg-white min-h-screen" data-testid="profile-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <div className="flex items-start gap-6">
             <div className="shrink-0">
-              {(user as any).avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={(user as any).avatarUrl}
-                  alt={(user as any).name}
-                  className="w-24 h-24 object-cover border-2 border-foreground"
-                />
-              ) : (
-                <div className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-foreground">
-                  {(user as any).name?.charAt(0).toUpperCase()}
-                </div>
-              )}
+              <UserAvatar
+                src={(user as any).avatarUrl}
+                alt={(user as any).name}
+                size={96}
+                fallbackInitial={(user as any).name}
+                testId="profile-avatar"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
@@ -92,7 +120,7 @@ export default function ProfilePage() {
           <div className="bg-jepang-red text-white p-6 border border-jepang-red">
             <Award size={32} strokeWidth={1.5} className="mb-3" />
             <p className="font-mono font-black text-4xl">
-              {(user as any).totalPoints || 0}
+              {user?.totalPoints || 0}
             </p>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] mt-1">
               TOTAL POIN
@@ -131,18 +159,7 @@ export default function ProfilePage() {
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[
-                {
-                  href: "/submit-article",
-                  icon: FileText,
-                  label: "Kirim Artikel",
-                  testid: "action-submit-article",
-                },
-                {
-                  href: "/my-articles",
-                  icon: FileText,
-                  label: "Artikel Saya",
-                  testid: "action-my-articles",
-                },
+                ...articleActions,
                 {
                   href: "/bookmarks",
                   icon: BookmarkIcon,
@@ -150,7 +167,7 @@ export default function ProfilePage() {
                   testid: "action-bookmarks",
                 },
                 {
-                  href: "/points",
+                  href: "/activity",
                   icon: BarChart3,
                   label: "Poin",
                   testid: "action-points",
@@ -187,7 +204,7 @@ export default function ProfilePage() {
               AKTIVITAS TERBARU
             </p>
             <Link
-              href="/points"
+              href="/activity"
               className="text-xs uppercase tracking-wider font-bold text-jepang-red hover:underline"
               data-testid="view-all-points"
             >

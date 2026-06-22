@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { imageLoadingProps } from "@/lib/image-loading";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
-import { ArrowLeft, BarChart3, Award, CheckCircle2 } from "lucide-react";
+import { BarChart3, Award, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
+import PollBreadcrumb from "@/components/polls/PollBreadcrumb";
+import PollDetailSidebar from "@/components/polls/PollDetailSidebar";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -29,6 +33,7 @@ interface PollQuestionData {
   imageUrl: string | null;
   sortOrder: number;
   totalVotes: number;
+  userOptionId?: string | null;
   options: PollOptionData[];
 }
 
@@ -41,26 +46,20 @@ interface PollData {
   pointsReward: number;
   questions: PollQuestionData[];
   totalVotes: number;
+  userHasCompleted?: boolean;
+  userVotedQuestionIds?: string[];
 }
 
-/* ─── Skeleton ───────────────────────────────────────── */
-function QuestionSkeleton() {
-  return (
-    <div className="border border-jepang-border p-5 space-y-4 animate-pulse">
-      <div className="h-5 w-2/3 bg-jepang-border" />
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="border border-jepang-border overflow-hidden">
-          <div className="relative p-4">
-            <div className="absolute inset-0 bg-jepang-border/20" />
-            <div className="relative flex items-center justify-between">
-              <div className="h-4 w-1/2 bg-jepang-border" />
-              <div className="h-4 w-12 bg-jepang-border" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
+function hydrateUserVotes(data: PollData) {
+  const voted = new Set(
+    data.userVotedQuestionIds ??
+      data.questions.filter((q) => q.userOptionId).map((q) => q.id),
   );
+  const selected: Record<string, string> = {};
+  for (const q of data.questions) {
+    if (q.userOptionId) selected[q.id] = q.userOptionId;
+  }
+  return { voted, selected };
 }
 
 /* ─── Page ───────────────────────────────────────────── */
@@ -81,10 +80,13 @@ export default function PollDetailPage() {
   const isLoading = loading && !poll;
 
   const fetchPoll = async () => {
-    const res = await fetch(`/api/polls/${slug}`);
+    const res = await fetch(`/api/polls/${slug}`, { credentials: "include" });
     if (!res.ok) { router.push("/polls"); return; }
     const data: PollData = await res.json();
+    const { voted, selected } = hydrateUserVotes(data);
     setPoll(data);
+    setVotedQuestions(voted);
+    setSelectedVotes(selected);
   };
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function PollDetailPage() {
   const handleSubmitAll = async () => {
     if (!user) {
       toast.error("Silakan masuk untuk memberikan suara");
-      router.push("/login");
+      router.push("/sign-in");
       return;
     }
 
@@ -117,6 +119,7 @@ export default function PollDetailPage() {
       const res = await fetch(`/api/polls/${slug}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ votes: toVote }),
       });
       const data = await res.json();
@@ -124,7 +127,7 @@ export default function PollDetailPage() {
 
       if (data.pointsAwarded > 0) {
         toast.success(`+${data.pointsAwarded} poin untuk voting!`);
-        refreshUser();
+        await refreshUser(gamificationPatchFromResponse(data));
       } else {
         toast.success("Suara berhasil dicatat!");
       }
@@ -154,18 +157,32 @@ export default function PollDetailPage() {
   const anyUnvoted =
     poll?.questions.some((q) => !votedQuestions.has(q.id)) ?? false;
 
+  const pollCompleted =
+    poll?.userHasCompleted ||
+    (poll != null &&
+      poll.questions.length > 0 &&
+      poll.questions.every((q) => votedQuestions.has(q.id)));
+
   return (
     <div className="bg-white min-h-screen" data-testid="poll-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="max-w-3xl mx-auto">
-          {/* Back */}
-          <Link
-            href="/polls"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
-            data-testid="back-to-polls"
-          >
-            <ArrowLeft size={14} /> Kembali ke Polls
-          </Link>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="mx-auto w-full max-w-4xl min-w-0 lg:mx-0">
+          <PollBreadcrumb isLoading={isLoading} title={poll?.title} />
+
+          {/* Thumbnail */}
+          {!isLoading && poll!.thumbnailUrl && (
+            <div className="relative mb-8 aspect-16/10 overflow-hidden rounded-lg border border-jepang-border bg-jepang-off-white">
+              <Image
+                src={poll!.thumbnailUrl}
+                alt={poll!.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+                {...imageLoadingProps(true)}
+              />
+            </div>
+          )}
 
           {/* Header */}
           <div className="mb-8">
@@ -184,6 +201,16 @@ export default function PollDetailPage() {
                     <Award size={10} strokeWidth={1.5} className="mr-1" />
                     +{poll!.pointsReward} POIN
                   </Badge>
+                  {pollCompleted && user && (
+                    <Badge
+                      variant="outline"
+                      className="border-jepang-red text-jepang-red gap-1"
+                      data-testid="poll-completed-badge"
+                    >
+                      <CheckCircle2 size={10} strokeWidth={2} />
+                      SELESAI
+                    </Badge>
+                  )}
                 </>
               )}
             </div>
@@ -205,29 +232,12 @@ export default function PollDetailPage() {
             )}
           </div>
 
-          {/* Thumbnail */}
-          {isLoading ? (
-            <div className="w-full aspect-video bg-jepang-border animate-pulse mb-8" />
-          ) : poll!.thumbnailUrl ? (
-            <div className="relative w-full aspect-video overflow-hidden mb-8">
-              <Image
-                src={poll!.thumbnailUrl}
-                alt={poll!.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 1200px"
-                className="object-cover"
-                priority
-              />
-            </div>
-          ) : null}
-
           {/* Questions */}
           <div className="space-y-6">
             {isLoading ? (
-              <>
-                <QuestionSkeleton />
-                <QuestionSkeleton />
-              </>
+              <p className="py-8 text-center text-sm text-jepang-muted">
+                Memuat pertanyaan...
+              </p>
             ) : (
               poll!.questions.map((q, qIdx) => {
                 const isVoted = votedQuestions.has(q.id);
@@ -237,10 +247,10 @@ export default function PollDetailPage() {
                   <Card
                     key={q.id}
                     className={cn(
-                      "border shadow-[4px_4px_0px_0px_#000]",
+                      "border",
                       isVoted
-                        ? "border-jepang-red shadow-[4px_4px_0px_0px_#d90429]"
-                        : "border-foreground",
+                        ? "border-jepang-red shadow-jepang"
+                        : "border-jepang-border",
                     )}
                     data-testid={`poll-question-${qIdx}`}
                   >
@@ -265,25 +275,26 @@ export default function PollDetailPage() {
                           )}
                         </div>
 
-                        {/* Question image */}
                         {q.imageUrl && (
-                          <div className="relative w-full aspect-video overflow-hidden">
+                          <div className="relative ml-8 aspect-video overflow-hidden rounded-md border border-jepang-border bg-jepang-off-white">
                             <Image
                               src={q.imageUrl}
                               alt={q.questionText}
                               fill
-                              sizes="(max-width: 768px) 100vw, 800px"
+                              sizes="(max-width: 768px) 100vw, 640px"
                               className="object-cover"
+                              {...imageLoadingProps(false)}
                             />
                           </div>
                         )}
                       </div>
 
-                      {/* Options */}
+                        {/* Options */}
                       <div className="space-y-2">
                         {q.options.map((opt, oIdx) => {
                           const pct = opt.percentage || 0;
                           const isSelected = selected === opt.id;
+                          const isUserChoice = isVoted && isSelected;
                           const showResult = isVoted;
 
                           return (
@@ -291,32 +302,32 @@ export default function PollDetailPage() {
                               key={opt.id}
                               type="button"
                               onClick={() => selectOption(q.id, opt.id)}
-                              disabled={isVoted || submitting}
+                              disabled={isVoted || submitting || pollCompleted}
                               className={cn(
                                 "w-full text-left border transition-colors overflow-hidden",
                                 "disabled:cursor-default",
-                                isVoted
-                                  ? "border-jepang-border opacity-90"
-                                  : isSelected
-                                  ? "border-foreground"
-                                  : "border-jepang-border hover:border-foreground",
+                                isUserChoice
+                                  ? "border-jepang-red bg-jepang-red/10 ring-2 ring-jepang-red"
+                                  : isSelected && !isVoted
+                                    ? "border-jepang-red bg-jepang-red/5 ring-2 ring-jepang-red"
+                                    : isVoted
+                                      ? "border-jepang-border opacity-90"
+                                      : "border-jepang-border hover:border-foreground",
                               )}
                               data-testid={`poll-option-${qIdx}-${oIdx}`}
                             >
-                              {/* Option image */}
                               {opt.imageUrl && (
-                                <div className="relative w-full h-36 overflow-hidden bg-jepang-off-white">
+                                <div className="relative aspect-16/10 w-full border-b border-jepang-border bg-jepang-off-white">
                                   <Image
                                     src={opt.imageUrl}
                                     alt={opt.optionText}
                                     fill
-                                    sizes="(max-width: 768px) 100vw, 400px"
+                                    sizes="(max-width: 768px) 100vw, 640px"
                                     className="object-cover"
+                                    {...imageLoadingProps(false)}
                                   />
                                 </div>
                               )}
-
-                              {/* Text + stats */}
                               <div className="relative p-4">
                                 {showResult && (
                                   <Progress
@@ -329,8 +340,8 @@ export default function PollDetailPage() {
                                     <span
                                       className={cn(
                                         "font-mono font-bold text-sm shrink-0",
-                                        isSelected && !isVoted
-                                          ? "text-foreground"
+                                        (isSelected && !isVoted) || isUserChoice
+                                          ? "text-jepang-red"
                                           : "text-jepang-muted",
                                       )}
                                     >
@@ -339,10 +350,19 @@ export default function PollDetailPage() {
                                     <span
                                       className={cn(
                                         "font-semibold text-sm",
-                                        isSelected && !isVoted && "font-bold",
+                                        isUserChoice
+                                          ? "font-bold text-jepang-red"
+                                          : isSelected && !isVoted
+                                            ? "font-bold text-jepang-red"
+                                            : "",
                                       )}
                                     >
                                       {opt.optionText}
+                                      {isUserChoice && (
+                                        <span className="ml-2 text-[10px] font-mono uppercase tracking-wider text-jepang-red">
+                                          Pilihanmu
+                                        </span>
+                                      )}
                                     </span>
                                   </div>
                                   {showResult && (
@@ -377,11 +397,11 @@ export default function PollDetailPage() {
           </div>
 
           {/* Submit button */}
-          {!isLoading && anyUnvoted && (
+          {!isLoading && anyUnvoted && !pollCompleted && (
             <div className="mt-8">
               {!user ? (
                 <div className="border border-jepang-border p-4 text-center">
-                  <Link href="/login" className="text-jepang-red font-bold text-sm">
+                  <Link href="/sign-in" className="text-jepang-red font-bold text-sm">
                     MASUK UNTUK MEMBERIKAN SUARA DAN DAPATKAN +{poll!.pointsReward} POIN
                   </Link>
                 </div>
@@ -389,13 +409,13 @@ export default function PollDetailPage() {
                 <button
                   type="button"
                   onClick={handleSubmitAll}
-                  disabled={submitting || !allAnswered}
+                  disabled={submitting || !allAnswered || pollCompleted}
                   className={cn(
                     "w-full py-4 font-heading font-black text-lg tracking-tight transition-colors",
-                    "border-2 border-foreground",
-                    allAnswered && !submitting
-                      ? "bg-foreground text-white hover:bg-jepang-red hover:border-jepang-red"
-                      : "bg-white text-jepang-muted border-jepang-border cursor-not-allowed",
+                    "rounded-lg border",
+                    allAnswered && !submitting && !pollCompleted
+                      ? "border-jepang-orange bg-jepang-orange text-white hover:bg-jepang-orange-hover hover:border-jepang-orange-hover"
+                      : "border-jepang-border bg-white text-jepang-muted cursor-not-allowed",
                   )}
                   data-testid="submit-votes-btn"
                 >
@@ -414,7 +434,7 @@ export default function PollDetailPage() {
           )}
 
           {/* All voted state */}
-          {!isLoading && !anyUnvoted && poll!.questions.length > 0 && (
+          {!isLoading && pollCompleted && poll!.questions.length > 0 && (
             <div className="mt-8 border border-jepang-red p-4 flex items-center gap-3">
               <CheckCircle2 size={20} className="text-jepang-red shrink-0" />
               <div>
@@ -432,6 +452,13 @@ export default function PollDetailPage() {
               <CommentSection targetType="POLL" targetId={poll.id} />
             </>
           )}
+          </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <PollDetailSidebar excludePollSlug={slug} />
+            </div>
+          </aside>
         </div>
       </div>
     </div>

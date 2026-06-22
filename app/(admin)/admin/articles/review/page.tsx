@@ -1,15 +1,18 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowLeft, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, ChevronLeft, ChevronRight, CheckSquare, Users } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminReviewArticles() {
@@ -20,7 +23,18 @@ export default function AdminReviewArticles() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [stats, setStats] = useState<{ totalReview: number; contributorsWaiting: number } | null>(
+    null,
+  );
+  const [statsLoading, setStatsLoading] = useState(true);
   const PER_PAGE = 10;
+
+  useEffect(() => {
+    fetch("/api/admin/articles/review/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadArticles(1);
@@ -61,6 +75,9 @@ export default function AdminReviewArticles() {
       toast.success("Artikel berhasil disetujui dan dipublikasikan");
       setSelected(null);
       await loadArticles(page);
+      fetch("/api/admin/articles/review/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch {
       toast.error("Gagal menyetujui artikel");
     }
@@ -83,73 +100,84 @@ export default function AdminReviewArticles() {
       setSelected(null);
       setRejectNote("");
       await loadArticles(page);
+      fetch("/api/admin/articles/review/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch {
       toast.error("Gagal menolak artikel");
     }
   };
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-review-page">
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-            data-testid="back-to-admin"
+    <AdminPageLayout
+      testId="admin-review-page"
+      label="ANTRIAN REVIEW"
+      title="Artikel Menunggu Review"
+    >
+      <AdminStatCards
+        loading={statsLoading}
+        skeletonCount={2}
+        gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        items={[
+          {
+            label: "Total Review",
+            value: stats?.totalReview ?? totalItems,
+            icon: CheckSquare,
+            highlight: true,
+            testId: "stat-total-review",
+          },
+          {
+            label: "Kontributor Menunggu",
+            value: stats?.contributorsWaiting ?? 0,
+            icon: Users,
+            testId: "stat-kontributor-menunggu",
+          },
+        ]}
+      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-2">
+          <AdminCard
+            title={`ANTRIAN (${loading ? "..." : totalItems})`}
+            variant="list"
+            noPadding
           >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
-
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red mb-2">
-            ANTRIAN REVIEW
-          </p>
-
-          <h1 className="font-heading font-black text-4xl tracking-tighter">
-            Artikel Menunggu Review
-          </h1>
-        </div>
-      </section>
-
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] mb-3">
-              ANTRIAN ({loading ? "..." : totalItems})
-            </h3>
-
             {loading ? (
-              [1, 2, 3].map((i) => (
-                <div key={i} className="w-full p-4 border">
-                  <SkeletonBox height="1rem" width="80%" />
-                  <div className="mt-2">
-                    <SkeletonBox height="0.8rem" width="40%" />
+              <div className="divide-y divide-jepang-border">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                  <div key={i} className="w-full p-4">
+                    <SkeletonBox height="1rem" width="80%" />
+                    <div className="mt-2">
+                      <SkeletonBox height="0.8rem" width="40%" />
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : articles.length > 0 ? (
               <>
-                {articles.map((article: any) => (
-                  <button
-                    key={article.id}
-                    onClick={() => setSelected(article)}
-                    className={`w-full text-left p-4 border transition-colors ${
-                      selected?.id === article.id
-                        ? "border-jepang-red bg-jepang-off-white"
-                        : "border-jepang-border hover:border-foreground"
-                    }`}
-                    data-testid={`queue-article-${article.id}`}
-                  >
-                    <p className="font-semibold text-sm line-clamp-2">
-                      {article.title}
-                    </p>
+                <div className="divide-y divide-jepang-border">
+                  {articles.map((article: any) => (
+                    <button
+                      key={article.id}
+                      onClick={() => setSelected(article)}
+                      className={`w-full text-left p-4 transition-colors ${
+                        selected?.id === article.id
+                          ? "border-l-2 border-jepang-red bg-jepang-off-white"
+                          : "hover:bg-jepang-off-white"
+                      }`}
+                      data-testid={`queue-article-${article.id}`}
+                    >
+                      <p className="font-semibold text-sm line-clamp-2">
+                        {article.title}
+                      </p>
 
-                    <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider mt-1">
-                      OLEH {article.author?.name}
-                    </p>
-                  </button>
-                ))}
+                      <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider mt-1">
+                        OLEH {article.author?.name}
+                      </p>
+                    </button>
+                  ))}
+                </div>
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center justify-between border-t border-jepang-border p-3">
                     <p className="text-[11px] text-jepang-muted font-mono uppercase tracking-wider">
                       Halaman {page}/{totalPages}
                     </p>
@@ -177,34 +205,29 @@ export default function AdminReviewArticles() {
                 )}
               </>
             ) : (
-              <div className="text-jepang-muted">
-                Tidak ada artikel yang menunggu review
-              </div>
+              <AdminEmptyState
+                title="Tidak ada artikel yang menunggu review"
+              />
             )}
-          </div>
+          </AdminCard>
+        </div>
 
-          <div className="lg:col-span-2">
-            {loading ? (
-              <Card className="border border-foreground">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <SkeletonBox height="1rem" width="8rem" />
-                    <SkeletonBox height="0.9rem" width="40%" />
-                  </div>
+        <div className="lg:col-span-2">
+          {loading ? (
+            <AdminCard variant="panel">
+              <div className="flex items-center gap-2 mb-3">
+                <SkeletonBox height="1rem" width="8rem" />
+                <SkeletonBox height="0.9rem" width="40%" />
+              </div>
 
-                  <SkeletonBox height="2rem" width="60%" className="mb-3" />
-                  <SkeletonBox height="1rem" width="80%" className="mb-4" />
-                  <SkeletonBox height="12rem" width="100%" className="mb-4" />
-                  <SkeletonBox height="6rem" width="100%" />
-                </CardContent>
-              </Card>
-            ) : selected ? (
-              <Card
-                className="border border-foreground"
-                data-testid="review-detail"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
+              <SkeletonBox height="2rem" width="60%" className="mb-3" />
+              <SkeletonBox height="1rem" width="80%" className="mb-4" />
+              <SkeletonBox height="12rem" width="100%" className="mb-4" />
+              <SkeletonBox height="6rem" width="100%" />
+            </AdminCard>
+          ) : selected ? (
+            <AdminCard variant="panel" testId="review-detail">
+              <div className="flex items-center gap-2 mb-3">
                     <Badge variant="red">MENUNGGU REVIEW</Badge>
 
                     {selected.author && (
@@ -233,7 +256,10 @@ export default function AdminReviewArticles() {
                   )}
 
                   <div
-                    className="article-content text-sm max-h-96 overflow-y-auto p-4 bg-jepang-off-white border border-jepang-border mb-6"
+                    className={cn(
+                      THIN_SCROLLBAR_CLASS,
+                      "article-content text-sm max-h-96 overflow-y-auto p-4 bg-jepang-off-white border border-jepang-border mb-6",
+                    )}
                     dangerouslySetInnerHTML={{ __html: selected.content }}
                   />
 
@@ -266,18 +292,14 @@ export default function AdminReviewArticles() {
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="bg-jepang-off-white border border-jepang-border p-12 text-center">
-                <p className="text-jepang-muted">
-                  Pilih artikel untuk direview
-                </p>
-              </div>
-            )}
-          </div>
+            </AdminCard>
+          ) : (
+            <AdminCard variant="panel">
+              <AdminEmptyState title="Pilih artikel untuk direview" />
+            </AdminCard>
+          )}
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

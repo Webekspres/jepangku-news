@@ -7,8 +7,6 @@ const PUBLIC_ARTICLE_WHERE = {
 
 export type PublicAuthorStats = {
   publishedArticles: number;
-  totalViews: number;
-  totalBookmarks: number;
 };
 
 export type PublicAuthorProfile = {
@@ -17,6 +15,7 @@ export type PublicAuthorProfile = {
   avatarUrl: string | null;
   bio: string | null;
   memberSince: string;
+  isContributor: boolean;
   stats: PublicAuthorStats;
 };
 
@@ -33,23 +32,22 @@ export async function findPublicAuthorByUsername(username: string) {
       name: true,
       avatarUrl: true,
       createdAt: true,
+      role: true,
       profile: { select: { displayName: true, bio: true } },
     },
   });
 }
 
 export async function getPublicAuthorStats(userId: string): Promise<PublicAuthorStats> {
-  const agg = await db.article.aggregate({
+  const publishedArticles = await db.article.count({
     where: { authorId: userId, ...PUBLIC_ARTICLE_WHERE },
-    _count: { id: true },
-    _sum: { viewCount: true, bookmarkCount: true },
   });
 
-  return {
-    publishedArticles: agg._count.id,
-    totalViews: agg._sum.viewCount ?? 0,
-    totalBookmarks: agg._sum.bookmarkCount ?? 0,
-  };
+  return { publishedArticles };
+}
+
+export function isPublicContributor(role: string): boolean {
+  return role === 'ADMIN' || role === 'CONTRIBUTOR';
 }
 
 export function serializePublicAuthor(
@@ -62,6 +60,7 @@ export function serializePublicAuthor(
     avatarUrl: user.avatarUrl,
     bio: user.profile?.bio ?? null,
     memberSince: user.createdAt.toISOString(),
+    isContributor: isPublicContributor(user.role),
     stats,
   };
 }
@@ -102,4 +101,33 @@ export async function getPublicAuthorArticles(
     limit,
     hasMore: skip + articles.length < total,
   };
+}
+
+export async function getProfileRecommendedArticles(
+  excludeAuthorId: string,
+  limit = 3,
+) {
+  const articles = await db.article.findMany({
+    where: {
+      ...PUBLIC_ARTICLE_WHERE,
+      authorId: { not: excludeAuthorId },
+    },
+    orderBy: [{ weeklyViewCount: 'desc' }, { publishedAt: 'desc' }],
+    take: limit,
+    include: {
+      author: { select: { name: true, username: true } },
+      category: { select: { name: true, slug: true } },
+    },
+  });
+
+  return articles.map((article) => ({
+    id: article.id,
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt,
+    coverImageUrl: article.coverImageUrl,
+    viewCount: article.viewCount,
+    author: article.author,
+    category: article.category,
+  }));
 }

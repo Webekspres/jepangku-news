@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   CheckCircle2,
   XCircle,
@@ -11,7 +10,16 @@ import {
   History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThinScrollbar } from "@/components/ui/thin-scrollbar";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 /* ─── Types ──────────────────────────────────────────── */
 export interface ArticleReviewEntry {
@@ -76,41 +84,26 @@ export function ReviewHistoryModal({
   loading = false,
 }: ReviewHistoryModalProps) {
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        {/* Backdrop */}
-        <DialogPrimitive.Overlay
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent
           className={cn(
-            "fixed inset-0 z-50 bg-black/50",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-          )}
-        />
-
-        {/* Panel */}
-        <DialogPrimitive.Content
-          className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
-            "bg-white border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+            "w-full max-w-lg rounded-lg border border-jepang-border bg-white shadow-jepang-lg",
             "flex flex-col max-h-[85vh]",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-            "data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4",
-            "duration-200",
           )}
         >
           {/* Header */}
-          <div className="flex items-start justify-between gap-4 p-5 border-b-2 border-foreground shrink-0">
+          <div className="flex items-start justify-between gap-4 p-5 border-b border-jepang-border shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               <History size={18} strokeWidth={1.5} className="shrink-0" />
               <div className="min-w-0">
-                <DialogPrimitive.Title className="font-heading font-black text-lg tracking-tight leading-tight">
+                <DialogTitle className="font-heading font-black text-lg tracking-tight leading-tight">
                   Riwayat Review
-                </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="text-xs text-jepang-muted font-mono mt-0.5 truncate">
+                </DialogTitle>
+                <DialogDescription className="text-xs text-jepang-muted font-mono mt-0.5 truncate">
                   {articleTitle}
-                </DialogPrimitive.Description>
+                </DialogDescription>
               </div>
             </div>
             <button
@@ -124,7 +117,7 @@ export function ReviewHistoryModal({
           </div>
 
           {/* Content */}
-          <div className="overflow-y-auto flex-1 p-5">
+          <ThinScrollbar className="flex-1 overflow-y-auto p-5">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -202,10 +195,10 @@ export function ReviewHistoryModal({
                 ))}
               </ol>
             )}
-          </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+          </ThinScrollbar>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
 

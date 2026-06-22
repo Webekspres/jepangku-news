@@ -1,17 +1,17 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Save, ExternalLink } from "lucide-react";
+import { Save, ExternalLink } from "lucide-react";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import RichTextEditor from "@/components/RichTextEditor";
-import SectionHeader from "@/components/SectionHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { INFO_PAGE_LABELS, isInfoPageSlug } from "@/lib/info-pages";
 
@@ -101,43 +101,34 @@ export default function AdminEditInfoPage() {
 
   if (!isInfoPageSlug(slug)) {
     return (
-      <div className="px-4 mx-auto max-w-7xl py-12">
+      <AdminPageLayout title="Halaman tidak ditemukan">
         <p>Halaman tidak ditemukan.</p>
-      </div>
+      </AdminPageLayout>
     );
   }
 
   const pageLabel = INFO_PAGE_LABELS[slug];
 
   return (
-    <div data-testid={`admin-edit-info-page-${slug}`}>
-      <SectionHeader
-        label="管理 / ADMIN"
-        title={`Edit: ${pageLabel}`}
-        subtitle={`Slug: /${slug}`}
-        className="border-b-2 border-foreground bg-foreground text-white"
-      />
-
-      <div className="px-4 mx-auto max-w-4xl py-12">
-        <div className="flex flex-wrap gap-3 mb-8">
-          <Button variant="outline" asChild>
-            <Link href="/admin/info-pages">
-              <ArrowLeft size={14} strokeWidth={1.5} className="mr-1" />
-              Kembali
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href={`/${slug}`} target="_blank">
-              <ExternalLink size={14} strokeWidth={1.5} className="mr-1" />
-              Pratinjau
-            </Link>
-          </Button>
-        </div>
-
-        {fetching ? (
-          <p className="text-jepang-muted">Memuat...</p>
-        ) : (
-          <div className="space-y-6 border border-jepang-border bg-white p-6">
+    <AdminPageLayout
+      testId={`admin-edit-info-page-${slug}`}
+      title={`Edit: ${pageLabel}`}
+      subtitle={`Slug: /${slug}`}
+      backHref="/admin/info-pages"
+      headerActions={
+        <Button variant="outline" size="sm" asChild>
+          <Link href={`/${slug}`} target="_blank">
+            <ExternalLink size={14} strokeWidth={1.5} className="mr-1" />
+            Pratinjau
+          </Link>
+        </Button>
+      }
+    >
+      {fetching ? (
+        <p className="text-jepang-muted">Memuat...</p>
+      ) : (
+        <AdminCard variant="panel">
+          <div className="space-y-6">
             <div className="space-y-2">
               <Label>
                 Judul <span className="text-jepang-red">*</span>
@@ -216,8 +207,8 @@ export default function AdminEditInfoPage() {
               </Button>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </AdminCard>
+      )}
+    </AdminPageLayout>
   );
 }

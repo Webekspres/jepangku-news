@@ -10,6 +10,8 @@ import {
   adminArticleInclude,
 } from '@/lib/admin-articles-query';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
+import { recordStatusReview } from '@/lib/article-audit';
+import { auditArticleCreate } from '@/lib/audit-routes';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
@@ -116,17 +118,20 @@ export async function POST(request: NextRequest) {
     });
 
     if (articleStatus === 'PUBLISHED') {
-      await db.articleReview.create({
-        data: {
-          articleId: article.id,
-          reviewerId: admin.id,
-          previousStatus: 'DRAFT',
-          newStatus: 'PUBLISHED',
-          note: 'Published by admin',
-          reviewedAt: now,
-        },
+      await recordStatusReview({
+        articleId: article.id,
+        reviewerId: admin.id,
+        previousStatus: 'DRAFT',
+        newStatus: 'PUBLISHED',
+        note: 'Published by admin',
       });
     }
+
+    auditArticleCreate(
+      admin,
+      { id: article.id, title: article.title, status: article.status },
+      'admin',
+    );
 
     return NextResponse.json(full, { status: 201 });
   } catch (e: any) {

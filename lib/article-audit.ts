@@ -1,5 +1,11 @@
 import { ArticleStatus, Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
+import {
+  adminArticleHref,
+  recordAuditLogSafe,
+} from '@/lib/audit-log';
+import { formatArticleStatusChange } from '@/lib/audit-log-labels';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 type ArticleSnapshot = {
   title: string;
@@ -11,6 +17,25 @@ type ArticleSnapshot = {
 };
 
 const CONTENT_FIELDS = ['title', 'excerpt', 'content', 'coverImageUrl', 'categoryId'] as const;
+
+function articleStatusAction(
+  previousStatus: ArticleStatus,
+  newStatus: ArticleStatus,
+): string {
+  if (newStatus === 'PUBLISHED' && previousStatus === 'PENDING_REVIEW') {
+    return 'approve';
+  }
+  if (newStatus === 'REJECTED') return 'reject';
+  if (newStatus === 'ARCHIVED') return 'archive';
+  return 'status_change';
+}
+
+async function getArticleAuditContext(articleId: string) {
+  return db.article.findUnique({
+    where: { id: articleId },
+    select: { id: true, title: true, slug: true },
+  });
+}
 
 export function hasContentChanges(
   before: ArticleSnapshot,
@@ -31,7 +56,7 @@ export async function recordStatusReview(params: {
 }) {
   if (params.previousStatus === params.newStatus) return;
 
-  await db.articleReview.create({
+  const review = await db.articleReview.create({
     data: {
       articleId: params.articleId,
       reviewerId: params.reviewerId,
@@ -40,6 +65,40 @@ export async function recordStatusReview(params: {
       note: params.note?.trim() || null,
       reviewedAt: new Date(),
     },
+  });
+
+  const article = await getArticleAuditContext(params.articleId);
+  const reviewer = await db.user.findUnique({
+    where: { id: params.reviewerId },
+    select: { role: true },
+  });
+
+  recordAuditLogSafe({
+    id: review.id,
+    category: 'article',
+    action: articleStatusAction(params.previousStatus, params.newStatus),
+    actorId: params.reviewerId,
+    actorRole: reviewer?.role ?? null,
+    targetType: 'article',
+    targetId: params.articleId,
+    targetLabel: article?.title ?? null,
+    targetHref: adminArticleHref(params.articleId),
+    summary: formatArticleStatusChange(params.previousStatus, params.newStatus),
+    note: params.note?.trim() || null,
+    metadata: {
+      previousStatus: params.previousStatus,
+      newStatus: params.newStatus,
+    },
+    occurredAt: review.reviewedAt,
+  });
+
+  dispatchNotificationEventSafe({
+    type: 'article.status_changed',
+    articleId: params.articleId,
+    reviewerId: params.reviewerId,
+    previousStatus: params.previousStatus,
+    newStatus: params.newStatus,
+    note: params.note,
   });
 }
 
@@ -88,6 +147,28 @@ export async function recordContentRevision(params: {
   });
 
   await setLastEditor(params.articleId, params.editorId);
+
+  const article = await getArticleAuditContext(params.articleId);
+  const editor = await db.user.findUnique({
+    where: { id: params.editorId },
+    select: { role: true },
+  });
+
+  recordAuditLogSafe({
+    category: 'article',
+    action: 'content_revision',
+    actorId: params.editorId,
+    actorRole: editor?.role ?? null,
+    targetType: 'article',
+    targetId: params.articleId,
+    targetLabel: article?.title ?? params.snapshot.title,
+    targetHref: adminArticleHref(params.articleId),
+    note: note,
+    metadata: {
+      revisionNumber,
+      status: params.snapshot.status,
+    },
+  });
 }
 
 export async function applyArticleUpdateWithAudit(params: {
@@ -176,6 +257,20 @@ export const revisionListSelect = {
   revisionNumber: true,
   changeNote: true,
   title: true,
+  status: true,
+  createdAt: true,
+  editor: { select: { id: true, name: true, role: true } },
+} as const;
+
+export const revisionDetailSelect = {
+  id: true,
+  revisionNumber: true,
+  changeNote: true,
+  title: true,
+  excerpt: true,
+  content: true,
+  coverImageUrl: true,
+  categoryId: true,
   status: true,
   createdAt: true,
   editor: { select: { id: true, name: true, role: true } },

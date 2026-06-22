@@ -1,10 +1,21 @@
 import type { Metadata } from 'next';
+import { ClerkProvider } from '@clerk/nextjs';
 import ClientProviders from '@/components/ClientProviders';
+import {
+  SITE_DEFAULT_DESCRIPTION,
+  SITE_DEFAULT_TITLE,
+  SITE_TITLE_TEMPLATE,
+} from '@/lib/site-config';
+import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jepangku News | Portal Berita Jepang',
-  description: 'Portal media interaktif bertema Jepang untuk pembaca Indonesia. Baca artikel, ikuti quiz, vote, dan raih poin!',
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: SITE_DEFAULT_TITLE,
+    template: SITE_TITLE_TEMPLATE,
+  },
+  description: SITE_DEFAULT_DESCRIPTION,
   icons: {
     icon: [
       { url: '/assets/images/favicons/favicon.ico', sizes: 'any' },
@@ -24,11 +35,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className="h-full">
-      <body className="min-h-full flex flex-col">
-        <ClientProviders>
-          {children}
-        </ClientProviders>
-      </body>
+      <head>
+        <link rel="preconnect" href="https://img.clerk.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://img.clerk.com" />
+      </head>
+      <ClerkProvider telemetry={false}>
+        <body className="thin-scrollbar min-h-full flex flex-col overflow-x-clip">
+          <ClientProviders>{children}</ClientProviders>
+        </body>
+      </ClerkProvider>
     </html>
   );
 }

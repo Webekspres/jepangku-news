@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SectionHeader from "@/components/SectionHeader";
 import PopularTags from "@/components/PopularTags";
+import CategorySubscribeButton from "@/components/CategorySubscribeButton";
 
 function ArticleListContent() {
   const searchParams = useSearchParams();
@@ -115,6 +116,8 @@ function ArticleListContent() {
     updateParams({ search: searchInput });
   };
 
+  const activeCategory = categories.find((cat: { slug: string }) => cat.slug === category);
+
   return (
     <div className="bg-white min-h-screen" data-testid="article-list-page">
       <SectionHeader
@@ -174,6 +177,22 @@ function ArticleListContent() {
                   </Button>
                 ))}
           </div>
+
+          {category && activeCategory ? (
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 border border-jepang-border bg-jepang-off-white p-3"
+              data-testid="category-subscribe-banner"
+            >
+              <p className="text-sm text-jepang-muted">
+                Notifikasi artikel baru di kategori{" "}
+                <strong className="text-foreground">{activeCategory.name}</strong>
+              </p>
+              <CategorySubscribeButton
+                categorySlug={category}
+                categoryName={activeCategory.name}
+              />
+            </div>
+          ) : null}
 
           {/* Tag filter toggle */}
           <div className="flex flex-wrap items-center gap-2">

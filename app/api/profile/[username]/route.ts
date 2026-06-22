@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { captureException } from '@/lib/monitoring';
 import {
   findPublicAuthorByUsername,
+  getProfileRecommendedArticles,
   getPublicAuthorArticles,
   getPublicAuthorStats,
+  isPublicContributor,
   serializePublicAuthor,
 } from '@/lib/public-profile';
 
@@ -27,14 +29,26 @@ export async function GET(
       return NextResponse.json({ error: 'Profil tidak ditemukan' }, { status: 404 });
     }
 
-    const [stats, articlePage] = await Promise.all([
+    const contributor = isPublicContributor(user.role);
+
+    const [stats, articlePage, relatedArticles] = await Promise.all([
       getPublicAuthorStats(user.id),
-      getPublicAuthorArticles(user.id, page, limit),
+      contributor
+        ? getPublicAuthorArticles(user.id, page, limit)
+        : Promise.resolve({
+            articles: [],
+            total: 0,
+            page,
+            limit,
+            hasMore: false,
+          }),
+      getProfileRecommendedArticles(user.id),
     ]);
 
     return NextResponse.json({
       profile: serializePublicAuthor(user, stats),
       articles: articlePage.articles,
+      relatedArticles,
       total: articlePage.total,
       page: articlePage.page,
       limit: articlePage.limit,

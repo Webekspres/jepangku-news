@@ -15,10 +15,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import AvatarCropModal from "@/components/profile/AvatarCropModal";
+import { preloadMediaImage } from "@/lib/media/client-cache";
+import { uploadMediaFile } from "@/lib/upload-media";
+import UserAvatar from "@/components/media/UserAvatar";
+import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
 
 interface ProfileForm {
   name: string;
@@ -49,12 +54,14 @@ export default function EditProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [usernameCooldownDays, setUsernameCooldownDays] = useState(0);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect jika belum login
   useEffect(() => {
     if (user === false) {
-      router.replace("/login");
+      router.replace("/sign-in");
     }
   }, [user, router]);
 
@@ -80,28 +87,56 @@ export default function EditProfilePage() {
       });
   }, [user]);
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Format harus JPG, PNG, GIF, atau WebP");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCropImageSrc(objectUrl);
+    setCropOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadCroppedAvatar = async (file: File) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Upload gagal");
+      const data = await uploadMediaFile(file, "avatar");
+      const url = data.url;
+
+      const saveRes = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatarUrl: url }),
+      });
+      if (!saveRes.ok) {
+        const err = await saveRes.json();
+        throw new Error(err.error || "Gagal menyimpan foto profil");
       }
-      const data = await res.json();
-      setForm((prev) => ({ ...prev, avatarUrl: data.url }));
-      toast.success("Foto profil diupload");
-    } catch (err: any) {
-      toast.error(err.message || "Upload gagal");
+
+      setForm((prev) => ({ ...prev, avatarUrl: url }));
+      preloadMediaImage(url);
+      await refreshUser();
+      toast.success("Foto profil diperbarui");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Upload gagal");
+      throw err;
     } finally {
       setUploading(false);
-      // reset input so user can re-upload same file if needed
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropOpenChange = (open: boolean) => {
+    setCropOpen(open);
+    if (!open && cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
     }
   };
 
@@ -151,7 +186,7 @@ export default function EditProfilePage() {
   if (loading || user === null) {
     return (
       <div className="bg-white min-h-screen">
-        <section className="border-b-2 border-foreground bg-jepang-off-white">
+        <section className="border-b border-jepang-border bg-jepang-off-white">
           <div className="px-4 mx-auto max-w-7xl py-12">
             <div className="h-4 w-24 bg-jepang-border animate-pulse mb-3" />
             <div className="h-10 w-64 bg-jepang-border animate-pulse" />
@@ -173,7 +208,7 @@ export default function EditProfilePage() {
   return (
     <div className="bg-white min-h-screen" data-testid="edit-profile-page">
       {/* Header */}
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
+      <section className="border-b border-jepang-border bg-jepang-off-white">
         <div className="px-4 mx-auto max-w-7xl py-12">
           <Link
             href="/profile"
@@ -206,22 +241,13 @@ export default function EditProfilePage() {
               <div className="flex items-center gap-6">
                 {/* Avatar preview */}
                 <div className="relative shrink-0">
-                  {form.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={form.avatarUrl}
-                      alt="Avatar"
-                      className="w-24 h-24 object-cover border-2 border-foreground"
-                      data-testid="avatar-preview"
-                    />
-                  ) : (
-                    <div
-                      className="w-24 h-24 bg-foreground text-white flex items-center justify-center font-heading font-black text-4xl border-2 border-foreground"
-                      data-testid="avatar-initial"
-                    >
-                      {avatarInitial}
-                    </div>
-                  )}
+                  <UserAvatar
+                    src={form.avatarUrl || null}
+                    alt="Avatar"
+                    size={96}
+                    fallbackInitial={avatarInitial}
+                    testId={form.avatarUrl ? "avatar-preview" : "avatar-initial"}
+                  />
                   {uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <Loader2 size={24} className="text-white animate-spin" />
@@ -232,7 +258,8 @@ export default function EditProfilePage() {
                 {/* Upload controls */}
                 <div className="flex-1">
                   <p className="text-sm text-jepang-muted mb-3">
-                    Unggah foto JPG, PNG, atau WebP. Maks. 10MB.
+                    Unggah foto JPG, PNG, atau WebP. Akan di-crop persegi{" "}
+                    {AVATAR_OUTPUT_SIZE}×{AVATAR_OUTPUT_SIZE}px sebelum diupload.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -252,9 +279,30 @@ export default function EditProfilePage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setForm((prev) => ({ ...prev, avatarUrl: "" }))
-                        }
+                        disabled={uploading || saving}
+                        onClick={async () => {
+                          setUploading(true);
+                          try {
+                            const res = await fetch("/api/user/profile", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ avatarUrl: null }),
+                            });
+                            if (!res.ok) {
+                              const err = await res.json();
+                              throw new Error(err.error || "Gagal menghapus foto");
+                            }
+                            setForm((prev) => ({ ...prev, avatarUrl: "" }));
+                            await refreshUser();
+                            toast.success("Foto profil dihapus");
+                          } catch (err: unknown) {
+                            toast.error(
+                              err instanceof Error ? err.message : "Gagal menghapus foto",
+                            );
+                          } finally {
+                            setUploading(false);
+                          }
+                        }}
                         className="text-jepang-red hover:bg-jepang-red hover:text-white border-jepang-red"
                         data-testid="remove-avatar-btn"
                       >
@@ -268,7 +316,7 @@ export default function EditProfilePage() {
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     className="hidden"
-                    onChange={handleAvatarUpload}
+                    onChange={handleFilePick}
                     data-testid="avatar-file-input"
                   />
                 </div>
@@ -445,6 +493,13 @@ export default function EditProfilePage() {
             </Button>
           </div>
         </form>
+
+        <AvatarCropModal
+          open={cropOpen}
+          imageSrc={cropImageSrc}
+          onOpenChange={handleCropOpenChange}
+          onConfirm={uploadCroppedAvatar}
+        />
       </div>
     </div>
   );

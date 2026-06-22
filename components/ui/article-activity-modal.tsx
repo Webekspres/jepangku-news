@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   CheckCircle2,
   XCircle,
@@ -13,7 +12,16 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThinScrollbar } from "@/components/ui/thin-scrollbar";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogContent,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draf",
@@ -116,25 +124,20 @@ export function ArticleActivityModal({
     lastEditedBy?.role === "ADMIN" ? lastEditedBy : null;
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
-        <DialogPrimitive.Content
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPortal open={open}>
+        <DialogOverlay />
+        <DialogContent
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
-            "bg-white border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+            "w-full max-w-lg rounded-lg border border-jepang-border bg-white shadow-jepang-lg",
             "max-h-[85vh] flex flex-col",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-            "duration-200",
           )}
         >
           <div className="flex items-start justify-between gap-4 p-6 border-b border-jepang-border shrink-0">
             <div>
-              <DialogPrimitive.Title className="font-heading font-black text-xl tracking-tight">
+              <DialogTitle className="font-heading font-black text-xl tracking-tight">
                 Riwayat Artikel
-              </DialogPrimitive.Title>
+              </DialogTitle>
               <p className="text-sm text-jepang-muted mt-1 line-clamp-2">{articleTitle}</p>
               {articleStatus && (
                 <Badge
@@ -145,9 +148,9 @@ export function ArticleActivityModal({
                 </Badge>
               )}
             </div>
-            <DialogPrimitive.Close className="p-1 hover:text-jepang-red transition-colors">
+            <DialogClose className="p-1 hover:text-jepang-red transition-colors">
               <X size={20} strokeWidth={1.5} />
-            </DialogPrimitive.Close>
+            </DialogClose>
           </div>
 
           {(adminLastEdit || lastEditedAt) && (
@@ -169,7 +172,7 @@ export function ArticleActivityModal({
             </div>
           )}
 
-          <div className="overflow-y-auto flex-1 p-6">
+          <ThinScrollbar className="flex-1 overflow-y-auto p-6">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -304,10 +307,10 @@ export function ArticleActivityModal({
                 ))}
               </ol>
             )}
-          </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+          </ThinScrollbar>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
   );
 }
 

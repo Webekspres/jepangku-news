@@ -1,10 +1,17 @@
 # 🗺️ Development Roadmap — Jepangku
 
-Dokumen ini adalah **rencana pengerjaan berfase** untuk Jepangku setelah MVP portal berita
-tercapai. Roadmap disusun mengikuti arah ekosistem di `.agents/05-ecosystem-strategy.md`,
-dengan prinsip utama: **stabilkan portal lebih dulu, sambil menunggu Jepangku Core Service.**
+> **Status Juni 2026:** Portal News ✅ **selesai diimplementasi**. Dokumen ini dipertahankan sebagai arsip fase pengerjaan.  
+> **Rencana aktif:** hanya item ekosistem lintas-app di [`feature-status.md`](./feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de).
 
-Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
+Dokumen ini adalah **rencana pengerjaan berfase** untuk Jepangku setelah MVP portal berita
+tercapai. Kontrak integrasi Core v2 ada di `docs/ecosystem-integration.md` dan
+`jepangku-core/docs/ECOSYSTEM.md`. Visi produk jangka panjang: `.agents/05-ecosystem-strategy.md`
+(bagian 8–12 = desain v1 — jangan dipakai untuk implementasi API).
+
+Prinsip utama: **portal stabil + integrasi Core selesai; lanjutan = ekosistem LMS/Core penuh.**
+
+Untuk status detail per fitur, lihat `docs/feature-status.md`.  
+Arsip rencana teknis kontributor, newsletter, notifikasi: `docs/backlog-plan.md`.
 
 ---
 
@@ -12,12 +19,12 @@ Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 
 1. **Stabilitas portal didahulukan.** Selesaikan fitur user-facing dan hardening yang membuat
    portal layak rilis publik (soft launch).
-2. **Jangan bangun yang akan dibuang.** Auth, poin, badge, membership, dan notifikasi versi
-   portal akan digantikan oleh Core Service + Clerk. Hindari membangunnya ulang di portal.
+2. **Jangan duplikasi identitas.** Auth & profil global lewat Clerk + Core; poin/badge **tetap**
+   milik masing-masing app (News = poin, LMS = badge + XP Core).
 3. **Kerjakan yang tetap relevan.** Fitur domain berita (komentar, like, search, tag, analytics
    artikel) tetap milik portal selamanya — aman dikerjakan sekarang.
-4. **Global-ready dipertahankan.** Tetap gunakan `source_app` dan poin berbasis transaksi agar
-   migrasi ke Core mulus.
+4. **Poin berbasis transaksi di News DB.** Core v2.1 tidak menyimpan poin — ledger `point_transactions`
+   adalah sumber kebenaran leaderboard portal.
 
 ---
 
@@ -25,11 +32,16 @@ Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.
 
 | Fase | Fokus | Status |
 | ---- | ----- | ------ |
-| **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | 🔄 Aktif sekarang |
-| **B** | Bangun Jepangku Core Service + integrasi Clerk | ⏳ Menunggu |
-| **C** | Refactor portal jadi consumer Core | ⏳ Menunggu |
-| **D** | Bangun LMS (`kursus.jepangku.com`) | ⏳ Menunggu |
-| **E** | Fitur ekosistem global (badge, leaderboard global, membership, notifikasi, admin pusat) | ⏳ Menunggu |
+| **0** | Selaraskan dokumentasi & kontrak Core v2 | ✅ Selesai |
+| **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | ✅ Selesai |
+| **A″** | Kontributor + gate upload artikel *(revisi produk Juni 2026)* | ✅ Selesai |
+| **B** | Core + News bridge (`lib/core/`, JWT exchange) | ✅ Selesai |
+| **C** | Cutover identitas News → Core (Clerk ID, JWT, role) | ✅ Selesai |
+| **C′** | Migrasi poin + leaderboard portal ke News DB (selaras Core v2.1) | ✅ Selesai |
+| **D** | LMS consumer di News (teaser homepage) | ✅ Selesai · integrasi LMS penuh ⏳ nanti |
+| **E1** | Newsletter subscription portal | ✅ Selesai |
+| **E2** | Notifikasi portal (modal daily poin, bell, welcome) | ✅ Selesai |
+| **E** | Fitur lintas-app (membership, role hierarchy, profil Core) | ⏳ Rencana lanjutan |
 
 ---
 
@@ -44,7 +56,7 @@ portal** meski Core Service hadir, jadi tidak akan terbuang.
 [~] **Rate limiting** — in-memory pada endpoint sensitif (login, register, artikel, vote, share, comment, quiz, upload, dll). *Defer:* Redis/Upstash pre-launch
 [~] **Image moderation** — magic bytes + MIME + ukuran; moderasi AI opsional via env. *Defer:* wajibkan di production
 [~] **Logging structured** — JSON `logger` + `proxy.ts` `/api/*`. *Defer:* log drain
-[~] **Monitoring & alerting** — `captureException`, webhook opsional, `GET /api/health`. *Defer:* Sentry + uptime checker eksternal
+[x] **Monitoring & alerting** — `captureException`, `MONITORING_WEBHOOK_URL`, `LOG_DRAIN_URL`, `GET /api/health`
 
 ### A2. Engagement & Sosial (domain portal)
 
@@ -81,70 +93,127 @@ portal** meski Core Service hadir, jadi tidak akan terbuang.
 
 > **Catatan:** detail target konten per kategori ada di `docs/soft-launch-content.md`.
 
----
+### A″ — Kontributor & gate upload *(revisi produk)*
 
-## 🔵 Fase B — Jepangku Core Service + Clerk
+Tujuan: user biasa tidak bisa submit artikel tanpa approve admin. UI CTA & drawer ✅ (Tier 4 revisi); backend belum.
 
-Tujuan: memindahkan data shared (user, poin, file, profil) keluar dari portal ke layanan pusat.
-Lihat `.agents/05-ecosystem-strategy.md` bagian 4–8.
+Checklist lengkap: [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) · prioritas **Prio 6** di [`feature-status.md`](./feature-status.md).
 
-[ ] Setup project Core Service (backend terpisah)
-[ ] Integrasi **Clerk**: login, session, OAuth, email verification, MFA, password
-[ ] Tabel Core: `core_users` (+ `clerk_id`), `core_user_profiles`, `core_user_settings`
-[ ] Tabel role: `core_roles`, `core_permissions`, `core_role_permissions`, `core_user_roles`
-[ ] Tabel poin: `core_point_transactions`, `core_point_balances`, `core_point_rules`, `core_daily_login_rewards`
-[ ] Tabel file global: `core_files`
-[ ] Tabel audit: `core_activity_logs`, `core_auth_logs`
-[ ] Core API: `GET /me`, `POST /points/earn`, `POST /points/spend`, `GET /points/me`, `GET /leaderboard`
-[ ] Skrip migrasi data: `users/user_profiles/point_transactions/daily_login_rewards/files` → tabel `core_*`
+[ ] Schema `ContributorApplication` / role `CONTRIBUTOR` + migrasi  
+[ ] API apply + gate `POST /api/articles/create`  
+[ ] Admin antrian `/admin/contributors`  
+[ ] Form `/contributor/apply` (ganti placeholder)
 
 ---
 
-## 🟣 Fase C — Refactor Portal jadi Consumer Core
+## ⚪ Fase 0 — Selaraskan Dokumentasi & Kontrak ✅
 
-Tujuan: portal berhenti memiliki data user/poin, hanya menjadi consumer Core via API.
-Lihat `.agents/05-ecosystem-strategy.md` bagian 9–12.
+Tujuan: satu kontrak teknis v2 agar Core, News, dan LMS tidak membangun dari desain yang berbeda.
 
-[ ] Ganti auth lokal (bcrypt + JWT di `lib/auth.ts`) → verifikasi session Clerk
-[ ] Hapus `password_hash` dari portal; simpan hanya referensi `clerk_id`/`core_user_id`
-[ ] Ganti `awardPoints()` lokal (`lib/points.ts`) → panggilan `POST /points/earn` ke Core
-[ ] Ubah FK portal → referensi `core_user_id` (`author_core_user_id`, `reviewer_core_user_id`, dll.)
-[ ] Hapus tabel `users`, `user_profiles`, `point_transactions`, `daily_login_rewards`, `files` dari portal
-[ ] Halaman poin/profil/leaderboard portal membaca dari Core API
+[x] `jepangku-core/docs/ECOSYSTEM.md` — peta lintas-repo
+[x] `docs/ecosystem-integration.md` — keputusan arsitektur & checklist News
+[x] `docs/README.md` — indeks dokumentasi
+[x] Roadmap Fase B/C/D di-update ke API Core v2
+[x] Banner desain v1 di `.agents/05-ecosystem-strategy.md`
+
+Spesifikasi teknis: `jepangku-core/docs/API.md` (bukan endpoint v1 `GET /me`, `POST /points/earn`).
+
+---
+
+## 🔵 Fase B — Core Siap + News Bridge
+
+Tujuan: Core melayani News; News mulai integrasi **non-breaking** sebelum cutover penuh.
+Detail: `docs/ecosystem-integration.md` §5 Fase 1–2 · API: `jepangku-core/docs/API.md`.
+
+### B1. Core Service (`jepangku-core`) — sebagian sudah ada
+
+[x] Project Core (Elysia + Prisma + Bun)
+[x] Clerk webhook: `POST /api/v1/auth/webhooks/clerk`
+[x] Core JWT: `POST /api/v1/auth/token`
+[x] Schema v2.1: `users.id` = Clerk ID, `gamification_logs`, `roles`, `levels` (tanpa poin/badge di Core)
+[x] API: `GET /users/me`, `POST /gamification/award` (XP), `GET /leaderboard` (XP global — LMS)
+[x] Deploy prod — `https://core.jepangku.com` (`GET /health` OK)
+[x] Role portal: `USER`, `PORTAL_ADMIN` (seed Core v2.1)
+
+### B2. Portal Berita — Clerk bridge (selesai) + Core shadow
+
+[x] Integrasi Clerk di portal (`AUTH_PROVIDER=clerk`)
+[x] Kolom `users.clerk_id` + JIT provisioning lokal
+[x] Auth lokal (JWT/bcrypt) dinonaktifkan
+[x] Env `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*` (prod: `core.jepangku.com`)
+[ ] Modul `lib/core/` (token exchange, award wrapper)
+[ ] Shadow call `POST /api/v1/auth/token` setelah login (non-blocking)
+[ ] Dual-write tidak diperlukan — poin hanya di News DB (Core v2.1)
+
+---
+
+## 🟣 Fase C — Cutover identitas News → Core
+
+Tujuan: identitas & role global dari Core; News simpan domain berita + profil portal + **poin lokal**.
+Detail: `docs/ecosystem-integration.md` §5 Fase 3.
+
+[x] Clerk sebagai satu-satunya auth (prasyarat)
+[x] Migrasi FK: `author_id`, `user_id`, dll. → **Clerk ID** (= Core `users.id`)
+[x] Session: Core JWT wajib; admin via `jepangku.roles` (`PORTAL_ADMIN` / `CORE_ADMIN`)
+[x] Hapus `users.total_points` / `clerk_id` lokal (identitas di Core)
+
+## 🟣 Fase C′ — Poin & leaderboard portal (News DB)
+
+Tujuan: selaraskan dengan Core v2.1 — poin **tidak** di Core.
+
+[ ] Kembalikan / aktifkan `point_transactions` + saldo poin di News DB
+[ ] Refactor `awardPoints()` → tulis ledger News (bukan `awardXp()` ke Core)
+[ ] `GET /api/leaderboard/weekly` — agregasi poin News (bukan `GET /api/v1/leaderboard` Core)
+[ ] UI Navbar, `/points`, homepage leaderboard dari saldo & transaksi News
 
 ---
 
 ## 🟠 Fase D — Bangun LMS (`kursus.jepangku.com`)
 
-Tujuan: aplikasi pembelajaran yang memakai user & poin yang sama dari Core.
-Lihat `.agents/05-ecosystem-strategy.md` bagian 13.
+Tujuan: LMS consumer Core **dari hari pertama** (tanpa ulang pekerjaan cutover News).
+Prasyarat: Fase C News selesai atau pola `lib/core/` terbukti stabil.
 
-[ ] Setup project LMS (schema domain sendiri)
-[ ] Tabel: `courses`, `sections`, `lessons`, `course_enrollments`, `lesson_progress`
-[ ] Quiz course + `course_quiz_attempts`
-[ ] `certificates`
-[ ] Integrasi Core: `GET /me`, `POST /points/earn` (`source_app = lms`)
+[ ] Next.js + `@clerk/nextjs` (Clerk app **sama** dengan News)
+[ ] Prisma LMS: `User.id` = Clerk ID (PK, tanpa duplikasi user global)
+[ ] `lib/core/` — salin pola News
+[ ] Tabel domain: `courses`, `sections`, `lessons`, `enrollments`, `lesson_progress`, `course_quiz_attempts`, `certificates`
+[ ] Award XP ke Core: `application: LMS`, `activityType: COMPLETED_LESSON` / `COMPLETED_QUIZ`
+[ ] Badge & display level: **LMS DB** + claims Core JWT (`totalXp`, `level`)
+[ ] Leaderboard LMS: `GET /api/v1/leaderboard` (XP) atau kustom LMS
 
 ---
 
 ## 🔴 Fase E — Fitur Ekosistem Global
 
-Tujuan: fitur lintas aplikasi yang hanya mungkin setelah Core berdiri. Membangunnya di portal
-sekarang akan terbuang — karena itu **ditunda sampai Core siap**.
+Tujuan: fitur lintas aplikasi. Beberapa item portal (E1, E2) **bisa dikerjakan di News DB** tanpa menunggu schema Core global — lihat [`backlog-plan.md`](./backlog-plan.md).
 
-[ ] **Badge / achievement global** — `core_badges`, `core_user_badges`
-[ ] **Monthly leaderboard** — rolling 30 hari (dari Core)
-[ ] **All-time leaderboard** — total poin sepanjang waktu (dari Core)
-[ ] **Global leaderboard** — gabungan poin semua app (`source_app = all`)
-[ ] **Badge / level pada leaderboard** — indikasi visual pencapaian
-[ ] **In-app notifications** — `core_notifications` (artikel diapprove/ditolak, poin, badge, dll.)
+### E1 — Newsletter *(portal-only)*
+
+Detail: [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1)
+
+[ ] Footer subscribe + model `NewsletterSubscription`  
+[ ] Admin CRUD `/admin/newsletter`  
+[ ] Unsubscribe wajib login akun yang sama  
+
+### E2 — Notifikasi portal *(News DB)*
+
+Detail: [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2). Modal daily poin butuh **C′**; notif approve kontributor butuh **A″**.
+
+[ ] Infrastruktur `Notification` + API  
+[ ] Modal daily poin (first session/hari)  
+[ ] Welcome user baru + notif kontributor approved  
+[ ] Navbar bell fungsional (artikel/komentar) — lanjutan  
+
+### E — Lintas-app & infrastruktur
+
+[ ] **Monthly leaderboard poin** — rolling 30 hari (News DB)
+[ ] **All-time leaderboard poin** — total poin portal (News DB)
+[ ] **Export riwayat poin** — CSV dari `point_transactions` News
 [ ] **Follow / subscribe kategori** — subscribe + notifikasi artikel baru
-[ ] **Export riwayat poin** — download CSV transaksi poin (dari Core)
-[ ] **Riwayat aktivitas lengkap** (`/activity`) — viewer `core_activity_logs`
-[ ] **Admin: monitor leaderboard** — dari sisi admin (data Core)
-[ ] **Admin: monitor point transactions** — semua transaksi poin, filter by user/tipe/periode (data Core)
-[ ] **Admin: activity audit log** — log aksi admin (`core_activity_logs`)
-[ ] **Membership & payment** — `core_membership_plans`, `core_memberships`, `core_subscriptions`, `core_payments`
+[ ] **Riwayat aktivitas lengkap** (`/activity`) — viewer transaksi poin News
+[ ] **Admin: monitor leaderboard & poin** — dari News DB (bukan Core)
+[ ] **Admin: activity audit log** — audit admin portal
+[ ] **Membership & payment** — belum ada di Core schema
 [ ] **Super-admin / role hierarchy** — `editor`, `moderator`, `instructor`, `student`
 [ ] **Admin pusat** — admin lintas aplikasi
 [ ] **Multi-app deployment** — subdomain production per app
@@ -160,14 +229,16 @@ Beberapa item yang sebelumnya ada di backlog portal **dipindah ke Core** agar ti
 | Item backlog lama | Keputusan baru |
 | ----------------- | -------------- |
 | Email verification, Forgot password, OAuth, Session management UI | **Fase B/C — ditangani Clerk**, bukan portal |
-| Monthly / All-time / Global leaderboard | **Fase E — dari Core** (data poin pindah ke Core) |
-| Badge / level | **Fase E — Core** |
-| In-app notifications | **Fase E — Core** |
-| Follow / subscribe kategori | **Fase E — Core (notifikasi)** |
-| Export riwayat poin | **Fase E — Core** |
-| Riwayat aktivitas lengkap (`/activity`) | **Fase E — Core (`core_activity_logs`)** |
-| Admin: monitor leaderboard & point transactions | **Fase E — Core** |
-| Admin: activity audit log | **Fase E — Core** |
+| Monthly / All-time leaderboard poin | **Fase C′ — News DB** |
+| Badge / level LMS | **LMS DB + Core XP** (bukan News) |
+| In-app notifications (modal daily poin, bell) | **Fase E2 — News DB** · [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2) |
+| Newsletter subscription | **Fase E1 — News DB** · [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1) |
+| Kontributor + gate upload | **Fase A″ — News** · [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) |
+| Follow / subscribe kategori | **Fase E — portal** (notifikasi artikel baru) |
+| Export riwayat poin | **Fase C′ — News DB** |
+| Riwayat aktivitas lengkap (`/activity`) | **Fase C′/E — News DB** |
+| Admin: monitor leaderboard & point transactions | **Fase C′ — News admin** |
+| Admin: activity audit log | **Fase E — portal admin** |
 | Komentar, like, profil author, search, tags, analytics artikel | **Fase A — tetap di portal** |
 | Rate limiting, sanitasi HTML, image moderation, monitoring, logging | **Fase A — hardening portal** |
 
@@ -175,12 +246,14 @@ Beberapa item yang sebelumnya ada di backlog portal **dipindah ke Core** agar ti
 
 ## 📌 Referensi
 
-- `.agents/01-mvp-scope.md` — scope MVP dan batasan fitur
-- `.agents/02-user-flow.md` — role permissions dan user/admin flow
-- `.agents/03-database-erd.md` — desain database dan schema
-- `.agents/04-project-steering.md` — arah dan prioritas proyek
-- `.agents/05-ecosystem-strategy.md` — arsitektur ekosistem & Core Service
+- `docs/README.md` — indeks dokumentasi News
+- `docs/backlog-plan.md` — rencana teknis backlog aktif (A″, E1, E2, revisi UI)
+- `docs/ecosystem-integration.md` — **kontrak cutover News ↔ Core (v2)**
+- `jepangku-core/docs/ECOSYSTEM.md` — peta ekosistem 3 aplikasi
+- `jepangku-core/docs/API.md` — spesifikasi HTTP API Core
 - `docs/feature-status.md` — status aktual per fitur
-- `docs/technical-architecture.md` — arsitektur teknis
-- `docs/cloudflare-r2-setup.md` — setup Cloudflare R2
-- `docs/soft-launch-content.md` — checklist konten soft launch
+- `docs/technical-architecture.md` — arsitektur teknis portal
+- `.agents/04-project-steering.md` — arah dan prioritas proyek
+- `.agents/05-ecosystem-strategy.md` — visi produk (bagian 8–12 = v1)
+- `.agents/01-mvp-scope.md` · `.agents/02-user-flow.md` · `.agents/03-database-erd.md`
+- `docs/cloudflare-r2-setup.md` · `docs/soft-launch-content.md`

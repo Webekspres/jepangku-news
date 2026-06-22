@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
@@ -11,9 +12,12 @@ import {
   isValidTargetType,
   normalizeCommentContent,
   resolveCommentTarget,
+  resolveCommentTargetAuthorId,
   type CommentRecord,
 } from '@/lib/comments';
 import { summarizeCommentReactions } from '@/lib/reactions';
+import { auditCommentCreate } from '@/lib/audit-routes';
+import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 const USER_SELECT = {
   select: { id: true, name: true, username: true, avatarUrl: true, role: true },
@@ -36,15 +40,18 @@ export async function GET(request: NextRequest) {
   });
 
   const viewer = await getCurrentUser(request).catch(() => null);
-  const reactions = await summarizeCommentReactions(
-    comments.map((c) => c.id),
-    viewer?.id ?? null,
-  );
+  const [reactions, contentAuthorId] = await Promise.all([
+    summarizeCommentReactions(
+      comments.map((c) => c.id),
+      viewer?.id ?? null,
+    ),
+    resolveCommentTargetAuthorId(targetType, targetId),
+  ]);
 
   const thread = buildPublicThread(comments as unknown as CommentRecord[], reactions);
   const total = comments.filter((c) => c.status === 'VISIBLE' && c.deletedAt === null).length;
 
-  return NextResponse.json({ comments: thread, total });
+  return NextResponse.json({ comments: thread, total, contentAuthorId });
 }
 
 // POST /api/comments  { targetType, targetId, content, parentId? }
@@ -58,7 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Akun Anda tidak dapat berkomentar' }, { status: 403 });
   }
 
-  const limited = enforceRateLimit(request, 'comment-create', {
+  const limited = await enforceRateLimit(request, 'comment-create', {
     max: 10,
     windowMs: 60_000,
     identifier: user.id,
@@ -118,7 +125,7 @@ export async function POST(request: NextRequest) {
   });
 
   // Poin engagement: sekali per target per user.
-  const pointsAwarded = await awardPoints(
+  const award = await awardPoints(
     user.id,
     'comment_created',
     targetType.toLowerCase(),
@@ -133,6 +140,22 @@ export async function POST(request: NextRequest) {
     targetType,
     targetId,
     isReply: resolvedParentId !== null,
+  });
+
+  auditCommentCreate(
+    user,
+    comment.id,
+    { type: targetType, id: targetId, title: target.title },
+    resolvedParentId !== null,
+  );
+
+  dispatchNotificationEventSafe({
+    type: 'comment.created',
+    commentId: comment.id,
+    targetType,
+    targetId,
+    authorId: user.id,
+    parentId: resolvedParentId,
   });
 
   return NextResponse.json(
@@ -157,8 +180,9 @@ export async function POST(request: NextRequest) {
         userReaction: null,
         replies: [],
       },
-      pointsAwarded,
-      points: pointsAwarded ? COMMENT_POINTS : 0,
+      pointsAwarded: award.awarded,
+      points: award.awarded ? COMMENT_POINTS : 0,
+      ...gamificationFieldsFromAward(award),
     },
     { status: 201 },
   );

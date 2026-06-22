@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
+import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
+import { getUserPointBalance, getUserPointTransactions } from '@/lib/points';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
@@ -12,23 +14,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     where: { id },
     select: {
       id: true, name: true, username: true, email: true,
-      role: true, status: true, totalPoints: true,
+      role: true, status: true,
       avatarUrl: true, createdAt: true, updatedAt: true,
     },
   });
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-  const [articles, transactions, bookmarkCount, quizAttempts, pollVotes] = await Promise.all([
+  const [totalPoints, recentTransactions, articles, bookmarkCount, quizAttempts, pollVotes] =
+    await Promise.all([
+    getUserPointBalance(id),
+    getUserPointTransactions(id, 20),
     db.article.findMany({
       where: { authorId: id },
       orderBy: { createdAt: 'desc' },
       take: 20,
       include: { category: { select: { name: true, slug: true } } },
-    }),
-    db.pointTransaction.findMany({
-      where: { userId: id },
-      orderBy: { occurredAt: 'desc' },
-      take: 20,
     }),
     db.bookmark.count({ where: { userId: id, deletedAt: null } }),
     db.quizAttempt.count({ where: { userId: id } }),
@@ -36,9 +36,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   ]);
 
   return NextResponse.json({
-    user,
+    user: {
+      ...user,
+      totalPoints,
+    },
     articles,
-    recentTransactions: transactions,
+    recentTransactions: recentTransactions.map((tx: (typeof recentTransactions)[number]) => ({
+      id: tx.id,
+      activityType: tx.activityType,
+      points: tx.points,
+      description: tx.description,
+      occurredAt: tx.occurredAt.toISOString(),
+    })),
     stats: { bookmarkCount, quizAttempts, pollVotes, articleCount: articles.length },
   });
 }
@@ -51,14 +60,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const body = await request.json();
   const { role, status } = body;
 
-  const updateData: any = {};
-  if (role && ['USER', 'ADMIN'].includes(role.toUpperCase())) updateData.role = role.toUpperCase();
+  const updateData: Record<string, unknown> = {};
+  if (role && ['USER', 'CONTRIBUTOR', 'ADMIN'].includes(role.toUpperCase())) updateData.role = role.toUpperCase();
   if (status && ['active', 'inactive', 'banned'].includes(status)) updateData.status = status;
 
   if (Object.keys(updateData).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   }
 
-  await db.user.update({ where: { id }, data: updateData });
+  const updated = await db.user.update({ where: { id }, data: updateData });
+
+  auditAdminEntity(admin, 'user', 'update', {
+    type: 'user',
+    id: updated.id,
+    label: updated.name ?? updated.username ?? updated.email ?? updated.id,
+    href: `/admin/users/${updated.id}`,
+  });
+
   return NextResponse.json({ message: 'User updated' });
 }

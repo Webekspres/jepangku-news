@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { auditCommentModeration } from '@/lib/audit-routes';
 
 // PATCH /api/admin/comments/[id]  { action: 'hide' | 'unhide' }
 export async function PATCH(
@@ -30,6 +31,8 @@ export async function PATCH(
 
   logger.info('comment.moderated', { commentId: id, action, byAdminId: admin.id });
 
+  auditCommentModeration(admin, id, action);
+
   return NextResponse.json({ id: updated.id, status: updated.status });
 }
 
@@ -51,6 +54,8 @@ export async function DELETE(
   await db.comment.delete({ where: { id } });
 
   logger.info('comment.hardDeleted', { commentId: id, byAdminId: admin.id });
+
+  auditCommentModeration(admin, id, 'hard_delete');
 
   return NextResponse.json({ message: 'Komentar dihapus permanen' });
 }

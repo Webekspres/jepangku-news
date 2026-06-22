@@ -2,9 +2,14 @@
  * Metadata file upload contoh (tanpa binary di R2).
  */
 
+const {
+  CLERK_TEST_ADMIN_EMAIL,
+  CLERK_TEST_SAMPLE_USER_EMAIL,
+} = require("./clerk-test-emails.js");
+
 const FILES_DATA = [
   {
-    user_email: "budi.santoso@gmail.com",
+    user_email: CLERK_TEST_SAMPLE_USER_EMAIL,
     storage_path: "jepangku/uploads/seed/budi-avatar.webp",
     original_filename: "profile-budi.webp",
     content_type: "image/webp",
@@ -46,7 +51,7 @@ const FILES_DATA = [
     size: 198400,
   },
   {
-    user_email: "admin@jepangku.com",
+    user_email: CLERK_TEST_ADMIN_EMAIL,
     storage_path: "jepangku/uploads/seed/admin-banner.jpg",
     original_filename: "portal-banner.jpg",
     content_type: "image/jpeg",

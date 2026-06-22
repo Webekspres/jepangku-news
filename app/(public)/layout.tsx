@@ -1,10 +1,10 @@
-import Navbar from '@/components/Navbar';
+import NavbarShell from '@/components/NavbarShell';
 import Footer from '@/components/Footer';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Navbar />
+      <NavbarShell />
       <main className="flex-1">{children}</main>
       <Footer />
     </>

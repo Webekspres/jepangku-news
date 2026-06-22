@@ -1,14 +1,16 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Pencil, XCircle, Zap, Trash2, BarChart2 } from "lucide-react";
+import { Plus, Pencil, XCircle, Zap, Trash2, BarChart2, MessageSquare, FileEdit } from "lucide-react";
 import { toast } from "sonner";
+import AdminCard from "@/components/admin/AdminCard";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -54,8 +56,22 @@ export default function AdminPollsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    draft: number;
+    closed: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/polls/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadPolls();
@@ -141,75 +157,87 @@ export default function AdminPollsPage() {
   };
 
   const statusFilters = [
-    { v: "", l: "Semua Status" },
-    { v: "ACTIVE", l: "Aktif" },
-    { v: "DRAFT", l: "Draf" },
-    { v: "CLOSED", l: "Ditutup" },
+    { value: "", label: "Semua Status", testId: "poll-status-filter-all" },
+    { value: "ACTIVE", label: "Aktif", testId: "poll-status-filter-ACTIVE" },
+    { value: "DRAFT", label: "Draf", testId: "poll-status-filter-DRAFT" },
+    { value: "CLOSED", label: "Ditutup", testId: "poll-status-filter-CLOSED" },
   ];
 
   const typeFilters = [
-    { v: "", l: "Semua Tipe" },
-    { v: "POLLING", l: "Polling" },
-    { v: "VOTING", l: "Voting" },
+    { value: "", label: "Semua Tipe", testId: "poll-type-filter-all" },
+    { value: "POLLING", label: "Polling", testId: "poll-type-filter-POLLING" },
+    { value: "VOTING", label: "Voting", testId: "poll-type-filter-VOTING" },
   ];
 
   return (
-    <div className="bg-white min-h-screen" data-testid="admin-polls-page">
+    <>
       <ConfirmModal {...confirmProps} />
-      <section className="border-b-2 border-foreground bg-jepang-off-white">
-        <div className="px-4 mx-auto max-w-7xl py-8">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-4"
-          >
-            <ArrowLeft size={14} /> Kembali ke Dasbor
-          </Link>
 
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="font-heading font-black text-4xl tracking-tighter">
-              Semua Polling
-            </h1>
-            <Button asChild size="sm" data-testid="create-poll-btn">
-              <Link href="/admin/polls/create">
-                <Plus size={14} className="mr-1" /> Buat Polling
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <AdminPageLayout
+        testId="admin-polls-page"
+        title="Semua Polling"
+        headerActions={
+          <Button asChild size="sm" data-testid="create-poll-btn">
+            <Link href="/admin/polls/create">
+              <Plus size={14} className="mr-1" /> Buat Polling
+            </Link>
+          </Button>
+        }
+      >
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={4}
+          gridClassName="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          items={[
+            {
+              label: "Total Polling",
+              value: stats?.total ?? 0,
+              icon: MessageSquare,
+              onClick: () => setStatusFilter(""),
+              testId: "stat-total-polling",
+            },
+            {
+              label: "Aktif",
+              value: stats?.active ?? 0,
+              icon: Zap,
+              onClick: () => setStatusFilter("ACTIVE"),
+              testId: "stat-polling-aktif",
+            },
+            {
+              label: "Draf",
+              value: stats?.draft ?? 0,
+              icon: FileEdit,
+              onClick: () => setStatusFilter("DRAFT"),
+              testId: "stat-polling-draft",
+            },
+            {
+              label: "Ditutup",
+              value: stats?.closed ?? 0,
+              icon: XCircle,
+              onClick: () => setStatusFilter("CLOSED"),
+              testId: "stat-polling-ditutup",
+            },
+          ]}
+        />
+        <AdminToolbar>
+          <AdminFilterButtons
+            options={statusFilters}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+          <AdminFilterButtons
+            options={typeFilters}
+            value={typeFilter}
+            onChange={setTypeFilter}
+          />
+        </AdminToolbar>
 
-      <div className="px-4 mx-auto max-w-7xl py-8">
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex flex-wrap gap-2">
-            {statusFilters.map((s) => (
-              <Button
-                key={s.v}
-                size="sm"
-                variant={statusFilter === s.v ? "black" : "outline"}
-                onClick={() => setStatusFilter(s.v)}
-                data-testid={`poll-status-filter-${s.v || "all"}`}
-              >
-                {s.l}
-              </Button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {typeFilters.map((t) => (
-              <Button
-                key={t.v}
-                size="sm"
-                variant={typeFilter === t.v ? "black" : "outline"}
-                onClick={() => setTypeFilter(t.v)}
-                data-testid={`poll-type-filter-${t.v || "all"}`}
-              >
-                {t.l}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <Card className="border border-foreground overflow-x-auto">
+        <AdminCard
+          title={`${loading && polls.length === 0 ? "..." : polls.length} POLLING`}
+          variant="list"
+          noPadding
+          className="overflow-x-auto"
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -227,7 +255,7 @@ export default function AdminPollsPage() {
 
             <TableBody>
               {loading && polls.length === 0 ? (
-                [1, 2, 3].map((r) => (
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
                     {[...Array(9)].map((_, i) => (
                       <TableCell key={i}>
@@ -296,7 +324,7 @@ export default function AdminPollsPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/admin/analytics/polls/${poll.id}`)}
+                          onClick={() => router.push(`/admin/polls/${poll.id}/analytics`)}
                           data-testid={`poll-stats-${poll.id}`}
                           className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
                         >
@@ -353,8 +381,8 @@ export default function AdminPollsPage() {
               )}
             </TableBody>
           </Table>
-        </Card>
-      </div>
-    </div>
+        </AdminCard>
+      </AdminPageLayout>
+    </>
   );
 }

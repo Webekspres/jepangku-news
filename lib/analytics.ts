@@ -320,3 +320,95 @@ export async function getPollAnalytics(pollId: string) {
       .map(([date, count]) => ({ date, count })),
   };
 }
+
+const ARTICLE_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  PENDING_REVIEW: 'Review',
+  PUBLISHED: 'Publik',
+  REJECTED: 'Ditolak',
+  ARCHIVED: 'Arsip',
+};
+
+function lastNDays(n: number): string[] {
+  const result: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    result.push(d.toISOString().slice(0, 10));
+  }
+  return result;
+}
+
+function countByDay(dates: Date[], dayKeys: string[]) {
+  const counts = new Map(dayKeys.map((d) => [d, 0]));
+  for (const dt of dates) {
+    const day = dt.toISOString().slice(0, 10);
+    if (counts.has(day)) counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+  return dayKeys.map((date) => ({ date, count: counts.get(date) ?? 0 }));
+}
+
+/** Data ringkas untuk grafik dashboard admin. */
+export async function getDashboardChartData() {
+  const dayKeys = lastNDays(7);
+  const since = new Date(dayKeys[0]);
+  since.setHours(0, 0, 0, 0);
+
+  const [statusGroups, views, publishedArticles, categories, recentUsers] = await Promise.all([
+    db.article.groupBy({ by: ['status'], _count: { id: true } }),
+    db.articleView.findMany({
+      where: { viewedAt: { gte: since } },
+      select: { viewedAt: true },
+    }),
+    db.article.findMany({
+      where: { status: 'PUBLISHED', publishedAt: { gte: since } },
+      select: { publishedAt: true },
+    }),
+    getCategoryAnalytics(),
+    db.user.findMany({
+      where: { createdAt: { gte: since } },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  const articleStatus = statusGroups
+    .map((g) => ({
+      label: ARTICLE_STATUS_LABELS[g.status] ?? g.status,
+      value: g._count.id,
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  const viewsByDay = countByDay(
+    views.map((v) => v.viewedAt),
+    dayKeys,
+  );
+
+  const articlesPublishedByDay = countByDay(
+    publishedArticles
+      .map((a) => a.publishedAt)
+      .filter((d): d is Date => d !== null),
+    dayKeys,
+  );
+
+  const topCategories = categories.slice(0, 6).map((c) => ({
+    label: c.name,
+    value: c.totalViews,
+  }));
+
+  const totalViews7d = views.length;
+
+  const userRegistrationsByDay = countByDay(
+    recentUsers.map((u) => u.createdAt),
+    dayKeys,
+  );
+
+  return {
+    articleStatus,
+    viewsByDay,
+    articlesPublishedByDay,
+    topCategories,
+    totalViews7d,
+    userRegistrationsByDay,
+  };
+}
