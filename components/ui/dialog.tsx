@@ -52,7 +52,7 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
-  <DialogPrimitive.Content asChild forceMount {...props}>
+  <DialogPrimitive.Content asChild forceMount aria-describedby={undefined} {...props}>
     <motion.div
       ref={ref}
       className={cn(
