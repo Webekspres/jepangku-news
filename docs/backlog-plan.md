@@ -1,7 +1,10 @@
 # Rencana Backlog & Revisi Produk — Jepangku News
 
-Dokumen **rencana teknis** untuk backlog aktif: revisi UI/UX (Juni 2026), kontributor, newsletter, dan notifikasi.  
-**Status singkat & urutan prioritas** ada di [`feature-status.md`](./feature-status.md).  
+> **Status Juni 2026:** ✅ Semua backlog di dokumen ini **telah diimplementasi**.  
+> **Rencana aktif:** hanya [`feature-status.md`](./feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de) (ekosistem lintas-app).
+
+Dokumen **arsip rencana teknis** untuk revisi UI/UX (Juni 2026), kontributor, newsletter, dan notifikasi.  
+**Status implementasi** ada di [`feature-status.md`](./feature-status.md).  
 **Roadmap fase produk** selaras dengan [`development-roadmap.md`](./development-roadmap.md).
 
 ---

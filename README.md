@@ -1,20 +1,61 @@
 # Jepangku News
 
-Portal berita interaktif bertema Jepang — artikel, quiz, polling, leaderboard, dan gamifikasi via **JepangKu Core**.
+Portal berita interaktif bertema Jepang — artikel, kuis, polling, leaderboard, gamifikasi, dan admin CMS lengkap.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[Next.js](https://nextjs.org/)
+[TypeScript](https://www.typescriptlang.org/)
+[Status](docs/feature-status.md)
 
-| Status | Keterangan |
-| :--- | :--- |
-| MVP portal | ✅ |
-| Auth | **Clerk SSO** (shared app dengan LMS) |
-| Integrasi Core | **Fase 1 + 3 coded** — JWT verify, award XP, admin gate |
-| QA production | ⏳ staging / deploy |
+## Ringkasan proyek
 
-## Stack
 
-Next.js 16 · React 19 · Clerk · Prisma 7 · PostgreSQL · Cloudflare R2 · **jepangku-core** (`lib/core/`)
+|                |                                                    |
+| -------------- | -------------------------------------------------- |
+| **Nama**       | Jepangku News (portal berita ekosistem Jepangku)   |
+| **Status**     | ✅ **Sepenuhnya diimplementasi** — production-ready |
+| **Production** | [jepangku.com](https://jepangku.com)               |
+| **Staging**    | `dev.jepangku.com`                                 |
+| **Repo**       | Private — [Webekspres](https://webekspres.id)      |
+| **Diperbarui** | Juni 2026                                          |
+
+
+### Domain ekosistem
+
+
+| App                   | Production            | Peran                                                 |
+| --------------------- | --------------------- | ----------------------------------------------------- |
+| **News** *(repo ini)* | `jepangku.com`        | Artikel, kuis, poll, poin, leaderboard portal         |
+| **Core**              | `core.jepangku.com`   | Identitas global, JWT, XP/level (LMS)                 |
+| **LMS**               | `kursus.jepangku.com` | Kursus & badge *(integrasi penuh = rencana lanjutan)* |
+
+
+### Stack teknis
+
+Next.js 16 · React 19 · TypeScript · Clerk · Prisma 7 · PostgreSQL · Cloudflare R2 · Upstash Redis · Resend · **jepangku-core** (`lib/core/`)
+
+### Fitur utama (semua selesai)
+
+- Auth Clerk SSO + bridge Core JWT
+- Artikel dengan workflow kontributor (apply → review → publish)
+- Kuis, polling, komentar, reaksi emoji, bookmark
+- Gamifikasi poin & leaderboard (ledger `point_transactions` di News DB)
+- Homepage wave lazy-load (10 section: feed, TV, iklan, LMS teaser, engagement)
+- Notifikasi realtime (bell + SSE), email outbox, modal daily poin & welcome
+- Newsletter subscribe/unsubscribe + admin
+- Admin CMS — artikel, users, analytics, moderasi, monitoring poin
+- Keamanan — rate limit, sanitasi XSS, upload moderation, security headers
+
+### Rencana lanjutan *(bukan blokir rilis)*
+
+Hanya integrasi ekosistem lintas-app — lihat `[docs/feature-status.md](docs/feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)`:
+
+- LMS integration penuh (shared Clerk/Core di kursus)
+- Katalog `/kursus` single source of truth dari jepangkuLMS
+- Role hierarchy super-admin lintas app
+- Profil extended (bio) di Core
+- Spend poin & membership
+
+---
 
 ## Quick start
 
@@ -28,7 +69,7 @@ bun run db:push    # atau migrate sesuai workflow tim
 bun dev            # http://localhost:3000
 ```
 
-Isi `.env.local` dari [`.env.example`](.env.example). Variabel penting integrasi:
+Isi `.env.local` dari `[.env.example](.env.example)`. Variabel penting:
 
 ```env
 # Clerk (satu app dengan Core & LMS)
@@ -49,49 +90,65 @@ Sync public key dari Core dev:
 cd ../jepangku-core && bun run jwt:sync-public-key-to-clients
 ```
 
-Verifikasi:
+Core harus jalan di `http://localhost:8080`.
+
+## Verifikasi & QA
 
 ```bash
-bun run verify:core
+bun run verify:core              # integrasi Core + ledger poin
+bun run verify:home              # wave APIs homepage
+bun run verify:notifications     # notifikasi + email hooks
+bun run verify:non-functional    # 47 checks (keamanan, a11y, reliabilitas)
+bun run verify:staging           # cutover staging
+bun run test:e2e                 # Playwright (Chromium, Firefox, WebKit)
+bun run lighthouse:audit         # skor performa (butuh production build)
 ```
 
-Core harus jalan di `http://localhost:8080`.
+Skor Lighthouse terbaru: `[docs/lighthouse-scores.md](docs/lighthouse-scores.md)` — Mobile **42** / Desktop **89**.
 
 ## Alur integrasi
 
 ```text
 Clerk login → exchange Core JWT (lib/core/auth.ts)
     → verify signature (lib/core/verify-jwt.ts)
-    → profil + poin dari Core claims / API
-    → award XP via POST /api/v1/gamification/award
+    → profil + role dari Core claims / API
+    → poin portal dari News DB (bukan Core)
 ```
 
 ## Dokumentasi
 
-| Dokumen | Isi |
-| :--- | :--- |
-| [docs/README.md](docs/README.md) | Indeks dokumentasi |
-| [docs/ecosystem-integration.md](docs/ecosystem-integration.md) | Kontrak cutover News ↔ Core |
-| [docs/feature-status.md](docs/feature-status.md) | Status implementasi (living doc) |
-| [docs/development-roadmap.md](docs/development-roadmap.md) | Roadmap produk |
-| [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md) | Setup media R2 |
-| [jepangku-core/docs/PHASE0-PHASE1.md](../jepangku-core/docs/PHASE0-PHASE1.md) | Runbook integrasi lintas-repo |
 
-## Struktur
+| Dokumen                                                                       | Isi                                             |
+| ----------------------------------------------------------------------------- | ----------------------------------------------- |
+| [docs/README.md](docs/README.md)                                              | Indeks dokumentasi                              |
+| [docs/feature-status.md](docs/feature-status.md)                              | **Status lengkap** — selesai + rencana lanjutan |
+| [docs/testing-inventory.md](docs/testing-inventory.md)                        | Inventaris fitur & QA                           |
+| [docs/ecosystem-integration.md](docs/ecosystem-integration.md)                | Kontrak cutover News ↔ Core                     |
+| [docs/development-roadmap.md](docs/development-roadmap.md)                    | Roadmap fase (arsip)                            |
+| [docs/backlog-plan.md](docs/backlog-plan.md)                                  | Arsip rencana teknis (selesai)                  |
+| [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md)                    | Setup media R2                                  |
+| [jepangku-core/docs/PHASE0-PHASE1.md](../jepangku-core/docs/PHASE0-PHASE1.md) | Runbook integrasi lintas-repo                   |
+
+
+## Struktur repo
 
 ```text
-app/           # Routes (public, user, admin, auth)
-lib/core/      # Client Core — token, award, verify JWT
-lib/auth/      # Clerk session + JIT user sync
-prisma/        # Schema portal (profil lokal; id = Clerk ID)
-docs/          # Dokumentasi proyek
-.agents/       # Scope MVP & steering (historis)
+app/              # Routes (public, user, admin, auth)
+components/       # UI komponen (home, admin, notifications, …)
+lib/              # Business logic (core, auth, points, notifications, home, …)
+prisma/           # Schema portal (users.id = Clerk ID)
+scripts/          # verify:*, lighthouse, purge, backfill
+e2e/              # Playwright specs
+docs/             # Dokumentasi proyek
+.agents/          # Scope MVP & steering (historis)
 ```
 
 ## Deploy
 
 **Vercel** — set env dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
+Runbook Core down: [docs/runbooks/core-service-down.md](docs/runbooks/core-service-down.md).
+
 ---
 
-Dikembangkan oleh [Webekspres](https://webekspres.id) · Repo private
+Dikembangkan oleh [Webekspres](https://webekspres.id) 

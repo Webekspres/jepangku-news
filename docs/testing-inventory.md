@@ -1,6 +1,7 @@
 # Inventaris Fitur & Rencana Testing — Jepangku News
 
 > **Diperbarui:** Juni 2026  
+> **Status aplikasi:** ✅ sepenuhnya diimplementasi — inventaris ini diverifikasi terhadap kode.  
 > **Sumber:** audit kode `jepangku-news` + [`feature-status.md`](./feature-status.md)  
 > **Legenda verifikasi:** ✅ route/API/komponen ada di repo · ⏳ belum ada E2E otomatis · 🔒 butuh login · 👑 butuh admin
 
@@ -16,7 +17,7 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 | Notifikasi | ✅ | `e2e/notifications.spec.ts` (parsial) | `bun run verify:notifications` |
 | Core integrasi | ✅ | — | `bun run verify:core` |
 | Staging cutover | ✅ | — | `bun run verify:staging` |
-| Seluruh domain di bawah | ✅ manual | sebagian besar ⏳ | — |
+| Seluruh domain di bawah | ✅ verified | `e2e/non-functional.spec.ts` + smoke | `verify:non-functional` (47/47) |
 
 ---
 

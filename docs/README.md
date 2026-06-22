@@ -1,6 +1,8 @@
 # Dokumentasi — Jepangku News
 
-Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosystem-integration.md](./ecosystem-integration.md)**.
+Indeks dokumentasi Portal Berita. **Status aplikasi:** ✅ sepenuhnya diimplementasi (Juni 2026) — sisa rencana hanya integrasi ekosistem lintas-app di [`feature-status.md`](./feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de).
+
+Untuk integrasi Core, mulai dari **[ecosystem-integration.md](./ecosystem-integration.md)**.
 
 ## Integrasi & arsitektur
 
@@ -8,10 +10,10 @@ Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosy
 | :--- | :--- |
 | [design-system.md](./design-system.md) | **Brand guideline** — warna, tipografi, komponen UI |
 | [ecosystem-integration.md](./ecosystem-integration.md) | Kontrak cutover News ↔ Core, checklist fase |
-| [feature-status.md](./feature-status.md) | **Living doc** — prioritas aktif + checklist status |
-| [testing-inventory.md](./testing-inventory.md) | **Inventaris fitur & rencana QA** — functional + non-functional |
-| [backlog-plan.md](./backlog-plan.md) | **Rencana teknis** — kontributor (A″), newsletter (E1), notifikasi (C′/E2), arsip revisi UI |
-| [development-roadmap.md](./development-roadmap.md) | Roadmap produk berfase (A–E, A″, E1, E2) |
+| [feature-status.md](./feature-status.md) | **Living doc** — ✅ implementasi selesai + rencana lanjutan ekosistem |
+| [testing-inventory.md](./testing-inventory.md) | **Inventaris fitur & QA** — functional + non-functional (verified) |
+| [backlog-plan.md](./backlog-plan.md) | **Arsip rencana teknis** — kontributor, newsletter, notifikasi *(selesai)* |
+| [development-roadmap.md](./development-roadmap.md) | Roadmap fase produk *(arsip — portal selesai)* |
 | [technical-architecture.md](./technical-architecture.md) | Stack & auth portal |
 
 **Repo Core (sumber kebenaran API):**
@@ -44,7 +46,7 @@ Indeks dokumentasi Portal Berita. Untuk integrasi ekosistem, mulai dari **[ecosy
 
 1. [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md)
 2. [ecosystem-integration.md](./ecosystem-integration.md)
-3. [feature-status.md](./feature-status.md) — **prioritas & status singkat**
-4. [backlog-plan.md](./backlog-plan.md) — **rincian implementasi backlog aktif**
+3. [feature-status.md](./feature-status.md) — **status implementasi & rencana lanjutan**
+4. [backlog-plan.md](./backlog-plan.md) — arsip rencana teknis (selesai)
 5. [development-roadmap.md](./development-roadmap.md)
 6. [`jepangku-core/docs/PHASE0-PHASE1.md`](../../jepangku-core/docs/PHASE0-PHASE1.md)

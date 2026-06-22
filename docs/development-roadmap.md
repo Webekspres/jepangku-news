@@ -1,14 +1,17 @@
 # 🗺️ Development Roadmap — Jepangku
 
+> **Status Juni 2026:** Portal News ✅ **selesai diimplementasi**. Dokumen ini dipertahankan sebagai arsip fase pengerjaan.  
+> **Rencana aktif:** hanya item ekosistem lintas-app di [`feature-status.md`](./feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de).
+
 Dokumen ini adalah **rencana pengerjaan berfase** untuk Jepangku setelah MVP portal berita
 tercapai. Kontrak integrasi Core v2 ada di `docs/ecosystem-integration.md` dan
 `jepangku-core/docs/ECOSYSTEM.md`. Visi produk jangka panjang: `.agents/05-ecosystem-strategy.md`
 (bagian 8–12 = desain v1 — jangan dipakai untuk implementasi API).
 
-Prinsip utama: **portal stabil + integrasi Core (Fase 1–3 coded); QA production & LMS polish berikutnya.**
+Prinsip utama: **portal stabil + integrasi Core selesai; lanjutan = ekosistem LMS/Core penuh.**
 
-Untuk status detail per fitur (sudah/belum), lihat `docs/feature-status.md`.  
-Rencana teknis kontributor, newsletter, notifikasi: `docs/backlog-plan.md`.
+Untuk status detail per fitur, lihat `docs/feature-status.md`.  
+Arsip rencana teknis kontributor, newsletter, notifikasi: `docs/backlog-plan.md`.
 
 ---
 
@@ -30,15 +33,15 @@ Rencana teknis kontributor, newsletter, notifikasi: `docs/backlog-plan.md`.
 | Fase | Fokus | Status |
 | ---- | ----- | ------ |
 | **0** | Selaraskan dokumentasi & kontrak Core v2 | ✅ Selesai |
-| **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | 🔄 Aktif sekarang |
-| **A″** | Kontributor + gate upload artikel *(revisi produk Juni 2026)* | ⏳ Berikutnya · [`backlog-plan.md` §2](./backlog-plan.md#2-kontributor--gate-upload--fase-a) |
-| **B** | Core + News bridge (`lib/core/`, JWT exchange) | ✅ Coded · prod ⏳ |
-| **C** | Cutover identitas News → Core (Clerk ID, JWT, role) | ✅ Coded · QA ⏳ |
-| **C′** | Migrasi poin + leaderboard portal ke News DB (selaras Core v2.1) | 🔄 Berikutnya |
-| **D** | LMS consumer Core (XP, level, badge lokal) | ✅ Fase 1 coded · UI belajar ⏳ |
-| **E1** | Newsletter subscription portal | ⏳ · [`backlog-plan.md` §3](./backlog-plan.md#3-newsletter-subscription--fase-e1) |
-| **E2** | Notifikasi portal (modal daily poin, bell, welcome) | ⏳ · [`backlog-plan.md` §4](./backlog-plan.md#4-notifikasi-portal--fase-c--e2) |
-| **E** | Fitur lintas-app lainnya (membership, admin pusat, CI/CD) | ⏳ Menunggu |
+| **A** | Stabilkan MVP portal (user-facing + hardening + soft launch) | ✅ Selesai |
+| **A″** | Kontributor + gate upload artikel *(revisi produk Juni 2026)* | ✅ Selesai |
+| **B** | Core + News bridge (`lib/core/`, JWT exchange) | ✅ Selesai |
+| **C** | Cutover identitas News → Core (Clerk ID, JWT, role) | ✅ Selesai |
+| **C′** | Migrasi poin + leaderboard portal ke News DB (selaras Core v2.1) | ✅ Selesai |
+| **D** | LMS consumer di News (teaser homepage) | ✅ Selesai · integrasi LMS penuh ⏳ nanti |
+| **E1** | Newsletter subscription portal | ✅ Selesai |
+| **E2** | Notifikasi portal (modal daily poin, bell, welcome) | ✅ Selesai |
+| **E** | Fitur lintas-app (membership, role hierarchy, profil Core) | ⏳ Rencana lanjutan |
 
 ---
 

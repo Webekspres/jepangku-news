@@ -3,7 +3,7 @@
 Panduan integrasi **Jepangku News** dengan **Jepangku Core Service** dan **Clerk**.
 Kontrak teknis canonical ada di repo Core: [`jepangku-core/docs/ECOSYSTEM.md`](../../jepangku-core/docs/ECOSYSTEM.md) dan [`jepangku-core/docs/API.md`](../../jepangku-core/docs/API.md).
 
-**Schema Core:** `2.1.0` · **Fase dokumentasi:** 0 ✅ · **Implementasi identitas:** Fase 1 + 3 ✅ · **QA production:** ⏳
+**Schema Core:** `2.1.0` · **Fase dokumentasi:** 0 ✅ · **Implementasi News:** ✅ selesai · **Rencana lanjutan:** ekosistem LMS/Core penuh (lihat [`feature-status.md`](./feature-status.md))
 
 ---
 
@@ -47,7 +47,7 @@ flowchart TB
 
 **Yang dihapus dari Core (v2.1):** `current_points`, `points_gained`, tabel `badges` / `user_badges`, endpoint `GET /badges`. Lihat [`jepangku-core/docs/API.md` § Breaking changes](../../jepangku-core/docs/API.md).
 
-> **⚠️ Gap implementasi News (Juni 2026):** sebagian kode masih memanggil `awardXp()` ke Core dan leaderboard dari `GET /api/v1/leaderboard` (XP global). Target: poin + leaderboard sepenuhnya di News DB — lihat [`feature-status.md` § Migrasi poin lokal](./feature-status.md#-migrasi-poin-lokal--leaderboard-portal).
+> **✅ News (Juni 2026):** poin + leaderboard sepenuhnya di News DB (`point_transactions`); `awardXp()` Core tidak dipakai aktivitas portal. Sisa rencana: integrasi LMS penuh & role hierarchy — [`feature-status.md`](./feature-status.md#rencana-lanjutan--bisa-nanti-ekosistem-fase-de).
 
 ---
 

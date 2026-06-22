@@ -1,71 +1,16 @@
 # Status Fitur & Checklist — Jepangku News
 
 > **Diperbarui:** Juni 2026 (audit kode `jepangku-news`)  
-> **Legenda:** `[ ]` belum · `[~]` sebagian / ops / QA manual · `[x]` selesai (verified)  
+> **Status aplikasi:** ✅ **Sepenuhnya diimplementasi** — portal production-ready.  
+> **Sisa rencana:** hanya **§ Rencana Lanjutan** di bawah (ekosistem lintas-app; bisa nanti, bukan blokir rilis).  
+> **Legenda:** `[ ]` rencana lanjutan · `[x]` selesai (verified)  
 > **Rincian teknis:** [`backlog-plan.md`](./backlog-plan.md) · [`ecosystem-integration.md`](./ecosystem-integration.md) · [`development-roadmap.md`](./development-roadmap.md)
 
 ---
 
-## Belum Selesai — Urut Prioritas
+## Rencana Lanjutan — Bisa Nanti *(ekosistem Fase D/E)*
 
-> **Urutan:** belum dikerjakan di atas · selesai di bawah (§ Sudah Diimplementasi)
-
-### 1. QA & Testing Aplikasi
-
-Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md)** — functional + non-functional, diverifikasi terhadap kode.
-
-#### Otomatis & smoke
-
-[x] Perluas E2E Playwright — auth, artikel, kuis, poll, profil, admin smoke  
-[x] Homepage E2E — `e2e/homepage.spec.ts`  
-[x] Notifikasi E2E (parsial) — `e2e/notifications.spec.ts`  
-[x] `bun run verify:home` — wave APIs homepage  
-[x] `bun run verify:core` — integrasi Core + ledger poin  
-[x] `bun run verify:notifications` — Jakarta session, dedupe, email hooks  
-[x] `bun run verify:staging` — cutover staging ([`runbooks/core-service-down.md`](./runbooks/core-service-down.md))
-
-#### Functional manual (per domain — centang di `testing-inventory.md`)
-
-[x] **Autentikasi & akun** — login, logout, daftar, proteksi route, Core bridge  
-[x] **Profil & data user** — edit profil, avatar, username cooldown, profil publik  
-[x] **Artikel** — baca, workflow kontributor, review admin, poin read/share/bookmark  
-[x] **Kuis & poll** — attempt/vote, poin, leaderboard kuis  
-[x] **Video TV** — daftar, detail, embed lazy  
-[x] **Engagement** — komentar, reaksi, bookmark, subscribe kategori  
-[x] **Gamifikasi** — poin, daily login, leaderboard, activity, export CSV  
-[x] **Notifikasi & email** — bell, SSE, modal welcome/daily, event hooks  
-[x] **Newsletter** — subscribe footer, unsubscribe, admin  
-[x] **Kontributor** — apply, approve, gate submit  
-[x] **Homepage & discovery** — wave lazy, search, trending, explore, empty states  
-[x] **LMS teaser** — placeholder + link UTM ke kursus  
-[x] **Iklan** — slot homepage & artikel, admin CRUD  
-[x] **Admin** — dashboard, users, analytics, moderasi, monitoring poin  
-[x] **Halaman statis & navigasi** — footer, navbar, info pages
-
-#### Non-functional
-
-[x] Lighthouse production build — baseline: Mobile 34 / Desktop 53  
-[x] Lighthouse re-run post-QA & dokumentasi skor terbaru — Mobile **42** / Desktop **89**; P2–P6 verified ([`lighthouse-scores.md`](./lighthouse-scores.md))  
-[x] Keamanan — rate limit, sanitasi XSS, boundary admin API, upload spoofing, email queue, Clerk session — `verify:non-functional` (47/47)  
-[x] Aksesibilitas — keyboard, kontras, touch target, screen reader bell/modal — E2E + Lighthouse a11y **96**  
-[x] Reliabilitas — Core down, section error isolation, health check, monitoring/log drain/Redis fallback — `verify:non-functional`  
-[x] Kompatibilitas — mobile/tablet/desktop, Safari/Firefox smoke — Playwright + best-practices headers di `next.config.ts`
-
----
-
-### 2. Ditunda — Bukan Prioritas Saat Ini
-
-#### Soft launch konten
-
-[x] Riset topik dan sumber per kategori  
-[~] Penulisan draft artikel (minimal 30 artikel)  
-[~] Penyuntingan dan quality check  
-[x] Thumbnail/cover image  
-[x] Konfigurasi kategori dan tag di admin  
-[~] Publikasi artikel  
-[x] Testing konten: homepage, search, filter, leaderboard, quiz, poll
-
-#### Ekosistem lanjutan *(Fase D/E)*
+> Koordinasi lintas-repo: `jepangkuLMS`, `jepangku-core`. News consumer (teaser LMS) sudah ada; item di bawah = integrasi penuh ekosistem.
 
 [ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
 [ ] `GET /api/public/courses` di jepangkuLMS + katalog `/kursus` baca Prisma (single source of truth)  
@@ -77,137 +22,42 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 
 ## Sudah Diimplementasi — Verified
 
-### Newsletter *(Fase E1)*
+### Auth & akun — Clerk bridge
 
-[x] Model `NewsletterSubscription`  
-[x] Footer form + `POST /api/newsletter/subscribe`  
-[x] Admin CRUD `/admin/newsletter`  
-[x] Halaman unsubscribe (wajib login akun yang sama)  
-[x] Email template + Resend outbox *(shared dengan outbox § Notifikasi)*
+[x] `@clerk/nextjs` + `/sign-in`, `/sign-up`  
+[x] JIT user provisioning (`lib/auth/clerk-user.ts`)  
+[x] `SessionUser` abstraction + feature flag `AUTH_PROVIDER`  
+[x] `proxy.ts` — proteksi route user/admin + logging API  
+[x] `/login`, `/register` redirect ke Clerk; API lokal disabled (410)  
+[x] Email verification, forgot password, OAuth — via Clerk  
+[x] Username change cooldown 14 hari  
+[x] `GET /api/auth/me`, logout Clerk/local  
+[x] Kebijakan akun legacy — `isClerkUserId` guard, relink email, `purge:legacy-users`
 
-### Engagement lanjutan *(Fase E)*
+### Auth, Core & deploy production
 
-[x] Follow / subscribe kategori + notifikasi artikel baru  
-[x] Export riwayat poin CSV milik user  
-[x] Monthly / all-time quiz leaderboard per quiz  
-[x] Riwayat aktivitas lengkap di `/activity` (di luar ledger poin)
+[x] Env News — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*`  
+[x] Deploy Core prod — `GET https://core.jepangku.com/health` OK  
+[x] News env prod — `CORE_API_URL`, `CORE_JWT_PUBLIC_KEY`, `CORE_JWT_ISSUER`  
+[x] `lib/core/` — client, auth, gamification, types, activity-map, config, session  
+[x] Migrasi DB — FK Clerk ID; `users.id` = Clerk ID  
+[x] Core JWT — cookie `core_session` via `lib/core/session.ts`  
+[x] `getCurrentUser()` / `getCurrentAdmin()` / `hasNewsAdminAccess()`  
+[x] Skrip sync — `bun run db:sync-clerk` (Clerk → Core + `PORTAL_ADMIN`)  
+[x] Verifikasi integrasi — `bun run verify:core` (registrasi, poin, daily login, admin, leaderboard, Core down)  
+[x] Sync dokumen — `ecosystem-integration.md` §5 Juni 2026  
+[x] Core down graceful degrade + runbook [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md)
 
-### Integrasi LMS — News consumer *(Fase D, koordinasi jepangkuLMS)*
+### Keamanan & kualitas production
 
-[x] Domain LMS — staging `dev.kursus.jepangku.com`, prod `kursus.jepangku.com` (`lib/lms/constants.ts`)  
-[x] News proxy `/api/home/lms-teaser` — fetch live `GET /api/public/courses`, fallback placeholder (`HomeLmsTeaser.tsx`)  
-[x] `lib/lms/client.ts` + tipe kontrak `lib/lms/types.ts`
-
-### Notifikasi portal *(Fase E2 — News DB only, tanpa Core)*
-
-**Prinsip:** inbox persisten di News Prisma; event dispatcher terpusat; modal sesi terpisah dari bell; realtime via Redis/Upstash + SSE; email async untuk event penting.
-
-#### Infrastruktur data & service
-
-[x] Model `Notification` + migrasi Prisma (`userId`, `type`, `title`, `body`, `link`, `metadata`, `readAt`, `createdAt`, `dedupeKey`, `groupKey`, `priority`, `expiresAt`)  
-[x] Relasi `User.notifications` + index `(userId, readAt, createdAt DESC)` + unique `(userId, dedupeKey)`  
-[x] `lib/notifications/` — `create.ts`, `dispatch.ts`, `types.ts`, `handlers/` (article, contributor, comment, admin)  
-[x] `UserProfile` — `welcomedAt`, `lastDailyPointsModalAt`  
-[x] Logger — `notification.dispatched` / `notification.deduped` / `notification.failed`  
-[x] Retention — `expiresAt` default 90 hari; `bun run purge:notifications` / `purge:notifications:apply`  
-[x] `lib/jakarta-calendar.ts` — tanggal & bounds Asia/Jakarta  
-[x] `lib/notifications/queries.ts` — list, unread count, mark read, session bootstrap
-
-#### REST API
-
-[x] `GET /api/notifications` — list + cursor pagination + filter `unreadOnly`  
-[x] `GET /api/notifications/unread-count` — ringan untuk badge  
-[x] `PATCH /api/notifications/[id]/read`  
-[x] `POST /api/notifications/read-all`  
-[x] `GET /api/notifications/session` — bootstrap modal: `showDailyPoints`, `dailyPoints`, `showWelcome` (timezone Asia/Jakarta)  
-[x] `PATCH /api/notifications/session` — dismiss welcome / daily modal
-
-#### Event hooks (write path)
-
-[x] Artikel — hook di `recordStatusReview()` (`lib/article-audit.ts`): `PUBLISHED` / `REJECTED` → notif penulis; `PENDING_REVIEW` → broadcast admin  
-[x] `dedupeKey` — cegah duplikat bulk approve/reject (`article:{id}:{status}`)  
-[x] Kontributor — hook di `reviewContributorApplication()`: approved / rejected → notif applicant  
-[x] Komentar — hook di `POST /api/comments`: notif penulis artikel & pemilik komentar induk; skip self; agregasi `groupKey` + cap `COMMENT_GROUP_MAX_COUNT`  
-[x] `link` — pakai `getArticleViewHref()` (`lib/article-view-url.ts`)  
-[x] Submit review tanpa `recordStatusReview` — `POST /api/articles/create` & `PATCH /api/articles/drafts/[id]` saat → `PENDING_REVIEW`  
-[x] User baru — `notifyWelcomeUser()` + email welcome di `lib/auth/clerk-user.ts`
-
-#### Realtime (badge)
-
-[x] Redis pub/sub — publish `notif:{userId}` saat dispatch (Upstash production)  
-[x] `GET /api/notifications/stream` — SSE subscribe per user  
-[x] Client fallback — poll `unread-count` saat SSE putus / tab background
-
-#### UI — bell inbox
-
-[x] `NotificationBellMenu.tsx` — list unread, badge count, mark read, navigasi `link`  
-[x] `NavbarNotifications.tsx` + `AdminTopbar.tsx` — bell fungsional (user + admin)  
-[x] Sembunyikan bell untuk guest (`Navbar.tsx`)  
-[x] `hooks/useNotifications.ts` + `client-invalidate` (fetch + SSE + invalidate)
-
-#### UI — modal sesi (bukan bell)
-
-[x] `DailyPointsModal.tsx` — sekali per hari per sesi; trigger dari `/api/notifications/session` + `point_transactions`  
-[x] `WelcomeModal.tsx` — user baru; set `welcomedAt` saat dismiss  
-[x] Mount modal di `Providers.tsx` setelah auth loaded (`NotificationSessionModals`)  
-[x] Selaraskan daily login — `checkDailyLogin` `sourceId` tanggal **Asia/Jakarta** (`getJakartaDateKey`)
-
-#### Email async
-
-[x] Outbox `EmailOutbox` + `lib/email/` (queue, templates, SMTP transport)  
-[x] `POST /api/internal/email/process` — QStash atau fire-and-forget lokal (`EMAIL_QUEUE_SECRET`)  
-[x] Template — artikel ditolak, kontributor approved/rejected, welcome user  
-[x] Hooks — `lib/notifications/email-hooks.ts` terhubung ke artikel reject, kontributor review, registrasi
-
-#### QA
-
-[x] `bun run verify:notifications` — Jakarta session, dedupe, group cap, email hooks  
-[x] E2E Playwright — `e2e/notifications.spec.ts` (API 401, guest bell hidden)  
-[x] Daily modal sekali per hari (Jakarta); welcome hanya user baru  
-[x] Bulk approve tidak duplikat notif  
-[x] Komentar spam tidak membanjiri inbox (agregasi + rate limit)
-
----
-
-### Homepage ekosistem — jepangku.com
-
-[x] `lib/home/queries/*` — feed, categories-editorial, tv, ads, lms-teaser, reactions, engagement  
-[x] `GET /api/home/feed` — Wave 1: featured, trending, todayArticles (Asia/Jakarta)  
-[x] `GET /api/home/categories-editorial` — Wave 2 lazy  
-[x] `GET /api/home/tv`, `/ads`, `/lms-teaser`, `/reactions` — Wave 3 lazy  
-[x] `GET /api/home/engagement` — Wave 4 lazy (poll, quiz, leaderboard)  
-[x] Monolit `/api/homepage` dihapus (`bun run verify:home`)  
-[x] `hooks/useLazySection.ts`, `LazySectionShell`, `LazySectionSkeleton`  
-[x] §1 Featured + Trending — carousel, grid proporsional  
-[x] §2 Hero ekosistem — `HomeHero.tsx`, quick links, search, CTA auth/guest  
-[x] §3 Hari Ini — label `今日 / HARI INI`, fallback `< 3` artikel  
-[x] §4 Kategori editorial — `CategoryEditorialSection.tsx`, `lib/home/editorial-groups.ts`  
-[x] §5 Jepangku TV — model `Video`, admin `/admin/videos`, `/tv`, `/tv/[slug]`  
-[x] §6 Advertisement — model `AdSlot`, admin `/admin/ads`, `AdBannerSlot.tsx`  
-[x] §7 LMS teaser — live proxy + placeholder fallback (`HomeLmsTeaser.tsx`, `lib/lms/`)  
-[x] §8 Reaksi komunitas — `HomeReactionsSection.tsx`  
-[x] §9–10 Poll, Kuis, Leaderboard — `HomeEngagementSection.tsx`
-
-### Homepage QA & performa
-
-[x] Mobile: `overflow-x-clip` homepage + body; section tidak overflow horizontal  
-[x] Lighthouse perbaikan kode: `fetchPriority=high` LCP featured, `sizes` gambar, AVIF/WebP, preconnect Clerk, touch target carousel, kontras a11y, `inert` search overlay, `robots.ts`, manifest  
-[x] E2E otomatis homepage — `e2e/homepage.spec.ts`, `bun run test:e2e`  
-[x] Empty state tiap section — feed, hari ini, TV, reaksi, poll/kuis/leaderboard, iklan partner  
-[x] Network: Wave 1 saat load; Wave 2–4 lazy scroll (`useLazySection`)  
-[x] Section error isolated — satu API gagal tidak kosongkan halaman  
-[x] Lazy-load YouTube embed (`LazyYoutubeEmbed` di `/tv/[slug]`)  
-[x] Skeleton height fixed (`LazySectionSkeleton` + `minHeight`)  
-[x] `data-testid` section & wave (`LazySectionShell`, `data-home-wave`)
-
-### Revisi UI/UX *(Tier 1–4, Juni 2026)*
-
-[x] Logo & warna brand baru  
-[x] Navbar redesign + drawer sidebar (`NavbarSidebar.tsx`)  
-[x] Share flow & leaderboard layout  
-[x] Kategori editorial & info sidebar  
-[x] Sidebar iklan artikel (`ArticleSidebarAd.tsx`)  
-[x] Social media links — `SiteSocialLink`, `SocialMediaLinks.tsx`, admin CRUD
+[x] Rate limiting — Upstash / Redis / in-memory (`lib/rate-limit.ts`, `lib/rate-limit-store.ts`)  
+[x] Redis/Upstash — `UPSTASH_REDIS_REST_*` / `REDIS_URL` di production  
+[x] Input sanitasi HTML (`lib/sanitizer.ts`)  
+[x] Backfill sanitasi konten lama — `backfill:sanitize` / `backfill:sanitize:apply`  
+[x] Image moderation — validasi file + AI opsional (`lib/image-moderation.ts`, `POST /api/upload`)  
+[x] Error monitoring — `captureException` → `MONITORING_WEBHOOK_URL`  
+[x] Log drain — structured JSON logger + `LOG_DRAIN_URL`  
+[x] `GET /api/health` — cek DB
 
 ### Poin & leaderboard — News DB *(Fase C′)*
 
@@ -224,43 +74,6 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 [x] `scripts/verify-core-integration.ts` — verifikasi ledger & leaderboard  
 [x] `awardXp()` Core — tidak dipakai aktivitas portal
 
-### Auth, Core & deploy production
-
-[x] Env News — `CORE_API_URL`, `CORE_SERVICE_TOKEN`, `CORE_JWT_*`  
-[x] Deploy Core prod — `GET https://core.jepangku.com/health` OK  
-[x] News env prod — `CORE_API_URL`, `CORE_JWT_PUBLIC_KEY`, `CORE_JWT_ISSUER`  
-[x] `lib/core/` — client, auth, gamification, types, activity-map, config, session  
-[x] Migrasi DB — FK Clerk ID; `users.id` = Clerk ID  
-[x] Core JWT — cookie `core_session` via `lib/core/session.ts`  
-[x] `getCurrentUser()` / `getCurrentAdmin()` / `hasNewsAdminAccess()`  
-[x] Skrip sync — `bun run db:sync-clerk` (Clerk → Core + `PORTAL_ADMIN`)  
-[x] Verifikasi integrasi — `bun run verify:core` (registrasi, poin, daily login, admin, leaderboard, Core down)  
-[x] Sync dokumen — `ecosystem-integration.md` §5 Juni 2026  
-[x] Core down graceful degrade + runbook [`docs/runbooks/core-service-down.md`](./runbooks/core-service-down.md)
-
-### Auth & akun — Clerk bridge
-
-[x] `@clerk/nextjs` + `/sign-in`, `/sign-up`  
-[x] JIT user provisioning (`lib/auth/clerk-user.ts`)  
-[x] `SessionUser` abstraction + feature flag `AUTH_PROVIDER`  
-[x] `proxy.ts` — proteksi route user/admin + logging API  
-[x] `/login`, `/register` redirect ke Clerk; API lokal disabled (410)  
-[x] Email verification, forgot password, OAuth — via Clerk  
-[x] Username change cooldown 14 hari  
-[x] `GET /api/auth/me`, logout Clerk/local  
-[x] Kebijakan akun legacy — `isClerkUserId` guard, relink email, `purge:legacy-users`
-
-### Keamanan & kualitas production
-
-[x] Rate limiting — Upstash / Redis / in-memory (`lib/rate-limit.ts`, `lib/rate-limit-store.ts`)  
-[x] Redis/Upstash — `UPSTASH_REDIS_REST_*` / `REDIS_URL` di production  
-[x] Input sanitasi HTML (`lib/sanitizer.ts`)  
-[x] Backfill sanitasi konten lama — `backfill:sanitize` / `backfill:sanitize:apply`  
-[x] Image moderation — validasi file + AI opsional (`lib/image-moderation.ts`, `POST /api/upload`)  
-[x] Error monitoring — `captureException` → `MONITORING_WEBHOOK_URL`  
-[x] Log drain — structured JSON logger + `LOG_DRAIN_URL`  
-[x] `GET /api/health` — cek DB
-
 ### Kontributor & gate upload *(Fase A″)*
 
 [x] Role `CONTRIBUTOR` + model `ContributorApplication`  
@@ -271,15 +84,6 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 [x] Form `/contributor/apply` — `ContributorApplyForm.tsx` (ganti placeholder)  
 [x] CTA kontributor — navbar dropdown, sidebar, profile  
 [x] Entry point sinkron — my-articles disembunyikan untuk role `USER`
-
-### Admin monitoring & audit *(Fase C′)*
-
-[x] `/admin/leaderboard` — monitor leaderboard  
-[x] `/admin/points` — transaksi poin + `PointTransactionDetailModal`  
-[x] `/admin/activity-log` — audit log + grafik registrasi user  
-[x] `lib/admin-monitoring.ts` — agregasi review artikel & kontributor  
-[x] Activity audit — `ArticleReview` + `ContributorApplication`  
-[x] `GET /api/admin/points` — summary per periode, breakdown tipe
 
 ### Artikel — publik, user & admin
 
@@ -348,6 +152,145 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 [x] Videos CRUD, Ads CRUD, site social links  
 [x] Quizzes & polls CRUD + analytics link
 
+### Admin monitoring & audit *(Fase C′)*
+
+[x] `/admin/leaderboard` — monitor leaderboard  
+[x] `/admin/points` — transaksi poin + `PointTransactionDetailModal`  
+[x] `/admin/activity-log` — audit log + grafik registrasi user  
+[x] `lib/admin-monitoring.ts` — agregasi review artikel & kontributor  
+[x] Activity audit — `ArticleReview` + `ContributorApplication`  
+[x] `GET /api/admin/points` — summary per periode, breakdown tipe
+
+### Homepage ekosistem — jepangku.com
+
+[x] `lib/home/queries/*` — feed, categories-editorial, tv, ads, lms-teaser, reactions, engagement  
+[x] `GET /api/home/feed` — Wave 1: featured, trending, todayArticles (Asia/Jakarta)  
+[x] `GET /api/home/categories-editorial` — Wave 2 lazy  
+[x] `GET /api/home/tv`, `/ads`, `/lms-teaser`, `/reactions` — Wave 3 lazy  
+[x] `GET /api/home/engagement` — Wave 4 lazy (poll, quiz, leaderboard)  
+[x] Monolit `/api/homepage` dihapus (`bun run verify:home`)  
+[x] `hooks/useLazySection.ts`, `LazySectionShell`, `LazySectionSkeleton`  
+[x] §1 Featured + Trending — carousel, grid proporsional  
+[x] §2 Hero ekosistem — `HomeHero.tsx`, quick links, search, CTA auth/guest  
+[x] §3 Hari Ini — label `今日 / HARI INI`, fallback `< 3` artikel  
+[x] §4 Kategori editorial — `CategoryEditorialSection.tsx`, `lib/home/editorial-groups.ts`  
+[x] §5 Jepangku TV — model `Video`, admin `/admin/videos`, `/tv`, `/tv/[slug]`  
+[x] §6 Advertisement — model `AdSlot`, admin `/admin/ads`, `AdBannerSlot.tsx`  
+[x] §7 LMS teaser — live proxy + placeholder fallback (`HomeLmsTeaser.tsx`, `lib/lms/`)  
+[x] §8 Reaksi komunitas — `HomeReactionsSection.tsx`  
+[x] §9–10 Poll, Kuis, Leaderboard — `HomeEngagementSection.tsx`
+
+### Homepage QA & performa
+
+[x] Mobile: `overflow-x-clip` homepage + body; section tidak overflow horizontal  
+[x] Lighthouse perbaikan kode: `fetchPriority=high` LCP featured, `sizes` gambar, AVIF/WebP, preconnect Clerk, touch target carousel, kontras a11y, `inert` search overlay, `robots.ts`, manifest  
+[x] E2E otomatis homepage — `e2e/homepage.spec.ts`, `bun run test:e2e`  
+[x] Empty state tiap section — feed, hari ini, TV, reaksi, poll/kuis/leaderboard, iklan partner  
+[x] Network: Wave 1 saat load; Wave 2–4 lazy scroll (`useLazySection`)  
+[x] Section error isolated — satu API gagal tidak kosongkan halaman  
+[x] Lazy-load YouTube embed (`LazyYoutubeEmbed` di `/tv/[slug]`)  
+[x] Skeleton height fixed (`LazySectionSkeleton` + `minHeight`)  
+[x] `data-testid` section & wave (`LazySectionShell`, `data-home-wave`)
+
+### Revisi UI/UX *(Tier 1–4, Juni 2026)*
+
+[x] Logo & warna brand baru  
+[x] Navbar redesign + drawer sidebar (`NavbarSidebar.tsx`)  
+[x] Share flow & leaderboard layout  
+[x] Kategori editorial & info sidebar  
+[x] Sidebar iklan artikel (`ArticleSidebarAd.tsx`)  
+[x] Social media links — `SiteSocialLink`, `SocialMediaLinks.tsx`, admin CRUD
+
+### Notifikasi portal *(Fase E2 — News DB only, tanpa Core)*
+
+**Prinsip:** inbox persisten di News Prisma; event dispatcher terpusat; modal sesi terpisah dari bell; realtime via Redis/Upstash + SSE; email async untuk event penting.
+
+#### Infrastruktur data & service
+
+[x] Model `Notification` + migrasi Prisma (`userId`, `type`, `title`, `body`, `link`, `metadata`, `readAt`, `createdAt`, `dedupeKey`, `groupKey`, `priority`, `expiresAt`)  
+[x] Relasi `User.notifications` + index `(userId, readAt, createdAt DESC)` + unique `(userId, dedupeKey)`  
+[x] `lib/notifications/` — `create.ts`, `dispatch.ts`, `types.ts`, `handlers/` (article, contributor, comment, admin)  
+[x] `UserProfile` — `welcomedAt`, `lastDailyPointsModalAt`  
+[x] Logger — `notification.dispatched` / `notification.deduped` / `notification.failed`  
+[x] Retention — `expiresAt` default 90 hari; `bun run purge:notifications` / `purge:notifications:apply`  
+[x] `lib/jakarta-calendar.ts` — tanggal & bounds Asia/Jakarta  
+[x] `lib/notifications/queries.ts` — list, unread count, mark read, session bootstrap
+
+####REST API
+
+[x] `GET /api/notifications` — list + cursor pagination + filter `unreadOnly`  
+[x] `GET /api/notifications/unread-count` — ringan untuk badge  
+[x] `PATCH /api/notifications/[id]/read`  
+[x] `POST /api/notifications/read-all`  
+[x] `GET /api/notifications/session` — bootstrap modal: `showDailyPoints`, `dailyPoints`, `showWelcome` (timezone Asia/Jakarta)  
+[x] `PATCH /api/notifications/session` — dismiss welcome / daily modal
+
+#### Event hooks (write path)
+
+[x] Artikel — hook di `recordStatusReview()` (`lib/article-audit.ts`): `PUBLISHED` / `REJECTED` → notif penulis; `PENDING_REVIEW` → broadcast admin  
+[x] `dedupeKey` — cegah duplikat bulk approve/reject (`article:{id}:{status}`)  
+[x] Kontributor — hook di `reviewContributorApplication()`: approved / rejected → notif applicant  
+[x] Komentar — hook di `POST /api/comments`: notif penulis artikel & pemilik komentar induk; skip self; agregasi `groupKey` + cap `COMMENT_GROUP_MAX_COUNT`  
+[x] `link` — pakai `getArticleViewHref()` (`lib/article-view-url.ts`)  
+[x] Submit review tanpa `recordStatusReview` — `POST /api/articles/create` & `PATCH /api/articles/drafts/[id]` saat → `PENDING_REVIEW`  
+[x] User baru — `notifyWelcomeUser()` + email welcome di `lib/auth/clerk-user.ts`
+
+#### Realtime (badge)
+
+[x] Redis pub/sub — publish `notif:{userId}` saat dispatch (Upstash production)  
+[x] `GET /api/notifications/stream` — SSE subscribe per user  
+[x] Client fallback — poll `unread-count` saat SSE putus / tab background
+
+#### UI — bell inbox
+
+[x] `NotificationBellMenu.tsx` — list unread, badge count, mark read, navigasi `link`  
+[x] `NavbarNotifications.tsx` + `AdminTopbar.tsx` — bell fungsional (user + admin)  
+[x] Sembunyikan bell untuk guest (`Navbar.tsx`)  
+[x] `hooks/useNotifications.ts` + `client-invalidate` (fetch + SSE + invalidate)
+
+#### UI — modal sesi (bukan bell)
+
+[x] `DailyPointsModal.tsx` — sekali per hari per sesi; trigger dari `/api/notifications/session` + `point_transactions`  
+[x] `WelcomeModal.tsx` — user baru; set `welcomedAt` saat dismiss  
+[x] Mount modal di `Providers.tsx` setelah auth loaded (`NotificationSessionModals`)  
+[x] Selaraskan daily login — `checkDailyLogin` `sourceId` tanggal **Asia/Jakarta** (`getJakartaDateKey`)
+
+#### Email async
+
+[x] Outbox `EmailOutbox` + `lib/email/` (queue, templates, SMTP transport)  
+[x] `POST /api/internal/email/process` — QStash atau fire-and-forget lokal (`EMAIL_QUEUE_SECRET`)  
+[x] Template — artikel ditolak, kontributor approved/rejected, welcome user  
+[x] Hooks — `lib/notifications/email-hooks.ts` terhubung ke artikel reject, kontributor review, registrasi
+
+#### QA notifikasi
+
+[x] `bun run verify:notifications` — Jakarta session, dedupe, group cap, email hooks  
+[x] E2E Playwright — `e2e/notifications.spec.ts` (API 401, guest bell hidden)  
+[x] Daily modal sekali per hari (Jakarta); welcome hanya user baru  
+[x] Bulk approve tidak duplikat notif  
+[x] Komentar spam tidak membanjiri inbox (agregasi + rate limit)
+
+### Newsletter *(Fase E1)*
+
+[x] Model `NewsletterSubscription`  
+[x] Footer form + `POST /api/newsletter/subscribe`  
+[x] Admin CRUD `/admin/newsletter`  
+[x] Halaman unsubscribe (wajib login akun yang sama)  
+[x] Email template + Resend outbox *(shared dengan outbox § Notifikasi)*
+
+### Engagement lanjutan *(Fase E)*
+
+[x] Follow / subscribe kategori + notifikasi artikel baru  
+[x] Export riwayat poin CSV milik user  
+[x] Monthly / all-time quiz leaderboard per quiz  
+[x] Riwayat aktivitas lengkap di `/activity` (di luar ledger poin)
+
+### Integrasi LMS — News consumer *(Fase D, koordinasi jepangkuLMS)*
+
+[x] Domain LMS — staging `dev.kursus.jepangku.com`, prod `kursus.jepangku.com` (`lib/lms/constants.ts`)  
+[x] News proxy `/api/home/lms-teaser` — fetch live `GET /api/public/courses`, fallback placeholder (`HomeLmsTeaser.tsx`)  
+[x] `lib/lms/client.ts` + tipe kontrak `lib/lms/types.ts`
+
 ### Halaman publik & statis
 
 [x] Homepage `/`  
@@ -373,6 +316,62 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 [x] `app/(user)/submit-article/page.tsx` · `edit-article/[id]/page.tsx`  
 [x] `app/(user)/preview-article/[id]/page.tsx`  
 [x] `app/(admin)/admin/**` — dashboard, artikel, review, kategori, tag, users, contributors, quiz, poll, comments, videos, ads, analytics, info-pages, homepage, points, leaderboard, activity-log
+
+### QA & testing aplikasi
+
+Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md)** — functional + non-functional, diverifikasi terhadap kode.
+
+#### Otomatis & smoke
+
+[x] Perluas E2E Playwright — auth, artikel, kuis, poll, profil, admin smoke  
+[x] Homepage E2E — `e2e/homepage.spec.ts`  
+[x] Notifikasi E2E (parsial) — `e2e/notifications.spec.ts`  
+[x] Non-functional E2E — `e2e/non-functional.spec.ts` (viewport, health, a11y, security headers)  
+[x] `bun run verify:home` — wave APIs homepage  
+[x] `bun run verify:core` — integrasi Core + ledger poin  
+[x] `bun run verify:notifications` — Jakarta session, dedupe, email hooks  
+[x] `bun run verify:staging` — cutover staging ([`runbooks/core-service-down.md`](./runbooks/core-service-down.md))  
+[x] `bun run verify:non-functional` — 47/47 checks (performa, keamanan, a11y, reliabilitas)  
+[x] `bun run lighthouse:audit` — skor terdokumentasi ([`lighthouse-scores.md`](./lighthouse-scores.md))
+
+#### Functional manual (per domain)
+
+[x] **Autentikasi & akun** — login, logout, daftar, proteksi route, Core bridge  
+[x] **Profil & data user** — edit profil, avatar, username cooldown, profil publik  
+[x] **Artikel** — baca, workflow kontributor, review admin, poin read/share/bookmark  
+[x] **Kuis & poll** — attempt/vote, poin, leaderboard kuis  
+[x] **Video TV** — daftar, detail, embed lazy  
+[x] **Engagement** — komentar, reaksi, bookmark, subscribe kategori  
+[x] **Gamifikasi** — poin, daily login, leaderboard, activity, export CSV  
+[x] **Notifikasi & email** — bell, SSE, modal welcome/daily, event hooks  
+[x] **Newsletter** — subscribe footer, unsubscribe, admin  
+[x] **Kontributor** — apply, approve, gate submit  
+[x] **Homepage & discovery** — wave lazy, search, trending, explore, empty states  
+[x] **LMS teaser** — placeholder + link UTM ke kursus  
+[x] **Iklan** — slot homepage & artikel, admin CRUD  
+[x] **Admin** — dashboard, users, analytics, moderasi, monitoring poin  
+[x] **Halaman statis & navigasi** — footer, navbar, info pages
+
+#### Non-functional
+
+[x] Lighthouse production build — baseline: Mobile 34 / Desktop 53  
+[x] Lighthouse re-run post-QA — Mobile **42** / Desktop **89**; P2–P6 verified ([`lighthouse-scores.md`](./lighthouse-scores.md))  
+[x] Keamanan — rate limit, sanitasi XSS, boundary admin API, upload spoofing, email queue, Clerk session — `verify:non-functional` (47/47)  
+[x] Aksesibilitas — keyboard, kontras, touch target, screen reader bell/modal — E2E + Lighthouse a11y **96**  
+[x] Reliabilitas — Core down, section error isolation, health check, monitoring/log drain/Redis fallback — `verify:non-functional`  
+[x] Kompatibilitas — mobile/tablet/desktop, Safari/Firefox smoke — Playwright + best-practices headers di `next.config.ts`
+
+### Soft launch konten *(operasional editorial — bukan kode)*
+
+> Alur teknis publish sudah ada; sisa pekerjaan tim konten. Panduan: [`soft-launch-content.md`](./soft-launch-content.md).
+
+[x] Riset topik dan sumber per kategori  
+[x] Thumbnail/cover image  
+[x] Konfigurasi kategori dan tag di admin  
+[x] Testing konten: homepage, search, filter, leaderboard, quiz, poll  
+[~] Penulisan draft artikel (minimal 30 artikel) — tim editorial  
+[~] Penyuntingan dan quality check — tim editorial  
+[~] Publikasi artikel — tim editorial
 
 ### TODO dari Kode — Tier A–F *(audit Juni 2026, selesai)*
 
@@ -439,8 +438,8 @@ Inventaris lengkap per domain: **[`testing-inventory.md`](./testing-inventory.md
 ## Referensi
 
 - [`docs/README.md`](./README.md) — indeks dokumentasi  
-- [`docs/testing-inventory.md`](./testing-inventory.md) — inventaris fitur & rencana QA
-- [`docs/backlog-plan.md`](./backlog-plan.md) — rencana kontributor, newsletter, notifikasi
-- [`docs/ecosystem-integration.md`](./ecosystem-integration.md) — kontrak Core cutover
-- [`docs/soft-launch-content.md`](./soft-launch-content.md) — guideline konten soft launch
+- [`docs/testing-inventory.md`](./testing-inventory.md) — inventaris fitur & QA  
+- [`docs/backlog-plan.md`](./backlog-plan.md) — arsip rencana teknis (selesai)  
+- [`docs/ecosystem-integration.md`](./ecosystem-integration.md) — kontrak Core cutover  
+- [`docs/soft-launch-content.md`](./soft-launch-content.md) — guideline konten soft launch  
 - `jepangku-core/docs/API.md` · `jepangku-core/docs/ECOSYSTEM.md`

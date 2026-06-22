@@ -1,6 +1,7 @@
 # Lighthouse — Homepage
 
-> **Diperbarui:** 2026-06-22 · URL: `http://localhost:3001/` (production build)
+> **Diperbarui:** 2026-06-22 · URL: `http://localhost:3001/` (production build)  
+> **Konteks:** bagian dari QA non-functional portal — status aplikasi ✅ selesai ([`feature-status.md`](./feature-status.md)).
 
 | Form factor | Performance | Accessibility | Best practices | SEO |
 | :--- | ---: | ---: | ---: | ---: |
