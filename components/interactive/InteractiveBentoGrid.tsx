@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 
+export { resolveThumbnailUrl } from "@/lib/image-placeholder";
+
 /** Dense bento grid: items with images use `sm:row-span-2`. */
 export function InteractiveBentoGrid({
   children,
@@ -25,9 +27,3 @@ export function interactiveBentoSpan(hasImage: boolean) {
   return hasImage ? "sm:row-span-2" : undefined;
 }
 
-export function resolveThumbnailUrl(item: {
-  thumbnailUrl?: string | null;
-  thumbnail_url?: string | null;
-}) {
-  return item.thumbnailUrl || item.thumbnail_url || null;
-}

@@ -8,12 +8,14 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { gamificationPatchFromResponse } from "@/lib/gamification-response";
 import { toast } from "sonner";
-import { ArrowLeft, BarChart3, Award, CheckCircle2 } from "lucide-react";
+import { BarChart3, Award, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
+import PollBreadcrumb from "@/components/polls/PollBreadcrumb";
+import PollDetailSidebar from "@/components/polls/PollDetailSidebar";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -164,16 +166,9 @@ export default function PollDetailPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="poll-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="max-w-3xl mx-auto">
-          {/* TODO: buat breadcrumb di sini seperti di artikel, tambahkan aside yangn isinya rekomendasi poling lain dan dibawahnya artikel trending dibawahnya iklan */}
-          {/* Back */}
-          <Link
-            href="/polls"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted hover:text-jepang-red mb-6"
-            data-testid="back-to-polls"
-          >
-            <ArrowLeft size={14} /> Kembali ke Polls
-          </Link>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="mx-auto w-full max-w-4xl min-w-0 lg:mx-0">
+          <PollBreadcrumb isLoading={isLoading} title={poll?.title} />
 
           {/* Thumbnail */}
           {!isLoading && poll!.thumbnailUrl && (
@@ -294,8 +289,7 @@ export default function PollDetailPage() {
                         )}
                       </div>
 
-                        {/* TODO: buat opsi yang dipilih atau aktif lebih menonjol dengan warna merah jangan hanya border */}
-                      {/* Options */}
+                        {/* Options */}
                       <div className="space-y-2">
                         {q.options.map((opt, oIdx) => {
                           const pct = opt.percentage || 0;
@@ -313,12 +307,12 @@ export default function PollDetailPage() {
                                 "w-full text-left border transition-colors overflow-hidden",
                                 "disabled:cursor-default",
                                 isUserChoice
-                                  ? "border-jepang-red ring-1 ring-jepang-red"
-                                  : isVoted
-                                  ? "border-jepang-border opacity-90"
-                                  : isSelected
-                                  ? "border-foreground"
-                                  : "border-jepang-border hover:border-foreground",
+                                  ? "border-jepang-red bg-jepang-red/10 ring-2 ring-jepang-red"
+                                  : isSelected && !isVoted
+                                    ? "border-jepang-red bg-jepang-red/5 ring-2 ring-jepang-red"
+                                    : isVoted
+                                      ? "border-jepang-border opacity-90"
+                                      : "border-jepang-border hover:border-foreground",
                               )}
                               data-testid={`poll-option-${qIdx}-${oIdx}`}
                             >
@@ -346,8 +340,8 @@ export default function PollDetailPage() {
                                     <span
                                       className={cn(
                                         "font-mono font-bold text-sm shrink-0",
-                                        isSelected && !isVoted
-                                          ? "text-foreground"
+                                        (isSelected && !isVoted) || isUserChoice
+                                          ? "text-jepang-red"
                                           : "text-jepang-muted",
                                       )}
                                     >
@@ -356,9 +350,11 @@ export default function PollDetailPage() {
                                     <span
                                       className={cn(
                                         "font-semibold text-sm",
-                                        (isSelected && !isVoted) || isUserChoice
-                                          ? "font-bold"
-                                          : "",
+                                        isUserChoice
+                                          ? "font-bold text-jepang-red"
+                                          : isSelected && !isVoted
+                                            ? "font-bold text-jepang-red"
+                                            : "",
                                       )}
                                     >
                                       {opt.optionText}
@@ -456,6 +452,13 @@ export default function PollDetailPage() {
               <CommentSection targetType="POLL" targetId={poll.id} />
             </>
           )}
+          </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <PollDetailSidebar excludePollSlug={slug} />
+            </div>
+          </aside>
         </div>
       </div>
     </div>

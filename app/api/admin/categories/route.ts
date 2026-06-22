@@ -3,6 +3,8 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
+import { MAX_NAVBAR_CATEGORIES } from '@/lib/categories/constants';
+import { countNavbarCategories } from '@/lib/categories/navbar';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
@@ -22,8 +24,18 @@ export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
 
-  const { name, description, iconUrl, color } = await request.json();
+  const { name, description, showInNavbar } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+
+  if (showInNavbar === true) {
+    const navbarCount = await countNavbarCategories();
+    if (navbarCount >= MAX_NAVBAR_CATEGORIES) {
+      return NextResponse.json(
+        { error: `Maksimal ${MAX_NAVBAR_CATEGORIES} kategori di navbar` },
+        { status: 400 },
+      );
+    }
+  }
 
   const slug = createAdminSlug(name.trim());
 
@@ -35,7 +47,13 @@ export async function POST(request: NextRequest) {
   }
 
   const category = await db.category.create({
-    data: { name: name.trim(), slug, description: description?.trim() || null, iconUrl: iconUrl?.trim() || null, color: color?.trim() || null, isActive: true },
+    data: {
+      name: name.trim(),
+      slug,
+      description: description?.trim() || null,
+      isActive: true,
+      showInNavbar: Boolean(showInNavbar),
+    },
   });
 
   auditAdminEntity(admin, 'category', 'create', { type: 'category', id: category.id, label: category.name, href: '/admin/categories' });

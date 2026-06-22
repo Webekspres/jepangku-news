@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasNewsAdminAccess } from '@/lib/auth/types';
+import { AdminBreadcrumbProvider } from '@/components/admin/AdminBreadcrumbContext';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminTopbar from '@/components/admin/AdminTopbar';
 import { ThinScrollbar } from '@/components/ui/thin-scrollbar';
@@ -40,6 +41,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
+    <AdminBreadcrumbProvider>
     <div className="flex h-screen overflow-hidden bg-zinc-50" data-testid="admin-shell">
       {/* Sidebar desktop — full height kiri (NextUI dashboard pattern) */}
       <div className="hidden min-h-0 shrink-0 lg:flex">
@@ -73,5 +75,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         </ThinScrollbar>
       </div>
     </div>
+    </AdminBreadcrumbProvider>
   );
 }

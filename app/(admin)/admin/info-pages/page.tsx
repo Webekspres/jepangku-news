@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Pencil, ExternalLink } from "lucide-react";
+import { Pencil, ExternalLink, FileText, Eye } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -25,6 +26,15 @@ type InfoPageListItem = {
 export default function AdminInfoPagesPage() {
   const [pages, setPages] = useState<InfoPageListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<{ total: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/info-pages/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     fetch("/api/admin/info-pages")
@@ -39,9 +49,20 @@ export default function AdminInfoPagesPage() {
       title="Halaman Informasi"
       subtitle="Kelola konten halaman About, Contact, Privacy Policy, dan lainnya"
     >
-      {/* TODO: tambahkan card stats untuk mengetahui total halaman informasi */}
-      {/* TODO: TAMBAHKAN PREVIEW PAGE ADMIN DI TABLE TAMBAHKAN TOMBOL PREVIEW DAN BUAT PREVIEW PAGE ADMINNYA */}
-      <AdminCard title="9 Halaman Informasi" variant="list" noPadding>
+      <AdminStatCards
+        loading={statsLoading}
+        skeletonCount={1}
+        gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        items={[
+          {
+            label: "Total Halaman",
+            value: stats?.total ?? 0,
+            icon: FileText,
+            testId: "stat-total-halaman",
+          },
+        ]}
+      />
+      <AdminCard title={`${stats?.total ?? pages.length} Halaman Informasi`} variant="list" noPadding>
         {loading ? (
           <div className="space-y-4 p-5">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -78,6 +99,12 @@ export default function AdminInfoPagesPage() {
                 </div>
 
                 <div className="flex gap-2 shrink-0">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/admin/info-pages/${page.slug}/preview`}>
+                      <Eye size={14} strokeWidth={1.5} className="mr-1" />
+                      Preview
+                    </Link>
+                  </Button>
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/${page.slug}`} target="_blank">
                       <ExternalLink size={14} strokeWidth={1.5} className="mr-1" />

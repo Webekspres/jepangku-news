@@ -1,4 +1,4 @@
-export type UploadPurpose = 'avatar' | 'cover' | 'content';
+export type UploadPurpose = 'avatar' | 'cover' | 'content' | 'banner';
 
 export type UploadMediaResult = {
   url: string;

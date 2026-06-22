@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, ChevronLeft, ChevronRight, CheckSquare, Users } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,18 @@ export default function AdminReviewArticles() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [stats, setStats] = useState<{ totalReview: number; contributorsWaiting: number } | null>(
+    null,
+  );
+  const [statsLoading, setStatsLoading] = useState(true);
   const PER_PAGE = 10;
+
+  useEffect(() => {
+    fetch("/api/admin/articles/review/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadArticles(1);
@@ -63,6 +75,9 @@ export default function AdminReviewArticles() {
       toast.success("Artikel berhasil disetujui dan dipublikasikan");
       setSelected(null);
       await loadArticles(page);
+      fetch("/api/admin/articles/review/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch {
       toast.error("Gagal menyetujui artikel");
     }
@@ -85,6 +100,9 @@ export default function AdminReviewArticles() {
       setSelected(null);
       setRejectNote("");
       await loadArticles(page);
+      fetch("/api/admin/articles/review/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch {
       toast.error("Gagal menolak artikel");
     }
@@ -96,7 +114,26 @@ export default function AdminReviewArticles() {
       label="ANTRIAN REVIEW"
       title="Artikel Menunggu Review"
     >
-    {/* TODO: tambahkan card untuk mengetahui total review dan total kontributor yang menunggu review */}
+      <AdminStatCards
+        loading={statsLoading}
+        skeletonCount={2}
+        gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        items={[
+          {
+            label: "Total Review",
+            value: stats?.totalReview ?? totalItems,
+            icon: CheckSquare,
+            highlight: true,
+            testId: "stat-total-review",
+          },
+          {
+            label: "Kontributor Menunggu",
+            value: stats?.contributorsWaiting ?? 0,
+            icon: Users,
+            testId: "stat-kontributor-menunggu",
+          },
+        ]}
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-2">
           <AdminCard

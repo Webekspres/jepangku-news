@@ -8,10 +8,15 @@ import {
   Trash2,
   EyeOff,
   Eye,
+  ExternalLink,
+  FileText,
+  Zap,
+  Ban,
 } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import AdminPagination from "@/components/admin/AdminPagination";
 import {
   AdminFilterButtons,
@@ -64,6 +69,11 @@ const TARGET_PATH: Record<AdminComment["targetType"], string> = {
   QUIZ: "/quizzes",
 };
 
+function commentPublicHref(comment: AdminComment): string | null {
+  if (!comment.targetSlug) return null;
+  return `${TARGET_PATH[comment.targetType]}/${comment.targetSlug}#comment-${comment.id}`;
+}
+
 export default function AdminCommentsPage() {
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +84,23 @@ export default function AdminCommentsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState<{
+    total: number;
+    articleComments: number;
+    quizComments: number;
+    pollComments: number;
+    hidden: number;
+    deleted: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/comments/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -110,6 +136,9 @@ export default function AdminCommentsPage() {
       if (!res.ok) throw new Error((await res.json()).error);
       toast.success(action === "hide" ? "Komentar disembunyikan" : "Komentar ditampilkan");
       load();
+      fetch("/api/admin/comments/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch (e: any) {
       toast.error(e.message || "Gagal memoderasi");
     }
@@ -127,6 +156,9 @@ export default function AdminCommentsPage() {
           if (!res.ok) throw new Error((await res.json()).error);
           toast.success("Komentar dihapus permanen");
           load();
+          fetch("/api/admin/comments/stats")
+            .then((r) => r.json())
+            .then(setStats);
         } catch (e: any) {
           toast.error(e.message || "Gagal menghapus");
         }
@@ -148,7 +180,75 @@ export default function AdminCommentsPage() {
           </>
         }
       >
-        {/* TODO: tambahkan card stats untuk mengetahui total komentar, total komentar kuis artikel dan polling serta card stats untuk total artikel yang dsembunyikan dan dihapus dan berikan link untuk menuju komentarnya di menu aksinya */}
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={6}
+          gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+          items={[
+            {
+              label: "Total Komentar",
+              value: stats?.total ?? total,
+              icon: MessageSquare,
+              onClick: () => {
+                setStatus("");
+                setTargetType("");
+                setPage(1);
+              },
+              testId: "stat-total-komentar",
+            },
+            {
+              label: "Artikel",
+              value: stats?.articleComments ?? 0,
+              icon: FileText,
+              onClick: () => {
+                setTargetType("ARTICLE");
+                setPage(1);
+              },
+              testId: "stat-komentar-artikel",
+            },
+            {
+              label: "Kuis",
+              value: stats?.quizComments ?? 0,
+              icon: Zap,
+              onClick: () => {
+                setTargetType("QUIZ");
+                setPage(1);
+              },
+              testId: "stat-komentar-kuis",
+            },
+            {
+              label: "Polling",
+              value: stats?.pollComments ?? 0,
+              icon: MessageSquare,
+              onClick: () => {
+                setTargetType("POLL");
+                setPage(1);
+              },
+              testId: "stat-komentar-polling",
+            },
+            {
+              label: "Disembunyikan",
+              value: stats?.hidden ?? 0,
+              icon: EyeOff,
+              highlight: true,
+              onClick: () => {
+                setStatus("HIDDEN");
+                setPage(1);
+              },
+              testId: "stat-komentar-disembunyikan",
+            },
+            {
+              label: "Dihapus",
+              value: stats?.deleted ?? 0,
+              icon: Ban,
+              onClick: () => {
+                setStatus("DELETED");
+                setPage(1);
+              },
+              testId: "stat-komentar-dihapus",
+            },
+          ]}
+        />
         <AdminToolbar>
           <AdminFilterButtons
             options={STATUS_FILTERS}
@@ -247,6 +347,19 @@ export default function AdminCommentsPage() {
 
                       {!c.isDeleted && (
                         <div className="flex items-center gap-2">
+                          {commentPublicHref(c) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              className="border border-jepang-border"
+                              data-testid={`admin-view-comment-${c.id}`}
+                            >
+                              <Link href={commentPublicHref(c)!} target="_blank">
+                                <ExternalLink size={14} /> Lihat
+                              </Link>
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"

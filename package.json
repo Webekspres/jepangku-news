@@ -65,6 +65,7 @@
     "@tiptap/pm": "^3.24.0",
     "@tiptap/react": "^3.24.0",
     "@tiptap/starter-kit": "^3.24.0",
+    "@upstash/qstash": "^2.11.1",
     "@upstash/redis": "^1.38.0",
     "axios": "^1.16.1",
     "bcryptjs": "^2.4.3",

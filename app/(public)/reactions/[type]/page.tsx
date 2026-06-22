@@ -10,10 +10,9 @@ import {
   type SetStateAction,
 } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
+import CardCoverImage from "@/components/CardCoverImage";
 import { MotionHoverScale } from "@/components/ui/motion";
-import { imageLoadingProps } from "@/lib/image-loading";
 import {
   Award,
   BarChart3,
@@ -60,7 +59,6 @@ function emptyBrowseState<T>(): BrowseState<T> {
 
 function QuizBrowseCard({ quiz }: { quiz: ReactionBrowseQuizItem }) {
   const thumbnailUrl = resolveThumbnailUrl(quiz);
-  const hasImage = Boolean(thumbnailUrl);
 
   const footer = (
     <div className="mt-auto flex items-center justify-between border-t border-jepang-border pt-3 text-xs font-mono uppercase tracking-wider">
@@ -73,67 +71,31 @@ function QuizBrowseCard({ quiz }: { quiz: ReactionBrowseQuizItem }) {
     </div>
   );
 
-  if (hasImage) {
-    return (
-      <Link
-        href={`/quizzes/${quiz.slug}`}
-        className={cn(
-          "group flex h-full flex-col overflow-hidden rounded-lg border border-jepang-border bg-white transition-all hover:border-jepang-navy/30 hover:shadow-sm",
-          interactiveBentoSpan(true),
-        )}
-        data-testid={`reaction-quiz-card-${quiz.slug}`}
-      >
-        <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
-          <MotionHoverScale className="absolute inset-0">
-            <Image
-              src={thumbnailUrl!}
-              alt={quiz.title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover"
-              {...imageLoadingProps(false)}
-            />
-          </MotionHoverScale>
-        </div>
-        <div className="flex flex-1 flex-col gap-2 p-5">
-          <Badge variant="red" className="w-fit">
-            QUIZ
-          </Badge>
-          <h3 className="line-clamp-2 font-heading text-xl font-bold transition-colors group-hover:text-jepang-red">
-            {quiz.title}
-          </h3>
-          {quiz.description ? (
-            <p className="line-clamp-2 text-sm text-jepang-muted">{quiz.description}</p>
-          ) : null}
-          {footer}
-        </div>
-      </Link>
-    );
-  }
-
   return (
     <Link
       href={`/quizzes/${quiz.slug}`}
       className={cn(
-        "group flex h-full flex-col rounded-lg border border-jepang-border bg-white p-5 transition-all hover:border-jepang-navy/30 hover:shadow-sm",
-        interactiveBentoSpan(false),
+        "group flex h-full flex-col overflow-hidden rounded-lg border border-jepang-border bg-white transition-all hover:border-jepang-navy/30 hover:shadow-sm",
+        interactiveBentoSpan(true),
       )}
       data-testid={`reaction-quiz-card-${quiz.slug}`}
     >
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-jepang-border bg-jepang-off-white text-jepang-muted">
-            <Zap size={18} strokeWidth={1.5} />
-          </div>
-          <div className="min-w-0 flex-1 space-y-2">
-            <Badge variant="red" className="w-fit">
-              QUIZ
-            </Badge>
-            <h3 className="line-clamp-2 font-heading text-base font-bold leading-snug transition-colors group-hover:text-jepang-red">
-              {quiz.title}
-            </h3>
-          </div>
-        </div>
+      <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
+        <MotionHoverScale className="absolute inset-0">
+          <CardCoverImage
+            src={thumbnailUrl}
+            alt={quiz.title}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        </MotionHoverScale>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        <Badge variant="red" className="w-fit">
+          QUIZ
+        </Badge>
+        <h3 className="line-clamp-2 font-heading text-xl font-bold transition-colors group-hover:text-jepang-red">
+          {quiz.title}
+        </h3>
         {quiz.description ? (
           <p className="line-clamp-2 text-sm text-jepang-muted">{quiz.description}</p>
         ) : null}
@@ -145,7 +107,6 @@ function QuizBrowseCard({ quiz }: { quiz: ReactionBrowseQuizItem }) {
 
 function PollBrowseCard({ poll }: { poll: ReactionBrowsePollItem }) {
   const thumbnailUrl = resolveThumbnailUrl(poll);
-  const hasImage = Boolean(thumbnailUrl);
 
   const footer = (
     <div className="mt-auto flex items-center justify-between border-t border-jepang-border pt-3 text-xs font-mono uppercase tracking-wider">
@@ -169,62 +130,29 @@ function PollBrowseCard({ poll }: { poll: ReactionBrowsePollItem }) {
     </div>
   );
 
-  if (hasImage) {
-    return (
-      <Link
-        href={`/polls/${poll.slug}`}
-        className={cn(
-          "group flex h-full flex-col overflow-hidden rounded-lg border border-jepang-border bg-white transition-colors hover:border-jepang-navy/30 hover:shadow-sm",
-          interactiveBentoSpan(true),
-        )}
-        data-testid={`reaction-poll-card-${poll.slug}`}
-      >
-        <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
-          <MotionHoverScale className="absolute inset-0">
-            <Image
-              src={thumbnailUrl!}
-              alt={poll.title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover"
-              {...imageLoadingProps(false)}
-            />
-          </MotionHoverScale>
-        </div>
-        <div className="flex flex-1 flex-col gap-2 p-5">
-          {metaRow}
-          <h3 className="font-heading text-lg font-bold leading-tight tracking-tight group-hover:text-jepang-red transition-colors">
-            {poll.title}
-          </h3>
-          {poll.description ? (
-            <p className="line-clamp-2 text-sm leading-relaxed text-jepang-muted">
-              {poll.description}
-            </p>
-          ) : null}
-          {footer}
-        </div>
-      </Link>
-    );
-  }
-
   return (
     <Link
       href={`/polls/${poll.slug}`}
       className={cn(
-        "group flex h-full flex-col rounded-lg border border-jepang-border bg-white p-5 transition-colors hover:border-jepang-navy/30 hover:shadow-sm",
-        interactiveBentoSpan(false),
+        "group flex h-full flex-col overflow-hidden rounded-lg border border-jepang-border bg-white transition-colors hover:border-jepang-navy/30 hover:shadow-sm",
+        interactiveBentoSpan(true),
       )}
       data-testid={`reaction-poll-card-${poll.slug}`}
     >
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1 space-y-2">
-            {metaRow}
-            <h3 className="line-clamp-2 font-heading text-base font-bold leading-snug tracking-tight group-hover:text-jepang-red transition-colors">
-              {poll.title}
-            </h3>
-          </div>
-        </div>
+      <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
+        <MotionHoverScale className="absolute inset-0">
+          <CardCoverImage
+            src={thumbnailUrl}
+            alt={poll.title}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        </MotionHoverScale>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        {metaRow}
+        <h3 className="font-heading text-lg font-bold leading-tight tracking-tight group-hover:text-jepang-red transition-colors">
+          {poll.title}
+        </h3>
         {poll.description ? (
           <p className="line-clamp-2 text-sm leading-relaxed text-jepang-muted">
             {poll.description}

@@ -2,10 +2,9 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { MotionHoverScale } from "@/components/ui/motion";
-import { imageLoadingProps } from "@/lib/image-loading";
+import CardCoverImage from "@/components/CardCoverImage";
 import { MessageSquare, Award, BarChart3, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +24,6 @@ function PollCard({ poll }: { poll: any }) {
   const totalVotes = poll.totalVotes || 0;
   const questionCount = poll.questionCount || 1;
   const thumbnailUrl = resolveThumbnailUrl(poll);
-  const hasImage = Boolean(thumbnailUrl);
 
   const footer = (
     <div className="mt-auto flex items-center justify-between border-t border-jepang-border pt-3 text-xs font-mono uppercase tracking-wider">
@@ -54,62 +52,29 @@ function PollCard({ poll }: { poll: any }) {
     </div>
   );
 
-  if (hasImage) {
-    return (
-      <Link
-        href={`/polls/${poll.slug}`}
-        className={cn(
-          "group flex h-full flex-col overflow-hidden rounded-lg border border-jepang-border bg-white transition-colors hover:border-jepang-navy/30 hover:shadow-sm",
-          interactiveBentoSpan(true),
-        )}
-        data-testid={`poll-card-${poll.slug}`}
-      >
-        <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
-          <MotionHoverScale className="absolute inset-0">
-            <Image
-              src={thumbnailUrl!}
-              alt={poll.title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover"
-              {...imageLoadingProps(false)}
-            />
-          </MotionHoverScale>
-        </div>
-        <div className="flex flex-1 flex-col gap-2 p-5">
-          {metaRow}
-          <h3 className="font-heading text-lg font-bold leading-tight tracking-tight group-hover:text-jepang-red transition-colors">
-            {poll.title}
-          </h3>
-          {poll.description && (
-            <p className="line-clamp-2 text-sm leading-relaxed text-jepang-muted">
-              {poll.description}
-            </p>
-          )}
-          {footer}
-        </div>
-      </Link>
-    );
-  }
-
   return (
     <Link
       href={`/polls/${poll.slug}`}
       className={cn(
-        "group flex h-full flex-col rounded-lg border border-jepang-border bg-white p-5 transition-colors hover:border-jepang-navy/30 hover:shadow-sm",
-        interactiveBentoSpan(false),
+        "group flex h-full flex-col overflow-hidden rounded-lg border border-jepang-border bg-white transition-colors hover:border-jepang-navy/30 hover:shadow-sm",
+        interactiveBentoSpan(true),
       )}
       data-testid={`poll-card-${poll.slug}`}
     >
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1 space-y-2">
-            {metaRow}
-            <h3 className="font-heading text-base font-bold leading-snug tracking-tight group-hover:text-jepang-red transition-colors line-clamp-2">
-              {poll.title}
-            </h3>
-          </div>
-        </div>
+      <div className="relative aspect-16/10 shrink-0 overflow-hidden bg-jepang-off-white">
+        <MotionHoverScale className="absolute inset-0">
+          <CardCoverImage
+            src={thumbnailUrl}
+            alt={poll.title}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        </MotionHoverScale>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        {metaRow}
+        <h3 className="font-heading text-lg font-bold leading-tight tracking-tight group-hover:text-jepang-red transition-colors">
+          {poll.title}
+        </h3>
         {poll.description && (
           <p className="line-clamp-2 text-sm leading-relaxed text-jepang-muted">
             {poll.description}

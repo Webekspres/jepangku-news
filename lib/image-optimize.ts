@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 
-export type ImageOptimizePreset = 'avatar' | 'cover' | 'content';
+export type ImageOptimizePreset = 'avatar' | 'cover' | 'content' | 'banner';
 
 type PresetConfig = {
   maxWidth: number;
@@ -28,10 +28,16 @@ const PRESETS: Record<ImageOptimizePreset, PresetConfig> = {
     quality: 82,
     format: 'webp',
   },
+  banner: {
+    maxWidth: 1200,
+    maxHeight: 360,
+    quality: 88,
+    format: 'jpeg',
+  },
 };
 
 export function parseUploadPurpose(value: unknown): ImageOptimizePreset {
-  if (value === 'avatar' || value === 'cover' || value === 'content') {
+  if (value === 'avatar' || value === 'cover' || value === 'content' || value === 'banner') {
     return value;
   }
   return 'content';

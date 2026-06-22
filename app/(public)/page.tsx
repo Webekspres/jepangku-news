@@ -98,6 +98,7 @@ export default function HomePage() {
       <LazySectionShell sectionId="today">
         <HomeTodaySection
           articles={todayArticles}
+          trending={trending}
           todaySource={todaySource}
           loading={feedLoading}
         />

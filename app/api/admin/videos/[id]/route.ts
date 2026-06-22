@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
+import { revalidateHomeTv } from "@/lib/video/revalidate";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -79,6 +80,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (normalizedStatus === "PUBLISHED" && !existing.publishedAt && publishedAt === undefined) {
       updateData.publishedAt = new Date();
     }
+    if (normalizedStatus !== "PUBLISHED" && existing.isFeatured) {
+      updateData.isFeatured = false;
+    }
   }
 
   if (publishedAt !== undefined) {
@@ -87,6 +91,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   if (isFeatured !== undefined) {
     const featured = Boolean(isFeatured);
+    const effectiveStatus = (updateData.status ?? existing.status) as string;
+    if (featured && effectiveStatus !== "PUBLISHED") {
+      return NextResponse.json(
+        { error: "Hanya video terbit yang bisa dijadikan featured" },
+        { status: 400 },
+      );
+    }
     updateData.isFeatured = featured;
     if (featured) await clearOtherFeatured(id);
   }
@@ -100,7 +111,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     href: `/admin/videos/${id}/edit`,
   });
 
-  return NextResponse.json({ message: "Video updated" });
+  revalidateHomeTv();
+
+  const updated = await db.video.findUnique({ where: { id } });
+  return NextResponse.json({ message: "Video updated", video: updated });
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
@@ -121,6 +135,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   auditAdminEntity(admin, "video", "delete", { type: "video", id: video.id, label: video.title, href: `/admin/videos/${id}/edit` });
 
   await db.video.delete({ where: { id } });
+
+  revalidateHomeTv();
 
   return NextResponse.json({ message: "Video deleted" });
 }

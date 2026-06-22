@@ -25,7 +25,7 @@ export default function AdminCard({
   testId,
 }: AdminCardProps) {
   return (
-    <Card className={cn(ADMIN_CARD_CLASS, className)} data-testid={testId}>
+    <Card className={cn(ADMIN_CARD_CLASS, "overflow-hidden", className)} data-testid={testId}>
       {title ? (
         <CardHeader
           className={cn(

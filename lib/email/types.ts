@@ -1,9 +1,11 @@
 export type EmailTemplateId =
   | 'article_rejected'
+  | 'article_approved'
   | 'contributor_approved'
   | 'contributor_rejected'
   | 'welcome_user'
-  | 'newsletter_subscribed';
+  | 'newsletter_subscribed'
+  | 'newsletter_new_article';
 
 export type EmailTemplatePayload = {
   article_rejected: {
@@ -11,6 +13,11 @@ export type EmailTemplatePayload = {
     articleTitle: string;
     note: string | null;
     previewUrl: string;
+  };
+  article_approved: {
+    userName: string;
+    articleTitle: string;
+    articleUrl: string;
   };
   contributor_approved: {
     userName: string;
@@ -31,6 +38,15 @@ export type EmailTemplatePayload = {
     userName: string;
     homeUrl: string;
     unsubscribeUrl: string;
+  };
+  newsletter_new_article: {
+    userName: string;
+    articleTitle: string;
+    excerpt: string;
+    articleUrl: string;
+    unsubscribeUrl: string;
+    coverImageUrl: string | null;
+    categoryName: string | null;
   };
 };
 

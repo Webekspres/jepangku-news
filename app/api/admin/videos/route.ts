@@ -5,6 +5,7 @@ import { auditAdminEntity } from "@/lib/audit-routes";
 import { createSlug } from "@/lib/slug";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
+import { revalidateHomeTv } from "@/lib/video/revalidate";
 
 async function clearOtherFeatured(exceptId?: string) {
   await db.video.updateMany({
@@ -32,7 +33,9 @@ export async function GET(request: NextRequest) {
     take: 200,
   });
 
-  return NextResponse.json(videos);
+  return NextResponse.json(videos, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -91,6 +94,8 @@ export async function POST(request: NextRequest) {
   });
 
   auditAdminEntity(admin, "video", "create", { type: "video", id: video.id, label: video.title, href: `/admin/videos/${video.id}/edit` });
+
+  revalidateHomeTv();
 
   return NextResponse.json({ message: "Video created", id: video.id }, { status: 201 });
 }

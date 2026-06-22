@@ -16,6 +16,7 @@ import {
   FileText,
   Eye,
   BarChart3,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
@@ -181,6 +182,7 @@ type ArticleStats = {
   rejected: number;
   archived: number;
   totalViews: number;
+  missingCategory: number;
 };
 
 export default function AdminArticlesPage() {
@@ -199,6 +201,7 @@ export default function AdminArticlesPage() {
 
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [missingCategoryFilter, setMissingCategoryFilter] = useState(false);
   const [sort, setSort] = useState("latest");
   const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -209,14 +212,16 @@ export default function AdminArticlesPage() {
 
   const filterQueryString = buildQuery({
     status: statusFilter,
-    categoryId: categoryFilter,
+    categoryId: missingCategoryFilter ? "" : categoryFilter,
+    missingCategory: missingCategoryFilter ? "true" : "",
     sort,
     search,
   });
 
   const queryString = buildQuery({
     status: statusFilter,
-    categoryId: categoryFilter,
+    categoryId: missingCategoryFilter ? "" : categoryFilter,
+    missingCategory: missingCategoryFilter ? "true" : "",
     sort,
     search,
     page: String(page),
@@ -267,6 +272,14 @@ export default function AdminArticlesPage() {
 
   const applyStatusFilter = (value: string) => {
     setStatusFilter(value);
+    setMissingCategoryFilter(false);
+    setPage(1);
+  };
+
+  const applyMissingCategoryFilter = () => {
+    setMissingCategoryFilter(true);
+    setCategoryFilter("");
+    setStatusFilter("");
     setPage(1);
   };
 
@@ -298,6 +311,14 @@ export default function AdminArticlesPage() {
       value: stats?.totalViews ?? 0,
       icon: BarChart3,
       testId: "stat-total-views",
+    },
+    {
+      label: "Tanpa Kategori",
+      value: stats?.missingCategory ?? 0,
+      icon: AlertTriangle,
+      highlight: (stats?.missingCategory ?? 0) > 0,
+      onClick: applyMissingCategoryFilter,
+      testId: "stat-tanpa-kategori",
     },
   ];
 
@@ -540,12 +561,12 @@ export default function AdminArticlesPage() {
           </>
         }
       >
-        {/* TODO: kategori bisa saja dihapus dan kehilangan kategorinya untuk itu tambahkan card untuk menampilkan total yang kehilangan kategorinya dan tampilkan filternya di tabel */}
+        {/* Stats + filter tanpa kategori di toolbar */}
         <div data-testid="admin-articles-stats">
           <AdminStatCards
             loading={statsLoading}
-            skeletonCount={4}
-            gridClassName="grid grid-cols-2 lg:grid-cols-4 gap-4"
+            skeletonCount={5}
+            gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
             items={articleStatItems}
           />
         </div>
@@ -556,6 +577,20 @@ export default function AdminArticlesPage() {
             value={statusFilter}
             onChange={applyStatusFilter}
           />
+          {missingCategoryFilter && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMissingCategoryFilter(false);
+                setPage(1);
+              }}
+              data-testid="filter-missing-category-clear"
+            >
+              <AlertTriangle size={14} className="mr-1" />
+              Tanpa kategori (aktif) — Hapus filter
+            </Button>
+          )}
           <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-[1fr_200px_200px] sm:ml-auto sm:w-auto">
             <AdminSearchInput
               value={search}
@@ -571,8 +606,10 @@ export default function AdminArticlesPage() {
               value={categoryFilter || "_all"}
               onValueChange={(v) => {
                 setCategoryFilter(v === "_all" ? "" : v);
+                setMissingCategoryFilter(false);
                 setPage(1);
               }}
+              disabled={missingCategoryFilter}
             >
               <SelectTrigger data-testid="filter-category">
                 <SelectValue placeholder="Kategori" />

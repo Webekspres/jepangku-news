@@ -29,5 +29,4 @@ export function serializePublicVideo(video: Video): PublicVideo {
 
 export const publishedVideoWhere = {
   status: "PUBLISHED" as const,
-  OR: [{ publishedAt: null }, { publishedAt: { lte: new Date() } }],
 };

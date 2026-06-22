@@ -7,7 +7,7 @@ export async function GET(): Promise<NextResponse<HomeTvResponse>> {
 
   return NextResponse.json(data, {
     headers: {
-      "Cache-Control": "s-maxage=120, stale-while-revalidate=300",
+      "Cache-Control": "no-store",
     },
   });
 }

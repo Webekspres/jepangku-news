@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageShell from "@/components/admin/AdminPageShell";
-import AnalyticsNav from "@/components/admin/AnalyticsNav";
 import SimpleBarChart from "@/components/admin/SimpleBarChart";
 
 export default function CategoryAnalyticsPage() {
@@ -32,8 +31,9 @@ export default function CategoryAnalyticsPage() {
       title="Statistik per Kategori"
       subtitle="Agregat lifetime artikel published per kategori. Engagement = bookmark + share yang tercatat pada artikel di kategori tersebut."
       label="Analytics"
+      backHref="/admin/analytics"
+      backLabel="Kembali ke Ringkasan Analytics"
     >
-      <AnalyticsNav />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
         <div className="border border-jepang-border p-5">

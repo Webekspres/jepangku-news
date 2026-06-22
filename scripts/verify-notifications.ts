@@ -79,9 +79,54 @@ async function main() {
     'queue + process',
   );
   record(
+    'QStash client module',
+    readSource('lib/email/qstash.ts').includes('@upstash/qstash'),
+    'SDK publish + receiver verify',
+  );
+  record(
+    'QStash URL from env',
+    readSource('lib/email/config.ts').includes('QSTASH_URL'),
+    'supports regional endpoint',
+  );
+  record(
+    'QStash signing keys',
+    readSource('lib/email/config.ts').includes('QSTASH_CURRENT_SIGNING_KEY'),
+    'receiver verify wired',
+  );
+  record(
     'Email hooks — article rejected',
     readSource('lib/notifications/email-hooks.ts').includes('queueArticleRejectedEmail'),
     'handler present',
+  );
+  record(
+    'Email hooks — article approved',
+    readSource('lib/notifications/email-hooks.ts').includes('queueArticleApprovedEmail'),
+    'handler present',
+  );
+  record(
+    'Contributor apply notifies admins',
+    readSource('lib/contributor-applications.ts').includes('contributor.application_submitted'),
+    'dispatch on create',
+  );
+  record(
+    'Newsletter new article broadcast',
+    readSource('lib/newsletter/new-article-broadcast.ts').includes('newsletter_new_article'),
+    'queue on first publish',
+  );
+  record(
+    'Newsletter broadcast wired on publish',
+    readSource('lib/notifications/handlers/article.ts').includes('queueNewsletterNewArticleBroadcastSafe'),
+    'article handler',
+  );
+  record(
+    'Admin article pending review handler',
+    readSource('lib/notifications/handlers/admin.ts').includes('ARTICLE_PENDING_REVIEW'),
+    'notify all active admins',
+  );
+  record(
+    'Admin contributor application handler',
+    readSource('lib/notifications/handlers/admin.ts').includes('CONTRIBUTOR_APPLICATION_PENDING'),
+    'notify all active admins',
   );
   record(
     'Email hooks — contributor review',
@@ -99,15 +144,22 @@ async function main() {
     'clerk-user wires welcome email',
   );
 
-  const templates = readSource('lib/email/templates.ts');
+  const templates = readSource('lib/email/template-definitions.ts');
   for (const id of [
     'article_rejected',
+    'article_approved',
     'contributor_approved',
     'contributor_rejected',
     'welcome_user',
+    'newsletter_new_article',
   ]) {
-    record(`Email template: ${id}`, templates.includes(`'${id}'`), 'render case');
+    record(`Email template: ${id}`, templates.includes(`'${id}'`), 'definition + render');
   }
+  record(
+    'Email template config admin API',
+    readSource('app/api/admin/email-templates/route.ts').includes('listEmailTemplateConfigs'),
+    'CRUD + preview',
+  );
 
   // Session modals (welcome only new users; daily once per Jakarta day)
   const sessionQueries = readSource('lib/notifications/queries.ts');
@@ -158,11 +210,18 @@ async function main() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ outboxId: 'test' }),
     });
+    const hasQueueSecret = Boolean(process.env.EMAIL_QUEUE_SECRET?.trim());
+    const hasQstashKeys = Boolean(
+      process.env.QSTASH_CURRENT_SIGNING_KEY?.trim() &&
+        process.env.QSTASH_NEXT_SIGNING_KEY?.trim(),
+    );
+    const expectUnauthorized =
+      hasQueueSecret || hasQstashKeys || process.env.NODE_ENV !== 'development';
     record(
       'POST /api/internal/email/process unauthenticated',
-      internal.status === 401 || internal.status === 403,
+      expectUnauthorized ? internal.status === 401 : internal.status !== 401,
       `status=${internal.status}`,
-      process.env.NODE_ENV === 'development' && !process.env.EMAIL_QUEUE_SECRET,
+      !expectUnauthorized,
     );
   } catch (error) {
     record(

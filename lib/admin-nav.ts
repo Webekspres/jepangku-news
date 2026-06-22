@@ -20,6 +20,7 @@ import {
   Megaphone,
   Share2,
   Mail,
+  Settings2,
 } from 'lucide-react';
 
 export type AdminNavItem = {
@@ -104,6 +105,11 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         href: '/admin/activity-log',
         label: 'Audit Log',
         icon: ScrollText,
+      },
+      {
+        href: '/admin/email-config',
+        label: 'Konfigurasi Email',
+        icon: Settings2,
       },
     ],
   },

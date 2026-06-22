@@ -103,23 +103,23 @@ export default function HomeReactionsSection({
           </p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-9">
             {data.emojiStats.map((stat) => (
-              <div
+              <Link
                 key={stat.type}
+                href={`/reactions/${stat.type.toLowerCase()}`}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-lg border border-jepang-border bg-jepang-off-white p-3",
+                  "flex flex-col items-center gap-0.5 rounded-lg border border-jepang-border bg-jepang-off-white p-3 transition-colors hover:border-jepang-red/40 hover:bg-white",
                   stat.count > 0 && "border-jepang-red/20",
                 )}
                 data-testid={`home-reaction-stat-${stat.type}`}
               >
-                {/* TODO: perbesar ukuran iconnya dan buat jadi link perkecil jarak count dan labelnya */}
-                <ReactionIcon src={stat.iconSrc} size={32} />
-                <span className="font-heading text-lg font-black tabular-nums">
+                <ReactionIcon src={stat.iconSrc} size={40} />
+                <span className="font-heading text-lg font-black tabular-nums leading-none">
                   {stat.count}
                 </span>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted leading-tight">
                   {stat.label}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

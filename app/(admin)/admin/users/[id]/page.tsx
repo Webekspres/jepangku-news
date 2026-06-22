@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Award, FileText, Bookmark } from "lucide-react";
+import { useAdminBreadcrumbs } from "@/components/admin/AdminBreadcrumbContext";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,24 @@ export default function AdminUserDetailPage() {
         setLoading(false);
       });
   }, [id]);
+
+  const breadcrumbCrumbs = useMemo(() => {
+    if (!id) return null;
+    if (loading) {
+      return [
+        { href: "/admin/users", label: "Pengguna" },
+        { label: "Detail Pengguna" },
+      ];
+    }
+    if (!data?.user) return null;
+    return [
+      { href: "/admin/users", label: "Pengguna" },
+      { label: "Detail Pengguna" },
+      { label: `@${data.user.username}` },
+    ];
+  }, [id, loading, data]);
+
+  useAdminBreadcrumbs(breadcrumbCrumbs);
 
   if (loading)
     return (
@@ -134,7 +153,6 @@ export default function AdminUserDetailPage() {
         </div>
       }
     >
-      {/* TODO:perbarui breadcrumb di atasnya menjadi Pengguna > Detail Pengguna > @username */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {

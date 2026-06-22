@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
+import AdBannerUploadField from "@/components/admin/ads/AdBannerUploadField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AD_SLOT_POSITIONS } from "@/lib/ads/constants";
@@ -88,15 +89,11 @@ export default function AdminAdCreatePage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">URL gambar *</label>
-              <Input
-                value={form.imageUrl}
-                onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
-                placeholder="https://..."
-                required
-              />
-            </div>
+            <AdBannerUploadField
+              position={form.position}
+              imageUrl={form.imageUrl}
+              onImageUrlChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+            />
 
             <div>
               <label className="block text-sm font-semibold mb-1.5">URL tujuan (klik)</label>

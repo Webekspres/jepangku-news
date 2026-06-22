@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Link2, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import {
   SOCIAL_PLATFORM_ORDER,
@@ -24,6 +26,15 @@ export default function AdminSocialLinksPage() {
   const [links, setLinks] = useState<DraftLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [stats, setStats] = useState<{ total: number; active: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/social-links/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     fetch("/api/admin/social-links")
@@ -59,6 +70,9 @@ export default function AdminSocialLinksPage() {
       }
       setLinks(data.links ?? links);
       toast.success("Link sosial media disimpan");
+      fetch("/api/admin/social-links/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch {
       toast.error("Gagal menyimpan");
     } finally {
@@ -66,19 +80,49 @@ export default function AdminSocialLinksPage() {
     }
   };
 
+  const enabledCount = links.filter((l) => l.isEnabled && l.href).length;
+
   return (
     <AdminPageLayout
       testId="admin-social-links"
       title="Sosial Media"
       subtitle="Kelola link profil yang tampil di navbar dan sidebar portal"
+      headerActions={
+        <Button onClick={handleSave} disabled={loading || saving} data-testid="social-save">
+          {saving ? "Menyimpan..." : "Simpan Perubahan"}
+        </Button>
+      }
     >
-      {/* TODO: tambahkan card stats untuk mengetahui total link sosial media yang ada linknya dan total link sosial media yang aktif */}
-      {/* TODO: rapihkan UI tablenya agar UX nya nyaman */}
-      <AdminCard title="Profil Sosial Media" variant="panel" noPadding>
+      <AdminStatCards
+        loading={statsLoading}
+        skeletonCount={2}
+        gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        items={[
+          {
+            label: "Link Terisi",
+            value: stats?.total ?? 0,
+            icon: Link2,
+            testId: "stat-total-link",
+          },
+          {
+            label: "Link Aktif",
+            value: stats?.active ?? 0,
+            icon: CheckCircle,
+            testId: "stat-link-aktif",
+          },
+        ]}
+      />
+      <AdminCard
+        title={`${SOCIAL_PLATFORM_ORDER.length} PLATFORM · ${enabledCount} AKTIF`}
+        variant="list"
+        noPadding
+      >
         {loading ? (
-          <div className="space-y-4 p-5">
+          <div className="divide-y divide-jepang-border">
             {SOCIAL_PLATFORM_ORDER.map((id) => (
-              <SkeletonBox key={id} height="4rem" width="100%" />
+              <div key={id} className="p-4">
+                <SkeletonBox height="3rem" width="100%" />
+              </div>
             ))}
           </div>
         ) : (
@@ -96,16 +140,35 @@ export default function AdminSocialLinksPage() {
               return (
                 <div
                   key={id}
-                  className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-end"
+                  className="p-4 hover:bg-jepang-off-white transition-colors"
                   data-testid={`social-link-row-${id}`}
                 >
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor={`social-url-${id}`} className="font-semibold">
-                        {meta.label}
-                      </Label>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3 min-w-0 sm:w-36 shrink-0">
+                      <span className="font-semibold text-sm">{meta.label}</span>
+                      <Badge variant={link.isEnabled ? "success" : "muted"}>
+                        {link.isEnabled ? "Aktif" : "Nonaktif"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <Input
+                        id={`social-url-${id}`}
+                        type="url"
+                        placeholder={meta.defaultUrl}
+                        value={link.href}
+                        onChange={(e) => updateLink(id, { href: e.target.value })}
+                        disabled={!link.isEnabled}
+                        data-testid={`social-url-${id}`}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
                       <div className="flex items-center gap-2">
-                        <Label htmlFor={`social-enabled-${id}`} className="text-xs text-jepang-muted">
+                        <Label
+                          htmlFor={`social-enabled-${id}`}
+                          className="text-xs text-jepang-muted whitespace-nowrap"
+                        >
                           Tampilkan
                         </Label>
                         <Switch
@@ -117,41 +180,26 @@ export default function AdminSocialLinksPage() {
                           data-testid={`social-enabled-${id}`}
                         />
                       </div>
+                      {link.isEnabled && link.href ? (
+                        <Button variant="outline" size="sm" asChild>
+                          <Link
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            prefetch={false}
+                          >
+                            <ExternalLink size={14} className="mr-1.5" />
+                            Pratinjau
+                          </Link>
+                        </Button>
+                      ) : null}
                     </div>
-                    <Input
-                      id={`social-url-${id}`}
-                      type="url"
-                      placeholder={meta.defaultUrl}
-                      value={link.href}
-                      onChange={(e) => updateLink(id, { href: e.target.value })}
-                      disabled={!link.isEnabled}
-                      data-testid={`social-url-${id}`}
-                    />
                   </div>
-                  {link.isEnabled && link.href ? (
-                    <Button variant="outline" size="sm" asChild className="shrink-0">
-                      <Link
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        prefetch={false}
-                      >
-                        <ExternalLink size={14} className="mr-1.5" />
-                        Pratinjau
-                      </Link>
-                    </Button>
-                  ) : null}
                 </div>
               );
             })}
           </div>
         )}
-
-        <div className="flex justify-end border-t border-jepang-border px-5 py-4">
-          <Button onClick={handleSave} disabled={loading || saving} data-testid="social-save">
-            {saving ? "Menyimpan..." : "Simpan Perubahan"}
-          </Button>
-        </div>
       </AdminCard>
     </AdminPageLayout>
   );

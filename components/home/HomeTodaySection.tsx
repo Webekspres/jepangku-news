@@ -5,6 +5,7 @@ import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
+import TrendingArticlesPanel from "@/components/home/TrendingArticlesPanel";
 import PopularTags from "@/components/PopularTags";
 import { useAdSlot } from "@/hooks/useAdSlot";
 import type { HomeArticle } from "@/lib/home/article-include";
@@ -14,12 +15,14 @@ const TODAY_ARTICLE_LIMIT = 6;
 
 type HomeTodaySectionProps = {
   articles: HomeArticle[];
+  trending: HomeArticle[];
   todaySource: "today" | "fallback";
   loading: boolean;
 };
 
 export default function HomeTodaySection({
   articles,
+  trending,
   todaySource,
   loading,
 }: HomeTodaySectionProps) {
@@ -84,15 +87,21 @@ export default function HomeTodaySection({
                 className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start"
                 data-testid="home-today-sidebar"
               >
-                {/* TODO: di aside buat tag popularnya lebih besar dan menonjol diatas ini tampilkan juga  yang sedang TrendingArticlesPanel*/}
+                <TrendingArticlesPanel
+                  articles={trending.slice(0, 5)}
+                  loading={loading}
+                  testIdPrefix="home-today-trending"
+                />
+
                 <div
-                  className="rounded-lg border border-jepang-border bg-white p-5 shadow-jepang"
+                  className="rounded-lg border-2 border-jepang-red/20 bg-white p-6 shadow-jepang"
                   aria-label="Topik populer"
                   data-testid="home-today-hot-topics"
                 >
                   <PopularTags
                     limit={12}
                     title="ホット / HOT TOPIC"
+                    variant="prominent"
                     className="w-full"
                   />
                 </div>

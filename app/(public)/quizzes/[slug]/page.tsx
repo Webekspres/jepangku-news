@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
 import QuizBreadcrumb from "@/components/quizzes/QuizBreadcrumb";
+import QuizDetailSidebar from "@/components/quizzes/QuizDetailSidebar";
 import QuizLeaderboard from "@/components/quizzes/QuizLeaderboard";
 
 export default function QuizDetailPage() {
@@ -175,8 +176,8 @@ export default function QuizDetailPage() {
   return (
     <div className="bg-white min-h-screen" data-testid="quiz-detail-page">
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="max-w-3xl mx-auto">
-          {/* TODO:  tambahkan aside yangn isinya rekomendasi kuis lain dan dibawahnya artikel trending dibawahnya iklan */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="mx-auto w-full max-w-4xl min-w-0 lg:mx-0">
           <QuizBreadcrumb isLoading={isLoading} title={quiz?.title} />
 
           {!isLoading && quiz.thumbnailUrl && (
@@ -401,6 +402,13 @@ export default function QuizDetailPage() {
               <CommentSection targetType="QUIZ" targetId={quiz.id} />
             </>
           )}
+          </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <QuizDetailSidebar excludeQuizSlug={slug} />
+            </div>
+          </aside>
         </div>
       </div>
     </div>

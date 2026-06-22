@@ -143,6 +143,7 @@ model User {
   emailOutbox           EmailOutbox[]
   newsletterSubscriptions NewsletterSubscription[]
   categorySubscriptions CategorySubscription[]
+  emailTemplateConfigsUpdated EmailTemplateConfig[] @relation("EmailTemplateEditor")
 
   @@map("users")
 }
@@ -213,8 +214,9 @@ model Category {
   description String?
   iconUrl     String?   @map("icon_url")
   color       String?
-  isActive    Boolean   @default(true) @map("is_active")
-  sortOrder   Int       @default(0) @map("sort_order")
+  isActive      Boolean   @default(true) @map("is_active")
+  showInNavbar  Boolean   @default(false) @map("show_in_navbar")
+  sortOrder     Int       @default(0) @map("sort_order")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
@@ -765,4 +767,21 @@ model NewsletterSubscription {
 
   @@index([isActive, subscribedAt(sort: Desc)])
   @@map("newsletter_subscriptions")
+}
+
+model EmailTemplateConfig {
+  id          String   @id @default(uuid())
+  templateId  String   @unique @map("template_id")
+  subject     String
+  heading     String
+  bodyHtml    String   @map("body_html") @db.Text
+  ctaLabel    String   @map("cta_label")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  updatedById String?  @map("updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation("EmailTemplateEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("email_template_configs")
 }

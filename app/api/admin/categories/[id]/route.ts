@@ -3,6 +3,8 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
+import { MAX_NAVBAR_CATEGORIES } from '@/lib/categories/constants';
+import { countNavbarCategories } from '@/lib/categories/navbar';
 
 export async function PATCH(
   request: NextRequest,
@@ -12,10 +14,20 @@ export async function PATCH(
   if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
 
   const { id } = await params;
-  const { name, description, iconUrl, color, isActive, sortOrder } = await request.json();
+  const { name, description, isActive, sortOrder, showInNavbar } = await request.json();
 
   const category = await db.category.findUnique({ where: { id } });
   if (!category) return NextResponse.json({ error: 'Kategori tidak ditemukan' }, { status: 404 });
+
+  if (showInNavbar === true && !category.showInNavbar) {
+    const navbarCount = await countNavbarCategories(id);
+    if (navbarCount >= MAX_NAVBAR_CATEGORIES) {
+      return NextResponse.json(
+        { error: `Maksimal ${MAX_NAVBAR_CATEGORIES} kategori di navbar` },
+        { status: 400 },
+      );
+    }
+  }
 
   // Cek duplikat nama/slug jika nama diubah
   if (name && name.trim() !== category.name) {
@@ -35,9 +47,8 @@ export async function PATCH(
     data: {
       ...(name !== undefined && { name: name.trim(), slug }),
       ...(description !== undefined && { description: description?.trim() || null }),
-      ...(iconUrl !== undefined && { iconUrl: iconUrl?.trim() || null }),
-      ...(color !== undefined && { color: color?.trim() || null }),
       ...(isActive !== undefined && { isActive }),
+      ...(showInNavbar !== undefined && { showInNavbar: Boolean(showInNavbar) }),
       ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) }),
     },
   });

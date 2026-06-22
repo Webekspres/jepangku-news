@@ -24,58 +24,27 @@ export default function Footer() {
       className="bg-jepang-navy mt-24"
       data-testid="main-footer"
     >
-      {/* MENU JELAJAHI PINDAHKAN KE BAWAH AKUN FORM NESWLETTER PINDAHKAN KEBAWAH DESCRIPTION LOGO, DAN BUAT KOLOM DESKRIPTION LOGO LEBIH LEBAR DARI KOLOM LAINNYA DAN DEKRIPSI DI KOLOM SATU LEBIHH LEBAR DAN RATA KANAN */}
       <div className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 text-white">
-          <div className="col-span-2 md:col-span-1">
-          <AssetImage
-              src="/assets/images/logo/Logo-02-dark.svg"
-              alt="Jepangku"
-              width={160}
-              height={48}
-              className="h-40 w-auto mb-4"
-              {...imageLoadingProps(false)}
-            />
-            <p className="text-sm text-zinc-400 leading-relaxed mb-4">
-              Portal media interaktif bertema Jepang untuk pembaca Indonesia.
-            </p>
-          </div>
-          <div>
-            <p className="section-label text-jepang-orange mb-3">Jelajahi</p>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link
-                  href="/articles"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Artikel
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/quizzes"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Kuis
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/polls"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Polling
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/leaderboard"
-                  className="hover:text-jepang-red transition-colors"
-                >
-                  Peringkat
-                </Link>
-              </li>
-            </ul>
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-8 text-white">
+          <div className="col-span-2 md:col-span-3 text-right">
+            <div className="flex flex-col items-end">
+              <AssetImage
+                src="/assets/images/logo/Logo-02-dark.svg"
+                alt="Jepangku"
+                width={160}
+                height={48}
+                className="h-40 w-auto mb-4"
+                {...imageLoadingProps(false)}
+              />
+              <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-sm ml-auto">
+                Portal media interaktif bertema Jepang untuk pembaca Indonesia.
+              </p>
+              <div className="w-full max-w-sm ml-auto">
+                <FooterNewsletterForm
+                  defaultEmail={isAuthUser(user) ? user.email : ""}
+                />
+              </div>
+            </div>
           </div>
           <div>
             <p className="section-label text-jepang-orange mb-3">Kategori</p>
@@ -234,9 +203,41 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <FooterNewsletterForm
-              defaultEmail={isAuthUser(user) ? user.email : ""}
-            />
+            <p className="section-label text-jepang-orange mb-3">Jelajahi</p>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href="/articles"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Artikel
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/quizzes"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Kuis
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/polls"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Polling
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/leaderboard"
+                  className="hover:text-jepang-red transition-colors"
+                >
+                  Peringkat
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
         <div className="mt-12 pt-6 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">

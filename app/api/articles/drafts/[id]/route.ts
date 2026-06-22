@@ -95,7 +95,21 @@ export async function PATCH(
       }
     }
 
+    const previousStatus = article.status;
     const updated = await db.article.update({ where: { id }, data: updateData });
+
+    if (
+      updated.status === 'PUBLISHED' &&
+      previousStatus !== 'PUBLISHED'
+    ) {
+      dispatchNotificationEventSafe({
+        type: 'article.status_changed',
+        articleId: article.id,
+        reviewerId: user.id,
+        previousStatus,
+        newStatus: 'PUBLISHED',
+      });
+    }
 
     if (tags !== undefined && Array.isArray(tags)) {
       await syncArticleTags(id, tags);

@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import CardCoverImage from "@/components/CardCoverImage";
 import { ArrowRight, TrendingUp } from "lucide-react";
-import { imageLoadingProps } from "@/lib/image-loading";
+import { resolveThumbnailUrl } from "@/lib/image-placeholder";
 import { cn } from "@/lib/utils";
 
 export type TrendingArticleItem = {
@@ -24,7 +24,7 @@ type TrendingArticlesPanelProps = {
 };
 
 function getCoverUrl(article: TrendingArticleItem) {
-  return article.coverImageUrl ?? article.cover_image_url ?? null;
+  return resolveThumbnailUrl(article);
 }
 
 function getWeeklyViews(article: TrendingArticleItem) {
@@ -95,20 +95,11 @@ export default function TrendingArticlesPanel({
                   className="relative h-14 w-[72px] shrink-0 overflow-hidden rounded-sm bg-jepang-off-white md:h-16 md:w-20"
                   data-testid={`${testIdPrefix}-thumbnail-${article.slug}`}
                 >
-                  {thumbnailUrl ? (
-                    <Image
-                      src={thumbnailUrl}
-                      alt={article.title}
-                      fill
-                      sizes="70px"
-                      className="object-cover"
-                      {...imageLoadingProps(false)}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wider text-jepang-muted">
-                      —
-                    </div>
-                  )}
+                  <CardCoverImage
+                    src={thumbnailUrl}
+                    alt={article.title}
+                    sizes="70px"
+                  />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <Link

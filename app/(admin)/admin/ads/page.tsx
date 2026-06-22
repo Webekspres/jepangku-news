@@ -1,39 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Megaphone } from "lucide-react";
+import { Plus, Megaphone, Image } from "lucide-react";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
+import AdminAdsTable, {
+  type AdminAdListItem,
+} from "@/components/admin/ads/AdminAdsTable";
 import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
-import { AD_SLOT_POSITIONS, getAdSlotLabel } from "@/lib/ads/constants";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-type AdminAd = {
-  id: string;
-  position: string;
-  title: string | null;
-  imageUrl: string;
-  linkUrl: string | null;
-  isActive: boolean;
-  startAt: string | null;
-  endAt: string | null;
-  sortOrder: number;
-};
+import { AD_SLOT_POSITIONS } from "@/lib/ads/constants";
 
 const POSITION_FILTERS = [
   { value: "", label: "Semua" },
@@ -44,11 +26,20 @@ const POSITION_FILTERS = [
 ];
 
 export default function AdminAdsPage() {
-  const [ads, setAds] = useState<AdminAd[]>([]);
+  const [ads, setAds] = useState<AdminAdListItem[]>([]);
   const [positionFilter, setPositionFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<{ total: number; active: number } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/ads/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadAds();
@@ -65,7 +56,7 @@ export default function AdminAdsPage() {
     setLoading(false);
   };
 
-  const handleToggleActive = async (ad: AdminAd) => {
+  const handleToggleActive = async (ad: AdminAdListItem) => {
     const res = await fetch(`/api/admin/ads/${ad.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -77,9 +68,12 @@ export default function AdminAdsPage() {
     }
     toast.success(ad.isActive ? "Iklan dinonaktifkan" : "Iklan diaktifkan");
     loadAds();
+    fetch("/api/admin/ads/stats")
+      .then((r) => r.json())
+      .then(setStats);
   };
 
-  const handleDelete = (ad: AdminAd) => {
+  const handleDelete = (ad: AdminAdListItem) => {
     confirm({
       title: "Hapus Banner?",
       description: `"${ad.title || ad.position}" akan dihapus permanen.`,
@@ -115,8 +109,26 @@ export default function AdminAdsPage() {
           </Button>
         }
       >
-        {/* TODO: tambahkan card stats untuk mengetahui total banner dan total banner yang aktif */}
-        {/* TODO: rapihkan UI tablenya agar UX nya nyaman tampilkan waktu aktif sampai waktu berakhir dan sisa hari, kemudian saya ingin ukuran lebar dan tinggi yang jelas sehingga ketiga gambar diupload ada crop gambar dulu, seperti saat upload foto profile, gunakan komponen yang sudah ada pastikan jelas pemisahan komponennya */}
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={2}
+          gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          items={[
+            {
+              label: "Total Banner",
+              value: stats?.total ?? 0,
+              icon: Image,
+              testId: "stat-total-banner",
+            },
+            {
+              label: "Banner Aktif",
+              value: stats?.active ?? 0,
+              icon: Megaphone,
+              testId: "stat-banner-aktif",
+            },
+          ]}
+        />
+
         <AdminToolbar>
           <AdminFilterButtons
             options={POSITION_FILTERS}
@@ -143,69 +155,11 @@ export default function AdminAdsPage() {
               description="Tambah banner pertama!"
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Banner</TableHead>
-                  <TableHead>Slot</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Urutan</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ads.map((ad) => (
-                  <TableRow key={ad.id} data-testid={`admin-ad-row-${ad.id}`}>
-                    <TableCell>
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={ad.imageUrl}
-                          alt=""
-                          className="h-12 w-20 rounded object-cover border border-jepang-border shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="font-semibold line-clamp-1">
-                            {ad.title || "Tanpa judul"}
-                          </p>
-                          {ad.linkUrl ? (
-                            <p className="text-xs text-jepang-muted truncate max-w-[200px]">
-                              {ad.linkUrl}
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-mono">{getAdSlotLabel(ad.position)}</TableCell>
-                    <TableCell>
-                      <button type="button" onClick={() => handleToggleActive(ad)}>
-                        <Badge variant={ad.isActive ? "success" : "muted"}>
-                          {ad.isActive ? "Aktif" : "Nonaktif"}
-                        </Badge>
-                      </button>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{ad.sortOrder}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button size="sm" variant="ghost" asChild>
-                          <Link href={`/admin/ads/${ad.id}/edit`}>
-                            <Pencil size={14} />
-                          </Link>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-jepang-red hover:text-jepang-red"
-                          onClick={() => handleDelete(ad)}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <AdminAdsTable
+              ads={ads}
+              onToggleActive={handleToggleActive}
+              onDelete={handleDelete}
+            />
           )}
         </AdminCard>
       </AdminPageLayout>

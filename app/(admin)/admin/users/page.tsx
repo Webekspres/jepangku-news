@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Users, Shield, User, PenSquare } from "lucide-react";
+import { Users, Shield, User, PenSquare, UserCheck, Ban, UserX, Sparkles } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import {
   AdminFilterButtons,
   AdminSearchInput,
@@ -30,7 +31,22 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    banned: number;
+    inactive: number;
+    draft: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/users/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadUsers();
@@ -79,6 +95,9 @@ export default function AdminUsersPage() {
         });
         toast.success("Role berhasil diperbarui");
         loadUsers();
+        fetch("/api/admin/users/stats")
+          .then((r) => r.json())
+          .then(setStats);
       },
     });
   };
@@ -101,6 +120,9 @@ export default function AdminUsersPage() {
         });
         toast.success("Status berhasil diperbarui");
         loadUsers();
+        fetch("/api/admin/users/stats")
+          .then((r) => r.json())
+          .then(setStats);
       },
     });
   };
@@ -127,8 +149,43 @@ export default function AdminUsersPage() {
         }
         subtitle={loading ? "..." : `${users.length} PENGGUNA`}
       >
-        {/* TODO: tambahkan card stats untuk mengetahui total pengguna dan total pengguna yang aktif dan total pengguna yang diblokir dan total pengguna yang draft serta yang tidak aktid */}
-        {/* TODO: tambahkan tombol jadikan admin juga untuk yang jadi kontributor */}
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={5}
+          gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          items={[
+            {
+              label: "Total Pengguna",
+              value: stats?.total ?? users.length,
+              icon: Users,
+              testId: "stat-total-pengguna",
+            },
+            {
+              label: "Aktif",
+              value: stats?.active ?? 0,
+              icon: UserCheck,
+              testId: "stat-pengguna-aktif",
+            },
+            {
+              label: "Diblokir",
+              value: stats?.banned ?? 0,
+              icon: Ban,
+              testId: "stat-pengguna-diblokir",
+            },
+            {
+              label: "Belum Welcome",
+              value: stats?.draft ?? 0,
+              icon: Sparkles,
+              testId: "stat-pengguna-draft",
+            },
+            {
+              label: "Tidak Aktif",
+              value: stats?.inactive ?? 0,
+              icon: UserX,
+              testId: "stat-pengguna-tidak-aktif",
+            },
+          ]}
+        />
         <AdminToolbar>
           <AdminFilterButtons
             options={roleFilters}
@@ -321,14 +378,25 @@ export default function AdminUsersPage() {
                             </Button>
                           </>
                         ) : user.role === "CONTRIBUTOR" ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRoleChange(user.id, "USER")}
-                            data-testid={`demote-${user.id}`}
-                          >
-                            Jadikan Pengguna
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
+                              onClick={() => handleRoleChange(user.id, "ADMIN")}
+                              data-testid={`promote-admin-${user.id}`}
+                            >
+                              Jadikan Admin
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRoleChange(user.id, "USER")}
+                              data-testid={`demote-${user.id}`}
+                            >
+                              Jadikan Pengguna
+                            </Button>
+                          </>
                         ) : (
                           <Button
                             size="sm"

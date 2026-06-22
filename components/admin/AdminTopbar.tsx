@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAdminBreadcrumbOverrides } from '@/components/admin/AdminBreadcrumbContext';
 import { getAdminBreadcrumbs } from '@/lib/admin-nav';
 import UserAvatar from '@/components/media/UserAvatar';
 import NotificationBellMenu from '@/components/notifications/NotificationBellMenu';
@@ -26,7 +27,8 @@ export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const authUser = isAuthUser(user) ? user : null;
-  const breadcrumbs = getAdminBreadcrumbs(pathname);
+  const breadcrumbOverrides = useAdminBreadcrumbOverrides();
+  const breadcrumbs = breadcrumbOverrides ?? getAdminBreadcrumbs(pathname);
 
   const handleLogout = async () => {
     await logout();

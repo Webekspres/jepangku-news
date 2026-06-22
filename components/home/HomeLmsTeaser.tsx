@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Award, BarChart3, BookOpen, GraduationCap } from "lucide-react";
+import AssetImage from "@/components/AssetImage";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import { Button } from "@/components/ui/button";
 import { MotionHoverScale } from "@/components/ui/motion";
@@ -161,7 +162,21 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
               Kursus JLPT interaktif dengan progress tracking — powered by Jepangku LMS.
             </p>
           </div>
-          {/* TODO: tambahkan logo jepangku lms di sini (jepangkunihongo)*/}
+          <Link
+            href={data.catalogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 self-start md:self-end"
+            data-testid="lms-nihongo-logo-link"
+          >
+            <AssetImage
+              src="/assets/images/logo/Logo-Nihongo.svg"
+              alt="Jepangku Nihongo LMS"
+              width={140}
+              height={48}
+              className="h-10 w-auto opacity-90 transition-opacity hover:opacity-100 md:h-12"
+            />
+          </Link>
         </div>
 
         <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">

@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, XCircle, Zap, Trash2, BarChart2 } from "lucide-react";
+import { Plus, Pencil, XCircle, Zap, Trash2, BarChart2, MessageSquare, FileEdit } from "lucide-react";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,8 +56,22 @@ export default function AdminPollsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    draft: number;
+    closed: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
   const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
+
+  useEffect(() => {
+    fetch("/api/admin/polls/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     loadPolls();
@@ -169,9 +184,41 @@ export default function AdminPollsPage() {
           </Button>
         }
       >
-        {/* TODO: tambahkan card stats untuk mengetahui total polling dan total polling yang aktif dan total polling yang draft serta yang ditutup serta kuis juga*/}
-        {/* TODO: pindahkan halaman analytics ke halaman polling (admin/polls/[id]/analytics) */}
-        {/* tambahkan halaman admin/polls/[id] untuk melihat detail polling dan pertanyaannya */}
+        <AdminStatCards
+          loading={statsLoading}
+          skeletonCount={4}
+          gridClassName="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          items={[
+            {
+              label: "Total Polling",
+              value: stats?.total ?? 0,
+              icon: MessageSquare,
+              onClick: () => setStatusFilter(""),
+              testId: "stat-total-polling",
+            },
+            {
+              label: "Aktif",
+              value: stats?.active ?? 0,
+              icon: Zap,
+              onClick: () => setStatusFilter("ACTIVE"),
+              testId: "stat-polling-aktif",
+            },
+            {
+              label: "Draf",
+              value: stats?.draft ?? 0,
+              icon: FileEdit,
+              onClick: () => setStatusFilter("DRAFT"),
+              testId: "stat-polling-draft",
+            },
+            {
+              label: "Ditutup",
+              value: stats?.closed ?? 0,
+              icon: XCircle,
+              onClick: () => setStatusFilter("CLOSED"),
+              testId: "stat-polling-ditutup",
+            },
+          ]}
+        />
         <AdminToolbar>
           <AdminFilterButtons
             options={statusFilters}
@@ -277,7 +324,7 @@ export default function AdminPollsPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/admin/analytics/polls/${poll.id}`)}
+                          onClick={() => router.push(`/admin/polls/${poll.id}/analytics`)}
                           data-testid={`poll-stats-${poll.id}`}
                           className="border-jepang-red text-jepang-red hover:bg-jepang-red hover:text-white"
                         >

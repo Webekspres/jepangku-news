@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageShell from "@/components/admin/AdminPageShell";
-import AnalyticsNav from "@/components/admin/AnalyticsNav";
 import PeriodSelector from "@/components/admin/PeriodSelector";
 import SimpleBarChart from "@/components/admin/SimpleBarChart";
 import type { AnalyticsPeriod } from "@/lib/analytics";
@@ -50,7 +49,6 @@ function ArticleAnalyticsContent() {
       backHref="/admin/analytics/content"
       backLabel="Kembali ke Performa Artikel"
     >
-      <AnalyticsNav extra={{ href: "#", label: "Detail Artikel" }} />
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <PeriodSelector value={period} onChange={setPeriod} />

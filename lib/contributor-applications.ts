@@ -139,6 +139,13 @@ export async function createContributorApplication(
     occurredAt: created.createdAt,
   });
 
+  dispatchNotificationEventSafe({
+    type: 'contributor.application_submitted',
+    applicationId: created.id,
+    applicantUserId: userId,
+    applicantName: created.user.name,
+  });
+
   return {
     id: created.id,
     status: created.status,

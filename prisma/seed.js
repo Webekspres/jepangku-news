@@ -175,6 +175,7 @@ async function main() {
           color: cat.color,
           sortOrder: i,
           isActive: true,
+          showInNavbar: i < 9,
         },
       });
       console.log(`✅ Created category: ${cat.name}`);

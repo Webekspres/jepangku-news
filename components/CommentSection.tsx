@@ -683,6 +683,7 @@ export default function CommentSection({
           c.isPending && "opacity-90",
         )}
         data-testid={`comment-${c.id}`}
+        id={`comment-${c.id}`}
       >
         <Avatar author={c.author} />
         <div className="flex-1 min-w-0">

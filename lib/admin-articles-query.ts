@@ -29,11 +29,16 @@ export function buildAdminArticlesWhere(searchParams: URLSearchParams): Prisma.A
   const authorId = searchParams.get('authorId');
   if (authorId) where.authorId = authorId;
 
-  const categoryId = searchParams.get('categoryId');
-  if (categoryId) {
-    where.category = {
-      OR: [{ id: categoryId }, { slug: categoryId }],
-    };
+  const missingCategory = searchParams.get('missingCategory');
+  if (missingCategory === 'true' || missingCategory === '1') {
+    where.categoryId = null;
+  } else {
+    const categoryId = searchParams.get('categoryId');
+    if (categoryId) {
+      where.category = {
+        OR: [{ id: categoryId }, { slug: categoryId }],
+      };
+    }
   }
 
   const search = searchParams.get('search')?.trim();

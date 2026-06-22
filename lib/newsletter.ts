@@ -14,7 +14,7 @@ export function isValidNewsletterEmail(email: string): boolean {
   return normalized.length <= 320 && EMAIL_RE.test(normalized);
 }
 
-function displayNameFromEmail(email: string): string {
+export function displayNameFromEmail(email: string): string {
   const local = email.split('@')[0] ?? 'Pembaca';
   return local.replace(/[._-]+/g, ' ').trim() || 'Pembaca';
 }

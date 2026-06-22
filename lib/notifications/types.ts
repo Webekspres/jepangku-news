@@ -14,6 +14,12 @@ export type NewsNotificationEvent =
       note?: string | null;
     }
   | {
+      type: 'contributor.application_submitted';
+      applicationId: string;
+      applicantUserId: string;
+      applicantName: string;
+    }
+  | {
       type: 'contributor.reviewed';
       applicationId: string;
       adminId: string;

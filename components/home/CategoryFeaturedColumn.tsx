@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
+import CardCoverImage from "@/components/CardCoverImage";
 import { MotionHoverScale } from "@/components/ui/motion";
 import { formatArticleDate } from "@/lib/home/format-article-date";
-import { imageLoadingProps } from "@/lib/image-loading";
+import { resolveThumbnailUrl } from "@/lib/image-placeholder";
 import type { EditorialFeaturedColumn } from "@/lib/home/types";
 import { Clock, User } from "lucide-react";
 
@@ -42,20 +42,14 @@ export default function CategoryFeaturedColumn({
           className="group relative block overflow-hidden rounded-lg aspect-16/10 mb-4"
           data-testid={`editorial-featured-main-${slug}`}
         >
-          {featured.coverImageUrl ? (
-            <MotionHoverScale className="absolute inset-0">
-              <Image
-                src={featured.coverImageUrl}
-                alt={featured.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-                {...imageLoadingProps(imagePriority)}
-              />
-            </MotionHoverScale>
-          ) : (
-            <div className="absolute inset-0 bg-jepang-navy" />
-          )}
+          <MotionHoverScale className="absolute inset-0">
+            <CardCoverImage
+              src={resolveThumbnailUrl(featured)}
+              alt={featured.title}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority={imagePriority}
+            />
+          </MotionHoverScale>
           <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 text-white">
             {featured.category ? (
@@ -96,20 +90,11 @@ export default function CategoryFeaturedColumn({
               href={`/articles/${article.slug}`}
               className="relative shrink-0 overflow-hidden rounded-sm bg-jepang-off-white w-[72px] h-14 md:w-20 md:h-16"
             >
-              {article.coverImageUrl ? (
-                <Image
-                  src={article.coverImageUrl}
-                  alt={article.title}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                  {...imageLoadingProps(false)}
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-[10px] text-jepang-muted">
-                  —
-                </div>
-              )}
+              <CardCoverImage
+                src={resolveThumbnailUrl(article)}
+                alt={article.title}
+                sizes="80px"
+              />
             </Link>
             <div className="min-w-0 flex-1">
               <Link

@@ -4,8 +4,9 @@ import { adminArticleHref } from '@/lib/audit-log';
 import { getArticleViewHref } from '@/lib/article-view-url';
 import { createNotification } from '@/lib/notifications/create';
 import { notifyAdminsArticlePendingReview } from '@/lib/notifications/handlers/admin';
-import { queueArticleRejectedEmail } from '@/lib/notifications/email-hooks';
+import { queueArticleRejectedEmail, queueArticleApprovedEmail } from '@/lib/notifications/email-hooks';
 import { notifyCategorySubscribersOfArticle } from '@/lib/category-subscriptions';
+import { queueNewsletterNewArticleBroadcastSafe } from '@/lib/newsletter/new-article-broadcast';
 
 export async function handleArticleStatusChanged(params: {
   articleId: string;
@@ -31,8 +32,17 @@ export async function handleArticleStatusChanged(params: {
       articleId: article.id,
       title: article.title,
       authorId: article.authorId,
+      previousStatus: params.previousStatus,
     });
     return;
+  }
+
+  const isFirstPublish =
+    params.newStatus === 'PUBLISHED' && params.previousStatus !== 'PUBLISHED';
+
+  if (isFirstPublish) {
+    queueNewsletterNewArticleBroadcastSafe(article.id);
+    await notifyCategorySubscribersOfArticle(article.id);
   }
 
   if (params.newStatus !== 'PUBLISHED' && params.newStatus !== 'REJECTED') {
@@ -63,7 +73,12 @@ export async function handleArticleStatusChanged(params: {
       },
       priority: 'HIGH',
     });
-    await notifyCategorySubscribersOfArticle(article.id);
+    await queueArticleApprovedEmail({
+      userId: article.authorId,
+      articleId: article.id,
+      articleTitle: article.title,
+      slug: article.slug,
+    });
     return;
   }
 

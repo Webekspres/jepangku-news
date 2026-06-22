@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { queueEmailSafe } from '@/lib/email/queue';
 import { getArticleViewHref } from '@/lib/article-view-url';
+import { toAbsoluteUrl } from '@/lib/site-url';
 
 async function userEmail(userId: string): Promise<{ email: string; name: string } | null> {
   const user = await db.user.findUnique({
@@ -38,6 +39,37 @@ export async function queueArticleRejectedEmail(params: {
       articleTitle: params.articleTitle,
       note: params.note,
       previewUrl,
+    },
+  });
+}
+
+export async function queueArticleApprovedEmail(params: {
+  userId: string;
+  articleId: string;
+  articleTitle: string;
+  slug: string | null;
+}): Promise<void> {
+  const recipient = await userEmail(params.userId);
+  if (!recipient) return;
+
+  const articleUrl = toAbsoluteUrl(
+    getArticleViewHref({
+      id: params.articleId,
+      slug: params.slug,
+      status: 'PUBLISHED',
+    }),
+  );
+
+  queueEmailSafe({
+    userId: params.userId,
+    toEmail: recipient.email,
+    template: 'article_approved',
+    subject: `Artikel dipublikasikan: ${params.articleTitle}`,
+    dedupeKey: `email:article_approved:${params.articleId}`,
+    payload: {
+      userName: recipient.name,
+      articleTitle: params.articleTitle,
+      articleUrl,
     },
   });
 }

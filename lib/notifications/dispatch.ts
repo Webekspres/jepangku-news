@@ -3,6 +3,7 @@ import type { NewsNotificationEvent } from '@/lib/notifications/types';
 import { handleArticleStatusChanged } from '@/lib/notifications/handlers/article';
 import { handleContributorReviewed } from '@/lib/notifications/handlers/contributor';
 import { handleCommentCreated } from '@/lib/notifications/handlers/comment';
+import { notifyAdminsContributorApplication } from '@/lib/notifications/handlers/admin';
 
 export async function dispatchNotificationEvent(
   event: NewsNotificationEvent,
@@ -15,6 +16,12 @@ export async function dispatchNotificationEvent(
         previousStatus: event.previousStatus,
         newStatus: event.newStatus,
         note: event.note,
+      });
+      break;
+    case 'contributor.application_submitted':
+      await notifyAdminsContributorApplication({
+        applicationId: event.applicationId,
+        applicantName: event.applicantName,
       });
       break;
     case 'contributor.reviewed':

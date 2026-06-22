@@ -91,7 +91,7 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 | 4.4 | Poin setelah kuis | ledger | ✅ | [ ] Poin sesuai skor/rules |
 | 4.5 | Leaderboard per kuis | API | ✅ `GET .../leaderboard` | [ ] Monthly & all-time |
 | 4.6 | Admin CRUD kuis | `/admin/quizzes/**` 👑 | ✅ | [ ] Multi-question builder · [ ] Upload gambar |
-| 4.7 | Analytics kuis | `/admin/analytics/quizzes/[id]` 👑 | ✅ | [ ] Attempt, pass rate |
+| 4.7 | Analytics kuis | `/admin/quizzes/[id]/analytics` 👑 | ✅ | [ ] Attempt, pass rate |
 
 ---
 
@@ -103,7 +103,7 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 | 5.2 | Detail & vote | `/polls/[slug]` | ✅ | [ ] Multi-question |
 | 5.3 | Submit vote | `POST /api/polls/[slug]/vote` | ✅ | [ ] Duplicate guard · [ ] Poin |
 | 5.4 | Admin CRUD poll | `/admin/polls/**` 👑 | ✅ | [ ] Builder · [ ] Gambar opsi |
-| 5.5 | Analytics poll | `/admin/analytics/polls/[id]` 👑 | ✅ | [ ] Breakdown vote |
+| 5.5 | Analytics poll | `/admin/polls/[id]/analytics` 👑 | ✅ | [ ] Breakdown vote |
 
 ---
 

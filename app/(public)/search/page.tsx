@@ -4,9 +4,11 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
+import CardCoverImage from "@/components/CardCoverImage";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import SectionHeader from "@/components/SectionHeader";
 import { Search, MessageSquare, Zap, Award } from "lucide-react";
+import { resolveThumbnailUrl } from "@/lib/image-placeholder";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -123,14 +125,25 @@ function SearchResults() {
                     <Link
                       key={quiz.id}
                       href={`/quizzes/${quiz.slug}`}
-                      className="block border border-jepang-border p-5 hover:border-foreground transition-colors"
+                      className="group block overflow-hidden border border-jepang-border hover:border-foreground transition-colors"
                       data-testid={`search-quiz-${quiz.slug}`}
                     >
-                      <Badge variant="black" className="mb-2">KUIS</Badge>
-                      <h3 className="font-heading font-bold text-lg">{quiz.title}</h3>
-                      <p className="text-xs font-mono text-jepang-muted mt-2 uppercase tracking-wider">
-                        {quiz.questionCount || 0} pertanyaan
-                      </p>
+                      <div className="relative aspect-16/10 bg-jepang-off-white">
+                        <CardCoverImage
+                          src={resolveThumbnailUrl(quiz)}
+                          alt={quiz.title}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      </div>
+                      <div className="p-5">
+                        <Badge variant="black" className="mb-2">KUIS</Badge>
+                        <h3 className="font-heading font-bold text-lg group-hover:text-jepang-red transition-colors">
+                          {quiz.title}
+                        </h3>
+                        <p className="text-xs font-mono text-jepang-muted mt-2 uppercase tracking-wider">
+                          {quiz.questionCount || 0} pertanyaan
+                        </p>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -149,21 +162,32 @@ function SearchResults() {
                     <Link
                       key={poll.id}
                       href={`/polls/${poll.slug}`}
-                      className="block border border-jepang-border p-5 hover:border-foreground transition-colors"
+                      className="group block overflow-hidden border border-jepang-border hover:border-foreground transition-colors"
                       data-testid={`search-poll-${poll.slug}`}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant={poll.pollType === "VOTING" ? "red" : "black"}>
-                          {poll.pollType}
-                        </Badge>
-                        <span className="flex items-center gap-1 text-xs font-mono text-jepang-red">
-                          <Award size={11} /> +{poll.pointsReward || 5}
-                        </span>
+                      <div className="relative aspect-16/10 bg-jepang-off-white">
+                        <CardCoverImage
+                          src={resolveThumbnailUrl(poll)}
+                          alt={poll.title}
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
                       </div>
-                      <h3 className="font-heading font-bold text-lg">{poll.title}</h3>
-                      <p className="text-xs font-mono text-jepang-muted mt-2 uppercase tracking-wider">
-                        {poll.totalVotes || 0} suara
-                      </p>
+                      <div className="p-5">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant={poll.pollType === "VOTING" ? "red" : "black"}>
+                            {poll.pollType}
+                          </Badge>
+                          <span className="flex items-center gap-1 text-xs font-mono text-jepang-red">
+                            <Award size={11} /> +{poll.pointsReward || 5}
+                          </span>
+                        </div>
+                        <h3 className="font-heading font-bold text-lg group-hover:text-jepang-red transition-colors">
+                          {poll.title}
+                        </h3>
+                        <p className="text-xs font-mono text-jepang-muted mt-2 uppercase tracking-wider">
+                          {poll.totalVotes || 0} suara
+                        </p>
+                      </div>
                     </Link>
                   ))}
                 </div>

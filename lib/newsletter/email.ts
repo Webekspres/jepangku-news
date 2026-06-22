@@ -41,7 +41,7 @@ export async function queueNewsletterConfirmEmail(params: {
   }
 
   try {
-    const rendered = renderEmailTemplate('newsletter_subscribed', payload);
+    const rendered = await renderEmailTemplate('newsletter_subscribed', payload);
     await sendTransactionalEmail({
       to: params.email,
       subject: rendered.subject || subject,

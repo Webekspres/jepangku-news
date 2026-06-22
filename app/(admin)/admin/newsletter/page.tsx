@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, Mail, UserCheck, UserX } from "lucide-react";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
+import AdminStatCards from "@/components/admin/AdminStatCards";
 import AdminPagination from "@/components/admin/AdminPagination";
 import {
   AdminFilterButtons,
@@ -15,6 +16,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { AdminNewsletterRow } from "@/lib/newsletter";
 
 const STATUS_FILTERS: { value: string; label: string }[] = [
@@ -32,6 +41,17 @@ export default function AdminNewsletterPage() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [stats, setStats] = useState<{ total: number; fromUser: number; nonUser: number } | null>(
+    null,
+  );
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/newsletter/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -71,6 +91,9 @@ export default function AdminNewsletterPage() {
       }
       toast.success("Subscriber dihapus");
       await load();
+      fetch("/api/admin/newsletter/stats")
+        .then((r) => r.json())
+        .then(setStats);
     } catch {
       toast.error("Gagal menghapus");
     } finally {
@@ -97,8 +120,31 @@ export default function AdminNewsletterPage() {
         </Button>
       }
     >
-      {/* TODO: tambahkan card stats untuk mengetahui total subscriber newsletter dan total subscriber newsletter dari user (yang emailnya ada di user) dan total subscriber newsletter yang bukan user*/}
-      {/* TODO: rapihkan UI tablenya agar UX nya nyaman */}
+      <AdminStatCards
+        loading={statsLoading}
+        skeletonCount={3}
+        gridClassName="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        items={[
+          {
+            label: "Total Subscriber",
+            value: stats?.total ?? 0,
+            icon: Mail,
+            testId: "stat-total-subscriber",
+          },
+          {
+            label: "Dari Pengguna",
+            value: stats?.fromUser ?? 0,
+            icon: UserCheck,
+            testId: "stat-subscriber-user",
+          },
+          {
+            label: "Non-Pengguna",
+            value: stats?.nonUser ?? 0,
+            icon: UserX,
+            testId: "stat-subscriber-non-user",
+          },
+        ]}
+      />
       <AdminToolbar>
         <AdminFilterButtons
           options={STATUS_FILTERS}
@@ -116,70 +162,76 @@ export default function AdminNewsletterPage() {
         />
       </AdminToolbar>
 
-      <AdminCard title={`Subscriber (${total})`} variant="panel" noPadding>
-        {loading ? (
-          <div className="p-5 space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonBox key={i} height="3rem" width="100%" />
-            ))}
-          </div>
-        ) : subscriptions.length === 0 ? (
-          <AdminEmptyState
-            title="Belum ada subscriber"
-            description="Subscriber dari form footer akan muncul di sini."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/40 text-left text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Email</th>
-                  <th className="px-4 py-3 font-medium">Akun</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Berlangganan</th>
-                  <th className="px-4 py-3 font-medium w-24" />
-                </tr>
-              </thead>
-              <tbody>
-                {subscriptions.map((row) => (
-                  <tr key={row.id} className="border-b last:border-0">
-                    <td className="px-4 py-3 font-mono text-xs sm:text-sm">{row.email}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {row.username ? `@${row.username}` : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        className={
-                          row.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-zinc-100 text-zinc-600"
-                        }
-                      >
-                        {row.isActive ? "Aktif" : "Nonaktif"}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                      {new Date(row.subscribedAt).toLocaleDateString("id-ID")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        disabled={deletingId === row.id}
-                        onClick={() => handleDelete(row.id)}
-                        aria-label="Hapus subscriber"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <AdminCard
+        title={`${loading ? "..." : total} SUBSCRIBER`}
+        variant="list"
+        noPadding
+        className="overflow-x-auto"
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>EMAIL</TableHead>
+              <TableHead>AKUN</TableHead>
+              <TableHead>STATUS</TableHead>
+              <TableHead>BERLANGGANAN</TableHead>
+              <TableHead className="w-16">AKSI</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading && subscriptions.length === 0 ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><SkeletonBox height="0.9rem" width="12rem" /></TableCell>
+                  <TableCell><SkeletonBox height="0.9rem" width="6rem" /></TableCell>
+                  <TableCell><SkeletonBox height="0.9rem" width="4rem" /></TableCell>
+                  <TableCell><SkeletonBox height="0.9rem" width="5rem" /></TableCell>
+                  <TableCell><SkeletonBox height="1.6rem" width="2rem" /></TableCell>
+                </TableRow>
+              ))
+            ) : subscriptions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="p-0">
+                  <AdminEmptyState
+                    title="Belum ada subscriber"
+                    description="Subscriber dari form footer akan muncul di sini."
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
+              subscriptions.map((row) => (
+                <TableRow key={row.id} data-testid={`newsletter-row-${row.id}`}>
+                  <TableCell className="font-mono text-xs">{row.email}</TableCell>
+                  <TableCell className="text-jepang-muted text-xs">
+                    {row.username ? `@${row.username}` : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={row.isActive ? "success" : "muted"}>
+                      {row.isActive ? "Aktif" : "Nonaktif"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-jepang-muted text-xs whitespace-nowrap">
+                    {new Date(row.subscribedAt).toLocaleDateString("id-ID")}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="border border-jepang-border hover:border-jepang-red hover:text-jepang-red"
+                      disabled={deletingId === row.id}
+                      onClick={() => handleDelete(row.id)}
+                      aria-label="Hapus subscriber"
+                      data-testid={`delete-newsletter-${row.id}`}
+                    >
+                      <Trash2 size={14} strokeWidth={1.5} />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </AdminCard>
 
       <AdminPagination page={page} totalPages={totalPages} onPageChange={setPage} />
