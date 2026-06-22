@@ -6,7 +6,6 @@ import AuthorLink from "@/components/AuthorLink";
 import CardCoverImage from "@/components/CardCoverImage";
 import ReactionIcon from "@/components/reactions/ReactionIcon";
 import { MotionHoverScale } from "@/components/ui/motion";
-import { imageHoverTransition } from "@/lib/motion";
 import { resolveCardImageUrl } from "@/lib/image-placeholder";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -54,22 +53,14 @@ export default function ArticleCard({
       <div
         className="group block relative h-115 md:h-140 overflow-hidden"
       >
-        <div className="absolute inset-0">
-          <motion.div
-            className="absolute inset-0"
-            whileHover={{ opacity: 0.9 }}
-            initial={{ opacity: 0.7 }}
-            animate={{ opacity: 0.7 }}
-            transition={imageHoverTransition}
-          >
-            <CardCoverImage
-              src={coverUrl}
-              alt={article.title}
-              sizes="(max-width: 1024px) 100vw, calc(100vw - 360px)"
-              priority={priority}
-              quality={priority ? 80 : 75}
-            />
-          </motion.div>
+        <div className="absolute inset-0 opacity-70 transition-opacity duration-300 group-hover:opacity-90">
+          <CardCoverImage
+            src={coverUrl}
+            alt={article.title}
+            sizes="(max-width: 1024px) 100vw, calc(100vw - 360px)"
+            priority={priority}
+            quality={priority ? 80 : 75}
+          />
         </div>
         <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
         <div className="absolute top-6 left-6 flex gap-2">

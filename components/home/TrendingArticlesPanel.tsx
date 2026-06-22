@@ -87,7 +87,7 @@ export default function TrendingArticlesPanel({
                 key={article.id}
                 className="flex items-center gap-3 border-b border-jepang-border py-3 last:border-b-0"
               >
-                <span className="w-6 shrink-0 font-mono text-lg font-black text-jepang-red">
+                <span className="w-6 shrink-0 font-mono text-lg font-black text-jepang-red-hover">
                   {String(idx + 1).padStart(2, "0")}
                 </span>
                 <Link

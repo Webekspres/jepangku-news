@@ -14,6 +14,8 @@
     "verify:home": "bun run scripts/verify-home-waves.ts",
     "verify:staging": "bun run scripts/verify-staging-cutover.ts",
     "verify:notifications": "bun run scripts/verify-notifications.ts",
+    "verify:non-functional": "bun run scripts/verify-non-functional.ts",
+    "lighthouse:audit": "bun run scripts/lighthouse-audit.ts",
     "purge:legacy-users": "bun run scripts/purge-legacy-users.ts",
     "backfill:sanitize": "bun run scripts/backfill-sanitize-content.ts",
     "backfill:sanitize:apply": "bun run scripts/backfill-sanitize-content.ts -- --apply",

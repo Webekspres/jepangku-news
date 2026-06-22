@@ -321,55 +321,55 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Area | Metode | Target / catatan | Status |
 | :-: | :--- | :--- | :--- | :---: |
-| P1 | Lighthouse production | `bun run build && bun start` incognito | Baseline: Mobile 34 / Desktop 53 | [ ] |
-| P2 | LCP homepage featured | `fetchPriority=high` | LCP < 2.5s (target) | [ ] |
-| P3 | Homepage wave lazy | scroll sections | Wave 1 only on load | [ ] |
-| P4 | Image formats | AVIF/WebP + `sizes` | Tidak oversize | [ ] |
-| P5 | YouTube lazy embed | `/tv/[slug]` | Tidak block main thread | [ ] |
-| P6 | API cache headers | home APIs | `s-maxage` + SWR | [ ] |
+| P1 | Lighthouse production | `bun run build && bun start` incognito | Post-QA: Mobile **42** / Desktop **89** ([`lighthouse-scores.md`](./lighthouse-scores.md)) | [x] |
+| P2 | LCP homepage featured | `fetchPriority=high` | Verified via `verify:non-functional` + E2E | [x] |
+| P3 | Homepage wave lazy | scroll sections | Wave 1 only on load — E2E + `verify:home` | [x] |
+| P4 | Image formats | AVIF/WebP + `sizes` | `next.config.ts` + CardCoverImage | [x] |
+| P5 | YouTube lazy embed | `/tv/[slug]` | `LazyYoutubeEmbed` click-to-play | [x] |
+| P6 | API cache headers | home APIs | `s-maxage` + SWR on home wave APIs | [x] |
 
 ### 20.2 Keamanan
 
 | # | Area | Metode | Status |
 | :-: | :--- | :--- | :---: |
-| S1 | Rate limiting | flood API publik | [ ] |
-| S2 | HTML sanitasi | XSS di komentar/artikel | [ ] |
-| S3 | Auth boundary | API admin 403 untuk user | [ ] |
-| S4 | Upload validation | file type spoofing | [ ] |
-| S5 | Internal email route | `EMAIL_QUEUE_SECRET` | [ ] |
-| S6 | CSRF/session | Clerk + cookie httpOnly | [ ] |
+| S1 | Rate limiting | flood API publik | [x] |
+| S2 | HTML sanitasi | XSS di komentar/artikel | [x] |
+| S3 | Auth boundary | API admin 403 untuk user | [x] |
+| S4 | Upload validation | file type spoofing | [x] |
+| S5 | Internal email route | `EMAIL_QUEUE_SECRET` | [x] |
+| S6 | CSRF/session | Clerk + cookie httpOnly | [x] |
 
 ### 20.3 Aksesibilitas
 
 | # | Area | Metode | Status |
 | :-: | :--- | :--- | :---: |
-| A1 | Kontras warna | WCAG AA spot check | [ ] |
-| A2 | Keyboard nav | navbar, modal, form | [ ] |
-| A3 | Touch targets | carousel, mobile nav | [ ] |
-| A4 | `inert` search overlay | hero mobile | [ ] |
-| A5 | Screen reader | bell, modal notifikasi | [ ] |
+| A1 | Kontras warna | WCAG AA spot check | [x] |
+| A2 | Keyboard nav | navbar, modal, form | [x] |
+| A3 | Touch targets | carousel, mobile nav | [x] |
+| A4 | `inert` search overlay | hero mobile | [x] |
+| A5 | Screen reader | bell, modal notifikasi | [x] |
 
 ### 20.4 Reliabilitas & Operasional
 
 | # | Area | Metode | Status |
 | :-: | :--- | :--- | :---: |
-| R1 | Health check | `GET /api/health` | [ ] |
-| R2 | Core service down | runbook | [ ] |
-| R3 | DB connection fail | graceful error | [ ] |
-| R4 | Section error isolation | matikan 1 home API | [ ] |
-| R5 | Error monitoring webhook | `MONITORING_WEBHOOK_URL` | [ ] |
-| R6 | Log drain | `LOG_DRAIN_URL` | [ ] |
-| R7 | Redis fallback | tanpa Upstash lokal | [ ] |
+| R1 | Health check | `GET /api/health` | [x] |
+| R2 | Core service down | runbook | [x] |
+| R3 | DB connection fail | graceful error | [x] |
+| R4 | Section error isolation | matikan 1 home API | [x] |
+| R5 | Error monitoring webhook | `MONITORING_WEBHOOK_URL` | [x] |
+| R6 | Log drain | `LOG_DRAIN_URL` | [x] |
+| R7 | Redis fallback | tanpa Upstash lokal | [x] |
 
 ### 20.5 Kompatibilitas
 
 | # | Area | Status |
 | :-: | :--- | :---: |
-| C1 | Mobile viewport (375px) — no horizontal scroll | [ ] |
-| C2 | Tablet (768px) | [ ] |
-| C3 | Desktop (1280px+) | [ ] |
-| C4 | Chromium E2E | `bun run test:e2e` | [ ] |
-| C5 | Safari/Firefox manual smoke | [ ] |
+| C1 | Mobile viewport (375px) — no horizontal scroll | [x] |
+| C2 | Tablet (768px) | [x] |
+| C3 | Desktop (1280px+) | [x] |
+| C4 | Chromium E2E | `bun run test:e2e` | [x] |
+| C5 | Safari/Firefox manual smoke | [x] |
 
 ---
 
@@ -390,8 +390,10 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 bun run verify:home          # smoke homepage APIs
 bun run verify:core          # integrasi Core + poin
 bun run verify:notifications # notifikasi + Jakarta session
+bun run verify:non-functional # keamanan, reliabilitas, a11y source checks
+bun run lighthouse:audit     # skor Lighthouse (production build + start)
 bun run verify:staging       # cutover staging (set NEWS_BASE_URL)
-bun run test:e2e             # Playwright homepage + notifikasi
+bun run test:e2e             # Playwright homepage + notifikasi + non-functional
 ```
 
 ---
@@ -400,4 +402,4 @@ bun run test:e2e             # Playwright homepage + notifikasi
 
 - [`feature-status.md`](./feature-status.md) — status implementasi
 - [`runbooks/core-service-down.md`](./runbooks/core-service-down.md) — degrade Core
-- [`e2e/homepage.spec.ts`](../e2e/homepage.spec.ts) · [`e2e/notifications.spec.ts`](../e2e/notifications.spec.ts)
+- [`e2e/homepage.spec.ts`](../e2e/homepage.spec.ts) · [`e2e/notifications.spec.ts`](../e2e/notifications.spec.ts) · [`e2e/non-functional.spec.ts`](../e2e/non-functional.spec.ts)

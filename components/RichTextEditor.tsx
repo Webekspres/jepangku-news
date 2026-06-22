@@ -34,6 +34,7 @@ import { ArticleFigure } from "@/lib/tiptap/article-figure";
 import ArticleImageInsertDialog, {
   type ArticleImageInsertValues,
 } from "@/components/editor/ArticleImageInsertDialog";
+import LinkInsertDialog from "@/components/editor/LinkInsertDialog";
 
 interface RichTextEditorProps {
   value: string;
@@ -104,6 +105,8 @@ export default function RichTextEditor({
     Partial<ArticleImageInsertValues> | undefined
   >(undefined);
   const [editingFigure, setEditingFigure] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkDialogInitialUrl, setLinkDialogInitialUrl] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -184,16 +187,45 @@ export default function RichTextEditor({
     }
   }, [value, editor]);
 
-  const setLink = useCallback(() => {
+  const openLinkDialog = useCallback(() => {
     if (!editor) return;
     const prev = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("URL tautan:", prev ?? "https://");
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    setLinkDialogInitialUrl(prev ?? "");
+    setLinkDialogOpen(true);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        openLinkDialog();
+      }
+    };
+    editor.view.dom.addEventListener("keydown", handleKeyDown);
+    return () => editor.view.dom.removeEventListener("keydown", handleKeyDown);
+  }, [editor, openLinkDialog]);
+
+  const handleLinkConfirm = useCallback(
+    (url: string) => {
+      if (!editor) return;
+      if (!url) {
+        editor.chain().focus().extendMarkRange("link").unsetLink().run();
+        return;
+      }
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange("link")
+        .setLink({ href: url })
+        .run();
+    },
+    [editor],
+  );
+
+  const handleLinkRemove = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
   }, [editor]);
 
   const openInsertImageDialog = useCallback(() => {
@@ -366,7 +398,7 @@ export default function RichTextEditor({
 
         {/* Link */}
         <ToolbarButton
-          onClick={setLink}
+          onClick={openLinkDialog}
           active={editor.isActive("link")}
           title="Tambah tautan"
           shortcut={`${mod}+K`}
@@ -427,6 +459,14 @@ export default function RichTextEditor({
         onOpenChange={setImageDialogOpen}
         initialValues={imageDialogInitial}
         onConfirm={handleImageConfirm}
+      />
+
+      <LinkInsertDialog
+        open={linkDialogOpen}
+        onOpenChange={setLinkDialogOpen}
+        initialUrl={linkDialogInitialUrl}
+        onConfirm={handleLinkConfirm}
+        onRemove={handleLinkRemove}
       />
 
       {/* Shortcut hint bar */}

@@ -26,8 +26,8 @@ export default function Footer() {
     >
       <div className="px-4 mx-auto max-w-7xl py-12">
         <div className="grid grid-cols-2 md:grid-cols-7 gap-8 text-white">
-          <div className="col-span-2 md:col-span-3 text-right">
-            <div className="flex flex-col items-end">
+          <div className="col-span-2 md:col-span-3">
+            <div className="flex flex-col items-start">
               <AssetImage
                 src="/assets/images/logo/Logo-02-dark.svg"
                 alt="Jepangku"
@@ -36,12 +36,12 @@ export default function Footer() {
                 className="h-40 w-auto mb-4"
                 {...imageLoadingProps(false)}
               />
-              <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-sm ml-auto">
+              <p className="text-sm text-zinc-400 leading-relaxed mb-4 max-w-sm">
                 Portal media interaktif bertema Jepang untuk pembaca Indonesia.
               </p>
-              <div className="w-full max-w-sm ml-auto">
+              <div className="w-full max-w-sm">
                 <FooterNewsletterForm
-                  defaultEmail={isAuthUser(user) ? user.email : ""}
+                  defaultEmail={""}
                 />
               </div>
             </div>

@@ -54,7 +54,7 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="newsletter-form">
-      <div className="flex w-full flex-col gap-2">
+      <div className="flex gap-2">
         <Input
           type="email"
           name="email"
@@ -64,13 +64,13 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
           onChange={(e) => setEmail(e.target.value)}
           disabled={submitting}
           required
-          className="w-full min-w-0 border-white/25 bg-white py-2.5 text-sm text-jepang-navy placeholder:text-zinc-400 focus:border-white focus:ring-jepang-orange/40"
+          className="min-w-0 border-white/25 bg-white py-2.5 text-sm text-jepang-navy placeholder:text-zinc-400 focus:border-white focus:ring-jepang-orange/40"
           data-testid="newsletter-email-input"
         />
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full bg-jepang-orange text-white hover:bg-jepang-orange/90"
+          className="bg-jepang-orange text-white hover:bg-jepang-orange/90"
           data-testid="newsletter-submit"
         >
           {submitting ? (

@@ -101,7 +101,7 @@ export default function HomeFeedSection({
                       <button
                         type="button"
                         onClick={goPrevFeatured}
-                        className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
+                        className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
                         aria-label="Artikel sebelumnya"
                       >
                         <ChevronLeft size={20} strokeWidth={1.5} />
@@ -109,7 +109,7 @@ export default function HomeFeedSection({
                       <button
                         type="button"
                         onClick={goNextFeatured}
-                        className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
+                        className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
                         aria-label="Artikel berikutnya"
                       >
                         <ChevronRight size={20} strokeWidth={1.5} />
@@ -120,7 +120,7 @@ export default function HomeFeedSection({
                             key={article.id}
                             type="button"
                             onClick={() => setFeaturedIndex(idx)}
-                            className="flex h-5 w-5 items-center justify-center rounded-full"
+                            className="flex h-11 w-11 items-center justify-center rounded-full"
                             aria-label={`Slide ${idx + 1}`}
                             aria-current={idx === featuredIndex ? "true" : undefined}
                           >

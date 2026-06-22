@@ -2,6 +2,10 @@ import { logger } from './logger';
 
 const monitoringEndpoint = process.env.MONITORING_WEBHOOK_URL;
 
+export function isMonitoringEnabled() {
+  return Boolean(monitoringEndpoint);
+}
+
 export async function captureException(error: unknown, context?: Record<string, unknown>) {
   const payload = {
     type: 'exception',

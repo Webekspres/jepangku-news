@@ -112,9 +112,13 @@ export default function NotificationBellMenu({
 
         <DropdownMenuSeparator className="m-0" />
 
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto" role="region" aria-live="polite" aria-label="Daftar notifikasi">
           {listLoading ? (
-            <div className="flex items-center justify-center gap-2 px-3 py-8 text-sm text-jepang-muted">
+            <div
+              className="flex items-center justify-center gap-2 px-3 py-8 text-sm text-jepang-muted"
+              role="status"
+              aria-busy="true"
+            >
               <Loader2 size={16} className="animate-spin" />
               Memuat...
             </div>
