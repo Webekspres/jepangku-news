@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -56,10 +57,10 @@ async function apiCreateDraft(data: ArticleFormSnapshot): Promise<ArticleDraftIn
     }),
   });
   if (!res.ok) {
-    const e = await res.json();
+    const e = await parseApiResponse(res);
     throw new Error(e.error || "Gagal membuat draft");
   }
-  const article = await res.json();
+  const article = await parseApiResponse(res);
   return { id: article.id, slug: article.slug };
 }
 
@@ -83,7 +84,7 @@ async function apiUpdateDraft(
     }),
   });
   if (!res.ok) {
-    const e = await res.json();
+    const e = await parseApiResponse(res);
     throw new Error(e.error || "Gagal menyimpan draft");
   }
 }
@@ -116,7 +117,7 @@ export default function SubmitArticlePage() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
 
@@ -200,11 +201,11 @@ export default function SubmitArticlePage() {
       }
 
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error || "Gagal menyimpan artikel");
       }
 
-      const article = await res.json();
+      const article = await parseApiResponse(res);
 
       // Sync autosave state so a late-firing timer doesn't create a duplicate
       if (article?.id && article?.slug) {

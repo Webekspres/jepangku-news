@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { auditAdminEntity } from '@/lib/audit-routes';
@@ -11,7 +12,7 @@ import {
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
@@ -39,12 +40,12 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(quizzes);
+  return apiSuccess(quizzes);
 }
 
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const body = await request.json();
   const {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
   } = body;
 
   const safeTitle = sanitizePlainField(title, 200);
-  if (!safeTitle) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+  if (!safeTitle) return apiError('Title is required' , { status: 400 });
 
   const safeQuestions = Array.isArray(questions) ? sanitizeQuestionBundle(questions) : [];
   const slug = createSlug(safeTitle);
@@ -109,5 +110,5 @@ export async function POST(request: NextRequest) {
 
   auditAdminEntity(admin, 'quiz', 'create', { type: 'quiz', id: quiz.id, label: quiz.title, href: `/admin/quizzes/${quiz.id}/edit` });
 
-  return NextResponse.json({ message: 'Quiz created', id: quiz.id }, { status: 201 });
+  return apiSuccess({ message: 'Quiz created', id: quiz.id }, { status: 201 });
 }

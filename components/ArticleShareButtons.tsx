@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ComponentType } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { Copy, Facebook, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ export default function ArticleShareButtons({
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ shareMethod }),
-      }).then((r) => r.json());
+      }).then((r) => parseApiResponse(r));
 
       if (trackResponse.pointsAwarded) {
         const message =

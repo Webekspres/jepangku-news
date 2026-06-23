@@ -1,4 +1,4 @@
-import Footer from "@/components/Footer";
+import FooterShell from "@/components/FooterShell";
 import NavbarShell from "@/components/NavbarShell";
 
 export default function AuthLayout({
@@ -10,7 +10,7 @@ export default function AuthLayout({
     <main className="flex-1">
       <NavbarShell />
       {children}
-      <Footer />
+      <FooterShell />
     </main>
   );
 }

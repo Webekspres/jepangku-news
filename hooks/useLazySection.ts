@@ -1,6 +1,7 @@
 "use client";
 
 import { RefObject, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from "@/lib/fetch-api";
 
 type UseLazySectionOptions = {
   /** Preload when sentinel is within this margin of the viewport */
@@ -76,7 +77,7 @@ export function useLazySection<T>(
     fetch(endpoint)
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<T>;
+        return parseApiResponse<T>(res);
       })
       .then((json) => {
         if (!cancelled) setData(json);

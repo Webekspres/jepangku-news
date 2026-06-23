@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import { parseLeaderboardPeriod } from '@/lib/leaderboard/period';
@@ -13,11 +14,9 @@ export async function GET(request: NextRequest) {
 
   const data = await fetchLeaderboard(period, limit, viewer?.id);
 
-  return NextResponse.json(data, {
-    headers: {
+  return apiSuccess(data, { headers: {
       'Cache-Control': viewer
         ? 'private, no-cache'
         : 's-maxage=60, stale-while-revalidate=120',
-    },
-  });
+    } });
 }

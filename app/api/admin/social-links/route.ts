@@ -1,4 +1,5 @@
 import { revalidateTag } from "next/cache";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/lib/auth";
 import { auditAdminEntity } from "@/lib/audit-routes";
@@ -12,23 +13,23 @@ import {
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    return apiError("Admin access required" , { status: 403 });
   }
 
   const links = await getAdminSocialLinks();
-  return NextResponse.json({ links });
+  return apiSuccess({ links });
 }
 
 export async function PUT(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    return apiError("Admin access required" , { status: 403 });
   }
 
   const body = await request.json().catch(() => null);
   const parsed = parseSocialLinkUpdates(body?.links);
   if (!parsed.ok) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 });
+    return apiError(parsed.error , { status: 400 });
   }
 
   await saveSocialLinkUpdates(parsed.updates);
@@ -42,5 +43,5 @@ export async function PUT(request: NextRequest) {
   });
 
   const links = await getAdminSocialLinks();
-  return NextResponse.json({ links });
+  return apiSuccess({ links });
 }

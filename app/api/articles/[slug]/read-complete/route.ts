@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
@@ -17,7 +18,7 @@ export async function POST(
   const user = await getCurrentUser(request);
   if (!user) {
     // Guest — acknowledge silently, no points
-    return NextResponse.json({ awarded: false, points: 0, reason: 'not_authenticated' });
+    return apiSuccess({ awarded: false, points: 0, reason: 'not_authenticated' });
   }
 
   const blocked = await enforceRateLimit(request, 'read-complete', {
@@ -36,7 +37,7 @@ export async function POST(
   });
 
   if (!article) {
-    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    return apiError('Article not found' , { status: 404 });
   }
 
   // Award points — awardPoints handles anti-duplicate internally
@@ -53,7 +54,7 @@ export async function POST(
     auditArticleReadComplete(user, article);
   }
 
-  return NextResponse.json({
+  return apiSuccess({
     awarded: award.awarded,
     points: award.awarded ? READ_POINTS : 0,
     reason: award.awarded ? 'points_awarded' : 'already_awarded',
@@ -61,6 +62,6 @@ export async function POST(
   });
   } catch (e) {
     await captureException(e, { route: 'read-complete' });
-    return NextResponse.json({ error: 'Failed to record read' }, { status: 500 });
+    return apiError('Failed to record read' , { status: 500 });
   }
 }

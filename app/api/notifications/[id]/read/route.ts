@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { captureException } from '@/lib/monitoring';
 import { markNotificationRead } from '@/lib/notifications/queries';
@@ -10,18 +11,18 @@ export async function PATCH(
   try {
     const user = await getCurrentUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return apiError('Not authenticated' , { status: 401 });
     }
 
     const { id } = await params;
     const notification = await markNotificationRead(user.id, id);
     if (!notification) {
-      return NextResponse.json({ error: 'Notifikasi tidak ditemukan' }, { status: 404 });
+      return apiError('Notifikasi tidak ditemukan' , { status: 404 });
     }
 
-    return NextResponse.json({ notification });
+    return apiSuccess({ notification });
   } catch (e) {
     await captureException(e, { route: 'notifications-mark-read' });
-    return NextResponse.json({ error: 'Gagal menandai notifikasi' }, { status: 500 });
+    return apiError('Gagal menandai notifikasi' , { status: 500 });
   }
 }

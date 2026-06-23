@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { Plus, Megaphone, Image } from "lucide-react";
 import { toast } from "sonner";
@@ -36,7 +37,7 @@ export default function AdminAdsPage() {
 
   useEffect(() => {
     fetch("/api/admin/ads/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -51,7 +52,7 @@ export default function AdminAdsPage() {
     const params = new URLSearchParams();
     if (positionFilter) params.set("position", positionFilter);
     const url = `/api/admin/ads${params.toString() ? `?${params}` : ""}`;
-    const data = await fetch(url).then((r) => r.json());
+    const data = await fetch(url).then((r) => parseApiResponse(r));
     setAds(Array.isArray(data) ? data : []);
     setLoading(false);
   };
@@ -69,7 +70,7 @@ export default function AdminAdsPage() {
     toast.success(ad.isActive ? "Iklan dinonaktifkan" : "Iklan diaktifkan");
     loadAds();
     fetch("/api/admin/ads/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats);
   };
 
@@ -81,7 +82,7 @@ export default function AdminAdsPage() {
       variant: "danger",
       onConfirm: async () => {
         const res = await fetch(`/api/admin/ads/${ad.id}`, { method: "DELETE" });
-        const data = await res.json().catch(() => ({}));
+        const data = await parseApiResponse(res).catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Gagal menghapus iklan");
         toast.success("Banner dihapus");
         setAds((prev) => prev.filter((item) => item.id !== ad.id));

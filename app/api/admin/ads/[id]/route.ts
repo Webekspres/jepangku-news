@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from "@/lib/auth";
 import { isValidAdSlotPosition } from "@/lib/ads/constants";
 import { revalidateAdSlots } from "@/lib/ads/revalidate";
@@ -10,22 +11,22 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { id } = await params;
   const ad = await db.adSlot.findUnique({ where: { id } });
-  if (!ad) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
+  if (!ad) return apiError("Ad not found" , { status: 404 });
 
-  return NextResponse.json(ad);
+  return apiSuccess(ad);
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { id } = await params;
   const existing = await db.adSlot.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
+  if (!existing) return apiError("Ad not found" , { status: 404 });
 
   const body = await request.json();
   const {
@@ -44,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   if (position !== undefined) {
     if (!isValidAdSlotPosition(String(position))) {
-      return NextResponse.json({ error: "Valid position is required" }, { status: 400 });
+      return apiError("Valid position is required" , { status: 400 });
     }
     updateData.position = String(position);
   }
@@ -56,7 +57,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (imageUrl !== undefined) {
     const safeImageUrl = sanitizeMediaUrl(imageUrl);
     if (!safeImageUrl) {
-      return NextResponse.json({ error: "Image URL is required" }, { status: 400 });
+      return apiError("Image URL is required" , { status: 400 });
     }
     updateData.imageUrl = safeImageUrl;
   }
@@ -89,16 +90,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     href: `/admin/ads/${id}/edit`,
   });
 
-  return NextResponse.json({ message: "Ad updated" });
+  return apiSuccess({ message: "Ad updated" });
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { id } = await params;
   const ad = await db.adSlot.findUnique({ where: { id } });
-  if (!ad) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
+  if (!ad) return apiError("Ad not found" , { status: 404 });
 
   auditAdminEntity(admin, "ad", "delete", {
     type: "ad",
@@ -110,5 +111,5 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   await db.adSlot.delete({ where: { id } });
   revalidateAdSlots(ad.position);
 
-  return NextResponse.json({ message: "Ad deleted" });
+  return apiSuccess({ message: "Ad deleted" });
 }

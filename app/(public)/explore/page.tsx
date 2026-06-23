@@ -2,19 +2,23 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { parseApiResponse } from "@/lib/fetch-api";
 import SectionHeader from "@/components/SectionHeader";
-import PopularTags from "@/components/PopularTags";
-import { Compass, TrendingUp, ArrowRight } from "lucide-react";
+import ExploreContentSections from "@/components/explore/ExploreContentSections";
+import type { ExploreResponse } from "@/lib/explore/types";
+import { Compass } from "lucide-react";
 
 export default function ExplorePage() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [data, setData] = useState<ExploreResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then((d) => setCategories(Array.isArray(d) ? d : []))
-      .catch(() => setCategories([]));
+    fetch("/api/explore")
+      .then((r) => parseApiResponse(r))
+      .then((d) => setData(d as ExploreResponse))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -27,55 +31,17 @@ export default function ExplorePage() {
             Jelajahi Konten
           </span>
         }
-        subtitle="Temukan artikel lewat tag populer, kategori, dan artikel yang sedang tren."
+        subtitle="Temukan artikel, kuis, polling, video, dan komunitas Jepangku — semuanya dalam satu tempat."
       />
 
-      <div className="px-4 mx-auto max-w-7xl py-12 space-y-14">
-        <section>
-          <Link
-            href="/trending"
-            className="group flex items-center justify-between rounded-lg border border-jepang-border p-6 shadow-sm transition-all hover:border-jepang-navy hover:bg-jepang-navy hover:text-white hover:shadow-md"
-            data-testid="explore-trending-cta"
-          >
-            <div className="flex items-center gap-4">
-              <TrendingUp size={28} strokeWidth={1.5} className="text-jepang-red group-hover:text-white" />
-              <div>
-                <h2 className="font-heading font-black text-2xl tracking-tighter">
-                  Artikel Sedang Tren
-                </h2>
-                <p className="text-sm text-jepang-muted group-hover:text-zinc-300 mt-1">
-                  Paling banyak dibaca minggu ini
-                </p>
-              </div>
-            </div>
-            <ArrowRight size={20} className="shrink-0" />
-          </Link>
-        </section>
-
-        <section>
-          <PopularTags limit={24} title="Tag Populer" />
-        </section>
-
-        <section>
-          <h2 className="font-heading font-black text-2xl tracking-tighter mb-6">
-            Kategori
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/articles?category=${cat.slug}`}
-                className="block p-4 border border-jepang-border hover:border-foreground hover:bg-foreground hover:text-white transition-all group"
-                data-testid={`explore-category-${cat.slug}`}
-              >
-                <p className="font-heading font-bold text-lg">{cat.name}</p>
-                <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted group-hover:text-zinc-400 mt-1">
-                  Jelajahi →
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
+      <div className="px-4 mx-auto max-w-7xl py-12">
+        {error ? (
+          <p className="text-center text-sm text-jepang-muted py-12">
+            Gagal memuat konten. Silakan muat ulang halaman.
+          </p>
+        ) : (
+          <ExploreContentSections data={data} loading={loading} />
+        )}
       </div>
     </div>
   );

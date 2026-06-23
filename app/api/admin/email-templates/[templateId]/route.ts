@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { getEmailTemplateDefinition } from '@/lib/email/template-definitions';
@@ -13,16 +14,16 @@ type RouteParams = { params: Promise<{ templateId: string }> };
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { templateId: rawId } = await params;
   const templateId = parseEmailTemplateIdParam(rawId);
-  if (!templateId) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+  if (!templateId) return apiError('Template not found' , { status: 404 });
 
   const definition = getEmailTemplateDefinition(templateId);
   const config = await getEmailTemplateConfig(templateId);
 
-  return NextResponse.json({
+  return apiSuccess({
     ...config,
     label: definition.label,
     description: definition.description,
@@ -33,11 +34,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { templateId: rawId } = await params;
   const templateId = parseEmailTemplateIdParam(rawId);
-  if (!templateId) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+  if (!templateId) return apiError('Template not found' , { status: 404 });
 
   const body = await request.json().catch(() => null);
   const subject = typeof body?.subject === 'string' ? body.subject : '';
@@ -47,7 +48,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   const isEnabled = body?.isEnabled !== false;
 
   if (!subject.trim() || !heading.trim() || !bodyHtml.trim() || !ctaLabel.trim()) {
-    return NextResponse.json({ error: 'Semua field wajib diisi' }, { status: 400 });
+    return apiError('Semua field wajib diisi' , { status: 400 });
   }
 
   const saved = await upsertEmailTemplateConfig(
@@ -63,16 +64,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     href: `/admin/email-config/${templateId}`,
   });
 
-  return NextResponse.json(saved);
+  return apiSuccess(saved);
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { templateId: rawId } = await params;
   const templateId = parseEmailTemplateIdParam(rawId);
-  if (!templateId) return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+  if (!templateId) return apiError('Template not found' , { status: 404 });
 
   const reset = await resetEmailTemplateConfig(templateId);
 
@@ -83,5 +84,5 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     href: `/admin/email-config/${templateId}`,
   });
 
-  return NextResponse.json(reset);
+  return apiSuccess(reset);
 }

@@ -30,7 +30,7 @@ export interface Article {
 
 interface ArticleCardProps {
   article: Article;
-  variant?: "default" | "featured" | "compact";
+  variant?: "default" | "featured" | "compact" | "grid";
   priority?: boolean;
   /** Label reaksi dominan (homepage reaksi komunitas) */
   reactionBadge?: { iconSrc: string; label: string };
@@ -135,6 +135,65 @@ export default function ArticleCard({
           </div>
         </Card>
       </Link>
+    );
+  }
+
+  if (variant === "grid") {
+    return (
+      <div className="group relative block h-full">
+        <motion.div whileHover={{ borderColor: "var(--color-jepang-navy)" }} transition={{ duration: 0.2 }}>
+          <Card className="group h-full overflow-hidden border border-jepang-border bg-white">
+            <div className="relative aspect-5/3 overflow-hidden bg-jepang-off-white">
+              <MotionHoverScale className="relative h-full w-full">
+                <CardCoverImage
+                  src={coverUrl}
+                  alt={article.title}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 220px"
+                  priority={priority}
+                  quality={65}
+                />
+              </MotionHoverScale>
+            </div>
+            <CardContent className="p-2.5">
+              <div className="mb-1.5 flex flex-wrap items-center gap-1">
+                {article.category ? (
+                  <Badge className="px-1.5 py-0 text-[9px]">{article.category.name}</Badge>
+                ) : null}
+                {isHot ? (
+                  <Badge variant="red" className="px-1.5 py-0 text-[9px]">
+                    HOT
+                  </Badge>
+                ) : null}
+              </div>
+              <h3 className="line-clamp-2 font-heading text-sm font-bold leading-snug tracking-tight transition-colors group-hover:text-jepang-red">
+                <Link
+                  href={`/articles/${article.slug}`}
+                  className="after:absolute after:inset-0 after:z-10"
+                  data-testid={`article-card-${article.slug}`}
+                >
+                  {article.title}
+                </Link>
+              </h3>
+              {article.excerpt ? (
+                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-jepang-muted">
+                  {article.excerpt}
+                </p>
+              ) : null}
+              <div className="relative z-20 mt-2 flex items-center justify-between border-t border-jepang-border pt-1.5 text-[9px] font-mono uppercase tracking-wider text-jepang-muted">
+                <AuthorLink
+                  username={article.author?.username}
+                  className="max-w-[58%] truncate hover:text-jepang-red"
+                >
+                  {article.author?.name || "Jepangku"}
+                </AuthorLink>
+                <span className="flex shrink-0 items-center gap-0.5">
+                  <Eye size={10} strokeWidth={1.5} /> {viewCount}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
     );
   }
 

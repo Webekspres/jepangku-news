@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { enforceRateLimit } from '@/lib/rate-limit';
@@ -21,13 +22,13 @@ export async function GET(request: NextRequest) {
   const targetId = searchParams.get('targetId');
 
   if (!isValidReactionTargetType(targetType) || !targetId) {
-    return NextResponse.json({ error: 'Parameter target tidak valid' }, { status: 400 });
+    return apiError('Parameter target tidak valid' , { status: 400 });
   }
 
   const user = await getCurrentUser(request).catch(() => null);
   const summary = await summarizeReactions(targetType, targetId, user?.id ?? null);
 
-  return NextResponse.json(summary);
+  return apiSuccess(summary);
 }
 
 // POST /api/reactions  { targetType, targetId, type }
@@ -35,11 +36,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
+    return apiError('Tidak terautentikasi' , { status: 401 });
   }
 
   if (user.status === 'banned') {
-    return NextResponse.json({ error: 'Akun Anda tidak dapat memberi reaksi' }, { status: 403 });
+    return apiError('Akun Anda tidak dapat memberi reaksi' , { status: 403 });
   }
 
   const limited = await enforceRateLimit(request, 'reaction-toggle', {
@@ -55,16 +56,16 @@ export async function POST(request: NextRequest) {
     const { targetType, targetId, type } = body ?? {};
 
     if (!isValidReactionTargetType(targetType) || typeof targetId !== 'string' || !targetId) {
-      return NextResponse.json({ error: 'Parameter target tidak valid' }, { status: 400 });
+      return apiError('Parameter target tidak valid' , { status: 400 });
     }
 
     if (!isReactionAllowed(targetType, type)) {
-      return NextResponse.json({ error: 'Tipe reaksi tidak valid' }, { status: 400 });
+      return apiError('Tipe reaksi tidak valid' , { status: 400 });
     }
 
     const exists = await reactionTargetExists(targetType, targetId);
     if (!exists) {
-      return NextResponse.json({ error: 'Konten yang direaksi tidak ditemukan' }, { status: 404 });
+      return apiError('Konten yang direaksi tidak ditemukan' , { status: 404 });
     }
 
     const existing = await db.reaction.findUnique({
@@ -91,9 +92,9 @@ export async function POST(request: NextRequest) {
 
     auditReactionToggle(user, targetType, targetId, type, action);
 
-    return NextResponse.json(summary);
+    return apiSuccess(summary);
   } catch (e) {
     await captureException(e, { route: 'reactions-post' });
-    return NextResponse.json({ error: 'Gagal menyimpan reaksi' }, { status: 500 });
+    return apiError('Gagal menyimpan reaksi' , { status: 500 });
   }
 }

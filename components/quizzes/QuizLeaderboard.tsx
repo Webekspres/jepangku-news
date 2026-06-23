@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { Loader2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -35,7 +36,7 @@ export default function QuizLeaderboard({ slug }: QuizLeaderboardProps) {
   useEffect(() => {
     setLoading(true);
     fetch(`/api/quizzes/${encodeURIComponent(slug)}/leaderboard?period=${period}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setEntries(Array.isArray(d.entries) ? d.entries : []))
       .catch(() => setEntries([]))
       .finally(() => setLoading(false));
@@ -58,6 +59,7 @@ export default function QuizLeaderboard({ slug }: QuizLeaderboardProps) {
               size="sm"
               variant={period === opt.value ? "default" : "outline"}
               onClick={() => setPeriod(opt.value)}
+              data-testid={`quiz-lb-period-${opt.value}`}
             >
               {opt.label}
             </Button>

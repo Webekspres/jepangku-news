@@ -4,12 +4,18 @@ import Link from "next/link";
 import AssetImage from "@/components/AssetImage";
 import { useRouter } from "next/navigation";
 import FooterNewsletterForm from "@/components/FooterNewsletterForm";
+import SocialMediaLinks from "@/components/SocialMediaLinks";
 import { useAuth, getAuthLoginPath, getAuthRegisterPath, isAuthUser } from "@/contexts/AuthContext";
 import { getContributorCta } from "@/lib/contributor";
 import { imageLoadingProps } from "@/lib/image-loading";
+import type { SocialLink } from "@/lib/site-config";
 import { NAV_CATEGORIES, categoryArticlesHref } from "@/components/navbar/nav-config";
 
-export default function Footer() {
+type FooterProps = {
+  socialLinks?: SocialLink[];
+};
+
+export default function Footer({ socialLinks = [] }: FooterProps) {
   const { user, loading, logout, isSignedIn } = useAuth();
   const router = useRouter();
   const contributorCta = getContributorCta(isAuthUser(user) ? user : null);
@@ -44,6 +50,16 @@ export default function Footer() {
                   defaultEmail={""}
                 />
               </div>
+              {socialLinks.length > 0 ? (
+                <div className="mt-5 w-full max-w-sm">
+                  <p className="section-label text-jepang-orange mb-2">Ikuti Kami</p>
+                  <SocialMediaLinks
+                    links={socialLinks}
+                    testIdPrefix="footer-social"
+                    tone="light"
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
           <div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -27,8 +28,8 @@ export default function AdminDashboard() {
     if (!user) return;
 
     Promise.all([
-      fetch("/api/admin/stats").then((r) => r.json()),
-      fetch("/api/admin/articles/pending").then((r) => r.json()),
+      fetch("/api/admin/stats").then((r) => parseApiResponse(r)),
+      fetch("/api/admin/articles/pending").then((r) => parseApiResponse(r)),
     ]).then(([s, p]) => {
       setStats(s);
       setPendingArticles(Array.isArray(p) ? p.slice(0, 5) : []);

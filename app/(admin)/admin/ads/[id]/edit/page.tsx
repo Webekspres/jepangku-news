@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
@@ -41,7 +42,7 @@ export default function AdminAdEditPage() {
     fetch(`/api/admin/ads/${params.id}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((ad) => {
         setForm({
@@ -79,7 +80,7 @@ export default function AdminAdEditPage() {
           endAt: form.endAt || null,
         }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal memperbarui banner");
       toast.success("Banner diperbarui");
     } catch (err: unknown) {

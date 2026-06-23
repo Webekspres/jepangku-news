@@ -1,5 +1,5 @@
 interface ArticleCardSkeletonProps {
-  variant?: "default" | "featured" | "compact";
+  variant?: "default" | "featured" | "compact" | "grid";
 }
 
 export default function ArticleCardSkeleton({
@@ -19,6 +19,23 @@ export default function ArticleCardSkeleton({
           <div className="h-4 bg-jepang-red/10 animate-pulse w-1/3" />
           <div className="h-5 bg-jepang-red/10 animate-pulse w-3/4" />
           <div className="h-3 bg-jepang-red/10 animate-pulse w-1/4 mt-2" />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === "grid") {
+    return (
+      <div className="block animate-pulse border border-jepang-border bg-white">
+        <div className="aspect-5/3 bg-jepang-red/10" />
+        <div className="space-y-2 p-2.5">
+          <div className="h-3 w-14 bg-jepang-red/10" />
+          <div className="h-4 w-full bg-jepang-red/10" />
+          <div className="h-3 w-full bg-jepang-red/10" />
+          <div className="flex justify-between border-t border-jepang-border pt-1.5">
+            <div className="h-2.5 w-1/3 bg-jepang-red/10" />
+            <div className="h-2.5 w-1/5 bg-jepang-red/10" />
+          </div>
         </div>
       </div>
     );

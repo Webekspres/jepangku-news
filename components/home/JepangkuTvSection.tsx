@@ -21,7 +21,7 @@ function TvSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0 overflow-hidden rounded-lg border border-jepang-border animate-pulse">
         <div className="aspect-video bg-jepang-border" />
         <div className="bg-jepang-navy p-4 space-y-3">
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="flex gap-3">
               <div className="h-16 w-24 bg-white/10 rounded shrink-0" />
               <div className="flex-1 space-y-2">
@@ -217,11 +217,11 @@ export default function JepangkuTvSection({
               <aside className="bg-jepang-navy lg:border-l border-jepang-border">
                 <div className="border-b border-white/10 px-4 py-3">
                   <p className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
-                    Video Lainnya
+                    Video Terbaru
                   </p>
                 </div>
                 <div>
-                  {sidebarVideos.slice(0, 5).map((video) => (
+                  {sidebarVideos.map((video) => (
                     <SidebarItem key={video.id} video={video} />
                   ))}
                 </div>

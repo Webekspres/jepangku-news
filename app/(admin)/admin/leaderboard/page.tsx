@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
@@ -38,7 +39,7 @@ export default function AdminLeaderboardPage() {
   useEffect(() => {
     setLoading(true);
     fetch(`/api/admin/leaderboard?period=${period}&limit=50`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((json) => setData(json))
       .finally(() => setLoading(false));
   }, [period]);

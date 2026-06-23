@@ -98,34 +98,29 @@ Core harus jalan di `http://localhost:8080`.
 
 ```bash
 bun run test:db:prepare   # migrate + seed DB uji (.env.test) — pertama kali / CI
-bun dev                   # terminal lain — wajib untuk integration + E2E
-bun run test              # unit + integration + E2E (Playwright)
+bun run dev:test            # terminal lain — wajib untuk integration
+bun run test                # unit + integration API
 ```
 
 Per lapisan:
 
 ```bash
-bun run test:unit         # bun:test — logika murni (tests/unit/)
-bun run test:integration  # HTTP API — butuh server jalan
-bun run test:e2e          # Playwright (e2e/) — ~185 kasus × 4 browser
-bun run test:e2e:ui       # Playwright UI mode
-bun run test:smoke        # unit + smoke API + homepage/auth Chromium
+bun run test:unit         # logika murni (tests/unit/)
+bun run test:integration  # HTTP API — butuh dev:test di terminal lain
 ```
 
 Akun uji Clerk (OTP `424242`): guest · `budi+clerk_test@jepangku.com` (USER) · `kontributor+clerk_test@jepangku.com` (CONTRIBUTOR) · `admin+clerk_test@jepangku.com` (ADMIN). Detail: [`tests/README.md`](tests/README.md).
 
-Env uji: salin/isi [`.env.test`](.env.test) (DB wajib; Clerk & Redis opsional untuk unit).
+Env uji: salin [`.env.test.example`](.env.test.example) → `.env.test` (gitignored). Clerk wajib untuk integration.
 
-### Skrip verifikasi manual
+### Skrip ops (langsung, tanpa npm script)
 
 ```bash
-bun run verify:core              # integrasi Core + ledger poin
-bun run verify:home              # wave APIs homepage
-bun run verify:notifications     # notifikasi + email hooks
-bun run verify:non-functional    # 47 checks (keamanan, a11y, reliabilitas)
-bun run verify:staging           # cutover staging
-bun run test:e2e                 # Playwright (Chromium, Firefox, WebKit)
-bun run lighthouse:audit         # skor performa (butuh production build)
+bun scripts/verify-core-integration.ts
+bun scripts/verify-home-waves.ts
+bun scripts/verify-notifications.ts
+bun scripts/verify-non-functional.ts
+bun scripts/lighthouse-audit.ts
 ```
 
 Skor Lighthouse terbaru: `[docs/lighthouse-scores.md](docs/lighthouse-scores.md)` — Mobile **42** / Desktop **89**.
@@ -161,9 +156,8 @@ app/              # Routes (public, user, admin, auth)
 components/       # UI komponen (home, admin, notifications, …)
 lib/              # Business logic (core, auth, points, notifications, home, …)
 prisma/           # Schema portal (users.id = Clerk ID)
-scripts/          # verify:*, lighthouse, purge, backfill
+scripts/          # verify, lighthouse, purge, backfill (jalankan: bun scripts/…)
 tests/            # bun:test unit + integration
-e2e/              # Playwright specs
 docs/             # Dokumentasi proyek
 .agents/          # Scope MVP & steering (historis)
 ```

@@ -1,4 +1,5 @@
 import { getNewsBaseUrl } from "./server";
+import { parseApiResponse } from '@/lib/fetch-api';
 
 export type ApiJson = Record<string, unknown>;
 
@@ -8,12 +9,10 @@ export class ApiClient {
     private readonly token?: string | null,
   ) {}
 
-  private buildHeaders(extra?: HeadersInit): Headers {
+  private buildHeaders(extra?: HeadersInit, body?: BodyInit | null): Headers {
     const headers = new Headers(extra);
-    if (!headers.has("Content-Type") && extra && !(extra instanceof Headers)) {
-      // only set JSON content-type when caller didn't supply headers
-    }
-    if (!headers.has("Content-Type")) {
+    const skipJsonContentType = body instanceof FormData;
+    if (!headers.has("Content-Type") && !skipJsonContentType) {
       headers.set("Content-Type", "application/json");
     }
     if (this.token) {
@@ -27,12 +26,16 @@ export class ApiClient {
   }
 
   async request(path: string, init: RequestInit = {}): Promise<Response> {
-    const headers = this.buildHeaders(init.headers);
+    const headers = this.buildHeaders(init.headers, init.body ?? null);
     return fetch(this.url(path), { ...init, headers });
   }
 
   get(path: string, init?: RequestInit) {
     return this.request(path, { ...init, method: "GET" });
+  }
+
+  postForm(path: string, formData: FormData, init?: RequestInit) {
+    return this.request(path, { ...init, method: "POST", body: formData });
   }
 
   post(path: string, body?: unknown, init?: RequestInit) {
@@ -64,7 +67,11 @@ export class ApiClient {
   }
 
   async json<T = ApiJson>(res: Response): Promise<T> {
-    return (await res.json()) as T;
+    return parseApiResponse<T>(res);
+  }
+
+  async envelope(res: Response): Promise<unknown> {
+    return res.json();
   }
 
   async text(res: Response): Promise<string> {

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
-import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
+import { sanitizeMediaUrl, sanitizePlainField, sanitizeHtmlContent } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
 
@@ -17,27 +18,28 @@ async function clearOtherFeatured(exceptId: string) {
 
 export async function GET(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { id } = await params;
   const video = await db.video.findUnique({ where: { id } });
-  if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
+  if (!video) return apiError("Video not found" , { status: 404 });
 
-  return NextResponse.json(video);
+  return apiSuccess(video);
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { id } = await params;
   const existing = await db.video.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Video not found" }, { status: 404 });
+  if (!existing) return apiError("Video not found" , { status: 404 });
 
   const body = await request.json();
   const {
     title,
     description,
+    content,
     youtubeUrl,
     youtubeId: rawYoutubeId,
     thumbnailUrl,
@@ -50,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   if (title !== undefined) {
     const safeTitle = sanitizePlainField(title, 200);
-    if (!safeTitle) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    if (!safeTitle) return apiError("Title is required" , { status: 400 });
     updateData.title = safeTitle;
   }
 
@@ -58,11 +60,15 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     updateData.description = description ? sanitizePlainField(description, 2000) : null;
   }
 
+  if (content !== undefined) {
+    updateData.content = content ? sanitizeHtmlContent(content) : null;
+  }
+
   if (youtubeUrl !== undefined || rawYoutubeId !== undefined) {
     const youtubeId =
       extractYoutubeId(rawYoutubeId ?? "") ?? extractYoutubeId(youtubeUrl ?? "");
     if (!youtubeId) {
-      return NextResponse.json({ error: "Valid YouTube URL or ID is required" }, { status: 400 });
+      return apiError("Valid YouTube URL or ID is required" , { status: 400 });
     }
     updateData.youtubeId = youtubeId;
     if (thumbnailUrl === undefined) {
@@ -93,7 +99,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const featured = Boolean(isFeatured);
     const effectiveStatus = (updateData.status ?? existing.status) as string;
     if (featured && effectiveStatus !== "PUBLISHED") {
-      return NextResponse.json(
+      return apiSuccess(
         { error: "Hanya video terbit yang bisa dijadikan featured" },
         { status: 400 },
       );
@@ -114,19 +120,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   revalidateHomeTv();
 
   const updated = await db.video.findUnique({ where: { id } });
-  return NextResponse.json({ message: "Video updated", video: updated });
+  return apiSuccess({ message: "Video updated", video: updated });
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { id } = await params;
   const video = await db.video.findUnique({ where: { id } });
-  if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
+  if (!video) return apiError("Video not found" , { status: 404 });
 
   if (video.status !== "DRAFT") {
-    return NextResponse.json(
+    return apiSuccess(
       { error: "Hanya video berstatus Draft yang dapat dihapus" },
       { status: 400 },
     );
@@ -138,5 +144,5 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
   revalidateHomeTv();
 
-  return NextResponse.json({ message: "Video deleted" });
+  return apiSuccess({ message: "Video deleted" });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ export default function AdminEditInfoPage() {
     fetch(`/api/admin/info-pages/${slug}`)
       .then((r) => {
         if (!r.ok) throw new Error("Halaman tidak ditemukan");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((data) => {
         setForm({
@@ -81,7 +82,7 @@ export default function AdminEditInfoPage() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
+        const err = await parseApiResponse(res);
         throw new Error(err.error || "Gagal menyimpan");
       }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
@@ -13,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 /* ── GET /api/admin/quizzes/[id] ── */
 export async function GET(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
@@ -29,20 +30,20 @@ export async function GET(request: NextRequest, { params }: Params) {
     },
   });
 
-  if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
+  if (!quiz) return apiError('Quiz not found' , { status: 404 });
 
-  return NextResponse.json(quiz);
+  return apiSuccess(quiz);
 }
 
 /* ── PATCH /api/admin/quizzes/[id] ── */
 export async function PATCH(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const quiz = await db.quiz.findUnique({ where: { id } });
-  if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
+  if (!quiz) return apiError('Quiz not found' , { status: 404 });
 
   const body = await request.json();
   const {
@@ -59,7 +60,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   } = body;
 
   if (title !== undefined && !title?.trim()) {
-    return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    return apiError('Title is required' , { status: 400 });
   }
 
   // Build partial update — hanya field yang dikirim
@@ -115,26 +116,26 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     href: `/admin/quizzes/${id}/edit`,
   });
 
-  return NextResponse.json({ message: 'Quiz updated' });
+  return apiSuccess({ message: 'Quiz updated' });
 }
 
 /* ── DELETE /api/admin/quizzes/[id] ── */
 export async function DELETE(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const quiz = await db.quiz.findUnique({ where: { id } });
-  if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
+  if (!quiz) return apiError('Quiz not found' , { status: 404 });
 
   if (quiz.status !== 'DRAFT') {
-    return NextResponse.json({ error: 'Hanya kuis berstatus Draft yang dapat dihapus' }, { status: 400 });
+    return apiError('Hanya kuis berstatus Draft yang dapat dihapus' , { status: 400 });
   }
 
   auditAdminEntity(admin, 'quiz', 'delete', { type: 'quiz', id: quiz.id, label: quiz.title, href: `/admin/quizzes/${id}/edit` });
 
   await db.quiz.delete({ where: { id } });
 
-  return NextResponse.json({ message: 'Quiz deleted' });
+  return apiSuccess({ message: 'Quiz deleted' });
 }

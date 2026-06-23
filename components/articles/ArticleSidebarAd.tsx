@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
 import TrendingArticlesPanel, {
   type TrendingArticleItem,
@@ -35,7 +36,7 @@ export default function ArticleSidebarAd({
           `/api/articles?sort=trending&limit=${TRENDING_LIMIT + 1}`,
         );
         if (!res.ok) throw new Error("Failed to load trending");
-        const json = (await res.json()) as { articles?: TrendingArticleItem[] };
+        const json = (await parseApiResponse(res)) as { articles?: TrendingArticleItem[] };
         const items = Array.isArray(json.articles) ? json.articles : [];
         const filtered = excludeArticleSlug
           ? items.filter((item) => item.slug !== excludeArticleSlug)

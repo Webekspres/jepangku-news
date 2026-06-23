@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -13,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
@@ -27,17 +28,17 @@ export async function GET(
   });
 
   if (!article) {
-    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    return apiError('Article not found' , { status: 404 });
   }
 
   if (article.status === 'DRAFT') {
-    return NextResponse.json(
+    return apiSuccess(
       { error: 'Draft articles are only visible to their author' },
       { status: 403 },
     );
   }
 
-  return NextResponse.json({
+  return apiSuccess({
     ...article,
     tags: article.tags.map((at) => at.tag),
   });
@@ -53,15 +54,15 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
-  if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+  if (!article) return apiError('Article not found' , { status: 404 });
 
   if (article.status === 'DRAFT') {
-    return NextResponse.json(
+    return apiSuccess(
       { error: 'Draft articles can only be edited by their author' },
       { status: 403 },
     );
@@ -77,7 +78,7 @@ export async function PATCH(
     if (title !== undefined) {
       const safeTitle = sanitizeText(String(title || ''));
       if (!safeTitle) {
-        return NextResponse.json({ error: 'Title cannot be empty' }, { status: 400 });
+        return apiError('Title cannot be empty' , { status: 400 });
       }
       updateData.title = safeTitle;
       if (article.status !== 'PUBLISHED') {
@@ -88,7 +89,7 @@ export async function PATCH(
     if (content !== undefined) {
       const safeContent = sanitizeHtmlContent(String(content || ''));
       if (!safeContent) {
-        return NextResponse.json({ error: 'Content cannot be empty' }, { status: 400 });
+        return apiError('Content cannot be empty' , { status: 400 });
       }
       updateData.content = safeContent;
     }
@@ -130,11 +131,11 @@ export async function PATCH(
       include: adminArticleInclude,
     });
 
-    return NextResponse.json(full ?? updated);
+    return apiSuccess(full ?? updated);
   } catch (e: unknown) {
     await captureException(e, { route: 'admin-articles-patch', id });
     const message = e instanceof Error ? e.message : 'Failed to update article';
     const status = message.includes('wajib') ? 400 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return apiSuccess({ error: message }, { status });
   }
 }

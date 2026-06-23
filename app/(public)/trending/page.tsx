@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
@@ -32,7 +33,7 @@ export default function TrendingPage() {
         limit: String(PER_PAGE),
         page: String(pageNum),
       });
-      const data = await fetch(`/api/articles?${params}`).then((r) => r.json());
+      const data = await fetch(`/api/articles?${params}`).then((r) => parseApiResponse(r));
       const incoming = Array.isArray(data.articles) ? data.articles : [];
 
       if (reset) setArticles(incoming);

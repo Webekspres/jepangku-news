@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, X } from "lucide-react";
@@ -57,7 +58,7 @@ function useImageUpload() {
         fd.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: fd });
         if (!res.ok) throw new Error("Upload gagal");
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         onSuccess(data.url);
         toast.success("Gambar berhasil diupload");
       } catch {
@@ -162,7 +163,7 @@ export default function AdminEditQuizPage() {
       try {
         const res = await fetch(`/api/admin/quizzes/${id}`);
         if (!res.ok) throw new Error("Kuis tidak ditemukan");
-        const data = await res.json();
+        const data = await parseApiResponse(res);
 
         setForm({
           title: data.title,
@@ -280,7 +281,7 @@ export default function AdminEditQuizPage() {
       });
 
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error);
       }
 

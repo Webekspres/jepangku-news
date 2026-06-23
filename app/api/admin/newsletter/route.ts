@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import {
@@ -9,7 +10,7 @@ import {
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return apiError('Admin access required' , { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -21,24 +22,24 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search') ?? undefined;
 
   const data = await listNewsletterSubscriptions({ page, pageSize, status, search });
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }
 
 export async function DELETE(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return apiError('Admin access required' , { status: 403 });
   }
 
   const body = await request.json().catch(() => null);
   const id = typeof body?.id === 'string' ? body.id.trim() : '';
   if (!id) {
-    return NextResponse.json({ error: 'ID wajib diisi' }, { status: 400 });
+    return apiError('ID wajib diisi' , { status: 400 });
   }
 
   const deleted = await deleteNewsletterSubscription(id);
   if (!deleted) {
-    return NextResponse.json({ error: 'Langganan tidak ditemukan' }, { status: 404 });
+    return apiError('Langganan tidak ditemukan' , { status: 404 });
   }
 
   auditAdminEntity(admin, 'newsletter_subscription', 'delete', {
@@ -48,5 +49,5 @@ export async function DELETE(request: NextRequest) {
     href: '/admin/newsletter',
   });
 
-  return NextResponse.json({ ok: true });
+  return apiSuccess({ ok: true });
 }

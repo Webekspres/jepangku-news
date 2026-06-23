@@ -1,5 +1,9 @@
+import { mkdir, writeFile } from 'fs/promises';
+import path from 'path';
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { R2_OBJECT_CACHE_CONTROL } from '@/lib/media/constants';
+
+const LOCAL_UPLOAD_ROOT = path.join(process.cwd(), '.uploads');
 
 const hasR2Config =
   process.env.R2_ACCESS_KEY_ID &&
@@ -18,14 +22,28 @@ const s3Client = hasR2Config
     })
   : null;
 
+function buildR2PublicUrl(fileName: string): string {
+  const publicUrl =
+    process.env.R2_PUBLIC_URL ||
+    `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com`;
+  return `${publicUrl.replace(/\/$/, '')}/${fileName}`;
+}
+
+async function uploadToLocal(file: Buffer, fileName: string): Promise<string> {
+  const dest = path.join(LOCAL_UPLOAD_ROOT, fileName);
+  await mkdir(path.dirname(dest), { recursive: true });
+  await writeFile(dest, file);
+  return `/api/files/mock/${fileName}`;
+}
+
 export async function uploadToR2(
   file: Buffer,
   fileName: string,
   contentType: string
 ): Promise<string> {
   if (!s3Client) {
-    console.warn('R2 is not configured. Returning local mock path.');
-    return `/api/files/mock/${fileName}`;
+    console.warn('R2 is not configured. Storing upload locally under .uploads/');
+    return uploadToLocal(file, fileName);
   }
 
   const command = new PutObjectCommand({
@@ -38,8 +56,7 @@ export async function uploadToR2(
 
   await s3Client.send(command);
 
-  const publicUrl = process.env.R2_PUBLIC_URL || `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com`;
-  return `${publicUrl}/${fileName}`;
+  return buildR2PublicUrl(fileName);
 }
 
 export async function deleteFromR2(fileName: string): Promise<void> {
@@ -59,8 +76,7 @@ export async function getSignedUrlR2(fileName: string, expiresIn = 3600): Promis
   if (!s3Client) {
     return `/api/files/mock/${fileName}`;
   }
-  // Return public URL directly (R2 public bucket)
-  const publicUrl = process.env.R2_PUBLIC_URL || `https://${process.env.R2_BUCKET_NAME}.r2.cloudflarestorage.com`;
-  return `${publicUrl}/${fileName}`;
+  return buildR2PublicUrl(fileName);
 }
-export { s3Client };
+
+export { buildR2PublicUrl, s3Client };

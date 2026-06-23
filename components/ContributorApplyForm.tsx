@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -43,7 +44,7 @@ export default function ContributorApplyForm() {
     }
 
     fetch("/api/contributor/status")
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => (r.ok ? parseApiResponse<StatusResponse>(r) : null))
       .then((data: StatusResponse | null) => setStatus(data))
       .finally(() => setLoading(false));
   }, [isLoaded, user, router]);
@@ -59,7 +60,7 @@ export default function ContributorApplyForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ motivation, portfolioUrl }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal mengirim permohonan");
         return;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
@@ -10,7 +11,7 @@ import { auditBookmark } from '@/lib/audit-routes';
 export async function POST(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
   try {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
 
   const blocked = await enforceRateLimit(request, 'bookmark', {
     max: 20,
@@ -23,12 +24,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { articleId } = await params;
 
   const article = await db.article.findUnique({ where: { id: articleId } });
-  if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+  if (!article) return apiError('Article not found' , { status: 404 });
 
   const existing = await db.bookmark.findFirst({
     where: { userId: user.id, articleId, deletedAt: null },
   });
-  if (existing) return NextResponse.json({ message: 'Already bookmarked' });
+  if (existing) return apiSuccess({ message: 'Already bookmarked' });
 
   const old = await db.bookmark.findFirst({ where: { userId: user.id, articleId } });
 
@@ -49,27 +50,27 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   auditBookmark(user, 'create', article);
 
-  return NextResponse.json({
+  return apiSuccess({
     message: 'Bookmarked',
     pointsAwarded: award.awarded,
     ...gamificationFieldsFromAward(award),
   });
   } catch (e) {
     await captureException(e, { route: 'bookmark-create' });
-    return NextResponse.json({ error: 'Failed to bookmark' }, { status: 500 });
+    return apiError('Failed to bookmark' , { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
 
   const { articleId } = await params;
 
   const bookmark = await db.bookmark.findFirst({
     where: { userId: user.id, articleId, deletedAt: null },
   });
-  if (!bookmark) return NextResponse.json({ error: 'Bookmark not found' }, { status: 404 });
+  if (!bookmark) return apiError('Bookmark not found' , { status: 404 });
 
   await db.bookmark.update({ where: { id: bookmark.id }, data: { deletedAt: new Date() } });
   await db.article.update({ where: { id: articleId }, data: { bookmarkCount: { decrement: 1 } } });
@@ -80,5 +81,5 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   });
   if (article) auditBookmark(user, 'delete', article);
 
-  return NextResponse.json({ message: 'Bookmark removed' });
+  return apiSuccess({ message: 'Bookmark removed' });
 }

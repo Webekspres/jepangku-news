@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, XCircle, Zap, Trash2, BarChart2, MessageSquare, FileEdit } from "lucide-react";
@@ -68,7 +69,7 @@ export default function AdminPollsPage() {
 
   useEffect(() => {
     fetch("/api/admin/polls/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -84,7 +85,7 @@ export default function AdminPollsPage() {
     if (statusFilter) params.set("status", statusFilter);
     if (typeFilter) params.set("type", typeFilter);
     const url = `/api/admin/polls${params.toString() ? `?${params}` : ""}`;
-    const data = await fetch(url).then((r) => r.json());
+    const data = await fetch(url).then((r) => parseApiResponse(r));
     setPolls(Array.isArray(data) ? data : []);
     setLoading(false);
   };
@@ -147,7 +148,7 @@ export default function AdminPollsPage() {
       onConfirm: async () => {
         const res = await fetch(`/api/admin/polls/${pollId}`, { method: "DELETE" });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           throw new Error(e.error || "Gagal menghapus polling");
         }
         toast.success("Polling berhasil dihapus");

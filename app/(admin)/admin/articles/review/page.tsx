@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { toast } from "sonner";
 import { Check, X, ChevronLeft, ChevronRight, CheckSquare, Users } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
@@ -31,7 +32,7 @@ export default function AdminReviewArticles() {
 
   useEffect(() => {
     fetch("/api/admin/articles/review/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -47,7 +48,7 @@ export default function AdminReviewArticles() {
       limit: String(PER_PAGE),
     });
     const data = await fetch(`/api/admin/articles/pending?${params}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
 
     const list = Array.isArray(data?.articles)
@@ -76,7 +77,7 @@ export default function AdminReviewArticles() {
       setSelected(null);
       await loadArticles(page);
       fetch("/api/admin/articles/review/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal menyetujui artikel");
@@ -101,7 +102,7 @@ export default function AdminReviewArticles() {
       setRejectNote("");
       await loadArticles(page);
       fetch("/api/admin/articles/review/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal menolak artikel");

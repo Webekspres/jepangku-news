@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { ADMIN_LIST_ARTICLE_STATUSES } from '@/lib/admin-articles-query';
@@ -6,7 +7,7 @@ import { getArticlesMissingCategoryCount } from '@/lib/admin-page-stats';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const listWhere = { status: { in: [...ADMIN_LIST_ARTICLE_STATUSES] } };
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       getArticlesMissingCategoryCount(),
     ]);
 
-  return NextResponse.json({
+  return apiSuccess({
     total,
     pendingReview,
     published,

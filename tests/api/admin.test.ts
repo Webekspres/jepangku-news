@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { ADMIN_BOUNDARY_ENDPOINTS } from "../helpers/fixtures";
 import {
   clientFor,
@@ -75,7 +76,7 @@ describe("API — admin boundary (403 non-admin)", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "ADMIN").get("/api/admin/stats");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { totalArticles: number };
+      const data = (await parseApiResponse(res)) as { totalArticles: number };
       expect(typeof data.totalArticles).toBe("number");
     });
 
@@ -101,6 +102,19 @@ describe("API — admin boundary (403 non-admin)", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "ADMIN").get("/api/admin/quizzes?limit=5");
       expect(res.status).toBe(200);
+    });
+
+    it("GET /api/admin/newsletter returns 200 for ADMIN", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "ADMIN").get("/api/admin/newsletter?limit=5");
+      expect(res.status).toBe(200);
+    });
+
+    it("GET /api/admin/newsletter/export returns CSV for ADMIN", async () => {
+      if (skipUnless(ctx, "auth")) return;
+      const res = await clientFor(ctx, "ADMIN").get("/api/admin/newsletter/export");
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toContain("text/csv");
     });
   });
 });

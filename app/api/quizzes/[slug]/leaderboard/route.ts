@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 import {
   getQuizLeaderboard,
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   });
 
   if (!quiz) {
-    return NextResponse.json({ error: 'Kuis tidak ditemukan' }, { status: 404 });
+    return apiError('Kuis tidak ditemukan' , { status: 404 });
   }
 
   const period = parseQuizLeaderboardPeriod(
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const entries = await getQuizLeaderboard(quiz.id, period, 20);
 
-  return NextResponse.json({
+  return apiSuccess({
     quiz: { id: quiz.id, title: quiz.title, slug: quiz.slug },
     period,
     entries,

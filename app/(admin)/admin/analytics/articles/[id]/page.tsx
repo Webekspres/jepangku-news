@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,7 +29,7 @@ function ArticleAnalyticsContent() {
     if (!user || (user as any).role !== "ADMIN") return;
     setFetching(true);
     fetch(`/api/admin/analytics/articles/${id}?period=${period}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setData)
       .finally(() => setFetching(false));
   }, [user, id, period]);

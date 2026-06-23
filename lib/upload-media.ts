@@ -1,3 +1,4 @@
+import { parseApiResponse } from '@/lib/fetch-api';
 export type UploadPurpose = 'avatar' | 'cover' | 'content' | 'banner';
 
 export type UploadMediaResult = {
@@ -14,7 +15,7 @@ export async function uploadMediaFile(
   fd.append('purpose', purpose);
 
   const res = await fetch('/api/upload', { method: 'POST', body: fd });
-  const data = await res.json();
+  const data = await parseApiResponse(res);
   if (!res.ok) {
     throw new Error(data.error || 'Upload gagal');
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams, useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -48,11 +49,11 @@ export default function EditArticlePage() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d) ? d : []));
 
     fetch("/api/articles/my")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((articles: any[]) => {
         const found = Array.isArray(articles)
           ? articles.find((a) => a.id === id)
@@ -121,7 +122,7 @@ export default function EditArticlePage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error);
       }
       toast.success(submitSuccessMessage(status as "DRAFT" | "PUBLISHED" | "PENDING_REVIEW", isAdmin));

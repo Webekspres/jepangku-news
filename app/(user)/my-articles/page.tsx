@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -76,7 +77,7 @@ export default function MyArticlesPage() {
       params.set("status", activeFilter);
     }
     const data = await fetch(`/api/articles/my?${params.toString()}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
 
     const list = Array.isArray(data?.articles)
@@ -100,14 +101,10 @@ export default function MyArticlesPage() {
       confirmLabel: "Hapus",
       variant: "danger",
       onConfirm: async () => {
-        await fetch(`/api/articles/${slug}/delete`, { method: "DELETE" }).then(
-          (r) => {
-            if (!r.ok)
-              return r.json().then((e: any) => {
-                throw new Error(e.error);
-              });
-          },
-        );
+        const res = await fetch(`/api/articles/${slug}/delete`, {
+          method: "DELETE",
+        });
+        if (!res.ok) await parseApiResponse(res);
         toast.success("Artikel dihapus");
         await loadArticles(page, filter);
       },
@@ -122,7 +119,7 @@ export default function MyArticlesPage() {
         body: JSON.stringify({ status: "PENDING_REVIEW" }),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error || "Gagal mengirim");
       }
       toast.success("Artikel dikirim untuk review");
@@ -140,7 +137,7 @@ export default function MyArticlesPage() {
         body: JSON.stringify({ status: "PUBLISHED" }),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error || "Gagal mempublikasikan");
       }
       toast.success("Artikel berhasil dipublikasikan");

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { parseApiResponse } from "@/lib/fetch-api";
 import { imageLoadingProps } from "@/lib/image-loading";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -37,7 +38,7 @@ export default function QuizDetailPage() {
           router.push("/quizzes");
           return null;
         }
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((d) => {
         if (!d) return;
@@ -77,13 +78,7 @@ export default function QuizDetailPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ answers: answerList }),
-      }).then((r) => {
-        if (!r.ok)
-          return r.json().then((e) => {
-            throw new Error(e.error);
-          });
-        return r.json();
-      });
+      }).then((r) => parseApiResponse(r));
       setResult(data);
       toast.success(`+${data.pointsAwarded} poin didapat!`);
       await refreshUser(gamificationPatchFromResponse(data));

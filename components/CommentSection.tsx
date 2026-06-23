@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useAuth, isAuthUser, getAuthLoginPath } from "@/contexts/AuthContext";
 import { gamificationPatchFromResponse } from "@/lib/gamification-response";
@@ -26,7 +27,7 @@ import { cn } from "@/lib/utils";
 import AuthorLink from "@/components/AuthorLink";
 import UserAvatar from "@/components/media/UserAvatar";
 
-export type CommentTargetType = "ARTICLE" | "POLL" | "QUIZ";
+export type CommentTargetType = "ARTICLE" | "POLL" | "QUIZ" | "VIDEO";
 
 interface CommentAuthor {
   id: string;
@@ -290,7 +291,7 @@ export default function CommentSection({
       const res = await fetch(
         `/api/comments?targetType=${targetType}&targetId=${targetId}`,
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       const next = Array.isArray(data.comments) ? data.comments : [];
       setComments(next);
       commentsRef.current = next;
@@ -326,7 +327,7 @@ export default function CommentSection({
       credentials: "include",
       body: JSON.stringify({ targetType, targetId, content, parentId }),
     });
-    const data = await res.json();
+    const data = await parseApiResponse(res);
     if (!res.ok) throw new Error(data.error || "Gagal mengirim komentar");
     return data;
   };
@@ -465,7 +466,7 @@ export default function CommentSection({
         credentials: "include",
         body: JSON.stringify({ content }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan");
       setEditingId(null);
       setEditText("");
@@ -497,7 +498,7 @@ export default function CommentSection({
             credentials: "include",
           });
           if (!res.ok) {
-            const d = await res.json();
+            const d = await parseApiResponse(res);
             throw new Error(d.error);
           }
           await reloadComments();
@@ -520,7 +521,7 @@ export default function CommentSection({
         body: JSON.stringify({ action }),
       });
       if (!res.ok) {
-        const d = await res.json();
+        const d = await parseApiResponse(res);
         throw new Error(d.error);
       }
       await reloadComments();
@@ -558,7 +559,7 @@ export default function CommentSection({
             type: typeToPost,
           }),
         });
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         if (!res.ok) throw new Error(data.error || "Gagal menyimpan reaksi");
 
         const synced = {

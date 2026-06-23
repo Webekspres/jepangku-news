@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { toast } from "sonner";
 import { Users, Shield, User, PenSquare, UserCheck, Ban, UserX, Sparkles } from "lucide-react";
@@ -43,7 +44,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetch("/api/admin/users/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -61,7 +62,7 @@ export default function AdminUsersPage() {
     if (roleFilter) params.set("role", roleFilter);
 
     const data = await fetch(`/api/admin/users?${params}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
 
     setUsers(Array.isArray(data) ? data : []);
@@ -96,7 +97,7 @@ export default function AdminUsersPage() {
         toast.success("Role berhasil diperbarui");
         loadUsers();
         fetch("/api/admin/users/stats")
-          .then((r) => r.json())
+          .then((r) => parseApiResponse(r))
           .then(setStats);
       },
     });
@@ -121,7 +122,7 @@ export default function AdminUsersPage() {
         toast.success("Status berhasil diperbarui");
         loadUsers();
         fetch("/api/admin/users/stats")
-          .then((r) => r.json())
+          .then((r) => parseApiResponse(r))
           .then(setStats);
       },
     });

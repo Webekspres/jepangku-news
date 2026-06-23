@@ -1,6 +1,7 @@
 import { expect } from "bun:test";
 import type { ClerkTestRole } from "../fixtures/clerk-accounts";
-import { preloadClerkTokens, isClerkAuthConfigured } from "./auth";
+import { CLERK_TEST_ACCOUNTS } from "../fixtures/clerk-accounts";
+import { preloadClerkTokens, isClerkAuthConfigured, ensureClerkTestAccountRoles } from "./auth";
 import { createApiClient } from "./api-client";
 import { getNewsBaseUrl, isNewsServerUp } from "./server";
 
@@ -13,28 +14,52 @@ export type IntegrationContext = {
 
 let sharedContext: IntegrationContext | null = null;
 
+export function resetIntegrationContext(): void {
+  sharedContext = null;
+}
+
 export async function setupIntegration(): Promise<IntegrationContext> {
-  if (sharedContext) return sharedContext;
-
   const baseUrl = getNewsBaseUrl();
-  const serverUp = await isNewsServerUp(baseUrl);
-  const tokens = serverUp ? await preloadClerkTokens() : {};
-  const authAvailable =
-    isClerkAuthConfigured() && Object.keys(tokens).length > 0;
 
-  if (!serverUp && !process.env.CI) {
-    console.warn(
-      `⚠️  Integration tests need a running server at ${baseUrl} (\`bun dev\`)`,
-    );
-  }
-  if (serverUp && !authAvailable && !process.env.CI) {
-    console.warn(
-      "⚠️  Authenticated integration tests skipped — set CLERK_SECRET_KEY and seed test users",
-    );
+  if (!sharedContext) {
+    const serverUp = await isNewsServerUp(baseUrl);
+    if (!serverUp && !process.env.CI) {
+      console.warn(
+        `⚠️  Integration tests need a running server at ${baseUrl} (\`bun run dev:test\`)`,
+      );
+    }
+    sharedContext = {
+      baseUrl,
+      serverUp,
+      authAvailable: false,
+      tokens: {},
+    };
   }
 
-  sharedContext = { baseUrl, serverUp, authAvailable, tokens };
+  if (sharedContext.serverUp && isClerkAuthConfigured()) {
+    await ensureClerkTestAccountRoles();
+    const tokens = await preloadClerkTokens();
+    sharedContext.tokens = tokens;
+    sharedContext.authAvailable = Object.keys(tokens).length > 0;
+    if (!sharedContext.authAvailable && !process.env.CI) {
+      console.warn(
+        "⚠️  Authenticated integration tests skipped — set CLERK_SECRET_KEY and seed test users",
+      );
+    }
+  }
+
   return sharedContext;
+}
+
+/** Force-refresh Clerk JWTs (e.g. after long admin test suite). */
+export async function refreshIntegrationTokens(
+  ctx: IntegrationContext,
+): Promise<void> {
+  if (!ctx.serverUp || !isClerkAuthConfigured()) return;
+  const { clearClerkTokenCache } = await import("./auth");
+  clearClerkTokenCache();
+  ctx.tokens = await preloadClerkTokens();
+  ctx.authAvailable = Object.keys(ctx.tokens).length > 0;
 }
 
 /** Returns true when the test should be skipped (not failed). */
@@ -59,6 +84,15 @@ export function clientFor(
 ) {
   if (role === "guest") return createApiClient(null);
   const token = ctx.tokens[role];
-  if (!token) throw new Error(`No Clerk token for role ${role}`);
+  if (!token) {
+    throw new Error(`No Clerk token for role ${role} — create ${CLERK_TEST_ACCOUNTS[role as Exclude<ClerkTestRole, "guest">]?.email ?? role} in Clerk dev`);
+  }
   return createApiClient(token);
+}
+
+export function hasRoleToken(
+  ctx: IntegrationContext,
+  role: Exclude<ClerkTestRole, "guest">,
+): boolean {
+  return Boolean(ctx.tokens[role]);
 }

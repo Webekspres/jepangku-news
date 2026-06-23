@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
@@ -45,13 +46,13 @@ export default function AdminEditArticlePage() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d) ? d : []));
 
     fetch(`/api/admin/articles/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((article) => {
         setArticleSlug(article.slug || "");
@@ -119,10 +120,10 @@ export default function AdminEditArticlePage() {
         }),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error || "Gagal memperbarui artikel");
       }
-      const updated = await res.json();
+      const updated = await parseApiResponse(res);
       setStatus(updated.status || targetStatus);
       setArticleSlug(updated.slug || articleSlug);
       toast.success("Artikel diperbarui");
@@ -172,14 +173,14 @@ export default function AdminEditArticlePage() {
             }),
           });
           if (!patchRes.ok) {
-            const e = await patchRes.json();
-            throw new Error(e.error || "Gagal menyimpan artikel");
+            const e = await parseApiResponse(patchRes);
+            throw new Error(e.message || "Gagal menyimpan artikel");
           }
           const res = await fetch(`/api/admin/articles/${id}/approve`, {
             method: "POST",
           });
           if (!res.ok) {
-            const e = await res.json();
+            const e = await parseApiResponse(res);
             throw new Error(e.error || "Gagal menyetujui artikel");
           }
           toast.success("Artikel disetujui dan dipublikasikan");
@@ -207,7 +208,7 @@ export default function AdminEditArticlePage() {
         body: JSON.stringify({ note: rejectNote.trim() }),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error || "Gagal menolak artikel");
       }
       toast.success("Artikel berhasil ditolak");

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { captureException } from '@/lib/monitoring';
 import {
@@ -10,14 +11,14 @@ export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return apiError('Not authenticated' , { status: 401 });
     }
 
     const session = await getNotificationSession(user.id);
-    return NextResponse.json(session);
+    return apiSuccess(session);
   } catch (e) {
     await captureException(e, { route: 'notifications-session' });
-    return NextResponse.json({ error: 'Gagal memuat sesi notifikasi' }, { status: 500 });
+    return apiError('Gagal memuat sesi notifikasi' , { status: 500 });
   }
 }
 
@@ -25,7 +26,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return apiError('Not authenticated' , { status: 401 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -33,7 +34,7 @@ export async function PATCH(request: NextRequest) {
     const dismissDailyPoints = Boolean(body?.dismissDailyPoints);
 
     if (!dismissWelcome && !dismissDailyPoints) {
-      return NextResponse.json(
+      return apiSuccess(
         { error: 'Tidak ada aksi dismiss yang valid' },
         { status: 400 },
       );
@@ -44,9 +45,9 @@ export async function PATCH(request: NextRequest) {
       dismissDailyPoints,
     });
 
-    return NextResponse.json(session);
+    return apiSuccess(session);
   } catch (e) {
     await captureException(e, { route: 'notifications-session-patch' });
-    return NextResponse.json({ error: 'Gagal memperbarui sesi notifikasi' }, { status: 500 });
+    return apiError('Gagal memperbarui sesi notifikasi' , { status: 500 });
   }
 }

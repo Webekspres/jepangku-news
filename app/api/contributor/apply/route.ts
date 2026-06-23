@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { createContributorApplication } from '@/lib/contributor-applications';
 import { canCreateArticles } from '@/lib/contributor';
@@ -6,10 +7,10 @@ import { canCreateArticles } from '@/lib/contributor';
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    return apiError('Not authenticated' , { status: 401 });
   }
   if (canCreateArticles(user)) {
-    return NextResponse.json({ error: 'Anda sudah menjadi kontributor' }, { status: 400 });
+    return apiError('Anda sudah menjadi kontributor' , { status: 400 });
   }
 
   try {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
       portfolioUrl: body.portfolioUrl ? String(body.portfolioUrl) : null,
     });
 
-    return NextResponse.json({ application }, { status: 201 });
+    return apiSuccess({ application }, { status: 201 });
   } catch (error) {
     const code = error instanceof Error ? error.message : 'UNKNOWN';
     const messages: Record<string, { status: number; error: string }> = {
@@ -39,9 +40,9 @@ export async function POST(request: NextRequest) {
     };
     const mapped = messages[code];
     if (mapped) {
-      return NextResponse.json({ error: mapped.error, code }, { status: mapped.status });
+      return apiSuccess({ error: mapped.error, code }, { status: mapped.status });
     }
     console.error('Contributor apply failed:', error);
-    return NextResponse.json({ error: 'Gagal mengirim permohonan' }, { status: 500 });
+    return apiError('Gagal mengirim permohonan' , { status: 500 });
   }
 }

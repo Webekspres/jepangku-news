@@ -12,6 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { parseApiResponse } from "@/lib/fetch-api";
 import { ThinScrollbar } from "@/components/ui/thin-scrollbar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -340,7 +341,12 @@ export function useArticleActivity() {
       ]);
 
       if (reviewsRes.ok) {
-        const data = await reviewsRes.json();
+        const data = await parseApiResponse<{
+          reviews?: ReviewEntry[];
+          articleStatus?: string;
+          lastEditedAt?: string | null;
+          lastEditedBy?: EditorInfo;
+        }>(reviewsRes);
         setReviews(Array.isArray(data.reviews) ? data.reviews : []);
         setArticleStatus(data.articleStatus);
         setLastEditedAt(data.lastEditedAt ?? null);
@@ -348,7 +354,12 @@ export function useArticleActivity() {
       }
 
       if (revisionsRes.ok) {
-        const data = await revisionsRes.json();
+        const data = await parseApiResponse<{
+          revisions?: RevisionEntry[];
+          articleStatus?: string;
+          lastEditedAt?: string | null;
+          lastEditedBy?: EditorInfo;
+        }>(revisionsRes);
         setRevisions(Array.isArray(data.revisions) ? data.revisions : []);
         if (!reviewsRes.ok) {
           setArticleStatus(data.articleStatus);

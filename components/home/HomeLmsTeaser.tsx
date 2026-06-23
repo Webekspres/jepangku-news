@@ -172,9 +172,9 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
             <AssetImage
               src="/assets/images/logo/Logo-Nihongo.svg"
               alt="Jepangku Nihongo LMS"
-              width={140}
-              height={48}
-              className="h-10 w-auto opacity-90 transition-opacity hover:opacity-100 md:h-12"
+              width={400}
+              height={98}
+              className="w-72 h-auto opacity-90 transition-opacity hover:opacity-100"
             />
           </Link>
         </div>

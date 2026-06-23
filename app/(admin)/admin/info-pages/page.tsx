@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { Pencil, ExternalLink, FileText, Eye } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
@@ -31,14 +32,14 @@ export default function AdminInfoPagesPage() {
 
   useEffect(() => {
     fetch("/api/admin/info-pages/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
 
   useEffect(() => {
     fetch("/api/admin/info-pages")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((data) => setPages(Array.isArray(data) ? data : []))
       .finally(() => setLoading(false));
   }, []);

@@ -19,8 +19,16 @@ mock.module('@/lib/db', () => ({
   },
 }));
 
+// Re-export real helpers so hoisted mock.module does not strip exports other tests need.
+import {
+  getJakartaDayBounds,
+  isWithinJakartaDay,
+} from '../../lib/jakarta-calendar';
+
 mock.module('@/lib/jakarta-calendar', () => ({
   getJakartaDateKey: () => '2026-06-22',
+  getJakartaDayBounds,
+  isWithinJakartaDay,
 }));
 
 const { awardPoints, checkDailyLogin, getUserPointBalance, getUserPointTransactions } =

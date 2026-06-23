@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { Award, Download } from "lucide-react";
@@ -30,8 +31,8 @@ export default function UserActivityPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/points/my").then((r) => r.json()),
-      fetch("/api/activity/feed").then((r) => r.json()),
+      fetch("/api/points/my").then((r) => parseApiResponse(r)),
+      fetch("/api/activity/feed").then((r) => parseApiResponse(r)),
     ])
       .then(([pointsData, feedData]) => {
         setTransactions(Array.isArray(pointsData?.transactions) ? pointsData.transactions : []);

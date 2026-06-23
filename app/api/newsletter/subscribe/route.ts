@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
   const rawEmail = typeof body?.email === 'string' ? body.email : '';
 
   if (!isValidNewsletterEmail(rawEmail)) {
-    return NextResponse.json({ error: 'Alamat email tidak valid' }, { status: 400 });
+    return apiError('Alamat email tidak valid' , { status: 400 });
   }
 
   const email = normalizeNewsletterEmail(rawEmail);
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   await subscribeToNewsletter(email, userId);
 
-  return NextResponse.json({
+  return apiSuccess({
     ok: true,
     message: 'Terima kasih! Periksa inbox Anda untuk konfirmasi langganan.',
   });

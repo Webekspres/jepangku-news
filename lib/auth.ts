@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import { auth, clerkClient, currentUser, getAuth } from '@clerk/nextjs/server';
 import type { User } from '@clerk/backend';
 import type { ServerGetToken } from '@clerk/shared/types';
@@ -89,7 +90,7 @@ async function authenticateClerkRequest(
   const clerkUser = await client.users.getUser(authState.userId);
   if (!clerkUser) return null;
 
-  const user = await syncSessionUser(authState, clerkUser, request);
+  const user = await syncSessionUser(authState, clerkUser as unknown as User, request);
   if (!user) return null;
 
   const clerkToken = await resolveClerkSessionToken(authState, request);
@@ -149,7 +150,7 @@ export async function authenticateRequestUser(request: NextRequest): Promise<{
   const clerkUser = await client.users.getUser(authState.userId);
   if (!clerkUser) return null;
 
-  const user = await syncSessionUser(authState, clerkUser, request);
+  const user = await syncSessionUser(authState, clerkUser as unknown as User, request);
   if (!user) return null;
 
   const clerkToken = await resolveClerkSessionToken(authState, request);
@@ -163,7 +164,7 @@ async function getCurrentUserFromClerk(): Promise<SessionUser | null> {
   const clerkUser = await currentUser();
   if (!clerkUser) return null;
 
-  return syncSessionUser(authState, clerkUser);
+  return syncSessionUser(authState, clerkUser as unknown as User);
 }
 
 /** Resolves portal session from Clerk + Core JWT + JIT sync to local profile. */
@@ -202,11 +203,8 @@ export async function withCoreSessionCookie(
 }
 
 export function authProviderDisabledResponse(): NextResponse {
-  return NextResponse.json(
-    {
-      error: 'Local authentication is disabled. Use Clerk sign-in at /sign-in.',
-      code: 'LOCAL_AUTH_DISABLED',
-    },
-    { status: 410 },
-  );
+  return apiError('Local authentication is disabled. Use Clerk sign-in at /sign-in.', {
+    status: 410,
+    code: 'LOCAL_AUTH_DISABLED',
+  });
 }

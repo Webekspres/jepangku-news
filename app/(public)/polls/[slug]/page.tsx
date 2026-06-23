@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Image from "next/image";
 import { imageLoadingProps } from "@/lib/image-loading";
 import { useParams, useRouter } from "next/navigation";
@@ -82,7 +83,7 @@ export default function PollDetailPage() {
   const fetchPoll = async () => {
     const res = await fetch(`/api/polls/${slug}`, { credentials: "include" });
     if (!res.ok) { router.push("/polls"); return; }
-    const data: PollData = await res.json();
+    const data: PollData = await parseApiResponse(res);
     const { voted, selected } = hydrateUserVotes(data);
     setPoll(data);
     setVotedQuestions(voted);
@@ -122,7 +123,7 @@ export default function PollDetailPage() {
         credentials: "include",
         body: JSON.stringify({ votes: toVote }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error);
 
       if (data.pointsAwarded > 0) {

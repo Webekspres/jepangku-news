@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import AuthorLink from "@/components/AuthorLink";
 import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
 import { Trophy, Crown } from "lucide-react";
@@ -43,7 +44,7 @@ export default function LeaderboardPage() {
       const res = await fetch(
         `/api/leaderboard?period=${selected}&limit=${LEADERBOARD_TOP_LIMIT}`,
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setLeaderboard(Array.isArray(data?.items) ? data.items : []);
       setCurrentUserEntry(data?.currentUser ?? null);
     } catch {
@@ -82,6 +83,7 @@ export default function LeaderboardPage() {
                 role="tab"
                 aria-selected={period === option}
                 onClick={() => setPeriod(option)}
+                data-state={period === option ? "active" : "inactive"}
                 className={`flex-1 min-w-28 px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
                   period === option
                     ? "bg-jepang-red text-white"

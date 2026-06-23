@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import Image from "next/image";
 import { MotionHoverScale } from "@/components/ui/motion";
@@ -78,7 +79,7 @@ export default function TvArchivePage() {
         limit: String(PER_PAGE),
         page: String(pageNum),
       });
-      const data = await fetch(`/api/videos?${params}`).then((r) => r.json());
+      const data = await fetch(`/api/videos?${params}`).then((r) => parseApiResponse(r));
       const incoming: PublicVideoSummary[] = Array.isArray(data.videos) ? data.videos : [];
 
       if (reset) {

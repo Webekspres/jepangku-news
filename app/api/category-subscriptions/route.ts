@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import {
   listUserCategorySubscriptions,
@@ -10,17 +11,17 @@ import {
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Login diperlukan' }, { status: 401 });
+    return apiError('Login diperlukan' , { status: 401 });
   }
 
   const subscriptions = await listUserCategorySubscriptions(user.id);
-  return NextResponse.json({ subscriptions });
+  return apiSuccess({ subscriptions });
 }
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Login diperlukan' }, { status: 401 });
+    return apiError('Login diperlukan' , { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
@@ -30,23 +31,21 @@ export async function POST(request: NextRequest) {
   );
 
   if (!categoryId) {
-    return NextResponse.json({ error: 'Kategori tidak valid' }, { status: 400 });
+    return apiError('Kategori tidak valid' , { status: 400 });
   }
 
   const result = await subscribeToCategory(user.id, categoryId);
   if (!result.ok) {
-    return NextResponse.json({ error: result.error ?? 'Gagal berlangganan' }, {
-      status: 400,
-    });
+    return apiError(result.error ?? 'Gagal berlangganan' , { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, categoryId });
+  return apiSuccess({ ok: true, categoryId });
 }
 
 export async function DELETE(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Login diperlukan' }, { status: 401 });
+    return apiError('Login diperlukan' , { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -56,9 +55,9 @@ export async function DELETE(request: NextRequest) {
   );
 
   if (!categoryId) {
-    return NextResponse.json({ error: 'Kategori tidak valid' }, { status: 400 });
+    return apiError('Kategori tidak valid' , { status: 400 });
   }
 
   await unsubscribeFromCategory(user.id, categoryId);
-  return NextResponse.json({ ok: true });
+  return apiSuccess({ ok: true });
 }

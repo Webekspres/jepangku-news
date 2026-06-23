@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import {
   browseByReaction,
   parseBrowseTargetType,
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
   const targetType = parseBrowseTargetType(searchParams.get("targetType"));
 
   if (!reactionType || !targetType) {
-    return NextResponse.json(
+    return apiSuccess(
       { error: "Parameter type dan targetType wajib diisi." },
       { status: 400 },
     );
@@ -27,9 +28,7 @@ export async function GET(request: NextRequest) {
     limit,
   });
 
-  return NextResponse.json(data, {
-    headers: {
+  return apiSuccess(data, { headers: {
       "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
-    },
-  });
+    } });
 }

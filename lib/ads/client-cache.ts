@@ -1,4 +1,5 @@
 import type { HomeAdResponse } from '@/lib/home/types';
+import { parseApiResponse } from '@/lib/fetch-api';
 import { AD_SLOT_CLIENT_TTL_MS } from '@/lib/ads/cache';
 import { preloadMediaImage } from '@/lib/media/client-cache';
 
@@ -52,7 +53,7 @@ export async function fetchAdSlotClient(
   })
     .then(async (res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json() as Promise<HomeAdResponse>;
+      return parseApiResponse<HomeAdResponse>(res);
     })
     .then((data) => writeCache(slot, data))
     .finally(() => {

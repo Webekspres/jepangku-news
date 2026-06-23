@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import {
@@ -29,22 +30,22 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
-    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+    return apiSuccess(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
   }
 
   const { id } = await params;
 
   const article = await db.article.findUnique({ where: { id } });
-  if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+  if (!article) return apiError('Article not found' , { status: 404 });
 
   if (article.authorId !== user.id) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
+    return apiError('Not authorized' , { status: 403 });
   }
 
   if (!canEditOnUserPortal(article.status)) {
-    return NextResponse.json(
+    return apiSuccess(
       { error: 'Artikel tidak dapat diedit pada status ini' },
       { status: 400 },
     );
@@ -119,10 +120,10 @@ export async function PATCH(
       auditArticleDraftUpdate(user, { id: updated.id, title: updated.title });
     }
 
-    return NextResponse.json(updated);
+    return apiSuccess(updated);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed to update draft';
     console.error('Draft autosave error:', e);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(message , { status: 500 });
   }
 }

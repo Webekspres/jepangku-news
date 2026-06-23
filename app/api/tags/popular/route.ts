@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 
 // GET /api/tags/popular?limit=20
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (grouped.length === 0) {
-    return NextResponse.json([]);
+    return apiSuccess([]);
   }
 
   const tagIds = grouped.map((g) => g.tagId);
@@ -32,5 +33,5 @@ export async function GET(request: NextRequest) {
     }))
     .sort((a, b) => b.articleCount - a.articleCount);
 
-  return NextResponse.json(result);
+  return apiSuccess(result);
 }

@@ -51,6 +51,7 @@ const { ADS_DATA } = require("./seeder/data/ads.js");
 const {
   CLERK_TEST_ADMIN_EMAIL,
   CLERK_TEST_CONTRIBUTOR_EMAIL,
+  CLERK_TEST_SAMPLE_USER_EMAIL,
   LEGACY_EMAIL_MIGRATIONS,
 } = require("./seeder/data/clerk-test-emails.js");
 
@@ -170,6 +171,22 @@ async function main() {
     console.log(`✅ Updated contributor role: ${contributorEmail}`);
   } else {
     console.log(`⏭  Contributor already exists: ${contributorEmail} (${contributor.id})`);
+  }
+
+  // ── 1c. Enforce Clerk QA account roles (idempotent) ───────────────────
+  const clerkRoleFixes = [
+    { email: CLERK_TEST_SAMPLE_USER_EMAIL, role: "USER" },
+    { email: CLERK_TEST_CONTRIBUTOR_EMAIL, role: "CONTRIBUTOR" },
+    { email: CLERK_TEST_ADMIN_EMAIL, role: "ADMIN" },
+  ];
+  for (const { email, role } of clerkRoleFixes) {
+    const updated = await prisma.user.updateMany({
+      where: { email },
+      data: { role },
+    });
+    if (updated.count > 0) {
+      console.log(`✅ Clerk test role ${role}: ${email}`);
+    }
   }
 
   // ── 2. Sample users (Clerk ID or seed_* for dev content) ─────────────
@@ -998,13 +1015,16 @@ async function main() {
       video.status === "PUBLISHED"
         ? daysAgo(video.daysAgo ?? 0)
         : null;
-    const thumbnailUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+    const thumbnailUrl = video.useYoutubeThumbnail
+      ? null
+      : `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
 
     await prisma.video.upsert({
       where: { slug: video.slug },
       update: {
         title: video.title,
         description: video.description,
+        content: video.content ?? null,
         youtubeId: video.youtubeId,
         thumbnailUrl,
         status: video.status,
@@ -1016,6 +1036,7 @@ async function main() {
         title: video.title,
         slug: video.slug,
         description: video.description,
+        content: video.content ?? null,
         youtubeId: video.youtubeId,
         thumbnailUrl,
         status: video.status,

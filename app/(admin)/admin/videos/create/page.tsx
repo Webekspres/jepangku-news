@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -14,6 +16,7 @@ export default function AdminVideoCreatePage() {
   const [form, setForm] = useState({
     title: "",
     description: "",
+    content: "",
     youtubeUrl: "",
     status: "DRAFT",
     isFeatured: false,
@@ -33,7 +36,7 @@ export default function AdminVideoCreatePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan video");
       toast.success("Video berhasil dibuat");
       router.push(`/admin/videos/${data.id}/edit`);
@@ -51,6 +54,7 @@ export default function AdminVideoCreatePage() {
       label="Jepangku TV"
       backHref="/admin/videos"
       backLabel="Daftar Video"
+      testId="admin-create-video-page"
     >
       <AdminCard>
           <form onSubmit={handleSubmit} className="space-y-5 max-w-2xl">
@@ -61,6 +65,7 @@ export default function AdminVideoCreatePage() {
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="Judul video"
                 required
+                data-testid="video-title-input"
               />
             </div>
 
@@ -71,6 +76,7 @@ export default function AdminVideoCreatePage() {
                 onChange={(e) => setForm((f) => ({ ...f, youtubeUrl: e.target.value }))}
                 placeholder="https://youtube.com/watch?v=... atau dQw4w9WgXcQ"
                 required
+                data-testid="video-youtube-input"
               />
             </div>
 
@@ -82,6 +88,14 @@ export default function AdminVideoCreatePage() {
                 rows={4}
                 className="w-full rounded-md border border-jepang-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jepang-red"
                 placeholder="Deskripsi singkat (opsional)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1.5">Konten artikel</label>
+              <RichTextEditor
+                value={form.content}
+                onChange={(content) => setForm((f) => ({ ...f, content }))}
               />
             </div>
 
@@ -113,7 +127,7 @@ export default function AdminVideoCreatePage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} data-testid="create-video-submit">
                 {saving ? "Menyimpan..." : "Simpan Video"}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.push("/admin/videos")}>

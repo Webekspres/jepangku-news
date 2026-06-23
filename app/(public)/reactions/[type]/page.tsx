@@ -9,6 +9,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import CardCoverImage from "@/components/CardCoverImage";
@@ -224,7 +225,7 @@ export default function ReactionBrowsePage() {
       });
       const response = await fetch(`/api/reactions/browse?${search}`);
       if (!response.ok) throw new Error("browse failed");
-      const data = (await response.json()) as ReactionBrowseResponse;
+      const data = (await parseApiResponse(response)) as ReactionBrowseResponse;
       return {
         items: data.items as T[],
         total: data.total,

@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -30,11 +31,11 @@ export default function ProfilePage() {
     if (!user) return;
     Promise.all([
       canCreateArticles(user)
-        ? fetch("/api/articles/my").then((r) => r.json())
+        ? fetch("/api/articles/my").then((r) => parseApiResponse(r))
         : Promise.resolve([]),
-      fetch("/api/bookmarks").then((r) => r.json()),
-      fetch("/api/points/my").then((r) => r.json()),
-      fetch("/api/user/profile").then((r) => r.json()),
+      fetch("/api/bookmarks").then((r) => parseApiResponse(r)),
+      fetch("/api/points/my").then((r) => parseApiResponse(r)),
+      fetch("/api/user/profile").then((r) => parseApiResponse(r)),
     ]).then(([articles, bookmarks, points, profile]) => {
       setStats({
         articles: Array.isArray(articles) ? articles.length : 0,

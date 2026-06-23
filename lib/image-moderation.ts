@@ -1,4 +1,13 @@
 import { logger } from './logger';
+import { parseApiResponse } from '@/lib/fetch-api';
+
+/** Client-facing upload validation or moderation failure (maps to HTTP 400). */
+export class UploadClientError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UploadClientError';
+  }
+}
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MIN_IMAGE_BYTES = 100;
@@ -44,24 +53,24 @@ function detectImageType(buffer: Buffer) {
 
 export function validateImageBuffer(buffer: Buffer, contentType: string) {
   if (buffer.length < MIN_IMAGE_BYTES) {
-    throw new Error('Image file is too small.');
+    throw new UploadClientError('Image file is too small.');
   }
   if (buffer.length > MAX_IMAGE_BYTES) {
-    throw new Error('Image file exceeds maximum size (10MB).');
+    throw new UploadClientError('Image file exceeds maximum size (10MB).');
   }
 
   const detected = detectImageType(buffer);
   if (!detected) {
-    throw new Error('Uploaded file is not a valid image.');
+    throw new UploadClientError('Uploaded file is not a valid image.');
   }
 
   if (!allowedMimeTypes.includes(contentType)) {
-    throw new Error('Invalid image MIME type.');
+    throw new UploadClientError('Invalid image MIME type.');
   }
 
   const normalizedContentType = contentType === 'image/jpg' ? 'image/jpeg' : contentType;
   if (detected.mime !== normalizedContentType) {
-    throw new Error('Image MIME type does not match file contents.');
+    throw new UploadClientError('Image MIME type does not match file contents.');
   }
 
   return detected;
@@ -97,12 +106,15 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
   });
 
   if (!response.ok) {
-    throw new Error('Image moderation service rejected the request.');
+    throw new UploadClientError('Image moderation service rejected the request.');
   }
 
-  const result = await response.json();
+  const result = (await parseApiResponse(response)) as {
+    decision?: string;
+    moderation?: string;
+  };
   if (result?.decision === 'reject' || result?.moderation === 'unsafe') {
-    throw new Error('Uploaded image was rejected by moderation.');
+    throw new UploadClientError('Uploaded image was rejected by moderation.');
   }
 
   return true;

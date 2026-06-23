@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Zap, Trash2, BarChart2, FileEdit, EyeOff } from "lucide-react";
@@ -59,7 +60,7 @@ export default function AdminQuizzesPage() {
 
   useEffect(() => {
     fetch("/api/admin/quizzes/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -74,7 +75,7 @@ export default function AdminQuizzesPage() {
     const url = filter
       ? `/api/admin/quizzes?status=${filter}`
       : "/api/admin/quizzes";
-    const data = await fetch(url).then((r) => r.json());
+    const data = await fetch(url).then((r) => parseApiResponse(r));
     setQuizzes(Array.isArray(data) ? data : []);
     setLoading(false);
   };
@@ -109,7 +110,7 @@ export default function AdminQuizzesPage() {
       onConfirm: async () => {
         const res = await fetch(`/api/admin/quizzes/${quizId}`, { method: "DELETE" });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           throw new Error(e.error || "Gagal menghapus kuis");
         }
         toast.success("Kuis berhasil dihapus");

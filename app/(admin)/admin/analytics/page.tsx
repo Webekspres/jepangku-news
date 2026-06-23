@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -89,7 +90,7 @@ export default function AnalyticsHubPage() {
 
   useEffect(() => {
     fetch("/api/admin/analytics/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);

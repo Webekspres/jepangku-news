@@ -1,4 +1,5 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import {
   fetchPublishedArticle,
   fetchPublishedArticleId,
@@ -10,6 +11,7 @@ import {
   skipUnless,
   type IntegrationContext,
 } from "../helpers/integration";
+import { resetClerkUserArticleShares } from "../helpers/article-share-test";
 
 const DRAFT_PAYLOAD = {
   title: `Integration Draft ${Date.now()}`,
@@ -37,7 +39,7 @@ describe("API — articles", () => {
       if (skipUnless(ctx, "server")) return;
       const res = await clientFor(ctx).get("/api/articles?limit=3");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { articles: unknown[] };
+      const data = (await parseApiResponse(res)) as { articles: unknown[] };
       expect(Array.isArray(data.articles)).toBe(true);
     });
 
@@ -77,7 +79,7 @@ describe("API — articles", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "CONTRIBUTOR").post("/api/articles/create", DRAFT_PAYLOAD);
       expect(res.status).toBe(201);
-      const article = (await res.json()) as { slug: string; status: string; title: string };
+      const article = (await parseApiResponse(res)) as { slug: string; status: string; title: string };
       expect(article.status).toBe("DRAFT");
       expect(article.title).toBe(DRAFT_PAYLOAD.title);
       createdSlug = article.slug;
@@ -92,14 +94,16 @@ describe("API — articles", () => {
       expect(res.status).toBe(400);
     });
 
-    it("POST /api/articles/create rejects invalid status", async () => {
+    it("POST /api/articles/create coerces invalid status to DRAFT for CONTRIBUTOR", async () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "CONTRIBUTOR").post("/api/articles/create", {
         ...DRAFT_PAYLOAD,
         title: `Invalid Status ${Date.now()}`,
         status: "PUBLISHED",
       });
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(201);
+      const article = (await parseApiResponse(res)) as { status: string };
+      expect(article.status).toBe("DRAFT");
     });
   });
 
@@ -114,8 +118,8 @@ describe("API — articles", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "CONTRIBUTOR").get("/api/articles/my");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { articles: { slug: string }[] };
-      expect(Array.isArray(data.articles)).toBe(true);
+      const data = (await parseApiResponse(res)) as { slug: string }[];
+      expect(Array.isArray(data)).toBe(true);
     });
 
     it("PUT update returns 403 for non-owner", async () => {
@@ -133,6 +137,8 @@ describe("API — articles", () => {
         content: DRAFT_PAYLOAD.content,
       });
       expect(res.status).toBe(200);
+      const article = (await parseApiResponse(res)) as { slug: string };
+      createdSlug = article.slug;
     });
 
     it("PUT update can submit DRAFT to PENDING_REVIEW", async () => {
@@ -141,7 +147,7 @@ describe("API — articles", () => {
         status: "PENDING_REVIEW",
       });
       expect(res.status).toBe(200);
-      const article = (await res.json()) as { status: string };
+      const article = (await parseApiResponse(res)) as { status: string };
       expect(article.status).toBe("PENDING_REVIEW");
     });
   });
@@ -151,7 +157,7 @@ describe("API — articles", () => {
       if (skipUnless(ctx, "server") || !publishedSlug) return;
       const res = await clientFor(ctx).post(`/api/articles/${publishedSlug}/read-complete`);
       expect(res.status).toBe(200);
-      const body = (await res.json()) as { awarded: boolean; reason: string };
+      const body = (await parseApiResponse(res)) as { awarded: boolean; reason: string };
       expect(body.awarded).toBe(false);
       expect(body.reason).toBe("not_authenticated");
     });
@@ -161,7 +167,7 @@ describe("API — articles", () => {
       const api = clientFor(ctx, "USER");
       const res = await api.post(`/api/articles/${publishedSlug}/read-complete`);
       expect(res.status).toBe(200);
-      const body = (await res.json()) as { awarded: boolean; reason: string };
+      const body = (await parseApiResponse(res)) as { awarded: boolean; reason: string };
       expect(["points_awarded", "already_awarded"]).toContain(body.reason);
     });
 
@@ -175,11 +181,16 @@ describe("API — articles", () => {
   });
 
   describe("share", () => {
+    beforeEach(async () => {
+      if (!ctx.serverUp) return;
+      await resetClerkUserArticleShares();
+    });
+
     it("GET share status returns hasShared false for guest", async () => {
       if (skipUnless(ctx, "server") || !publishedSlug) return;
       const res = await clientFor(ctx).get(`/api/articles/${publishedSlug}/share`);
       expect(res.status).toBe(200);
-      const body = (await res.json()) as { hasShared: boolean };
+      const body = (await parseApiResponse(res)) as { hasShared: boolean };
       expect(body.hasShared).toBe(false);
     });
 
@@ -227,7 +238,7 @@ describe("API — articles", () => {
       await api.post(`/api/bookmarks/${publishedId}`);
       const res = await api.post(`/api/bookmarks/${publishedId}`);
       expect(res.status).toBe(200);
-      const body = (await res.json()) as { message: string };
+      const body = (await parseApiResponse(res)) as { message: string };
       expect(body.message).toContain("Already");
     });
 

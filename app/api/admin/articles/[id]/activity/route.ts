@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { reviewListSelect, revisionListSelect } from '@/lib/article-audit';
@@ -9,7 +10,7 @@ export async function GET(
 ) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return apiError('Admin access required' , { status: 403 });
   }
 
   const { id } = await params;
@@ -26,7 +27,7 @@ export async function GET(
   });
 
   if (!article) {
-    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    return apiError('Article not found' , { status: 404 });
   }
 
   const [reviews, revisions] = await Promise.all([
@@ -42,7 +43,7 @@ export async function GET(
     }),
   ]);
 
-  return NextResponse.json({
+  return apiSuccess({
     articleTitle: article.title,
     articleStatus: article.status,
     lastEditedAt: article.lastEditedAt,

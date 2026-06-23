@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     },
   });
 
-  if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
+  if (!quiz) return apiError('Quiz not found' , { status: 404 });
 
   const user = await getCurrentUser(request);
   let userAttempt = null;
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
   }
 
-  return NextResponse.json({
+  return apiSuccess({
     ...quiz,
     userAttempt,
     userHasCompleted: Boolean(userAttempt),

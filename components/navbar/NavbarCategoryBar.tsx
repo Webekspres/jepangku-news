@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Search, Menu } from "lucide-react";
@@ -34,7 +35,7 @@ export default function NavbarCategoryBar({
 
   useEffect(() => {
     fetch("/api/categories/navbar")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(() => setCategories([]));
   }, []);

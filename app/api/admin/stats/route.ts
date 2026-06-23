@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { getDashboardChartData } from '@/lib/analytics';
 import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const [
     totalArticles,
@@ -19,13 +20,13 @@ export async function GET(request: NextRequest) {
     db.article.count(),
     db.article.count({ where: { status: 'PENDING_REVIEW' } }),
     db.article.count({ where: { status: 'PUBLISHED' } }),
-    db.user.count({ where: { role: 'USER' } }),
+    db.user.count(),
     db.quiz.count(),
     db.poll.count(),
     getDashboardChartData(),
   ]);
 
-  return NextResponse.json({
+  return apiSuccess({
     totalArticles,
     pendingArticles,
     publishedArticles,

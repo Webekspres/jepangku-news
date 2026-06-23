@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { useClerk, useAuth as useClerkSession, useUser } from '@clerk/nextjs';
 import type { GamificationPatch, SessionUser } from '@/lib/auth/types';
+import { parseApiResponse } from '@/lib/fetch-api';
 import { preloadMediaImage } from '@/lib/media/client-cache';
 
 type ClerkUser = ReturnType<typeof useUser>['user'];
@@ -54,7 +55,7 @@ async function fetchWithClerkSession(
 async function fetchPortalProfile(getToken: ClerkGetToken): Promise<SessionUser | null> {
   const res = await fetchWithClerkSession('/api/auth/me', getToken);
   if (!res.ok) return null;
-  return res.json() as Promise<SessionUser>;
+  return parseApiResponse<SessionUser>(res);
 }
 
 async function fetchGamificationBalance(
@@ -62,7 +63,7 @@ async function fetchGamificationBalance(
 ): Promise<GamificationPatch | null> {
   const res = await fetchWithClerkSession('/api/user/gamification', getToken);
   if (!res.ok) return null;
-  return res.json() as Promise<GamificationPatch>;
+  return parseApiResponse<GamificationPatch>(res);
 }
 
 function mergeGamification(

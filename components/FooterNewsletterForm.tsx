@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { isValidNewsletterEmail } from "@/lib/newsletter/validation";
 
 type FooterNewsletterFormProps = {
   defaultEmail?: string;
@@ -22,6 +24,10 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
       toast.error("Masukkan alamat email");
       return;
     }
+    if (!isValidNewsletterEmail(trimmed)) {
+      toast.error("Alamat email tidak valid");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -30,7 +36,7 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: trimmed }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal berlangganan");
         return;

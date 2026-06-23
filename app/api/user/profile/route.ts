@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { sanitizeMediaUrl, sanitizePlainField } from '@/lib/sanitizer';
@@ -9,7 +10,7 @@ import { getUsernameCooldownDays, hasValidUsernameChars, hasValidUsernameLength 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    return apiError('Not authenticated' , { status: 401 });
   }
 
   const [profile, fullUser] = await Promise.all([
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     (fullUser as any)?.usernameChangedAt ?? null
   );
 
-  return NextResponse.json({
+  return apiSuccess({
     id: user.id,
     name: user.name,
     username: user.username,
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    return apiError('Not authenticated' , { status: 401 });
   }
 
   try {
@@ -45,7 +46,7 @@ export async function PATCH(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return apiError('Invalid request body' , { status: 400 });
   }
 
   const { name, username, avatarUrl, displayName, bio } = body;
@@ -59,7 +60,7 @@ export async function PATCH(request: NextRequest) {
   // Validate name
   if (safeName !== undefined) {
     if (safeName.length === 0) {
-      return NextResponse.json({ error: 'Nama tidak boleh kosong' }, { status: 400 });
+      return apiError('Nama tidak boleh kosong' , { status: 400 });
     }
   }
 
@@ -69,16 +70,13 @@ export async function PATCH(request: NextRequest) {
 
   if (username !== undefined) {
     if (typeof username !== 'string' || username.trim().length === 0) {
-      return NextResponse.json({ error: 'Username tidak boleh kosong' }, { status: 400 });
+      return apiError('Username tidak boleh kosong' , { status: 400 });
     }
     if (!hasValidUsernameChars(username)) {
-      return NextResponse.json(
-        { error: 'Username hanya boleh mengandung huruf kecil, angka, dan underscore' },
-        { status: 400 }
-      );
+      return apiError('Username hanya boleh mengandung huruf kecil, angka, dan underscore' , { status: 400 });
     }
     if (!hasValidUsernameLength(username)) {
-      return NextResponse.json({ error: 'Username harus 3–30 karakter' }, { status: 400 });
+      return apiError('Username harus 3–30 karakter' , { status: 400 });
     }
 
     if (isChangingUsername) {
@@ -92,7 +90,7 @@ export async function PATCH(request: NextRequest) {
         (currentUser as any)?.usernameChangedAt ?? null
       );
       if (cooldownDays > 0) {
-        return NextResponse.json(
+        return apiSuccess(
           {
             error: `Username baru bisa diganti dalam ${cooldownDays} hari lagi`,
             cooldownDaysLeft: cooldownDays,
@@ -106,7 +104,7 @@ export async function PATCH(request: NextRequest) {
         where: { username: username.trim(), id: { not: user.id } },
       });
       if (existing) {
-        return NextResponse.json({ error: 'Username sudah digunakan' }, { status: 409 });
+        return apiError('Username sudah digunakan' , { status: 409 });
       }
     }
   }
@@ -129,7 +127,7 @@ export async function PATCH(request: NextRequest) {
     : await db.user.findUnique({ where: { id: user.id } });
 
   if (!updatedUser) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    return apiError('User not found' , { status: 404 });
   }
 
   // Update or create UserProfile (bio / displayName)
@@ -165,7 +163,7 @@ export async function PATCH(request: NextRequest) {
     auditUserProfileUpdate({ ...user, name: updatedUser.name });
   }
 
-  return NextResponse.json({
+  return apiSuccess({
     ...updatedUser,
     createdAt: updatedUser.createdAt.toISOString(),
     updatedAt: updatedUser.updatedAt.toISOString(),
@@ -174,6 +172,6 @@ export async function PATCH(request: NextRequest) {
   });
   } catch (e) {
     await captureException(e, { route: 'user-profile-patch' });
-    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+    return apiError('Failed to update profile' , { status: 500 });
   }
 }

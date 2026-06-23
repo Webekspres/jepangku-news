@@ -1,3 +1,4 @@
+import { parseApiResponse } from "@/lib/fetch-api";
 import type { ApiClient } from "./api-client";
 
 type Paginated<T> = {
@@ -72,6 +73,50 @@ export async function fetchActivePollWithQuestions(
   return { slug: poll.slug, questions: poll.questions };
 }
 
+export async function fetchPublishedVideo(
+  api: ApiClient,
+): Promise<{ id: string; slug: string } | null> {
+  const res = await api.get("/api/videos?limit=5");
+  if (!res.ok) return null;
+  const data = (await parseApiResponse(res)) as {
+    videos?: { id: string; slug: string }[];
+  };
+  return data.videos?.[0] ?? null;
+}
+
+export async function fetchPublishedVideoSlug(api: ApiClient): Promise<string | null> {
+  const video = await fetchPublishedVideo(api);
+  return video?.slug ?? null;
+}
+
+export async function fetchPublishedVideoId(api: ApiClient): Promise<string | null> {
+  const video = await fetchPublishedVideo(api);
+  return video?.id ?? null;
+}
+
+export async function fetchCategoryId(api: ApiClient): Promise<string | null> {
+  const res = await api.get("/api/categories");
+  if (!res.ok) return null;
+  const data = await parseApiResponse(res);
+  const list = Array.isArray(data) ? data : (data as { categories?: { id: string }[] }).categories;
+  return list?.[0]?.id ?? null;
+}
+
+export async function fetchCategorySlug(api: ApiClient): Promise<string | null> {
+  const res = await api.get("/api/categories");
+  if (!res.ok) return null;
+  const data = await parseApiResponse(res);
+  const list = Array.isArray(data) ? data : (data as { categories?: { slug: string }[] }).categories;
+  return list?.[0]?.slug ?? null;
+}
+
+export async function fetchPopularTagSlug(api: ApiClient): Promise<string | null> {
+  const res = await api.get("/api/tags/popular?limit=5");
+  if (!res.ok) return null;
+  const data = (await parseApiResponse(res)) as { slug: string }[];
+  return Array.isArray(data) && data[0]?.slug ? data[0].slug : null;
+}
+
 export const HOME_WAVE_ENDPOINTS = [
   { wave: 1, path: "/api/home/feed", expectCache: true },
   { wave: 2, path: "/api/home/categories-editorial", expectCache: true },
@@ -91,6 +136,13 @@ export const ADMIN_BOUNDARY_ENDPOINTS = [
   { method: "GET" as const, path: "/api/admin/quizzes/stats" },
   { method: "GET" as const, path: "/api/admin/polls/stats" },
   { method: "GET" as const, path: "/api/admin/newsletter/stats" },
+  { method: "GET" as const, path: "/api/admin/newsletter" },
+  { method: "GET" as const, path: "/api/admin/newsletter/export" },
   { method: "GET" as const, path: "/api/admin/homepage/stats" },
   { method: "GET" as const, path: "/api/admin/activity-log" },
+  { method: "GET" as const, path: "/api/admin/users/growth" },
+  { method: "GET" as const, path: "/api/admin/analytics/stats" },
+  { method: "GET" as const, path: "/api/admin/analytics/content" },
+  { method: "GET" as const, path: "/api/admin/analytics/categories" },
+  { method: "GET" as const, path: "/api/admin/articles/stats" },
 ] as const;

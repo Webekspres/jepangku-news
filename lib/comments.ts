@@ -12,7 +12,7 @@ export type CommentReactionMap = Map<string, CommentReactionInfo>;
 
 const EMPTY_REACTION: CommentReactionInfo = { thumbUp: 0, thumbDown: 0, userReaction: null };
 
-export const COMMENT_TARGET_TYPES = ['ARTICLE', 'POLL', 'QUIZ'] as const;
+export const COMMENT_TARGET_TYPES = ['ARTICLE', 'POLL', 'QUIZ', 'VIDEO'] as const;
 export const MAX_COMMENT_LENGTH = 1000;
 export const COMMENT_POINTS = 2;
 
@@ -47,6 +47,14 @@ export async function resolveCommentTarget(
     return poll ? { title: poll.title } : null;
   }
 
+  if (targetType === 'VIDEO') {
+    const video = await db.video.findFirst({
+      where: { id: targetId, status: 'PUBLISHED' },
+      select: { title: true },
+    });
+    return video ? { title: video.title } : null;
+  }
+
   const quiz = await db.quiz.findFirst({
     where: { id: targetId, status: { in: ['ACTIVE', 'INACTIVE'] } },
     select: { title: true },
@@ -73,6 +81,14 @@ export async function resolveCommentTargetAuthorId(
       select: { createdBy: true },
     });
     return poll?.createdBy ?? null;
+  }
+
+  if (targetType === 'VIDEO') {
+    const video = await db.video.findFirst({
+      where: { id: targetId, status: 'PUBLISHED' },
+      select: { createdBy: true },
+    });
+    return video?.createdBy ?? null;
   }
 
   const quiz = await db.quiz.findFirst({

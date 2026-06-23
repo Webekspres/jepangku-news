@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageShell from "@/components/admin/AdminPageShell";
@@ -19,7 +20,7 @@ export default function CategoryAnalyticsPage() {
   useEffect(() => {
     if (!user || (user as any).role !== "ADMIN") return;
     fetch("/api/admin/analytics/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d.categories) ? d.categories : []))
       .finally(() => setFetching(false));
   }, [user]);

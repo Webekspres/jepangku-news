@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from './api-response';
 import { logger } from './logger';
 import { consumeRateLimit } from './rate-limit-store';
 
@@ -21,6 +22,15 @@ export async function enforceRateLimit(
   keyPrefix: string,
   options: { max: number; windowMs: number; message?: string; identifier?: string },
 ): Promise<NextResponse | null> {
+  const databaseUrl = process.env.DATABASE_URL ?? '';
+  if (
+    databaseUrl.includes('_test') ||
+    process.env.DISABLE_RATE_LIMIT === '1' ||
+    process.env.NODE_ENV === 'test'
+  ) {
+    return null;
+  }
+
   const identifier = options.identifier || getIpAddress(request);
   const key = `${keyPrefix}:${identifier}`;
 
@@ -36,18 +46,14 @@ export async function enforceRateLimit(
       identifier,
       retryAfterSeconds,
     });
-    return NextResponse.json(
-      {
-        error: options.message || 'Rate limit exceeded. Try again later.',
-        retryAfter: retryAfterSeconds,
+    return apiError(options.message || 'Rate limit exceeded. Try again later.', {
+      status: 429,
+      code: 'RATE_LIMIT_EXCEEDED',
+      meta: { retryAfter: retryAfterSeconds },
+      headers: {
+        'Retry-After': String(retryAfterSeconds),
       },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(retryAfterSeconds),
-        },
-      },
-    );
+    });
   }
 
   return null;

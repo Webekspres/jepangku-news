@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from "@/lib/auth";
 import { isValidAdSlotPosition } from "@/lib/ads/constants";
 import { revalidateAdSlots } from "@/lib/ads/revalidate";
@@ -8,7 +9,7 @@ import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const position = searchParams.get("position");
@@ -21,12 +22,12 @@ export async function GET(request: NextRequest) {
     take: 200,
   });
 
-  return NextResponse.json(ads);
+  return apiSuccess(ads);
 }
 
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const body = await request.json();
   const {
@@ -42,12 +43,12 @@ export async function POST(request: NextRequest) {
   } = body;
 
   if (!position || !isValidAdSlotPosition(String(position))) {
-    return NextResponse.json({ error: "Valid position is required" }, { status: 400 });
+    return apiError("Valid position is required" , { status: 400 });
   }
 
   const safeImageUrl = sanitizeMediaUrl(imageUrl);
   if (!safeImageUrl) {
-    return NextResponse.json({ error: "Image URL is required" }, { status: 400 });
+    return apiError("Image URL is required" , { status: 400 });
   }
 
   const ad = await db.adSlot.create({
@@ -74,5 +75,5 @@ export async function POST(request: NextRequest) {
     href: `/admin/ads/${ad.id}/edit`,
   });
 
-  return NextResponse.json({ message: "Ad created", id: ad.id }, { status: 201 });
+  return apiSuccess({ message: "Ad created", id: ad.id }, { status: 201 });
 }

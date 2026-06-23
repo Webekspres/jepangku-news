@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import ReactionIcon from "@/components/reactions/ReactionIcon";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { CONTENT_REACTIONS, type ContentReactionKey } from "@/lib/reactions-display";
 import { cn } from "@/lib/utils";
 
-export type ReactionTargetType = "ARTICLE" | "POLL" | "QUIZ";
+export type ReactionTargetType = "ARTICLE" | "POLL" | "QUIZ" | "VIDEO";
 
 type ReactionKey = ContentReactionKey;
 
@@ -78,7 +79,7 @@ export default function ReactionBar({
         `/api/reactions?targetType=${targetType}&targetId=${targetId}`,
         { credentials: "include" },
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (res.ok) {
         const next: Summary = {
           counts: data.counts || {},
@@ -112,7 +113,7 @@ export default function ReactionBar({
         credentials: "include",
         body: JSON.stringify({ targetType, targetId, type: typeToPost }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan reaksi");
 
       const synced: Summary = {
@@ -191,12 +192,14 @@ export default function ReactionBar({
   return (
     <section
       className={cn(
-        compact ? "border-t border-jepang-border pt-4" : "mt-12 pt-8 border-t-2 border-foreground",
+        compact
+          ? "border-t border-jepang-border pt-4"
+          : "mt-8 border-t border-foreground pt-6 sm:mt-12 sm:border-t-2 sm:pt-8",
       )}
       data-testid="reaction-bar"
     >
       {!compact ? (
-        <h2 className="font-heading font-black text-2xl tracking-tighter mb-6">
+        <h2 className="mb-4 font-heading text-xl font-black tracking-tighter sm:mb-6 sm:text-2xl">
           APA REAKSIMU?
           {summary.total > 0 && (
             <span className="text-jepang-red ml-2">({summary.total})</span>
@@ -206,17 +209,16 @@ export default function ReactionBar({
 
       <div
         className={cn(
-          "grid gap-2",
+          "grid gap-1 sm:gap-2",
           compact
             ? "grid-cols-5 sm:grid-cols-9"
-            : "grid-cols-3 sm:grid-cols-5 lg:grid-cols-9",
+            : "grid-cols-5 sm:grid-cols-5 lg:grid-cols-9",
         )}
       >
         {CONTENT_REACTIONS.map((r) => {
           const count = summary.counts[r.key] || 0;
           const active = summary.userReaction === r.key;
           const fill = Math.round(((count || 0) / maxCount) * 100);
-          const iconSize = compact ? 28 : 36;
           return (
             <button
               key={r.key}
@@ -226,7 +228,7 @@ export default function ReactionBar({
               data-testid={`reaction-${r.key}`}
               className={cn(
                 "group flex flex-col items-center border bg-background transition-colors",
-                compact ? "gap-1 p-2" : "gap-2 p-3",
+                compact ? "gap-1 p-2" : "gap-1 p-1.5 sm:gap-2 sm:p-3",
                 active
                   ? "border-jepang-red"
                   : "border-jepang-border hover:border-foreground",
@@ -235,16 +237,20 @@ export default function ReactionBar({
               <span
                 className={cn(
                   "flex items-center justify-center rounded-full transition-transform group-hover:scale-110",
-                  compact ? "h-8 w-8" : "h-11 w-11",
+                  compact ? "h-8 w-8" : "h-8 w-8 sm:h-11 sm:w-11",
                   active ? "bg-jepang-red/10" : "bg-jepang-off-white",
                 )}
               >
-                <ReactionIcon src={r.iconSrc} size={iconSize} />
+                <ReactionIcon
+                  src={r.iconSrc}
+                  size={compact ? 28 : undefined}
+                  className={compact ? undefined : "h-6 w-6 sm:h-9 sm:w-9"}
+                />
               </span>
               <span
                 className={cn(
                   "font-heading font-black tabular-nums",
-                  compact ? "text-sm" : "text-lg",
+                  compact ? "text-sm" : "text-sm sm:text-lg",
                   active ? "text-jepang-red" : "text-foreground",
                 )}
               >
@@ -252,7 +258,7 @@ export default function ReactionBar({
               </span>
               {!compact ? (
                 <>
-                  <span className="h-1.5 w-full bg-jepang-border">
+                  <span className="hidden h-1.5 w-full bg-jepang-border sm:block">
                     <span
                       className={cn(
                         "block h-full transition-all",
@@ -261,7 +267,7 @@ export default function ReactionBar({
                       style={{ width: `${fill}%` }}
                     />
                   </span>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted">
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-jepang-muted sm:text-[10px]">
                     {r.label}
                   </span>
                 </>

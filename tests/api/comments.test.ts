@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { fetchPublishedArticle } from "../helpers/fixtures";
 import {
   clientFor,
@@ -38,9 +39,16 @@ describe("API — comments", () => {
         `/api/comments?targetType=ARTICLE&targetId=${articleId}`,
       );
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { comments: unknown[]; total: number };
+      const data = (await parseApiResponse(res)) as {
+        comments: { replies?: unknown[]; parentId?: string | null }[];
+        total: number;
+      };
       expect(Array.isArray(data.comments)).toBe(true);
       expect(typeof data.total).toBe("number");
+      for (const root of data.comments) {
+        expect(root.parentId ?? null).toBeNull();
+        if (root.replies) expect(Array.isArray(root.replies)).toBe(true);
+      }
     });
   });
 
@@ -63,7 +71,7 @@ describe("API — comments", () => {
         content: `Integration comment ${Date.now()}`,
       });
       expect(res.status).toBe(201);
-      const data = (await res.json()) as { comment: { id: string; content: string } };
+      const data = (await parseApiResponse(res)) as { comment: { id: string; content: string } };
       expect(data.comment.id).toBeTruthy();
       createdCommentId = data.comment.id;
     });
@@ -97,8 +105,46 @@ describe("API — comments", () => {
         content: "Reply from integration test",
       });
       expect(res.status).toBe(201);
-      const data = (await res.json()) as { comment: { parentId: string } };
+      const data = (await parseApiResponse(res)) as { comment: { parentId: string } };
       expect(data.comment.parentId).toBe(createdCommentId);
+    });
+
+    it("rejects reply to reply (thread limited to 1 level)", async () => {
+      if (skipUnless(ctx, "auth") || !articleId || !createdCommentId) return;
+      const api = clientFor(ctx, "CONTRIBUTOR");
+      const replyRes = await api.post("/api/comments", {
+        targetType: "ARTICLE",
+        targetId: articleId,
+        parentId: createdCommentId,
+        content: `Nested reply test ${Date.now()}`,
+      });
+      if (replyRes.status !== 201) return;
+      const { comment: reply } = (await api.json(replyRes)) as { comment: { id: string } };
+
+      const nested = await api.post("/api/comments", {
+        targetType: "ARTICLE",
+        targetId: articleId,
+        parentId: reply.id,
+        content: "Should fail — third level",
+      });
+      expect(nested.status).toBe(400);
+    });
+
+    it("awards up to 2 points on comment create", async () => {
+      if (skipUnless(ctx, "auth") || !articleId) return;
+      const res = await clientFor(ctx, "CONTRIBUTOR").post("/api/comments", {
+        targetType: "ARTICLE",
+        targetId: articleId,
+        content: `Points check ${Date.now()}`,
+      });
+      if (res.status !== 201) return;
+      const data = (await parseApiResponse(res)) as { points: number; pointsAwarded: boolean };
+      expect(typeof data.points).toBe("number");
+      if (data.pointsAwarded) {
+        expect(data.points).toBe(2);
+      } else {
+        expect(data.points).toBe(0);
+      }
     });
   });
 
@@ -117,7 +163,7 @@ describe("API — comments", () => {
         content: "Edited by owner",
       });
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isEdited: boolean };
+      const data = (await parseApiResponse(res)) as { isEdited: boolean };
       expect(data.isEdited).toBe(true);
     });
 
@@ -153,7 +199,8 @@ describe("API — comments", () => {
         content: "Comment for moderation test",
       });
       if (create.status !== 201) return;
-      const { comment } = (await create.json()) as { comment: { id: string } };
+      const contributor = clientFor(ctx, "CONTRIBUTOR");
+      const { comment } = (await contributor.json(create)) as { comment: { id: string } };
 
       const res = await clientFor(ctx, "USER").patch(`/api/admin/comments/${comment.id}`, {
         action: "hide",
@@ -169,14 +216,23 @@ describe("API — comments", () => {
         content: "Comment for admin hide",
       });
       if (create.status !== 201) return;
-      const { comment } = (await create.json()) as { comment: { id: string } };
+      const contributor = clientFor(ctx, "CONTRIBUTOR");
+      const { comment } = (await contributor.json(create)) as { comment: { id: string } };
 
       const res = await clientFor(ctx, "ADMIN").patch(`/api/admin/comments/${comment.id}`, {
         action: "hide",
       });
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { status: string };
+      const data = (await parseApiResponse(res)) as { status: string };
       expect(data.status).toBe("HIDDEN");
+
+      const unhide = await clientFor(ctx, "ADMIN").patch(`/api/admin/comments/${comment.id}`, {
+        action: "unhide",
+      });
+      expect(unhide.status).toBe(200);
+      const admin = clientFor(ctx, "ADMIN");
+      const shown = (await parseApiResponse(unhide)) as { status: string };
+      expect(shown.status).toBe("VISIBLE");
     });
 
     it("PATCH admin moderation rejects invalid action", async () => {
@@ -186,6 +242,42 @@ describe("API — comments", () => {
         { action: "invalid" },
       );
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe("reply notification", () => {
+    it("reply notifies parent comment owner", async () => {
+      if (skipUnless(ctx, "auth") || !articleId) return;
+      const userApi = clientFor(ctx, "USER");
+      const contributorApi = clientFor(ctx, "CONTRIBUTOR");
+
+      const parentRes = await userApi.post("/api/comments", {
+        targetType: "ARTICLE",
+        targetId: articleId,
+        content: `Parent for notif ${Date.now()}`,
+      });
+      if (parentRes.status !== 201) return;
+      const { comment: parent } = (await userApi.json(parentRes)) as { comment: { id: string } };
+
+      const replyRes = await contributorApi.post("/api/comments", {
+        targetType: "ARTICLE",
+        targetId: articleId,
+        parentId: parent.id,
+        content: "Reply triggering notification",
+      });
+      expect(replyRes.status).toBe(201);
+
+      const notifRes = await userApi.get("/api/notifications?limit=30");
+      expect(notifRes.status).toBe(200);
+      const { items } = (await userApi.json(notifRes)) as {
+        items: { type?: string; title?: string }[];
+      };
+      const hasReplyNotif = items.some(
+        (n) =>
+          n.type === "COMMENT_REPLY" ||
+          (n.title?.toLowerCase().includes("balasan") ?? false),
+      );
+      expect(hasReplyNotif).toBe(true);
     });
   });
 });

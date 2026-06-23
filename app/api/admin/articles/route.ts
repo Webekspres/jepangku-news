@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -15,7 +16,7 @@ import { auditArticleCreate } from '@/lib/audit-routes';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const where = buildAdminArticlesWhere(searchParams);
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       take: 500,
       include: adminArticleInclude,
     });
-    return NextResponse.json(articles);
+    return apiSuccess(articles);
   }
 
   const page = Math.max(Number(pageParam || '1'), 1);
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 
   const totalPages = Math.max(Math.ceil(total / limit), 1);
 
-  return NextResponse.json({
+  return apiSuccess({
     articles,
     total,
     page,
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   try {
     const body = await request.json();
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
     const safeContent = sanitizeHtmlContent(String(content || ''));
 
     if (!safeTitle || !safeContent) {
-      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+      return apiError('Title and content are required' , { status: 400 });
     }
 
     const validStatuses = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'ARCHIVED'];
@@ -133,9 +134,9 @@ export async function POST(request: NextRequest) {
       'admin',
     );
 
-    return NextResponse.json(full, { status: 201 });
+    return apiSuccess(full, { status: 201 });
   } catch (e: any) {
     await captureException(e, { route: 'admin-articles-create' });
-    return NextResponse.json({ error: e.message || 'Failed to create article' }, { status: 500 });
+    return apiError(e.message || 'Failed to create article' , { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 
 export async function GET() {
@@ -6,11 +7,12 @@ export async function GET() {
 
   try {
     await db.$queryRaw`SELECT 1`;
-    return NextResponse.json({ status: 'ok', db: 'ok', timestamp });
+    return apiSuccess({ status: 'ok', db: 'ok', timestamp });
   } catch {
-    return NextResponse.json(
-      { status: 'degraded', db: 'error', timestamp },
-      { status: 503 },
-    );
+    return apiError('Database unavailable', {
+      status: 503,
+      code: 'SERVICE_DEGRADED',
+      meta: { status: 'degraded', db: 'error', timestamp },
+    });
   }
 }

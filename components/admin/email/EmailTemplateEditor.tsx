@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { toast } from "sonner";
 import { Copy, Loader2, RotateCcw, Save } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
@@ -82,7 +83,7 @@ export default function EmailTemplateEditor({
         body: JSON.stringify(nextForm),
       });
       if (!res.ok) throw new Error("Preview gagal");
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setPreviewHtml(data.html ?? "");
       setPreviewSubject(data.subject ?? "");
     } catch {
@@ -124,7 +125,7 @@ export default function EmailTemplateEditor({
         body: JSON.stringify(form),
       });
       if (!res.ok) {
-        const err = await res.json();
+        const err = await parseApiResponse(res);
         throw new Error(err.error || "Gagal menyimpan");
       }
       setIsCustomized(true);
@@ -143,7 +144,7 @@ export default function EmailTemplateEditor({
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Gagal reset");
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setForm({
         subject: data.subject,
         heading: data.heading,

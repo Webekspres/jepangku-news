@@ -1,10 +1,12 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import {
   clientFor,
   setupIntegration,
   skipUnless,
   type IntegrationContext,
 } from "../helpers/integration";
+import { resetClerkUserContributorApplications } from "../helpers/contributor-test";
 
 const VALID_MOTIVATION =
   "Saya ingin berkontribusi artikel tentang budaya dan bahasa Jepang untuk komunitas Jepangku.";
@@ -14,6 +16,9 @@ describe("API — contributor", () => {
 
   beforeAll(async () => {
     ctx = await setupIntegration();
+    if (ctx.serverUp) {
+      await resetClerkUserContributorApplications();
+    }
   });
 
   describe("GET /api/contributor/status", () => {
@@ -27,7 +32,7 @@ describe("API — contributor", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "CONTRIBUTOR").get("/api/contributor/status");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isContributor: boolean };
+      const data = (await parseApiResponse(res)) as { isContributor: boolean };
       expect(data.isContributor).toBe(true);
     });
 
@@ -35,7 +40,7 @@ describe("API — contributor", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "ADMIN").get("/api/contributor/status");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isContributor: boolean };
+      const data = (await parseApiResponse(res)) as { isContributor: boolean };
       expect(data.isContributor).toBe(true);
     });
 
@@ -43,12 +48,17 @@ describe("API — contributor", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/contributor/status");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isContributor: boolean };
+      const data = (await parseApiResponse(res)) as { isContributor: boolean };
       expect(data.isContributor).toBe(false);
     });
   });
 
   describe("POST /api/contributor/apply", () => {
+    beforeEach(async () => {
+      if (!ctx.serverUp) return;
+      await resetClerkUserContributorApplications();
+    });
+
     it("returns 401 for guest", async () => {
       if (skipUnless(ctx, "server")) return;
       const res = await clientFor(ctx).post("/api/contributor/apply", {
@@ -71,7 +81,7 @@ describe("API — contributor", () => {
         motivation: "pendek",
       });
       expect(res.status).toBe(400);
-      const body = (await res.json()) as { code: string };
+      const body = (await parseApiResponse(res)) as { code: string };
       expect(body.code).toBe("MOTIVATION_TOO_SHORT");
     });
 
@@ -82,7 +92,7 @@ describe("API — contributor", () => {
         portfolioUrl: "ftp://bad-url.example",
       });
       expect(res.status).toBe(400);
-      const body = (await res.json()) as { code: string };
+      const body = (await parseApiResponse(res)) as { code: string };
       expect(body.code).toBe("INVALID_PORTFOLIO_URL");
     });
 

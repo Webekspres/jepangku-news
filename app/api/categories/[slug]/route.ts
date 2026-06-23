@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 
 export async function GET(
@@ -9,7 +10,7 @@ export async function GET(
 
   const category = await db.category.findUnique({ where: { slug } });
   if (!category) {
-    return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    return apiError('Category not found' , { status: 404 });
   }
-  return NextResponse.json(category);
+  return apiSuccess(category);
 }

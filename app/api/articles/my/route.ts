@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { Prisma, ArticleStatus } from '@prisma/client';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
@@ -6,9 +7,9 @@ import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
-    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+    return apiSuccess(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
       include,
     });
-    return NextResponse.json(articles);
+    return apiSuccess(articles);
   }
 
   const page = Math.max(Number(pageParam || '1'), 1);
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   const totalPages = Math.max(Math.ceil(total / limit), 1);
 
-  return NextResponse.json({
+  return apiSuccess({
     articles,
     total,
     page,

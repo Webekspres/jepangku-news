@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,7 +28,7 @@ export default function ContentPerformancePage() {
     if (!user || (user as any).role !== "ADMIN") return;
     setFetching(true);
     fetch(`/api/admin/analytics/content?period=${period}&sort=${sort}&limit=30`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => {
         setRows(Array.isArray(d.rows) ? d.rows : []);
         setPeriodLabel(d.periodLabel || "");

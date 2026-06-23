@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { Bell, BellOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth, getAuthLoginPath, isAuthUser } from "@/contexts/AuthContext";
@@ -29,7 +30,7 @@ export default function CategorySubscribeButton({
     setChecking(true);
     try {
       const res = await fetch("/api/category-subscriptions");
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       const list = Array.isArray(data.subscriptions) ? data.subscriptions : [];
       setSubscribed(list.some((s: { categorySlug: string }) => s.categorySlug === categorySlug));
     } catch {
@@ -57,7 +58,7 @@ export default function CategorySubscribeButton({
           { method: "DELETE" },
         );
         if (!res.ok) {
-          const data = await res.json();
+          const data = await parseApiResponse(res);
           toast.error(data.error ?? "Gagal berhenti mengikuti");
           return;
         }
@@ -70,7 +71,7 @@ export default function CategorySubscribeButton({
           body: JSON.stringify({ categorySlug }),
         });
         if (!res.ok) {
-          const data = await res.json();
+          const data = await parseApiResponse(res);
           toast.error(data.error ?? "Gagal mengikuti kategori");
           return;
         }

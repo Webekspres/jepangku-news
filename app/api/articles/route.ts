@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
       db.article.count({ where }),
     ]);
 
-    return NextResponse.json({
+    return apiSuccess({
       articles,
       total,
       limit,
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest) {
   } catch (e: any) {
     console.error("Articles error:", e);
 
-    return NextResponse.json(
+    return apiSuccess(
       { error: e.message },
       { status: 500 },
     );

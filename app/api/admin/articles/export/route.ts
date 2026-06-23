@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
@@ -17,7 +18,9 @@ function escapeCsv(value: string | number | null | undefined): string {
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) {
+    return apiError('Admin access required', { status: 403, code: 'FORBIDDEN' });
+  }
 
   const { searchParams } = new URL(request.url);
   const format = searchParams.get('format') || 'json';
@@ -69,5 +72,5 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  return NextResponse.json(rows);
+  return apiSuccess(rows, { message: 'Articles exported successfully.' });
 }

@@ -28,6 +28,7 @@
 
 # misc
 .DS_Store
+.uploads/
 *.pem
 *.mp4
 public/assets/images/logo/*.mp4
@@ -40,6 +41,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
+.env.test
 
 # vercel
 .vercel

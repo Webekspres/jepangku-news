@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
@@ -6,7 +7,7 @@ import { getUserPointBalance, getUserPointTransactions } from '@/lib/points';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       avatarUrl: true, createdAt: true, updatedAt: true,
     },
   });
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  if (!user) return apiError('User not found' , { status: 404 });
 
   const [totalPoints, recentTransactions, articles, bookmarkCount, quizAttempts, pollVotes] =
     await Promise.all([
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     db.pollVote.count({ where: { userId: id } }),
   ]);
 
-  return NextResponse.json({
+  return apiSuccess({
     user: {
       ...user,
       totalPoints,
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
   const body = await request.json();
@@ -65,7 +66,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (status && ['active', 'inactive', 'banned'].includes(status)) updateData.status = status;
 
   if (Object.keys(updateData).length === 0) {
-    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+    return apiError('No valid fields to update' , { status: 400 });
   }
 
   const updated = await db.user.update({ where: { id }, data: updateData });
@@ -77,5 +78,5 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     href: `/admin/users/${updated.id}`,
   });
 
-  return NextResponse.json({ message: 'User updated' });
+  return apiSuccess({ message: 'User updated' });
 }

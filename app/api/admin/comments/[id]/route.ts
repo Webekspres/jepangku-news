@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
@@ -10,18 +11,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
   const { action } = await request.json().catch(() => ({}));
 
   if (action !== 'hide' && action !== 'unhide') {
-    return NextResponse.json({ error: 'Aksi tidak valid' }, { status: 400 });
+    return apiError('Aksi tidak valid' , { status: 400 });
   }
 
   const comment = await db.comment.findUnique({ where: { id } });
   if (!comment) {
-    return NextResponse.json({ error: 'Komentar tidak ditemukan' }, { status: 404 });
+    return apiError('Komentar tidak ditemukan' , { status: 404 });
   }
 
   const updated = await db.comment.update({
@@ -33,7 +34,7 @@ export async function PATCH(
 
   auditCommentModeration(admin, id, action);
 
-  return NextResponse.json({ id: updated.id, status: updated.status });
+  return apiSuccess({ id: updated.id, status: updated.status });
 }
 
 // DELETE /api/admin/comments/[id]  — hapus permanen (moderasi admin)
@@ -42,12 +43,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
   const comment = await db.comment.findUnique({ where: { id } });
   if (!comment) {
-    return NextResponse.json({ error: 'Komentar tidak ditemukan' }, { status: 404 });
+    return apiError('Komentar tidak ditemukan' , { status: 404 });
   }
 
   // onDelete: Cascade pada relasi replies akan menghapus balasan juga.
@@ -57,5 +58,5 @@ export async function DELETE(
 
   auditCommentModeration(admin, id, 'hard_delete');
 
-  return NextResponse.json({ message: 'Komentar dihapus permanen' });
+  return apiSuccess({ message: 'Komentar dihapus permanen' });
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import { parseLeaderboardPeriod } from '@/lib/leaderboard/period';
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   const data = await fetchLeaderboard(period, limit);
 
-  return NextResponse.json(
+  return apiSuccess(
     data.items.map((entry) => ({
       ...entry,
       totalXp: entry.totalPoints,

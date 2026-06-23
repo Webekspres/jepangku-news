@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { authenticateRequestUser, withCoreSessionCookie } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -6,10 +7,10 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   const result = await authenticateRequestUser(request);
   if (!result) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    return apiError('Not authenticated' , { status: 401 });
   }
 
-  const response = NextResponse.json(result.user);
+  const response = apiSuccess(result.user, { message: 'Session retrieved successfully.' });
   if (result.clerkToken) {
     return withCoreSessionCookie(response, result.clerkToken);
   }

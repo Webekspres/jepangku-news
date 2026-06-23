@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
@@ -44,7 +45,7 @@ export default function AdminAdCreatePage() {
           endAt: form.endAt || null,
         }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan banner");
       toast.success("Banner berhasil dibuat");
       router.push(`/admin/ads/${data.id}/edit`);

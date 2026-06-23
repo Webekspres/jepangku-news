@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -19,6 +21,7 @@ export default function AdminVideoEditPage() {
   const [form, setForm] = useState({
     title: "",
     description: "",
+    content: "",
     youtubeUrl: "",
     status: "DRAFT",
     isFeatured: false,
@@ -29,13 +32,14 @@ export default function AdminVideoEditPage() {
     fetch(`/api/admin/videos/${params.id}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((video) => {
         setSlug(video.slug);
         setForm({
           title: video.title ?? "",
           description: video.description ?? "",
+          content: video.content ?? "",
           youtubeUrl: video.youtubeId ?? "",
           status: video.status ?? "DRAFT",
           isFeatured: Boolean(video.isFeatured),
@@ -59,7 +63,7 @@ export default function AdminVideoEditPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal memperbarui video");
       toast.success("Video diperbarui");
     } catch (err: unknown) {
@@ -116,6 +120,14 @@ export default function AdminVideoEditPage() {
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 rows={4}
                 className="w-full rounded-md border border-jepang-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jepang-red"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1.5">Konten artikel</label>
+              <RichTextEditor
+                value={form.content}
+                onChange={(content) => setForm((f) => ({ ...f, content }))}
               />
             </div>
 
