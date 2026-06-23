@@ -219,7 +219,7 @@ export function useReviewHistory() {
     try {
       const res = await fetch(`/api/articles/${slug}/reviews`);
       if (res.ok) {
-        const data = await parseApiResponse(res);
+        const data = await parseApiResponse<{ reviews?: ArticleReviewEntry[] }>(res);
         setReviews(Array.isArray(data.reviews) ? data.reviews : []);
       }
     } finally {

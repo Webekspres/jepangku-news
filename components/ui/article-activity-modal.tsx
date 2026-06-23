@@ -342,10 +342,10 @@ export function useArticleActivity() {
 
       if (reviewsRes.ok) {
         const data = await parseApiResponse<{
-          reviews?: unknown[];
+          reviews?: ReviewEntry[];
           articleStatus?: string;
           lastEditedAt?: string | null;
-          lastEditedBy?: string | null;
+          lastEditedBy?: EditorInfo;
         }>(reviewsRes);
         setReviews(Array.isArray(data.reviews) ? data.reviews : []);
         setArticleStatus(data.articleStatus);
@@ -355,10 +355,10 @@ export function useArticleActivity() {
 
       if (revisionsRes.ok) {
         const data = await parseApiResponse<{
-          revisions?: unknown[];
+          revisions?: RevisionEntry[];
           articleStatus?: string;
           lastEditedAt?: string | null;
-          lastEditedBy?: string | null;
+          lastEditedBy?: EditorInfo;
         }>(revisionsRes);
         setRevisions(Array.isArray(data.revisions) ? data.revisions : []);
         if (!reviewsRes.ok) {

@@ -111,7 +111,10 @@ export default function ArticleEditAside({
     try {
       const res = await fetch(`/api/admin/articles/${articleId}/activity`);
       if (!res.ok) return;
-      const data = await parseApiResponse(res);
+      const data = await parseApiResponse<{
+        reviews?: ReviewEntry[];
+        revisions?: RevisionEntry[];
+      }>(res);
       setReviews(Array.isArray(data.reviews) ? data.reviews : []);
       setRevisions(Array.isArray(data.revisions) ? data.revisions : []);
     } finally {
