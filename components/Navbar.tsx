@@ -201,6 +201,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
         >
           <div className="mx-auto max-w-7xl px-4">
             <div className="flex h-14 items-center justify-between gap-4">
+              <div className="flex items-center gap-4 justify-start">
               <Link
                 href="/"
                 className="flex shrink-0 items-center gap-2"
@@ -216,7 +217,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                 />
               </Link>
 
-              <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 lg:flex">
+              <nav className="hidden min-w-0 flex-1 items-center justify-start gap-6 lg:flex">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.path}
@@ -228,6 +229,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                   </Link>
                 ))}
               </nav>
+                </div>
 
               <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                 {showAuthSkeleton ? (

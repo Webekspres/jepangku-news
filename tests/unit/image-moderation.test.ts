@@ -82,7 +82,10 @@ describe('moderateImage — §19.3 image moderation', () => {
     process.env.IMAGE_MODERATION_ENDPOINT = 'https://moderation.test/check';
     process.env.IMAGE_MODERATION_API_KEY = 'test-key';
     globalThis.fetch = (async () =>
-      new Response(JSON.stringify({ decision: 'reject' }), { status: 200 })) as typeof fetch;
+      new Response(JSON.stringify({ decision: 'reject' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })) as typeof fetch;
 
     await expect(moderateImage(minimalTestPng(), 'image/png')).rejects.toThrow(
       UploadClientError,
@@ -96,7 +99,10 @@ describe('moderateImage — §19.3 image moderation', () => {
     process.env.IMAGE_MODERATION_ENDPOINT = 'https://moderation.test/check';
     process.env.IMAGE_MODERATION_API_KEY = 'test-key';
     globalThis.fetch = (async () =>
-      new Response(JSON.stringify({ decision: 'allow' }), { status: 200 })) as typeof fetch;
+      new Response(JSON.stringify({ decision: 'allow' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })) as typeof fetch;
 
     await expect(moderateImage(minimalTestPng(), 'image/png')).resolves.toBe(true);
   });
