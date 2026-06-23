@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
 
 /** Hanya rute profil milik sendiri yang wajib login; `/profile/[username]` publik. */
 function isPrivateProfileRoute(pathname: string): boolean {
@@ -64,7 +64,7 @@ const clerk = clerkMiddleware(async (auth, request) => {
   return NextResponse.next();
 });
 
-export default function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest, event: NextFetchEvent) {
   // Some users still arrive with stale cross-subdomain Clerk handshakes
   // from old instances; drop the param and continue a clean auth flow.
   if (request.nextUrl.searchParams.has('__clerk_handshake')) {
@@ -73,7 +73,7 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(cleanUrl);
   }
 
-  return clerk(request);
+  return clerk(request, event);
 }
 
 export const config = {
