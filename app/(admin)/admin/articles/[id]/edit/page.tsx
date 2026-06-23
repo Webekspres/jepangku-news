@@ -52,7 +52,7 @@ export default function AdminEditArticlePage() {
     fetch(`/api/admin/articles/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((article) => {
         setArticleSlug(article.slug || "");
@@ -173,8 +173,8 @@ export default function AdminEditArticlePage() {
             }),
           });
           if (!patchRes.ok) {
-            const e = await patchRes.json();
-            throw new Error(e.error || "Gagal menyimpan artikel");
+            const e = await parseApiResponse(patchRes);
+            throw new Error(e.message || "Gagal menyimpan artikel");
           }
           const res = await fetch(`/api/admin/articles/${id}/approve`, {
             method: "POST",

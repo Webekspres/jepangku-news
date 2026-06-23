@@ -42,7 +42,7 @@ export default function AdminAdEditPage() {
     fetch(`/api/admin/ads/${params.id}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((ad) => {
         setForm({

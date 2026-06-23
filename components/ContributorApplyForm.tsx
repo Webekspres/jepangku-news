@@ -44,7 +44,7 @@ export default function ContributorApplyForm() {
     }
 
     fetch("/api/contributor/status")
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => (r.ok ? parseApiResponse<StatusResponse>(r) : null))
       .then((data: StatusResponse | null) => setStatus(data))
       .finally(() => setLoading(false));
   }, [isLoaded, user, router]);

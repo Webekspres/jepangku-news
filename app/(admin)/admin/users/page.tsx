@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
     if (roleFilter) params.set("role", roleFilter);
 
     const data = await fetch(`/api/admin/users?${params}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
 
     setUsers(Array.isArray(data) ? data : []);

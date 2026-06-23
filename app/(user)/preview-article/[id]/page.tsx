@@ -146,7 +146,7 @@ export default function PreviewArticlePage() {
     fetch(`/api/articles/preview/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error();
-        return r.json();
+        return parseApiResponse(r);
       })
       .then(setArticle)
       .catch(() => {

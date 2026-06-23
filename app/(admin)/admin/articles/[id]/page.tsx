@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from "@/lib/fetch-api";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -42,7 +43,7 @@ export default function AdminArticleViewPage() {
     fetch(`/api/admin/articles/${id}`)
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then(setArticle)
       .catch(() => {

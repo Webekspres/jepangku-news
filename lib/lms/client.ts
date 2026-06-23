@@ -1,4 +1,5 @@
 import { getLmsBaseUrl } from "@/lib/lms/constants";
+import { parseApiResponse } from '@/lib/fetch-api';
 import type { LmsPublicCoursesResponse } from "@/lib/lms/types";
 
 type FetchLmsPublicCoursesOptions = {
@@ -34,7 +35,7 @@ export async function fetchLmsPublicCourses(
       return null;
     }
 
-    const payload = (await response.json()) as LmsPublicCoursesResponse;
+    const payload = (await parseApiResponse(response)) as LmsPublicCoursesResponse;
     if (!Array.isArray(payload.courses)) {
       return null;
     }

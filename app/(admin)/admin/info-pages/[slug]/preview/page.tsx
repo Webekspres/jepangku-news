@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from "@/lib/fetch-api";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, Eye } from "lucide-react";
@@ -37,7 +38,7 @@ export default function AdminInfoPagePreview() {
     fetch(`/api/admin/info-pages/${slug}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then(setPage)
       .catch(() => {

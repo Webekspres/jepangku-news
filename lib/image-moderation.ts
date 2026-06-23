@@ -1,4 +1,5 @@
 import { logger } from './logger';
+import { parseApiResponse } from '@/lib/fetch-api';
 
 /** Client-facing upload validation or moderation failure (maps to HTTP 400). */
 export class UploadClientError extends Error {
@@ -108,7 +109,7 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
     throw new UploadClientError('Image moderation service rejected the request.');
   }
 
-  const result = (await response.json()) as {
+  const result = (await parseApiResponse(response)) as {
     decision?: string;
     moderation?: string;
   };

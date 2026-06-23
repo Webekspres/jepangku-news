@@ -77,7 +77,7 @@ export default function MyArticlesPage() {
       params.set("status", activeFilter);
     }
     const data = await fetch(`/api/articles/my?${params.toString()}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
 
     const list = Array.isArray(data?.articles)
@@ -101,14 +101,10 @@ export default function MyArticlesPage() {
       confirmLabel: "Hapus",
       variant: "danger",
       onConfirm: async () => {
-        await fetch(`/api/articles/${slug}/delete`, { method: "DELETE" }).then(
-          (r) => {
-            if (!r.ok)
-              return r.json().then((e: any) => {
-                throw new Error(e.error);
-              });
-          },
-        );
+        const res = await fetch(`/api/articles/${slug}/delete`, {
+          method: "DELETE",
+        });
+        if (!res.ok) await parseApiResponse(res);
         toast.success("Artikel dihapus");
         await loadArticles(page, filter);
       },

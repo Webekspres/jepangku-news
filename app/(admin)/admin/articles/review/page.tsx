@@ -48,7 +48,7 @@ export default function AdminReviewArticles() {
       limit: String(PER_PAGE),
     });
     const data = await fetch(`/api/admin/articles/pending?${params}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
 
     const list = Array.isArray(data?.articles)

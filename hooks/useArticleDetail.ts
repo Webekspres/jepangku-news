@@ -59,7 +59,11 @@ export function useArticleDetail(slug: string) {
               committedBookmarkRef.current = bookmarked;
             }),
           fetch(`/api/articles/${slug}/share`, { credentials: "include" })
-            .then((r) => (r.ok ? r.json() : { hasShared: false }))
+            .then((r) =>
+              r.ok
+                ? parseApiResponse<{ hasShared?: boolean }>(r)
+                : Promise.resolve({ hasShared: false }),
+            )
             .then((shareStatus: { hasShared?: boolean }) => {
               setHasShared(shareStatus.hasShared || false);
             }),

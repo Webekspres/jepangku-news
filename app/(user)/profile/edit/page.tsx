@@ -117,8 +117,8 @@ export default function EditProfilePage() {
         body: JSON.stringify({ avatarUrl: url }),
       });
       if (!saveRes.ok) {
-        const err = await saveRes.json();
-        throw new Error(err.error || "Gagal menyimpan foto profil");
+        const err = await parseApiResponse(saveRes);
+        throw new Error(err.message || "Gagal menyimpan foto profil");
       }
 
       setForm((prev) => ({ ...prev, avatarUrl: url }));

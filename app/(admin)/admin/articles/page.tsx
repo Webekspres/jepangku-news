@@ -242,7 +242,7 @@ export default function AdminArticlesPage() {
   const loadArticles = useCallback(async () => {
     setLoading(true);
     const data = await fetch(`/api/admin/articles${queryString}`).then((r) =>
-      r.json(),
+      parseApiResponse(r),
     );
     const list = Array.isArray(data?.articles)
       ? data.articles

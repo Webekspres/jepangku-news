@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from "@/lib/fetch-api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -22,7 +23,7 @@ export default function TvDetailPage() {
     fetch(`/api/videos/${slug}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((data) => {
         setVideo(data);

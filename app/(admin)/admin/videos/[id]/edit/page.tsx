@@ -30,7 +30,7 @@ export default function AdminVideoEditPage() {
     fetch(`/api/admin/videos/${params.id}`)
       .then((r) => {
         if (!r.ok) throw new Error("not found");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((video) => {
         setSlug(video.slug);

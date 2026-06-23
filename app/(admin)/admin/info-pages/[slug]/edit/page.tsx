@@ -44,7 +44,7 @@ export default function AdminEditInfoPage() {
     fetch(`/api/admin/info-pages/${slug}`)
       .then((r) => {
         if (!r.ok) throw new Error("Halaman tidak ditemukan");
-        return r.json();
+        return parseApiResponse(r);
       })
       .then((data) => {
         setForm({
