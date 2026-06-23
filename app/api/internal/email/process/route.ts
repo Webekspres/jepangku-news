@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getEmailQueueSecret, isQstashReceiverConfigured } from '@/lib/email/config';
 import { processEmailOutbox } from '@/lib/email/queue';
 import { verifyQstashRequest } from '@/lib/email/qstash';
@@ -26,20 +27,20 @@ export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
   if (!(await isAuthorized(request, rawBody))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError('Unauthorized' , { status: 401 });
   }
 
   try {
     const body = rawBody ? JSON.parse(rawBody) : {};
     const outboxId = typeof body?.outboxId === 'string' ? body.outboxId.trim() : '';
     if (!outboxId) {
-      return NextResponse.json({ error: 'outboxId required' }, { status: 400 });
+      return apiError('outboxId required' , { status: 400 });
     }
 
     await processEmailOutbox(outboxId);
-    return NextResponse.json({ ok: true, outboxId });
+    return apiSuccess({ ok: true, outboxId });
   } catch (e) {
     await captureException(e, { route: 'internal-email-process' });
-    return NextResponse.json({ error: 'Email processing failed' }, { status: 500 });
+    return apiError('Email processing failed' , { status: 500 });
   }
 }

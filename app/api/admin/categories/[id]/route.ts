@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { auditAdminEntity } from '@/lib/audit-routes';
@@ -11,18 +12,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
   const { name, description, isActive, sortOrder, showInNavbar } = await request.json();
 
   const category = await db.category.findUnique({ where: { id } });
-  if (!category) return NextResponse.json({ error: 'Kategori tidak ditemukan' }, { status: 404 });
+  if (!category) return apiError('Kategori tidak ditemukan' , { status: 404 });
 
   if (showInNavbar === true && !category.showInNavbar) {
     const navbarCount = await countNavbarCategories(id);
     if (navbarCount >= MAX_NAVBAR_CATEGORIES) {
-      return NextResponse.json(
+      return apiSuccess(
         { error: `Maksimal ${MAX_NAVBAR_CATEGORIES} kategori di navbar` },
         { status: 400 },
       );
@@ -36,7 +37,7 @@ export async function PATCH(
       where: { OR: [{ slug }, { name: name.trim() }], NOT: { id } },
     });
     if (existing) {
-      return NextResponse.json({ error: 'Kategori dengan nama tersebut sudah ada' }, { status: 400 });
+      return apiError('Kategori dengan nama tersebut sudah ada' , { status: 400 });
     }
   }
 
@@ -55,7 +56,7 @@ export async function PATCH(
 
   auditAdminEntity(admin, 'category', 'update', { type: 'category', id: updated.id, label: updated.name, href: '/admin/categories' });
 
-  return NextResponse.json(updated);
+  return apiSuccess(updated);
 }
 
 export async function DELETE(
@@ -63,17 +64,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const category = await db.category.findUnique({ where: { id } });
-  if (!category) return NextResponse.json({ error: 'Kategori tidak ditemukan' }, { status: 404 });
+  if (!category) return apiError('Kategori tidak ditemukan' , { status: 404 });
 
   // Guard: cek artikel yang masih terhubung
   const articleCount = await db.article.count({ where: { categoryId: id } });
   if (articleCount > 0) {
-    return NextResponse.json(
+    return apiSuccess(
       { error: `Tidak dapat menghapus: kategori digunakan oleh ${articleCount} artikel. Pindahkan artikel terlebih dahulu atau nonaktifkan kategori.` },
       { status: 400 },
     );
@@ -82,5 +83,5 @@ export async function DELETE(
   auditAdminEntity(admin, 'category', 'delete', { type: 'category', id: category.id, label: category.name, href: '/admin/categories' });
 
   await db.category.delete({ where: { id } });
-  return NextResponse.json({ message: 'Kategori berhasil dihapus' });
+  return apiSuccess({ message: 'Kategori berhasil dihapus' });
 }

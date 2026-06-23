@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import SectionHeader from "@/components/SectionHeader";
 import PopularTags from "@/components/PopularTags";
@@ -12,7 +13,7 @@ export default function ExplorePage() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d) ? d : []))
       .catch(() => setCategories([]));
   }, []);

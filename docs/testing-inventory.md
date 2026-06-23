@@ -3,7 +3,7 @@
 > **Diperbarui:** Juni 2026  
 > **Status aplikasi:** ✅ sepenuhnya diimplementasi — inventaris ini diverifikasi terhadap kode.  
 > **Sumber:** audit kode `jepangku-news` + [`feature-status.md`](./feature-status.md)  
-> **Legenda verifikasi:** ✅ route/API/komponen ada di repo · ⏳ belum ada E2E otomatis · 🔒 butuh login · 👑 butuh admin
+> **Legenda verifikasi:** ✅ route/API/komponen ada di repo · 🔒 butuh login · 👑 butuh admin · **Manual** = QA browser (tidak Playwright)
 
 Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-functional testing** (performa, keamanan, aksesibilitas, reliabilitas).
 
@@ -11,13 +11,14 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 ## Ringkasan eksekusi QA
 
-| Area | Cakupan fungsional | E2E otomatis | Skrip verifikasi |
+| Area | Cakupan fungsional | Otomatis | Skrip verifikasi |
 | :--- | :--- | :--- | :--- |
-| Homepage | ✅ | `e2e/homepage.spec.ts` | `bun run verify:home` |
-| Notifikasi | ✅ | `e2e/notifications.spec.ts` (parsial) | `bun run verify:notifications` |
+| Logika `lib/` | ✅ | `bun run test:unit` | — |
+| Alur API inti | ✅ | `bun run test:integration` | — |
+| Homepage / UI | ✅ | **Manual** (checklist di bawah) | `bun run verify:home` |
+| Notifikasi | ✅ | Manual + API smoke | `bun run verify:notifications` |
 | Core integrasi | ✅ | — | `bun run verify:core` |
 | Staging cutover | ✅ | — | `bun run verify:staging` |
-| Seluruh domain di bawah | ✅ verified | `e2e/non-functional.spec.ts` + smoke | `verify:non-functional` (47/47) |
 
 ---
 
@@ -323,8 +324,8 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 | # | Area | Metode | Target / catatan | Status |
 | :-: | :--- | :--- | :--- | :---: |
 | P1 | Lighthouse production | `bun run build && bun start` incognito | Post-QA: Mobile **42** / Desktop **89** ([`lighthouse-scores.md`](./lighthouse-scores.md)) | [x] |
-| P2 | LCP homepage featured | `fetchPriority=high` | Verified via `verify:non-functional` + E2E | [x] |
-| P3 | Homepage wave lazy | scroll sections | Wave 1 only on load — E2E + `verify:home` | [x] |
+| P2 | LCP homepage featured | `fetchPriority=high` | Verified via `verify:non-functional` + manual QA | [x] |
+| P3 | Homepage wave lazy | scroll sections | Wave 1 only on load — manual QA + `verify:home` | [x] |
 | P4 | Image formats | AVIF/WebP + `sizes` | `next.config.ts` + CardCoverImage | [x] |
 | P5 | YouTube lazy embed | `/tv/[slug]` | `LazyYoutubeEmbed` click-to-play | [x] |
 | P6 | API cache headers | home APIs | `s-maxage` + SWR on home wave APIs | [x] |
@@ -369,7 +370,7 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 | C1 | Mobile viewport (375px) — no horizontal scroll | [x] |
 | C2 | Tablet (768px) | [x] |
 | C3 | Desktop (1280px+) | [x] |
-| C4 | Chromium E2E | `bun run test:e2e` | [x] |
+| C4 | Chromium manual smoke | Checklist §1–19 | [ ] |
 | C5 | Safari/Firefox manual smoke | [x] |
 
 ---
@@ -388,19 +389,14 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 ## Perintah QA cepat
 
 ```bash
-bun run verify:home          # smoke homepage APIs
-bun run verify:core          # integrasi Core + poin
-bun run verify:notifications # notifikasi + Jakarta session
-bun run verify:non-functional # keamanan, reliabilitas, a11y source checks
-bun run lighthouse:audit     # skor Lighthouse (production build + start)
-bun run verify:staging       # cutover staging (set NEWS_BASE_URL)
-bun run test:e2e             # Playwright homepage + notifikasi + non-functional
+bun run test                 # unit + integration API inti
+bun run test:unit            # hanya logika lib/ (<5 detik)
+bun run test:integration     # butuh server: bun run dev:test
 ```
 
 ---
 
 ## Referensi
 
-- [`feature-status.md`](./feature-status.md) — status implementasi
+- [`tests/README.md`](../tests/README.md) — unit + integration otomatis
 - [`runbooks/core-service-down.md`](./runbooks/core-service-down.md) — degrade Core
-- [`e2e/homepage.spec.ts`](../e2e/homepage.spec.ts) · [`e2e/notifications.spec.ts`](../e2e/notifications.spec.ts) · [`e2e/non-functional.spec.ts`](../e2e/non-functional.spec.ts)

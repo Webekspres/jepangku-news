@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import {
   Plus,
@@ -231,7 +232,7 @@ export default function AdminArticlesPage() {
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
     try {
-      const data = await fetch("/api/admin/articles/stats").then((r) => r.json());
+      const data = await fetch("/api/admin/articles/stats").then((r) => parseApiResponse(r));
       setStats(data);
     } finally {
       setStatsLoading(false);
@@ -266,7 +267,7 @@ export default function AdminArticlesPage() {
 
   useEffect(() => {
     fetch("/api/admin/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
 
@@ -371,7 +372,7 @@ export default function AdminArticlesPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ids, action, note: options?.note }),
           });
-          const data = await res.json();
+          const data = await parseApiResponse(res);
           if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
           toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil`);
           await Promise.all([loadArticles(), loadStats()]);
@@ -405,7 +406,7 @@ export default function AdminArticlesPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ids: [articleId], action: "archive" }),
           });
-          const data = await res.json();
+          const data = await parseApiResponse(res);
           if (!res.ok) {
             throw new Error(data.error || "Gagal mengarsipkan artikel");
           }
@@ -433,7 +434,7 @@ export default function AdminArticlesPage() {
             method: "POST",
           });
           if (!res.ok) {
-            const data = await res.json();
+            const data = await parseApiResponse(res);
             throw new Error(data.error || "Gagal menyetujui artikel");
           }
           toast.success("Artikel disetujui dan dipublikasikan");
@@ -489,7 +490,7 @@ export default function AdminArticlesPage() {
           body: JSON.stringify({ note }),
         });
         if (!res.ok) {
-          const data = await res.json();
+          const data = await parseApiResponse(res);
           throw new Error(data.error || "Gagal menolak artikel");
         }
         toast.success("Artikel berhasil ditolak");
@@ -504,7 +505,7 @@ export default function AdminArticlesPage() {
             note,
           }),
         });
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         if (!res.ok) throw new Error(data.error || "Gagal memproses aksi massal");
         toast.success(`${data.succeeded} dari ${data.processed} artikel berhasil ditolak`);
       }

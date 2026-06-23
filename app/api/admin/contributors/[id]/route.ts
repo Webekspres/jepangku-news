@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import {
   approveContributorApplication,
@@ -11,7 +12,7 @@ export async function POST(
 ) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return apiError('Admin access required' , { status: 403 });
   }
 
   const { id } = await params;
@@ -22,18 +23,18 @@ export async function POST(
   try {
     if (action === 'approve') {
       await approveContributorApplication(id, admin.id, adminNote);
-      return NextResponse.json({ message: 'Kontributor disetujui' });
+      return apiSuccess({ message: 'Kontributor disetujui' });
     }
 
     if (action === 'reject') {
       if (!adminNote?.trim()) {
-        return NextResponse.json({ error: 'Catatan penolakan wajib diisi' }, { status: 400 });
+        return apiError('Catatan penolakan wajib diisi' , { status: 400 });
       }
       await rejectContributorApplication(id, admin.id, adminNote);
-      return NextResponse.json({ message: 'Permohonan ditolak' });
+      return apiSuccess({ message: 'Permohonan ditolak' });
     }
 
-    return NextResponse.json({ error: 'Action tidak valid' }, { status: 400 });
+    return apiError('Action tidak valid' , { status: 400 });
   } catch (error) {
     const code = error instanceof Error ? error.message : 'UNKNOWN';
     const messages: Record<string, { status: number; error: string }> = {
@@ -43,9 +44,9 @@ export async function POST(
     };
     const mapped = messages[code];
     if (mapped) {
-      return NextResponse.json({ error: mapped.error, code }, { status: mapped.status });
+      return apiSuccess({ error: mapped.error, code }, { status: mapped.status });
     }
     console.error('Contributor review failed:', error);
-    return NextResponse.json({ error: 'Gagal memproses permohonan' }, { status: 500 });
+    return apiError('Gagal memproses permohonan' , { status: 500 });
   }
 }

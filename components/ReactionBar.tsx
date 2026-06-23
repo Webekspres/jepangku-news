@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import ReactionIcon from "@/components/reactions/ReactionIcon";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -78,7 +79,7 @@ export default function ReactionBar({
         `/api/reactions?targetType=${targetType}&targetId=${targetId}`,
         { credentials: "include" },
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (res.ok) {
         const next: Summary = {
           counts: data.counts || {},
@@ -112,7 +113,7 @@ export default function ReactionBar({
         credentials: "include",
         body: JSON.stringify({ targetType, targetId, type: typeToPost }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan reaksi");
 
       const synced: Summary = {

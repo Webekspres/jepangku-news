@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { AdminFilterButtons, AdminToolbar } from "@/components/admin/AdminToolbar";
@@ -43,7 +44,7 @@ export default function AdminPointsPage() {
   useEffect(() => {
     setLoading(true);
     fetch(`/api/admin/points?period=${period}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((json) => setData(json))
       .finally(() => setLoading(false));
   }, [period]);

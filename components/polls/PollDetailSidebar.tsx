@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
 import TrendingArticlesPanel, {
   type TrendingArticleItem,
@@ -37,7 +38,7 @@ export default function PollDetailSidebar({ excludePollSlug }: PollDetailSidebar
           `/api/polls?status=ACTIVE&limit=${RECOMMENDED_LIMIT + 1}`,
         );
         if (!res.ok) throw new Error("Failed to load polls");
-        const json = (await res.json()) as { polls?: RecommendedPollItem[] };
+        const json = (await parseApiResponse(res)) as { polls?: RecommendedPollItem[] };
         const items = Array.isArray(json.polls) ? json.polls : [];
         const filtered = excludePollSlug
           ? items.filter((item) => item.slug !== excludePollSlug)
@@ -70,7 +71,7 @@ export default function PollDetailSidebar({ excludePollSlug }: PollDetailSidebar
           `/api/articles?sort=trending&limit=${TRENDING_LIMIT}`,
         );
         if (!res.ok) throw new Error("Failed to load trending");
-        const json = (await res.json()) as { articles?: TrendingArticleItem[] };
+        const json = (await parseApiResponse(res)) as { articles?: TrendingArticleItem[] };
         const items = Array.isArray(json.articles) ? json.articles : [];
 
         if (!cancelled) {

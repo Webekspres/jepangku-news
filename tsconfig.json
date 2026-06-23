@@ -34,11 +34,13 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
-, "prisma/seeder/data/users.js"  ],
+    "**/*.mts",
+    "prisma/seeder/data/users.js",
+    ".next/dev/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
     "tests",
-    "e2e"
+    "scripts"
   ]
 }

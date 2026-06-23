@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import AuthorLink from "@/components/AuthorLink";
 import LeaderboardScore from "@/components/leaderboard/LeaderboardScore";
 import { Trophy, Crown } from "lucide-react";
@@ -43,7 +44,7 @@ export default function LeaderboardPage() {
       const res = await fetch(
         `/api/leaderboard?period=${selected}&limit=${LEADERBOARD_TOP_LIMIT}`,
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setLeaderboard(Array.isArray(data?.items) ? data.items : []);
       setCurrentUserEntry(data?.currentUser ?? null);
     } catch {

@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { fetchPublishedArticle } from "../helpers/fixtures";
 import {
   clientFor,
@@ -38,7 +39,7 @@ describe("API — comments", () => {
         `/api/comments?targetType=ARTICLE&targetId=${articleId}`,
       );
       expect(res.status).toBe(200);
-      const data = (await res.json()) as {
+      const data = (await parseApiResponse(res)) as {
         comments: { replies?: unknown[]; parentId?: string | null }[];
         total: number;
       };
@@ -70,7 +71,7 @@ describe("API — comments", () => {
         content: `Integration comment ${Date.now()}`,
       });
       expect(res.status).toBe(201);
-      const data = (await res.json()) as { comment: { id: string; content: string } };
+      const data = (await parseApiResponse(res)) as { comment: { id: string; content: string } };
       expect(data.comment.id).toBeTruthy();
       createdCommentId = data.comment.id;
     });
@@ -104,7 +105,7 @@ describe("API — comments", () => {
         content: "Reply from integration test",
       });
       expect(res.status).toBe(201);
-      const data = (await res.json()) as { comment: { parentId: string } };
+      const data = (await parseApiResponse(res)) as { comment: { parentId: string } };
       expect(data.comment.parentId).toBe(createdCommentId);
     });
 
@@ -118,7 +119,7 @@ describe("API — comments", () => {
         content: `Nested reply test ${Date.now()}`,
       });
       if (replyRes.status !== 201) return;
-      const { comment: reply } = (await replyRes.json()) as { comment: { id: string } };
+      const { comment: reply } = (await api.json(replyRes)) as { comment: { id: string } };
 
       const nested = await api.post("/api/comments", {
         targetType: "ARTICLE",
@@ -137,7 +138,7 @@ describe("API — comments", () => {
         content: `Points check ${Date.now()}`,
       });
       if (res.status !== 201) return;
-      const data = (await res.json()) as { points: number; pointsAwarded: boolean };
+      const data = (await parseApiResponse(res)) as { points: number; pointsAwarded: boolean };
       expect(typeof data.points).toBe("number");
       if (data.pointsAwarded) {
         expect(data.points).toBe(2);
@@ -162,7 +163,7 @@ describe("API — comments", () => {
         content: "Edited by owner",
       });
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isEdited: boolean };
+      const data = (await parseApiResponse(res)) as { isEdited: boolean };
       expect(data.isEdited).toBe(true);
     });
 
@@ -198,7 +199,8 @@ describe("API — comments", () => {
         content: "Comment for moderation test",
       });
       if (create.status !== 201) return;
-      const { comment } = (await create.json()) as { comment: { id: string } };
+      const contributor = clientFor(ctx, "CONTRIBUTOR");
+      const { comment } = (await contributor.json(create)) as { comment: { id: string } };
 
       const res = await clientFor(ctx, "USER").patch(`/api/admin/comments/${comment.id}`, {
         action: "hide",
@@ -214,20 +216,22 @@ describe("API — comments", () => {
         content: "Comment for admin hide",
       });
       if (create.status !== 201) return;
-      const { comment } = (await create.json()) as { comment: { id: string } };
+      const contributor = clientFor(ctx, "CONTRIBUTOR");
+      const { comment } = (await contributor.json(create)) as { comment: { id: string } };
 
       const res = await clientFor(ctx, "ADMIN").patch(`/api/admin/comments/${comment.id}`, {
         action: "hide",
       });
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { status: string };
+      const data = (await parseApiResponse(res)) as { status: string };
       expect(data.status).toBe("HIDDEN");
 
       const unhide = await clientFor(ctx, "ADMIN").patch(`/api/admin/comments/${comment.id}`, {
         action: "unhide",
       });
       expect(unhide.status).toBe(200);
-      const shown = (await unhide.json()) as { status: string };
+      const admin = clientFor(ctx, "ADMIN");
+      const shown = (await parseApiResponse(unhide)) as { status: string };
       expect(shown.status).toBe("VISIBLE");
     });
 
@@ -253,7 +257,7 @@ describe("API — comments", () => {
         content: `Parent for notif ${Date.now()}`,
       });
       if (parentRes.status !== 201) return;
-      const { comment: parent } = (await parentRes.json()) as { comment: { id: string } };
+      const { comment: parent } = (await userApi.json(parentRes)) as { comment: { id: string } };
 
       const replyRes = await contributorApi.post("/api/comments", {
         targetType: "ARTICLE",
@@ -265,7 +269,7 @@ describe("API — comments", () => {
 
       const notifRes = await userApi.get("/api/notifications?limit=30");
       expect(notifRes.status).toBe(200);
-      const { items } = (await notifRes.json()) as {
+      const { items } = (await userApi.json(notifRes)) as {
         items: { type?: string; title?: string }[];
       };
       const hasReplyNotif = items.some(

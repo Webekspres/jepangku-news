@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { revisionListSelect } from '@/lib/article-audit';
@@ -8,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
 
   const { slug } = await params;
 
@@ -24,9 +25,9 @@ export async function GET(
     },
   });
 
-  if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+  if (!article) return apiError('Article not found' , { status: 404 });
   if (article.authorId !== user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden' , { status: 403 });
   }
 
   const revisions = await db.articleRevision.findMany({
@@ -35,7 +36,7 @@ export async function GET(
     select: revisionListSelect,
   });
 
-  return NextResponse.json({
+  return apiSuccess({
     articleTitle: article.title,
     articleStatus: article.status,
     lastEditedAt: article.lastEditedAt,

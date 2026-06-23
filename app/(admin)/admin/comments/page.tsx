@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -97,7 +98,7 @@ export default function AdminCommentsPage() {
 
   useEffect(() => {
     fetch("/api/admin/comments/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -110,7 +111,7 @@ export default function AdminCommentsPage() {
       if (targetType) sp.set("targetType", targetType);
       if (query) sp.set("q", query);
       sp.set("page", String(page));
-      const data = await fetch(`/api/admin/comments?${sp.toString()}`).then((r) => r.json());
+      const data = await fetch(`/api/admin/comments?${sp.toString()}`).then((r) => parseApiResponse(r));
       setComments(Array.isArray(data.comments) ? data.comments : []);
       setTotalPages(data.totalPages || 1);
       setTotal(data.total || 0);
@@ -133,11 +134,11 @@ export default function AdminCommentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      if (!res.ok) throw new Error((await res.json()).error);
+      if (!res.ok) throw new Error((await parseApiResponse(res)).error);
       toast.success(action === "hide" ? "Komentar disembunyikan" : "Komentar ditampilkan");
       load();
       fetch("/api/admin/comments/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch (e: any) {
       toast.error(e.message || "Gagal memoderasi");
@@ -153,11 +154,11 @@ export default function AdminCommentsPage() {
       onConfirm: async () => {
         try {
           const res = await fetch(`/api/admin/comments/${id}`, { method: "DELETE" });
-          if (!res.ok) throw new Error((await res.json()).error);
+          if (!res.ok) throw new Error((await parseApiResponse(res)).error);
           toast.success("Komentar dihapus permanen");
           load();
           fetch("/api/admin/comments/stats")
-            .then((r) => r.json())
+            .then((r) => parseApiResponse(r))
             .then(setStats);
         } catch (e: any) {
           toast.error(e.message || "Gagal menghapus");

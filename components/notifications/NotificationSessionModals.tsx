@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import type { NotificationSessionDto } from "@/lib/notifications/types";
 import DailyPointsModal from "@/components/notifications/DailyPointsModal";
@@ -12,7 +13,7 @@ async function fetchSession(): Promise<NotificationSessionDto | null> {
       credentials: "same-origin",
     });
     if (!res.ok) return null;
-    return (await res.json()) as NotificationSessionDto;
+    return (await parseApiResponse(res)) as NotificationSessionDto;
   } catch {
     return null;
   }
@@ -30,7 +31,7 @@ async function dismissSession(payload: {
       body: JSON.stringify(payload),
     });
     if (!res.ok) return null;
-    return (await res.json()) as NotificationSessionDto;
+    return (await parseApiResponse(res)) as NotificationSessionDto;
   } catch {
     return null;
   }

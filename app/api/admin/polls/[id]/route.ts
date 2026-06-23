@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
@@ -13,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 /* ── GET /api/admin/polls/[id] ── */
 export async function GET(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
@@ -29,20 +30,20 @@ export async function GET(request: NextRequest, { params }: Params) {
     },
   });
 
-  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+  if (!poll) return apiError('Poll not found' , { status: 404 });
 
-  return NextResponse.json(poll);
+  return apiSuccess(poll);
 }
 
 /* ── PATCH /api/admin/polls/[id] ── */
 export async function PATCH(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const poll = await db.poll.findUnique({ where: { id } });
-  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+  if (!poll) return apiError('Poll not found' , { status: 404 });
 
   const body = await request.json();
   const {
@@ -59,7 +60,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   // title hanya wajib jika dikirim bersamaan dengan update konten penuh
   if (title !== undefined && !title?.trim()) {
-    return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    return apiError('Title is required' , { status: 400 });
   }
 
   // Build partial update — hanya field yang dikirim
@@ -113,7 +114,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     href: `/admin/polls/${id}/edit`,
   });
 
-  return NextResponse.json({ message: 'Poll updated' });
+  return apiSuccess({ message: 'Poll updated' });
 }
 
 /* ── PATCH /api/admin/polls/[id]/close  (via ?action=close) ──
@@ -123,20 +124,20 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 /* ── DELETE /api/admin/polls/[id] ── */
 export async function DELETE(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const poll = await db.poll.findUnique({ where: { id } });
-  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+  if (!poll) return apiError('Poll not found' , { status: 404 });
 
   if (poll.status !== 'DRAFT') {
-    return NextResponse.json({ error: 'Hanya polling berstatus Draft yang dapat dihapus' }, { status: 400 });
+    return apiError('Hanya polling berstatus Draft yang dapat dihapus' , { status: 400 });
   }
 
   auditAdminEntity(admin, 'poll', 'delete', { type: 'poll', id: poll.id, label: poll.title, href: `/admin/polls/${id}/edit` });
 
   await db.poll.delete({ where: { id } });
 
-  return NextResponse.json({ message: 'Poll deleted' });
+  return apiSuccess({ message: 'Poll deleted' });
 }

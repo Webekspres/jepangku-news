@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 import { captureException } from '@/lib/monitoring';
 import { sanitizeHtmlContent, sanitizePlainField } from '@/lib/sanitizer';
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!article) {
-      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+      return apiError('Article not found' , { status: 404 });
     }
 
     await Promise.all([
@@ -69,9 +70,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       relatedArticles,
     };
 
-    return NextResponse.json(result);
+    return apiSuccess(result);
   } catch (e: any) {
     await captureException(e, { route: 'articles-get', slug });
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return apiError(e.message , { status: 500 });
   }
 }

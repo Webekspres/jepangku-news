@@ -14,31 +14,52 @@ export type IntegrationContext = {
 
 let sharedContext: IntegrationContext | null = null;
 
+export function resetIntegrationContext(): void {
+  sharedContext = null;
+}
+
 export async function setupIntegration(): Promise<IntegrationContext> {
-  if (sharedContext) return sharedContext;
-
   const baseUrl = getNewsBaseUrl();
-  const serverUp = await isNewsServerUp(baseUrl);
-  if (serverUp && isClerkAuthConfigured()) {
+
+  if (!sharedContext) {
+    const serverUp = await isNewsServerUp(baseUrl);
+    if (!serverUp && !process.env.CI) {
+      console.warn(
+        `⚠️  Integration tests need a running server at ${baseUrl} (\`bun run dev:test\`)`,
+      );
+    }
+    sharedContext = {
+      baseUrl,
+      serverUp,
+      authAvailable: false,
+      tokens: {},
+    };
+  }
+
+  if (sharedContext.serverUp && isClerkAuthConfigured()) {
     await ensureClerkTestAccountRoles();
-  }
-  const tokens = serverUp ? await preloadClerkTokens() : {};
-  const authAvailable =
-    isClerkAuthConfigured() && Object.keys(tokens).length > 0;
-
-  if (!serverUp && !process.env.CI) {
-    console.warn(
-      `⚠️  Integration tests need a running server at ${baseUrl} (\`bun dev\`)`,
-    );
-  }
-  if (serverUp && !authAvailable && !process.env.CI) {
-    console.warn(
-      "⚠️  Authenticated integration tests skipped — set CLERK_SECRET_KEY and seed test users",
-    );
+    const tokens = await preloadClerkTokens();
+    sharedContext.tokens = tokens;
+    sharedContext.authAvailable = Object.keys(tokens).length > 0;
+    if (!sharedContext.authAvailable && !process.env.CI) {
+      console.warn(
+        "⚠️  Authenticated integration tests skipped — set CLERK_SECRET_KEY and seed test users",
+      );
+    }
   }
 
-  sharedContext = { baseUrl, serverUp, authAvailable, tokens };
   return sharedContext;
+}
+
+/** Force-refresh Clerk JWTs (e.g. after long admin test suite). */
+export async function refreshIntegrationTokens(
+  ctx: IntegrationContext,
+): Promise<void> {
+  if (!ctx.serverUp || !isClerkAuthConfigured()) return;
+  const { clearClerkTokenCache } = await import("./auth");
+  clearClerkTokenCache();
+  ctx.tokens = await preloadClerkTokens();
+  ctx.authAvailable = Object.keys(ctx.tokens).length > 0;
 }
 
 /** Returns true when the test should be skipped (not failed). */

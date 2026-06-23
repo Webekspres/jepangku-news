@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from "@/lib/db";
 import {
   publishedVideoWhere,
@@ -15,7 +16,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
   });
 
   if (!video) {
-    return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    return apiError("Video not found" , { status: 404 });
   }
 
   const updated = await db.video.update({
@@ -23,5 +24,5 @@ export async function GET(_request: NextRequest, { params }: Params) {
     data: { viewCount: { increment: 1 } },
   });
 
-  return NextResponse.json(serializePublicVideo(updated));
+  return apiSuccess(serializePublicVideo(updated));
 }

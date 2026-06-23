@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
@@ -10,7 +11,7 @@ import { auditQuizAttempt } from '@/lib/audit-routes';
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
 
   const blocked = await enforceRateLimit(request, 'quiz-attempt', {
     max: 5,
@@ -26,13 +27,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     where: { slug },
     include: { questions: { include: { options: true } } },
   });
-  if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 });
+  if (!quiz) return apiError('Quiz not found' , { status: 404 });
 
   const existingAttempt = await db.quizAttempt.findFirst({
     where: { quizId: quiz.id, userId: user.id },
   });
   if (existingAttempt) {
-    return NextResponse.json({ error: 'You have already attempted this quiz' }, { status: 400 });
+    return apiError('You have already attempted this quiz' , { status: 400 });
   }
 
   const body = await request.json();
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     points: pointsGranted,
   });
 
-  return NextResponse.json({
+  return apiSuccess({
     attemptId: attempt.id,
     score,
     correctAnswers,
@@ -121,6 +122,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
   } catch (e) {
     await captureException(e, { route: 'quiz-attempt' });
-    return NextResponse.json({ error: 'Failed to submit quiz' }, { status: 500 });
+    return apiError('Failed to submit quiz' , { status: 500 });
   }
 }

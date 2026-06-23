@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { Download, Trash2, Mail, UserCheck, UserX } from "lucide-react";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
@@ -48,7 +49,7 @@ export default function AdminNewsletterPage() {
 
   useEffect(() => {
     fetch("/api/admin/newsletter/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -60,7 +61,7 @@ export default function AdminNewsletterPage() {
       if (status) sp.set("status", status);
       sp.set("page", String(page));
       if (search.trim()) sp.set("search", search.trim());
-      const data = await fetch(`/api/admin/newsletter?${sp}`).then((r) => r.json());
+      const data = await fetch(`/api/admin/newsletter?${sp}`).then((r) => parseApiResponse(r));
       setSubscriptions(Array.isArray(data.subscriptions) ? data.subscriptions : []);
       setTotalPages(Number(data.totalPages || 1));
       setTotal(Number(data.total || 0));
@@ -84,7 +85,7 @@ export default function AdminNewsletterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal menghapus");
         return;
@@ -92,7 +93,7 @@ export default function AdminNewsletterPage() {
       toast.success("Subscriber dihapus");
       await load();
       fetch("/api/admin/newsletter/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal menghapus");

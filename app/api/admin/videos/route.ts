@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
@@ -19,7 +20,7 @@ async function clearOtherFeatured(exceptId?: string) {
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
@@ -33,14 +34,12 @@ export async function GET(request: NextRequest) {
     take: 200,
   });
 
-  return NextResponse.json(videos, {
-    headers: { "Cache-Control": "no-store" },
-  });
+  return apiSuccess(videos, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!admin) return apiError("Admin access required" , { status: 403 });
 
   const body = await request.json();
   const {
@@ -55,12 +54,12 @@ export async function POST(request: NextRequest) {
   } = body;
 
   const safeTitle = sanitizePlainField(title, 200);
-  if (!safeTitle) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+  if (!safeTitle) return apiError("Title is required" , { status: 400 });
 
   const youtubeId =
     extractYoutubeId(rawYoutubeId ?? "") ?? extractYoutubeId(youtubeUrl ?? "");
   if (!youtubeId) {
-    return NextResponse.json({ error: "Valid YouTube URL or ID is required" }, { status: 400 });
+    return apiError("Valid YouTube URL or ID is required" , { status: 400 });
   }
 
   const normalizedStatus = String(status).toUpperCase() as "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -97,5 +96,5 @@ export async function POST(request: NextRequest) {
 
   revalidateHomeTv();
 
-  return NextResponse.json({ message: "Video created", id: video.id }, { status: 201 });
+  return apiSuccess({ message: "Video created", id: video.id }, { status: 201 });
 }

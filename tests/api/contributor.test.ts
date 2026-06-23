@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import {
   clientFor,
   setupIntegration,
@@ -27,7 +28,7 @@ describe("API — contributor", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "CONTRIBUTOR").get("/api/contributor/status");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isContributor: boolean };
+      const data = (await parseApiResponse(res)) as { isContributor: boolean };
       expect(data.isContributor).toBe(true);
     });
 
@@ -35,7 +36,7 @@ describe("API — contributor", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "ADMIN").get("/api/contributor/status");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isContributor: boolean };
+      const data = (await parseApiResponse(res)) as { isContributor: boolean };
       expect(data.isContributor).toBe(true);
     });
 
@@ -43,7 +44,7 @@ describe("API — contributor", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/contributor/status");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { isContributor: boolean };
+      const data = (await parseApiResponse(res)) as { isContributor: boolean };
       expect(data.isContributor).toBe(false);
     });
   });
@@ -71,7 +72,7 @@ describe("API — contributor", () => {
         motivation: "pendek",
       });
       expect(res.status).toBe(400);
-      const body = (await res.json()) as { code: string };
+      const body = (await parseApiResponse(res)) as { code: string };
       expect(body.code).toBe("MOTIVATION_TOO_SHORT");
     });
 
@@ -82,7 +83,7 @@ describe("API — contributor", () => {
         portfolioUrl: "ftp://bad-url.example",
       });
       expect(res.status).toBe(400);
-      const body = (await res.json()) as { code: string };
+      const body = (await parseApiResponse(res)) as { code: string };
       expect(body.code).toBe("INVALID_PORTFOLIO_URL");
     });
 

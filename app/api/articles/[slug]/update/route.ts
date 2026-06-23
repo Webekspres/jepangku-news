@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
@@ -16,15 +17,15 @@ import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
-    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+    return apiSuccess(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
   }
 
   const { slug } = await params;
 
   const article = await db.article.findFirst({ where: { slug } });
-  if (!article) return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+  if (!article) return apiError('Article not found' , { status: 404 });
 
   const blockedResponse = await enforceRateLimit(request, 'article-update', {
     max: 6,
@@ -38,11 +39,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   if (article.authorId !== user.id) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
+    return apiError('Not authorized' , { status: 403 });
   }
 
   if (!canEditOnUserPortal(article.status)) {
-    return NextResponse.json(
+    return apiSuccess(
       { error: 'Artikel tidak dapat diedit pada status ini' },
       { status: 400 },
     );
@@ -57,7 +58,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (title !== undefined) {
       const safeTitle = sanitizeText(String(title || ''));
       if (!safeTitle) {
-        return NextResponse.json({ error: 'Title cannot be empty' }, { status: 400 });
+        return apiError('Title cannot be empty' , { status: 400 });
       }
       updateData.title = safeTitle;
       const keepSlug =
@@ -72,7 +73,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (content !== undefined) {
       const safeContent = sanitizeHtmlContent(String(content || ''));
       if (!safeContent) {
-        return NextResponse.json({ error: 'Content cannot be empty' }, { status: 400 });
+        return apiError('Content cannot be empty' , { status: 400 });
       }
       updateData.content = safeContent;
     }
@@ -110,11 +111,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       syncTags: syncArticleTags,
     });
 
-    return NextResponse.json(updated);
+    return apiSuccess(updated);
   } catch (e: unknown) {
     await captureException(e, { route: 'articles-update', slug });
     const message = e instanceof Error ? e.message : 'Update failed';
     const status = message.includes('wajib') ? 400 : 500;
-    return NextResponse.json({ error: message }, { status });
+    return apiSuccess({ error: message }, { status });
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
@@ -14,7 +15,7 @@ export async function POST(
   try {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    return apiError('Not authenticated' , { status: 401 });
   }
 
   const blocked = await enforceRateLimit(request, 'article-share', {
@@ -31,7 +32,7 @@ export async function POST(
   // Find article by slug
   const article = await db.article.findUnique({ where: { slug } });
   if (!article) {
-    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    return apiError('Article not found' , { status: 404 });
   }
 
   // Check if user already shared this article
@@ -40,10 +41,11 @@ export async function POST(
   });
 
   if (existing) {
-    return NextResponse.json(
-      { error: 'Already shared this article', pointsAwarded: false },
-      { status: 400 }
-    );
+    return apiError('Already shared this article', {
+      status: 400,
+      code: 'ALREADY_SHARED',
+      meta: { pointsAwarded: false },
+    });
   }
 
   // Create share record
@@ -82,7 +84,7 @@ export async function POST(
 
   auditArticleShare(user, article, shareMethod);
 
-  return NextResponse.json({
+  return apiSuccess({
     message: 'Share tracked successfully',
     pointsAwarded: award.awarded,
     points: award.awarded ? 5 : 0,
@@ -90,7 +92,7 @@ export async function POST(
   });
   } catch (e) {
     await captureException(e, { route: 'article-share' });
-    return NextResponse.json({ error: 'Failed to track share' }, { status: 500 });
+    return apiError('Failed to track share' , { status: 500 });
   }
 }
 
@@ -101,21 +103,21 @@ export async function GET(
 ) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ hasShared: false });
+    return apiSuccess({ hasShared: false });
   }
 
   const { slug } = await params;
 
   const article = await db.article.findUnique({ where: { slug } });
   if (!article) {
-    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    return apiError('Article not found' , { status: 404 });
   }
 
   const share = await db.articleShare.findFirst({
     where: { userId: user.id, articleId: article.id },
   });
 
-  return NextResponse.json({
+  return apiSuccess({
     hasShared: !!share,
     shareData: share || null,
   });

@@ -1,3 +1,4 @@
+import { parseApiResponse } from '@/lib/fetch-api';
 /**
  * Smoke-test homepage wave APIs (replaces legacy /api/homepage E2E dependency).
  * Run: bun run verify:home
@@ -33,7 +34,7 @@ async function main() {
       const ok = res.ok;
       let detail = `wave=${wave} status=${res.status}`;
       if (ok) {
-        const json = await res.json();
+        const json = await parseApiResponse(res);
         if (path.endsWith("/feed")) {
           detail += ` featured=${json.featuredArticles?.length ?? 0} trending=${json.trending?.length ?? 0} today=${json.todayArticles?.length ?? 0}`;
         } else if (path.includes("engagement")) {

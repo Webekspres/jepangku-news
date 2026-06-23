@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import {
   findPublicAuthorByUsername,
@@ -20,13 +21,13 @@ export async function GET(
   const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '12', 10) || 12, 1), 30);
 
   if (!username || !/^[a-z0-9_]+$/.test(username)) {
-    return NextResponse.json({ error: 'Username tidak valid' }, { status: 400 });
+    return apiError('Username tidak valid' , { status: 400 });
   }
 
   try {
     const user = await findPublicAuthorByUsername(username);
     if (!user) {
-      return NextResponse.json({ error: 'Profil tidak ditemukan' }, { status: 404 });
+      return apiError('Profil tidak ditemukan' , { status: 404 });
     }
 
     const contributor = isPublicContributor(user.role);
@@ -45,7 +46,7 @@ export async function GET(
       getProfileRecommendedArticles(user.id),
     ]);
 
-    return NextResponse.json({
+    return apiSuccess({
       profile: serializePublicAuthor(user, stats),
       articles: articlePage.articles,
       relatedArticles,
@@ -56,6 +57,6 @@ export async function GET(
     });
   } catch (e) {
     await captureException(e, { route: 'profile-get', username });
-    return NextResponse.json({ error: 'Gagal memuat profil' }, { status: 500 });
+    return apiError('Gagal memuat profil' , { status: 500 });
   }
 }

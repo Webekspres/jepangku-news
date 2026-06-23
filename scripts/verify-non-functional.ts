@@ -3,6 +3,7 @@
  * Run: bun run verify:non-functional
  */
 import { readFileSync } from "node:fs";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { join } from "node:path";
 import { getEmailQueueSecret } from "../lib/email/config";
 import { validateImageBuffer } from "../lib/image-moderation";
@@ -225,7 +226,7 @@ async function verifySecurity() {
 async function verifyReliability() {
   try {
     const res = await fetch(`${newsBase}/api/health`);
-    const json = (await res.json()) as { status?: string; db?: string };
+    const json = (await parseApiResponse(res)) as { status?: string; db?: string };
     record(
       "R1 GET /api/health",
       res.ok && json.status === "ok" && json.db === "ok",

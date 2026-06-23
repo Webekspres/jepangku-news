@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +22,7 @@ export default function QuizAnalyticsPage() {
   useEffect(() => {
     if (!user || (user as any).role !== "ADMIN") return;
     fetch(`/api/admin/analytics/quizzes/${id}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setData)
       .finally(() => setFetching(false));
   }, [user, id]);

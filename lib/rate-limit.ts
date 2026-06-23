@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from './api-response';
 import { logger } from './logger';
 import { consumeRateLimit } from './rate-limit-store';
 
@@ -36,18 +37,14 @@ export async function enforceRateLimit(
       identifier,
       retryAfterSeconds,
     });
-    return NextResponse.json(
-      {
-        error: options.message || 'Rate limit exceeded. Try again later.',
-        retryAfter: retryAfterSeconds,
+    return apiError(options.message || 'Rate limit exceeded. Try again later.', {
+      status: 429,
+      code: 'RATE_LIMIT_EXCEEDED',
+      meta: { retryAfter: retryAfterSeconds },
+      headers: {
+        'Retry-After': String(retryAfterSeconds),
       },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(retryAfterSeconds),
-        },
-      },
-    );
+    });
   }
 
   return null;

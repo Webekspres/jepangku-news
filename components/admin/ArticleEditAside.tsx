@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import {
   CheckCircle2,
   Clock,
@@ -110,7 +111,7 @@ export default function ArticleEditAside({
     try {
       const res = await fetch(`/api/admin/articles/${articleId}/activity`);
       if (!res.ok) return;
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setReviews(Array.isArray(data.reviews) ? data.reviews : []);
       setRevisions(Array.isArray(data.revisions) ? data.revisions : []);
     } finally {
@@ -138,7 +139,7 @@ export default function ArticleEditAside({
         `/api/admin/articles/${articleId}/revisions/${revisionId}`,
       );
       if (!res.ok) return;
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       setSelectedRevision(data.revision ?? null);
       setPreviousRevision(data.previous ?? null);
     } finally {

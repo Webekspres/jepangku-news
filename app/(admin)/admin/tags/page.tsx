@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Tag as TagIcon } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
@@ -40,7 +41,7 @@ export default function AdminTagsPage() {
 
   const loadTags = async () => {
     setLoading(true);
-    const data = await fetch("/api/admin/tags").then((r) => r.json());
+    const data = await fetch("/api/admin/tags").then((r) => parseApiResponse(r));
     setTags(Array.isArray(data) ? data : []);
     setLoading(false);
   };
@@ -69,7 +70,7 @@ export default function AdminTagsPage() {
           body: JSON.stringify({ name: values.name.trim() }),
         });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           throw new Error(e.error);
         }
         toast.success("Tag berhasil dibuat");
@@ -80,7 +81,7 @@ export default function AdminTagsPage() {
           body: JSON.stringify({ name: values.name.trim() }),
         });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           throw new Error(e.error);
         }
         toast.success("Tag berhasil diperbarui");
@@ -109,7 +110,7 @@ export default function AdminTagsPage() {
       onConfirm: async () => {
         const res = await fetch(`/api/admin/tags/${tag.id}`, { method: "DELETE" });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           toast.error(e.error || "Gagal menghapus tag");
           return;
         }

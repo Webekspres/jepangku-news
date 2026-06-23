@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -69,7 +70,7 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (!user) return;
     fetch("/api/user/profile")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((data: ProfileData) => {
         setForm({
           name: data.name ?? "",
@@ -168,7 +169,7 @@ export default function EditProfilePage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         throw new Error(data.error || "Gagal menyimpan profil");
       }
 
@@ -289,7 +290,7 @@ export default function EditProfilePage() {
                               body: JSON.stringify({ avatarUrl: null }),
                             });
                             if (!res.ok) {
-                              const err = await res.json();
+                              const err = await parseApiResponse(res);
                               throw new Error(err.error || "Gagal menghapus foto");
                             }
                             setForm((prev) => ({ ...prev, avatarUrl: "" }));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Award, FileText, Bookmark } from "lucide-react";
@@ -25,7 +26,7 @@ export default function AdminUserDetailPage() {
       return;
     }
     fetch(`/api/admin/users/${id}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => {
         setData(d);
         setLoading(false);

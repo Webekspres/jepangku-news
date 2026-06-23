@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { toast } from "sonner";
 import { Star, Flame, List } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
@@ -34,7 +35,7 @@ export default function AdminHomepagePage() {
 
   useEffect(() => {
     fetch("/api/admin/homepage/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -47,8 +48,8 @@ export default function AdminHomepagePage() {
     setLoading(true);
 
     const [hp, articles] = await Promise.all([
-      fetch("/api/admin/homepage").then((r) => r.json()),
-      fetch("/api/admin/articles?status=PUBLISHED").then((r) => r.json()),
+      fetch("/api/admin/homepage").then((r) => parseApiResponse(r)),
+      fetch("/api/admin/articles?status=PUBLISHED").then((r) => parseApiResponse(r)),
     ]);
 
     setHomepageData(hp);
@@ -72,7 +73,7 @@ export default function AdminHomepagePage() {
 
       loadData();
       fetch("/api/admin/homepage/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal memperbarui artikel");
@@ -95,7 +96,7 @@ export default function AdminHomepagePage() {
 
       loadData();
       fetch("/api/admin/homepage/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal memperbarui artikel");

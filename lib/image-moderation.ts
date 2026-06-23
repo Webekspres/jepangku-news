@@ -108,7 +108,10 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
     throw new UploadClientError('Image moderation service rejected the request.');
   }
 
-  const result = await response.json();
+  const result = (await response.json()) as {
+    decision?: string;
+    moderation?: string;
+  };
   if (result?.decision === 'reject' || result?.moderation === 'unsafe') {
     throw new UploadClientError('Uploaded image was rejected by moderation.');
   }

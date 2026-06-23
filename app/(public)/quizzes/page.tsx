@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { MotionHoverScale } from "@/components/ui/motion";
 import CardCoverImage from "@/components/CardCoverImage";
@@ -89,7 +90,7 @@ export default function QuizListPage() {
         limit: String(PER_PAGE),
         page: String(pageNum),
       });
-      const data = await fetch(`/api/quizzes?${params}`).then((r) => r.json());
+      const data = await fetch(`/api/quizzes?${params}`).then((r) => parseApiResponse(r));
       const incoming: any[] = Array.isArray(data.quizzes) ? data.quizzes : [];
 
       if (reset) {

@@ -51,7 +51,7 @@ SELECT
     ar."article_id",
     a."title",
     '/admin/articles/' || ar."article_id",
-    ar."previous_status" || ' → ' || ar."new_status",
+    ar."previous_status" || ' -> ' || ar."new_status",
     ar."note",
     ar."reviewed_at",
     ar."created_at"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import type { NotificationDto } from "@/lib/notifications/types";
 import {
   invalidateNotifications,
@@ -25,7 +26,7 @@ async function fetchUnreadCount(): Promise<number | null> {
       credentials: "same-origin",
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { unreadCount?: number };
+    const data = (await parseApiResponse(res)) as { unreadCount?: number };
     return typeof data.unreadCount === "number" ? data.unreadCount : 0;
   } catch {
     return null;
@@ -42,7 +43,7 @@ async function fetchNotificationList(
     credentials: "same-origin",
   });
   if (!res.ok) throw new Error("Gagal memuat notifikasi");
-  const data = (await res.json()) as NotificationListResponse;
+  const data = (await parseApiResponse(res)) as NotificationListResponse;
   return Array.isArray(data.items) ? data.items : [];
 }
 

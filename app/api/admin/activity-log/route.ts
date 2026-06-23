@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { getAdminActivityLog } from '@/lib/admin-monitoring';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return apiError('Admin access required' , { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -13,5 +14,5 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get('category') ?? searchParams.get('type') ?? undefined;
 
   const data = await getAdminActivityLog({ page, category });
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }

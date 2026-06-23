@@ -1,51 +1,76 @@
 # Testing — Jepangku News
 
-## One command
+Otomatis hanya **logika murni (unit)** dan **alur API inti (integration)**.  
+UI/browser, layout, dan regresi visual → **QA manual** (lihat [`docs/testing-inventory.md`](../docs/testing-inventory.md)).
+
+## Satu perintah
 
 ```bash
-bun run test:db:prepare   # migrate + seed test DB (first time / CI)
-bun dev                   # in another terminal, for integration + E2E
-bun run test              # unit → integration → E2E (Playwright)
+cp .env.test.example .env.test   # pertama kali — isi Clerk keys dari .env
+bun run test:db:prepare          # migrate + seed DB test
+bun run dev:test                 # terminal terpisah
+bun run test                     # unit + integration API
 ```
 
-Quick smoke (unit + API smoke + homepage/auth E2E on Chromium):
+Tanpa server: `bun run test:unit` saja (~156 kasus, <5 detik).
 
-```bash
-bun run test:smoke
-```
+## Scripts (`package.json`)
 
-## Scripts
-
-| Script | What it runs |
+| Script | Isi |
 | :--- | :--- |
-| `bun run test` | `test:unit` + `test:integration` + `test:e2e` |
-| `bun run test:unit` | `bun:test` in `tests/unit/` |
-| `bun run test:integration` | `bun:test` in `tests/integration/` (needs running server) |
-| `bun run test:e2e` | Playwright in `e2e/` |
-| `bun run test:smoke` | unit + integration smoke + Chromium homepage/auth |
-| `bun run test:db:prepare` | migrate deploy + seed using `.env.test` |
+| `bun run dev` | Dev server (DB `.env`) |
+| `bun run dev:test` | Dev server (DB test `.env.test`) |
+| `bun run build` / `start` | Production build & serve |
+| `bun run lint` | ESLint |
+| `bun run db:seed` / `db:migrate` / `db:reset` | Database dev |
+| `bun run test` | Unit + integration inti |
+| `bun run test:unit` | `tests/unit/` saja |
+| `bun run test:integration` | API inti — butuh `dev:test` |
+| `bun run test:db:prepare` | Migrate + seed `jepangku_news_test` |
+| `bun run test:db:cleanup` | Hapus data ephemeral setelah integration |
+
+Skrip ops/audit ada di `scripts/` — jalankan langsung, mis. `bun scripts/verify-core-integration.ts`.
+
+## Integration API yang dipertahankan
+
+| File | Alur |
+| :--- | :--- |
+| `integration/smoke.test.ts` | Health, guest auth |
+| `api/auth.test.ts` | Session, 401/410 |
+| `api/articles.test.ts` | CRUD artikel, workflow status |
+| `api/admin.test.ts` | RBAC admin 403 |
+| `api/contributor.test.ts` | Apply, gate kontributor |
+| `api/points.test.ts` | Ledger poin |
+| `api/comments.test.ts` | Thread komentar dasar |
 
 ## Clerk test accounts
 
-See [`fixtures/clerk-accounts.ts`](./fixtures/clerk-accounts.ts). OTP for all `+clerk_test@` emails: **424242**.
+Lihat [`fixtures/clerk-accounts.ts`](./fixtures/clerk-accounts.ts). OTP `+clerk_test@`: **424242**.
 
 | Role | Email |
 | :--- | :--- |
-| guest | (no login) |
 | USER | `budi+clerk_test@jepangku.com` |
 | CONTRIBUTOR | `kontributor+clerk_test@jepangku.com` |
 | ADMIN | `admin+clerk_test@jepangku.com` |
-
-After creating users in Clerk dev, run `bun run test:db:prepare` so portal `users.id` matches Clerk IDs.
 
 ## Layout
 
 ```text
 tests/
   unit/           # Pure logic (no server)
-  integration/    # HTTP smoke against running Next.js
-  api/            # Phase 2 API integration (~200 cases)
-  fixtures/       # Shared test constants (Clerk accounts)
-  helpers/        # preload, auth, api-client, server probe
-e2e/              # Playwright browser tests (existing)
+  integration/    # HTTP smoke
+  api/            # Alur API inti (7 file)
+  fixtures/       # Clerk accounts
+  helpers/        # preload, auth, api-client
 ```
+
+## CI/CD
+
+Job `test` di [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml):
+
+1. `bun run lint`
+2. `bun run test:db:prepare` (PostgreSQL service + migrate + seed)
+3. `bun run dev:test` → tunggu `/api/health`
+4. `bun run test` (unit + integration)
+
+Secrets environment **staging**: `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`.

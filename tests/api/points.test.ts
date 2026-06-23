@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import {
   clientFor,
   setupIntegration,
@@ -24,7 +25,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/points/my");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as {
+      const data = (await parseApiResponse(res)) as {
         totalPoints: number;
         transactions: {
           id: string;
@@ -40,7 +41,7 @@ describe("API — points", () => {
     it("transaction entries include required fields", async () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/points/my");
-      const data = (await res.json()) as { transactions: Record<string, unknown>[] };
+      const data = (await parseApiResponse(res)) as { transactions: Record<string, unknown>[] };
       if (data.transactions.length > 0) {
         const tx = data.transactions[0]!;
         expect(tx).toHaveProperty("activityType");
@@ -111,7 +112,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "server")) return;
       const res = await clientFor(ctx).get("/api/leaderboard?period=weekly&limit=3");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { period: string; items: unknown[] };
+      const data = (await parseApiResponse(res)) as { period: string; items: unknown[] };
       expect(data.period).toBe("weekly");
       expect(Array.isArray(data.items)).toBe(true);
     });
@@ -126,7 +127,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "server")) return;
       const res = await clientFor(ctx).get("/api/leaderboard?period=monthly&limit=5");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { period: string; items: { rank: number }[] };
+      const data = (await parseApiResponse(res)) as { period: string; items: { rank: number }[] };
       expect(data.period).toBe("monthly");
       if (data.items.length > 1) {
         expect(data.items[0]!.rank).toBeLessThan(data.items[1]!.rank);
@@ -137,7 +138,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "server")) return;
       const res = await clientFor(ctx).get("/api/leaderboard?period=sepanjang-waktu&limit=5");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { period: string; items: { rank: number }[] };
+      const data = (await parseApiResponse(res)) as { period: string; items: { rank: number }[] };
       expect(data.period).toBe("sepanjang-waktu");
       if (data.items.length > 1) {
         expect(data.items[0]!.rank).toBeLessThan(data.items[1]!.rank);
@@ -156,7 +157,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/activity/feed");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { items: { kind: string }[] };
+      const data = (await parseApiResponse(res)) as { items: { kind: string }[] };
       expect(Array.isArray(data.items)).toBe(true);
     });
   });
@@ -172,7 +173,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "ADMIN").get("/api/admin/points?period=7d");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as {
+      const data = (await parseApiResponse(res)) as {
         period: string;
         recentTransactions: unknown[];
       };
@@ -186,7 +187,7 @@ describe("API — points", () => {
         "/api/admin/leaderboard?period=weekly&limit=10",
       );
       expect(res.status).toBe(200);
-      const data = (await res.json()) as {
+      const data = (await parseApiResponse(res)) as {
         items: { rank: number }[];
         stats: { participants: number };
       };
@@ -206,7 +207,7 @@ describe("API — points", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "USER").get("/api/user/gamification");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { totalPoints: number };
+      const data = (await parseApiResponse(res)) as { totalPoints: number };
       expect(typeof data.totalPoints).toBe("number");
     });
   });

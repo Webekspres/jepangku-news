@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from "@/lib/db";
 import {
   publishedVideoWhere,
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
-  return NextResponse.json({
+  return apiSuccess({
     total,
     page,
     limit,

@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import { Bookmark as BookmarkIcon } from "lucide-react";
@@ -12,7 +13,7 @@ export default function BookmarksPage() {
 
   useEffect(() => {
     fetch("/api/bookmarks")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => {
         setBookmarks(Array.isArray(d) ? d : []);
         setLoading(false);

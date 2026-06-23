@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { ExternalLink, Link2, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -31,14 +32,14 @@ export default function AdminSocialLinksPage() {
 
   useEffect(() => {
     fetch("/api/admin/social-links/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
 
   useEffect(() => {
     fetch("/api/admin/social-links")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((data) => setLinks(Array.isArray(data.links) ? data.links : []))
       .finally(() => setLoading(false));
   }, []);
@@ -63,7 +64,7 @@ export default function AdminSocialLinksPage() {
           })),
         }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal menyimpan");
         return;
@@ -71,7 +72,7 @@ export default function AdminSocialLinksPage() {
       setLinks(data.links ?? links);
       toast.success("Link sosial media disimpan");
       fetch("/api/admin/social-links/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal menyimpan");

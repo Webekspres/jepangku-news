@@ -14,8 +14,42 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: staging
     env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      CI: true
+      DB_USER: ci
+      DB_PASSWORD: ci
+      DATABASE_ADMIN_URL: postgresql://ci:ci@localhost:5432/postgres
+      AUTH_PROVIDER: clerk
+      NEXT_PUBLIC_AUTH_PROVIDER: clerk
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+      NEWS_BASE_URL: http://localhost:3000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      ADMIN_EMAIL: admin+clerk_test@jepangku.com
+      CONTRIBUTOR_TEST_EMAIL: kontributor+clerk_test@jepangku.com
+      R2_ACCOUNT_ID: ci
+      R2_ACCESS_KEY_ID: ci
+      R2_ACCESS_KEY_SECRET: ci
+      R2_BUCKET_NAME: ci
+      R2_PUBLIC_URL: https://example.com
+      CORE_API_URL: http://localhost:8080
+      CORE_SERVICE_TOKEN: ci-placeholder
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -23,9 +57,45 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Validate Clerk test secrets
+        run: |
+          if [ -z "${{ secrets.CLERK_PUBLISHABLE_KEY }}" ] || [ -z "${{ secrets.CLERK_SECRET_KEY }}" ]; then
+            echo "::error::CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY must be set in the staging environment."
+            exit 1
+          fi
+
       - run: bun install --frozen-lockfile
+      - run: cp .env.test.example .env.test
       - run: bunx prisma generate
       - run: bun run lint
+
+      - name: Prepare test database
+        run: bun run test:db:prepare
+
+      - name: Start Next.js (test env)
+        run: |
+          bun run dev:test > /tmp/next.log 2>&1 &
+          echo $! > /tmp/next.pid
+          for i in $(seq 1 90); do
+            if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
+              echo "Server ready after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Next.js failed to start within 3 minutes"
+          tail -n 120 /tmp/next.log || true
+          exit 1
+
+      - name: Run unit + integration tests
+        run: bun run test
+
+      - name: Stop Next.js
+        if: always()
+        run: |
+          if [ -f /tmp/next.pid ]; then
+            kill "$(cat /tmp/next.pid)" 2>/dev/null || true
+          fi
 
   build:
     needs: test

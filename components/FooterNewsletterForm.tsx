@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: trimmed }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal berlangganan");
         return;

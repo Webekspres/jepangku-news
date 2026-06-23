@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
@@ -53,7 +54,7 @@ function PublicProfileContent() {
         setNotFound(true);
         return;
       }
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error);
 
       setProfile(data.profile);

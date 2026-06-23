@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -165,7 +166,7 @@ export default function PreviewArticlePage() {
         body: JSON.stringify({ status: "PENDING_REVIEW" }),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error || "Gagal mengirim artikel");
       }
       toast.success("Artikel berhasil dikirim untuk review");

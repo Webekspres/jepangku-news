@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState, Suspense } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useSearchParams, useRouter } from "next/navigation";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
@@ -35,12 +36,12 @@ function ArticleListContent() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setCategories(Array.isArray(d) ? d : []))
       .finally(() => setCategoriesLoading(false));
 
     fetch("/api/tags")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setTags(Array.isArray(d) ? d : []))
       .finally(() => setTagsLoading(false));
   }, []);
@@ -68,7 +69,7 @@ function ArticleListContent() {
       params.set("limit", String(PER_PAGE));
       params.set("page", String(pageNum));
 
-      const data = await fetch(`/api/articles?${params}`).then((r) => r.json());
+      const data = await fetch(`/api/articles?${params}`).then((r) => parseApiResponse(r));
 
       const incomingArticles = Array.isArray(data.articles) ? data.articles : [];
 

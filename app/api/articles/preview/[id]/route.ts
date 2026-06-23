@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
@@ -15,9 +16,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
-    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+    return apiSuccess(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
   }
 
   const { id } = await params;
@@ -32,17 +33,17 @@ export async function GET(
   });
 
   if (!article) {
-    return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+    return apiError('Article not found' , { status: 404 });
   }
 
   const isOwner = article.authorId === user.id;
   const isAdmin = user.role === 'ADMIN';
 
   if (!isOwner && !isAdmin) {
-    return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
+    return apiError('Not authorized' , { status: 403 });
   }
 
-  return NextResponse.json({
+  return apiSuccess({
     ...article,
     tags: article.tags.map((at) => at.tag),
   });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
@@ -12,20 +13,20 @@ export async function PATCH(
 ) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
+    return apiError('Tidak terautentikasi' , { status: 401 });
   }
 
   const { id } = await params;
   const comment = await db.comment.findUnique({ where: { id } });
 
   if (!comment || comment.deletedAt !== null) {
-    return NextResponse.json({ error: 'Komentar tidak ditemukan' }, { status: 404 });
+    return apiError('Komentar tidak ditemukan' , { status: 404 });
   }
   if (comment.userId !== user.id) {
-    return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 });
+    return apiError('Tidak diizinkan' , { status: 403 });
   }
   if (comment.status === 'HIDDEN') {
-    return NextResponse.json(
+    return apiSuccess(
       { error: 'Komentar yang disembunyikan moderator tidak dapat diedit' },
       { status: 403 },
     );
@@ -34,7 +35,7 @@ export async function PATCH(
   const body = await request.json().catch(() => ({}));
   const normalized = normalizeCommentContent(body?.content);
   if (!normalized.ok) {
-    return NextResponse.json({ error: normalized.error }, { status: 400 });
+    return apiError(normalized.error , { status: 400 });
   }
 
   const updated = await db.comment.update({
@@ -44,7 +45,7 @@ export async function PATCH(
 
   auditCommentUpdate(user, updated.id);
 
-  return NextResponse.json({
+  return apiSuccess({
     id: updated.id,
     content: updated.content,
     isEdited: true,
@@ -58,20 +59,20 @@ export async function DELETE(
 ) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
+    return apiError('Tidak terautentikasi' , { status: 401 });
   }
 
   const { id } = await params;
   const comment = await db.comment.findUnique({ where: { id } });
 
   if (!comment || comment.deletedAt !== null) {
-    return NextResponse.json({ error: 'Komentar tidak ditemukan' }, { status: 404 });
+    return apiError('Komentar tidak ditemukan' , { status: 404 });
   }
 
   const isOwner = comment.userId === user.id;
   const isAdmin = user.role === 'ADMIN';
   if (!isOwner && !isAdmin) {
-    return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 });
+    return apiError('Tidak diizinkan' , { status: 403 });
   }
 
   await db.comment.update({
@@ -83,5 +84,5 @@ export async function DELETE(
 
   auditCommentDelete(user, id, isAdmin && !isOwner);
 
-  return NextResponse.json({ message: 'Komentar dihapus' });
+  return apiSuccess({ message: 'Komentar dihapus' });
 }

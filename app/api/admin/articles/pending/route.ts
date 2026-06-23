@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const pageParam = searchParams.get('page');
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'asc' },
       include,
     });
-    return NextResponse.json(articles);
+    return apiSuccess(articles);
   }
 
   const page = Math.max(Number(pageParam || '1'), 1);
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   const totalPages = Math.max(Math.ceil(total / limit), 1);
 
-  return NextResponse.json({
+  return apiSuccess({
     articles,
     total,
     page,

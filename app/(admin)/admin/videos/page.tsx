@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Star, Tv, FileVideo, Eye, FileEdit } from "lucide-react";
@@ -69,7 +70,7 @@ export default function AdminVideosPage() {
 
   useEffect(() => {
     fetch("/api/admin/videos/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -78,7 +79,7 @@ export default function AdminVideosPage() {
     const params = new URLSearchParams();
     if (statusFilter) params.set("status", statusFilter);
     const url = `/api/admin/videos${params.toString() ? `?${params}` : ""}`;
-    const data = await fetch(url, { cache: "no-store" }).then((r) => r.json());
+    const data = await fetch(url, { cache: "no-store" }).then((r) => parseApiResponse(r));
     setVideos(Array.isArray(data) ? data : []);
   }, [statusFilter]);
 
@@ -115,7 +116,7 @@ export default function AdminVideosPage() {
           ),
         );
         fetch("/api/admin/videos/stats")
-          .then((r) => r.json())
+          .then((r) => parseApiResponse(r))
           .then(setStats);
       },
     });
@@ -129,7 +130,7 @@ export default function AdminVideosPage() {
       variant: "danger",
       onConfirm: async () => {
         const res = await fetch(`/api/admin/videos/${videoId}`, { method: "DELETE" });
-        const data = await res.json().catch(() => ({}));
+        const data = await parseApiResponse(res).catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Gagal menghapus video");
         toast.success("Video dihapus");
         setVideos((prev) => prev.filter((v) => v.id !== videoId));
@@ -162,7 +163,7 @@ export default function AdminVideosPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ isFeatured: nextFeatured }),
         });
-        const data = await res.json().catch(() => ({}));
+        const data = await parseApiResponse(res).catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Gagal mengubah status featured");
 
         if (data.video) {

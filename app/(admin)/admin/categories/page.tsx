@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { toast } from "sonner";
 import {
   Plus,
@@ -60,7 +61,7 @@ export default function AdminCategoriesPage() {
 
   const loadCategories = async () => {
     setLoading(true);
-    const data = await fetch("/api/admin/categories").then((r) => r.json());
+    const data = await fetch("/api/admin/categories").then((r) => parseApiResponse(r));
     setCategories(Array.isArray(data) ? data : []);
     setLoading(false);
   };
@@ -93,7 +94,7 @@ export default function AdminCategoriesPage() {
           body: JSON.stringify(values),
         });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           throw new Error(e.error);
         }
         toast.success("Kategori berhasil dibuat");
@@ -104,7 +105,7 @@ export default function AdminCategoriesPage() {
           body: JSON.stringify(values),
         });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           throw new Error(e.error);
         }
         toast.success("Kategori berhasil diperbarui");
@@ -147,7 +148,7 @@ export default function AdminCategoriesPage() {
         body: JSON.stringify({ showInNavbar: checked }),
       });
       if (!res.ok) {
-        const e = await res.json();
+        const e = await parseApiResponse(res);
         throw new Error(e.error);
       }
       toast.success(checked ? "Kategori ditampilkan di navbar" : "Kategori disembunyikan dari navbar");
@@ -177,7 +178,7 @@ export default function AdminCategoriesPage() {
           method: "DELETE",
         });
         if (!res.ok) {
-          const e = await res.json();
+          const e = await parseApiResponse(res);
           toast.error(e.error || "Gagal menghapus kategori");
           return;
         }

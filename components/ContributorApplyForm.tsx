@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -59,7 +60,7 @@ export default function ContributorApplyForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ motivation, portfolioUrl }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal mengirim permohonan");
         return;

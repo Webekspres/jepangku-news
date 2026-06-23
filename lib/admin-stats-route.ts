@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 
 export function createAdminStatsRoute<T extends Record<string, number>>(
@@ -7,9 +8,12 @@ export function createAdminStatsRoute<T extends Record<string, number>>(
   return async function GET(request: NextRequest) {
     const admin = await getCurrentAdmin(request);
     if (!admin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+      return apiError('Admin access required', {
+        status: 403,
+        code: 'FORBIDDEN',
+      });
     }
     const stats = await getStats();
-    return NextResponse.json(stats);
+    return apiSuccess(stats, { message: 'Stats retrieved successfully.' });
   };
 }

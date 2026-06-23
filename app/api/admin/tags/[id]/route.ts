@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
@@ -9,17 +10,17 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
   const { name } = await request.json();
 
   if (!name?.trim()) {
-    return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+    return apiError('Name is required' , { status: 400 });
   }
 
   const tag = await db.tag.findUnique({ where: { id } });
-  if (!tag) return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
+  if (!tag) return apiError('Tag not found' , { status: 404 });
 
   if (name.trim() !== tag.name) {
     const slug = createAdminSlug(name.trim());
@@ -27,7 +28,7 @@ export async function PATCH(
       where: { OR: [{ slug }, { name: name.trim() }], NOT: { id } },
     });
     if (existing) {
-      return NextResponse.json({ error: 'Tag already exists' }, { status: 400 });
+      return apiError('Tag already exists' , { status: 400 });
     }
   }
 
@@ -43,25 +44,25 @@ export async function PATCH(
     href: '/admin/tags',
   });
 
-  return NextResponse.json(updated);
+  return apiSuccess(updated);
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { id } = await params;
 
   const tag = await db.tag.findUnique({ where: { id } });
-  if (!tag) return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
+  if (!tag) return apiError('Tag not found' , { status: 404 });
 
   const usage = await db.articleTag.count({ where: { tagId: id } });
   if (usage > 0) {
-    return NextResponse.json({ error: `Tag is used by ${usage} article(s)` }, { status: 400 });
+    return apiSuccess({ error: `Tag is used by ${usage} article(s)` }, { status: 400 });
   }
 
   auditAdminEntity(admin, 'tag', 'delete', { type: 'tag', id: tag.id, label: tag.name, href: '/admin/tags' });
 
   await db.tag.delete({ where: { id } });
-  return NextResponse.json({ message: 'Tag deleted' });
+  return apiSuccess({ message: 'Tag deleted' });
 }

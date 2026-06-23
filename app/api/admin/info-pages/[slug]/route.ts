@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
@@ -11,17 +12,17 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { slug } = await params;
   if (!isInfoPageSlug(slug)) {
-    return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    return apiError('Page not found' , { status: 404 });
   }
 
   const page = await db.infoPage.findUnique({ where: { slug } });
-  if (!page) return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+  if (!page) return apiError('Page not found' , { status: 404 });
 
-  return NextResponse.json({
+  return apiSuccess({
     ...page,
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
@@ -33,11 +34,11 @@ export async function PUT(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { slug } = await params;
   if (!isInfoPageSlug(slug)) {
-    return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    return apiError('Page not found' , { status: 404 });
   }
 
   try {
@@ -55,15 +56,15 @@ export async function PUT(
     const safeContent = sanitizeHtmlContent(String(content || ''));
 
     if (!safeTitle) {
-      return NextResponse.json({ error: 'Judul wajib diisi' }, { status: 400 });
+      return apiError('Judul wajib diisi' , { status: 400 });
     }
     if (!safeContent) {
-      return NextResponse.json({ error: 'Konten wajib diisi' }, { status: 400 });
+      return apiError('Konten wajib diisi' , { status: 400 });
     }
 
     const existing = await db.infoPage.findUnique({ where: { slug } });
     if (!existing) {
-      return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+      return apiError('Page not found' , { status: 404 });
     }
 
     const page = await db.infoPage.update({
@@ -86,7 +87,7 @@ export async function PUT(
       href: `/admin/info-pages/${slug}/edit`,
     });
 
-    return NextResponse.json({
+    return apiSuccess({
       ...page,
       createdAt: page.createdAt.toISOString(),
       updatedAt: page.updatedAt.toISOString(),
@@ -94,6 +95,6 @@ export async function PUT(
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Unknown error';
     await captureException(e, { route: 'admin-info-pages-update', slug });
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(message , { status: 500 });
   }
 }

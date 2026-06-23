@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { toast } from "sonner";
 import { Check, X, UserPlus, ExternalLink, Eye, ClipboardList, Clock, CheckCircle, XCircle } from "lucide-react";
@@ -71,7 +72,7 @@ export default function AdminContributorsPage() {
 
   useEffect(() => {
     fetch("/api/admin/contributors/stats")
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then(setStats)
       .finally(() => setStatsLoading(false));
   }, []);
@@ -82,7 +83,7 @@ export default function AdminContributorsPage() {
       const sp = new URLSearchParams();
       if (status) sp.set("status", status);
       sp.set("page", String(page));
-      const data = await fetch(`/api/admin/contributors?${sp}`).then((r) => r.json());
+      const data = await fetch(`/api/admin/contributors?${sp}`).then((r) => parseApiResponse(r));
       const list = Array.isArray(data.applications) ? data.applications : [];
       setApplications(list);
       setTotalPages(Number(data.totalPages || 1));
@@ -133,7 +134,7 @@ export default function AdminContributorsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, adminNote: adminNote.trim() || null }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal memproses permohonan");
         return;
@@ -145,7 +146,7 @@ export default function AdminContributorsPage() {
       setSelected(null);
       await load();
       fetch("/api/admin/contributors/stats")
-        .then((r) => r.json())
+        .then((r) => parseApiResponse(r))
         .then(setStats);
     } catch {
       toast.error("Gagal memproses permohonan");

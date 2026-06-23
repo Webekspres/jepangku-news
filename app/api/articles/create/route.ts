@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
@@ -16,9 +17,9 @@ import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
-  if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
-    return NextResponse.json(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
+    return apiSuccess(CONTRIBUTOR_REQUIRED_ERROR, { status: 403 });
   }
 
   const blockedResponse = await enforceRateLimit(request, 'submit-article', {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     const safeContent = sanitizeHtmlContent(String(content || ''));
 
     if (!safeTitle || !safeContent) {
-      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 });
+      return apiError('Title and content are required' , { status: 400 });
     }
 
     const isAdmin = user.role === 'ADMIN';
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     const articleStatus = resolveUserPortalSubmitStatus(String(status || 'DRAFT'), isAdmin);
 
     if (!validStatuses.includes(articleStatus)) {
-      return NextResponse.json({ error: 'Invalid article status' }, { status: 400 });
+      return apiError('Invalid article status' , { status: 400 });
     }
 
     const slug = createSlug(safeTitle);
@@ -91,9 +92,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(article, { status: 201 });
+    return apiSuccess(article, { status: 201 });
   } catch (e: any) {
     await captureException(e, { route: 'articles-create', userId: user.id });
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return apiError(e.message , { status: 500 });
   }
 }

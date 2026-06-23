@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 import { captureException } from '@/lib/monitoring';
 import { isInfoPageSlug } from '@/lib/info-pages';
@@ -11,7 +12,7 @@ export async function GET(
   const { slug } = await params;
 
   if (!isInfoPageSlug(slug)) {
-    return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    return apiError('Page not found' , { status: 404 });
   }
 
   try {
@@ -29,10 +30,10 @@ export async function GET(
     });
 
     if (!page) {
-      return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+      return apiError('Page not found' , { status: 404 });
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       ...page,
       title: sanitizePlainField(page.title, 200),
       subtitle: page.subtitle ? sanitizePlainField(page.subtitle, 300) : null,
@@ -46,6 +47,6 @@ export async function GET(
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Unknown error';
     await captureException(e, { route: 'pages-get', slug });
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(message , { status: 500 });
   }
 }

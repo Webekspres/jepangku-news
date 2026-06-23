@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
@@ -13,7 +14,7 @@ export async function POST(
 ) {
   try {
     const user = await getCurrentUser(request);
-    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!user) return apiError('Not authenticated' , { status: 401 });
 
     const blockedResponse = await enforceRateLimit(request, 'poll-vote', {
       max: 6,
@@ -29,16 +30,16 @@ export async function POST(
     const { slug } = await params;
 
   const poll = await db.poll.findUnique({ where: { slug } });
-  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+  if (!poll) return apiError('Poll not found' , { status: 404 });
   if (poll.status !== 'ACTIVE')
-    return NextResponse.json({ error: 'Poll is not active' }, { status: 400 });
+    return apiError('Poll is not active' , { status: 400 });
 
   const body = await request.json();
   // votes: [{ questionId, optionId }]
   const { votes } = body as { votes: { questionId: string; optionId: string }[] };
 
   if (!Array.isArray(votes) || votes.length === 0)
-    return NextResponse.json({ error: 'votes array is required' }, { status: 400 });
+    return apiError('votes array is required' , { status: 400 });
 
   // Cek apakah user sudah vote di salah satu pertanyaan ini
   const questionIds = votes.map((v) => v.questionId);
@@ -64,14 +65,14 @@ export async function POST(
           where: { pollId: poll.id, userId: user.id },
           data: { isPointAwarded: true },
         });
-        return NextResponse.json({
+        return apiSuccess({
           message: 'Pending points awarded',
           pointsAwarded: poll.pointsReward,
           ...gamificationFieldsFromAward(retry),
         });
       }
     }
-    return NextResponse.json({ error: 'You have already voted on all questions' }, { status: 400 });
+    return apiError('You have already voted on all questions' , { status: 400 });
   }
 
   // Award poin sekali per poll — sebelum simpan vote agar isPointAwarded akurat
@@ -99,7 +100,7 @@ export async function POST(
       where: { id: v.optionId, questionId: v.questionId },
     });
     if (!option)
-      return NextResponse.json(
+      return apiSuccess(
         { error: `Invalid option ${v.optionId} for question ${v.questionId}` },
         { status: 400 },
       );
@@ -123,7 +124,7 @@ export async function POST(
 
   auditPollVote(user, poll, toProcess.length);
 
-  return NextResponse.json({
+  return apiSuccess({
     message: 'Vote recorded',
     pointsAwarded: pointsGranted,
     ...gamificationFieldsFromAward(award),
@@ -131,6 +132,6 @@ export async function POST(
   } catch (e: unknown) {
     await captureException(e, { route: 'poll-vote' });
     const message = e instanceof Error ? e.message : 'Vote failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError(message , { status: 500 });
   }
 }

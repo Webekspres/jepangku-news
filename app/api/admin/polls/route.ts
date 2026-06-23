@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { auditAdminEntity } from '@/lib/audit-routes';
@@ -11,7 +12,7 @@ import {
 
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
@@ -41,12 +42,12 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(polls);
+  return apiSuccess(polls);
 }
 
 export async function POST(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const body = await request.json();
   const {
@@ -62,19 +63,19 @@ export async function POST(request: NextRequest) {
   } = body;
 
   const safeTitle = sanitizePlainField(title, 200);
-  if (!safeTitle) return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+  if (!safeTitle) return apiError('Title is required' , { status: 400 });
   if (!Array.isArray(questions) || questions.length < 1)
-    return NextResponse.json({ error: 'At least 1 question required' }, { status: 400 });
+    return apiError('At least 1 question required' , { status: 400 });
 
   const safeQuestions = sanitizeQuestionBundle(questions);
   for (const q of safeQuestions) {
     if (!q.questionText)
-      return NextResponse.json({ error: 'Each question must have questionText' }, { status: 400 });
+      return apiError('Each question must have questionText' , { status: 400 });
     if (q.options.length < 2)
-      return NextResponse.json({ error: 'Each question must have at least 2 options' }, { status: 400 });
+      return apiError('Each question must have at least 2 options' , { status: 400 });
     for (const o of q.options) {
       if (!o.optionText)
-        return NextResponse.json({ error: 'Each option must have optionText' }, { status: 400 });
+        return apiError('Each option must have optionText' , { status: 400 });
     }
   }
 
@@ -121,5 +122,5 @@ export async function POST(request: NextRequest) {
 
   auditAdminEntity(admin, 'poll', 'create', { type: 'poll', id: poll.id, label: poll.title, href: `/admin/polls/${poll.id}/edit` });
 
-  return NextResponse.json({ message: 'Poll created', id: poll.id }, { status: 201 });
+  return apiSuccess({ message: 'Poll created', id: poll.id }, { status: 201 });
 }

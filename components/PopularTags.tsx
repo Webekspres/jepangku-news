@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { Tag as TagIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ export default function PopularTags({
 
   useEffect(() => {
     fetch(`/api/tags/popular?limit=${limit}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => setTags(Array.isArray(d) ? d : []))
       .catch(() => setTags([]))
       .finally(() => setLoading(false));

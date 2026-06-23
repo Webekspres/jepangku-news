@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
@@ -47,7 +48,7 @@ export default function AdminActivityLogPage() {
       const sp = new URLSearchParams();
       sp.set("page", String(page));
       if (category) sp.set("category", category);
-      const data = await fetch(`/api/admin/activity-log?${sp}`).then((r) => r.json());
+      const data = await fetch(`/api/admin/activity-log?${sp}`).then((r) => parseApiResponse(r));
       setEntries(Array.isArray(data.entries) ? data.entries : []);
       setTotalPages(Number(data.totalPages || 1));
       setTotal(Number(data.total || 0));
@@ -64,7 +65,7 @@ export default function AdminActivityLogPage() {
     fetch(
       `/api/admin/users/growth?period=${growthPeriod}&granularity=${growthGranularity}`,
     )
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((json) => setGrowth(json));
   }, [growthPeriod, growthGranularity]);
 

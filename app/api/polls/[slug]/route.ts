@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 
@@ -20,7 +21,7 @@ export async function GET(
     },
   });
 
-  if (!poll) return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+  if (!poll) return apiError('Poll not found' , { status: 404 });
 
   const user = await getCurrentUser(request);
   const userVotesByQuestion = new Map<string, string>();
@@ -57,7 +58,7 @@ export async function GET(
     poll.questions.length > 0 &&
     poll.questions.every((q) => userVotesByQuestion.has(q.id));
 
-  return NextResponse.json({
+  return apiSuccess({
     ...poll,
     questions: questionsWithStats,
     totalVotes: totalVotesAll,

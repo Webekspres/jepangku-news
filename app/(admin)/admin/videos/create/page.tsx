@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
@@ -33,7 +34,7 @@ export default function AdminVideoCreatePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || "Gagal menyimpan video");
       toast.success("Video berhasil dibuat");
       router.push(`/admin/videos/${data.id}/edit`);

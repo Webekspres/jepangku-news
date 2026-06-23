@@ -1,4 +1,5 @@
 import { getNewsBaseUrl } from "./server";
+import { parseApiResponse } from '@/lib/fetch-api';
 
 export type ApiJson = Record<string, unknown>;
 
@@ -66,7 +67,11 @@ export class ApiClient {
   }
 
   async json<T = ApiJson>(res: Response): Promise<T> {
-    return (await res.json()) as T;
+    return parseApiResponse<T>(res);
+  }
+
+  async envelope(res: Response): Promise<unknown> {
+    return res.json();
   }
 
   async text(res: Response): Promise<string> {

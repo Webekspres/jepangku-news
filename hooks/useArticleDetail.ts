@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { gamificationPatchFromResponse } from "@/lib/gamification-response";
@@ -48,7 +49,7 @@ export function useArticleDetail(slug: string) {
       if (user) {
         Promise.allSettled([
           fetch("/api/bookmarks", { credentials: "include" })
-            .then((r) => r.json())
+            .then((r) => parseApiResponse(r))
             .then((bookmarks) => {
               const bookmarked =
                 Array.isArray(bookmarks) &&
@@ -78,7 +79,7 @@ export function useArticleDetail(slug: string) {
       const data = await fetch(`/api/articles/${slug}/read-complete`, {
         method: "POST",
         credentials: "include",
-      }).then((r) => r.json());
+      }).then((r) => parseApiResponse(r));
       if (data.awarded) {
         toast.success(`+${data.points} poin untuk membaca!`);
         await refreshUser(gamificationPatchFromResponse(data));
@@ -122,7 +123,7 @@ export function useArticleDetail(slug: string) {
           method: "POST",
           credentials: "include",
         });
-        const data = await res.json();
+        const data = await parseApiResponse(res);
         if (!res.ok) throw new Error(data.error || "Gagal menyimpan bookmark");
         committedBookmarkRef.current = true;
         if (data.pointsAwarded) {
@@ -137,7 +138,7 @@ export function useArticleDetail(slug: string) {
           credentials: "include",
         });
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
+          const data = await parseApiResponse(res).catch(() => ({}));
           throw new Error(data.error || "Gagal menghapus bookmark");
         }
         committedBookmarkRef.current = false;

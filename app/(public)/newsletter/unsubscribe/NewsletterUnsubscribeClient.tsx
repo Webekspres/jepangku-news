@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Loader2, MailX } from "lucide-react";
@@ -35,7 +36,7 @@ export default function NewsletterUnsubscribeClient() {
       const res = await fetch(
         `/api/newsletter/subscription?token=${encodeURIComponent(token)}`,
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         setError(data.error ?? "Gagal memuat langganan");
         setPreview(null);
@@ -63,7 +64,7 @@ export default function NewsletterUnsubscribeClient() {
         `/api/newsletter/subscription?token=${encodeURIComponent(token)}`,
         { method: "DELETE" },
       );
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) {
         toast.error(data.error ?? "Gagal berhenti berlangganan");
         return;

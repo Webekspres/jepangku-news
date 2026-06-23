@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
@@ -34,7 +35,7 @@ function SearchResults() {
     }
     setLoading(true);
     fetch(`/api/search?q=${encodeURIComponent(q.trim())}`)
-      .then((r) => r.json())
+      .then((r) => parseApiResponse(r))
       .then((d) => {
         setResults({
           articles: Array.isArray(d.articles) ? d.articles : [],

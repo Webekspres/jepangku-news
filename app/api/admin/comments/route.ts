@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { isValidTargetType } from '@/lib/comments';
@@ -9,7 +10,7 @@ const PAGE_SIZE = 20;
 // GET /api/admin/comments?status=&targetType=&q=&page=
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  if (!admin) return apiError('Admin access required' , { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const statusParam = searchParams.get('status');
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  return NextResponse.json({
+  return apiSuccess({
     comments: data,
     total,
     page,

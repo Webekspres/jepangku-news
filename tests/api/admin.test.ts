@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { ADMIN_BOUNDARY_ENDPOINTS } from "../helpers/fixtures";
 import {
   clientFor,
@@ -75,7 +76,7 @@ describe("API — admin boundary (403 non-admin)", () => {
       if (skipUnless(ctx, "auth")) return;
       const res = await clientFor(ctx, "ADMIN").get("/api/admin/stats");
       expect(res.status).toBe(200);
-      const data = (await res.json()) as { totalArticles: number };
+      const data = (await parseApiResponse(res)) as { totalArticles: number };
       expect(typeof data.totalArticles).toBe("number");
     });
 

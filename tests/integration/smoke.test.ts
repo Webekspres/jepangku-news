@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { parseApiResponse } from '@/lib/fetch-api';
 import { getNewsBaseUrl, isNewsServerUp } from "../helpers/server";
 
 describe("smoke — HTTP API", () => {
@@ -25,7 +26,7 @@ describe("smoke — HTTP API", () => {
     const res = await fetch(`${baseUrl}/api/health`);
     expect(res.ok).toBe(true);
 
-    const json = (await res.json()) as { status: string; db: string };
+    const json = (await parseApiResponse(res)) as { status: string; db: string };
     expect(json.status).toBe("ok");
     expect(json.db).toBe("ok");
   });

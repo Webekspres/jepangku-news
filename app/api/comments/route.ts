@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
   const targetId = searchParams.get('targetId');
 
   if (!isValidTargetType(targetType) || !targetId) {
-    return NextResponse.json({ error: 'Parameter target tidak valid' }, { status: 400 });
+    return apiError('Parameter target tidak valid' , { status: 400 });
   }
 
   const comments = await db.comment.findMany({
@@ -51,18 +52,18 @@ export async function GET(request: NextRequest) {
   const thread = buildPublicThread(comments as unknown as CommentRecord[], reactions);
   const total = comments.filter((c) => c.status === 'VISIBLE' && c.deletedAt === null).length;
 
-  return NextResponse.json({ comments: thread, total, contentAuthorId });
+  return apiSuccess({ comments: thread, total, contentAuthorId });
 }
 
 // POST /api/comments  { targetType, targetId, content, parentId? }
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
   if (!user) {
-    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 });
+    return apiError('Tidak terautentikasi' , { status: 401 });
   }
 
   if (user.status === 'banned') {
-    return NextResponse.json({ error: 'Akun Anda tidak dapat berkomentar' }, { status: 403 });
+    return apiError('Akun Anda tidak dapat berkomentar' , { status: 403 });
   }
 
   const limited = await enforceRateLimit(request, 'comment-create', {
@@ -78,24 +79,24 @@ export async function POST(request: NextRequest) {
   const { targetType, targetId, parentId } = body ?? {};
 
   if (!isValidTargetType(targetType) || typeof targetId !== 'string' || !targetId) {
-    return NextResponse.json({ error: 'Parameter target tidak valid' }, { status: 400 });
+    return apiError('Parameter target tidak valid' , { status: 400 });
   }
 
   const normalized = normalizeCommentContent(body?.content);
   if (!normalized.ok) {
-    return NextResponse.json({ error: normalized.error }, { status: 400 });
+    return apiError(normalized.error , { status: 400 });
   }
 
   const target = await resolveCommentTarget(targetType, targetId);
   if (!target) {
-    return NextResponse.json({ error: 'Konten yang dikomentari tidak ditemukan' }, { status: 404 });
+    return apiError('Konten yang dikomentari tidak ditemukan' , { status: 404 });
   }
 
   // Validasi parent untuk balasan: harus komentar top-level pada target yang sama.
   let resolvedParentId: string | null = null;
   if (parentId) {
     if (typeof parentId !== 'string') {
-      return NextResponse.json({ error: 'parentId tidak valid' }, { status: 400 });
+      return apiError('parentId tidak valid' , { status: 400 });
     }
     const parent = await db.comment.findUnique({ where: { id: parentId } });
     if (
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
       parent.status !== 'VISIBLE' ||
       parent.deletedAt !== null
     ) {
-      return NextResponse.json({ error: 'Komentar yang dibalas tidak valid' }, { status: 400 });
+      return apiError('Komentar yang dibalas tidak valid' , { status: 400 });
     }
     resolvedParentId = parent.id;
   }
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
     parentId: resolvedParentId,
   });
 
-  return NextResponse.json(
+  return apiSuccess(
     {
       comment: {
         id: comment.id,
@@ -188,6 +189,6 @@ export async function POST(request: NextRequest) {
   );
   } catch (e) {
     await captureException(e, { route: 'comments-post' });
-    return NextResponse.json({ error: 'Gagal membuat komentar' }, { status: 500 });
+    return apiError('Gagal membuat komentar' , { status: 500 });
   }
 }

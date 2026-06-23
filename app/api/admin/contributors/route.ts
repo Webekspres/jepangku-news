@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { listContributorApplicationsForAdmin } from '@/lib/contributor-applications';
 import type { ContributorApplicationStatus } from '@prisma/client';
@@ -12,7 +13,7 @@ const VALID_STATUSES = new Set<ContributorApplicationStatus>([
 export async function GET(request: NextRequest) {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
-    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    return apiError('Admin access required' , { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -25,5 +26,5 @@ export async function GET(request: NextRequest) {
       : '';
 
   const result = await listContributorApplicationsForAdmin({ status, page });
-  return NextResponse.json(result);
+  return apiSuccess(result);
 }
