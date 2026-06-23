@@ -97,17 +97,24 @@ export async function fetchPublishedVideoId(api: ApiClient): Promise<string | nu
 export async function fetchCategoryId(api: ApiClient): Promise<string | null> {
   const res = await api.get("/api/categories");
   if (!res.ok) return null;
-  const data = (await api.json(res)) as { id: string }[] | { categories?: { id: string }[] };
-  const list = Array.isArray(data) ? data : data.categories;
+  const data = await parseApiResponse(res);
+  const list = Array.isArray(data) ? data : (data as { categories?: { id: string }[] }).categories;
   return list?.[0]?.id ?? null;
 }
 
 export async function fetchCategorySlug(api: ApiClient): Promise<string | null> {
   const res = await api.get("/api/categories");
   if (!res.ok) return null;
-  const data = (await api.json(res)) as { slug: string }[] | { categories?: { slug: string }[] };
-  const list = Array.isArray(data) ? data : data.categories;
+  const data = await parseApiResponse(res);
+  const list = Array.isArray(data) ? data : (data as { categories?: { slug: string }[] }).categories;
   return list?.[0]?.slug ?? null;
+}
+
+export async function fetchPopularTagSlug(api: ApiClient): Promise<string | null> {
+  const res = await api.get("/api/tags/popular?limit=5");
+  if (!res.ok) return null;
+  const data = (await parseApiResponse(res)) as { slug: string }[];
+  return Array.isArray(data) && data[0]?.slug ? data[0].slug : null;
 }
 
 export const HOME_WAVE_ENDPOINTS = [

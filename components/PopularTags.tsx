@@ -81,7 +81,7 @@ export default function PopularTags({
           isToolbar
             ? "flex flex-nowrap gap-0 overflow-hidden"
             : compact
-              ? "flex gap-1.5 overflow-hidden"
+              ? "flex flex-wrap gap-1.5"
               : "flex flex-wrap gap-2",
           isProminent && "gap-3",
           className,
@@ -123,7 +123,7 @@ export default function PopularTags({
           : scrollable
             ? "thin-scrollbar flex w-max flex-nowrap gap-2 overflow-x-auto pb-1"
             : compact
-              ? "thin-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5"
+              ? "flex flex-wrap gap-1.5"
               : "flex flex-wrap gap-2",
         isProminent && "gap-3",
       )}
