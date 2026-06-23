@@ -85,7 +85,7 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
 
             {readCompleted && user && <ArticleReadCompleteBanner />}
 
-            {!isLoading && article && article.tags.length > 0 && (
+            {!isLoading && article && (article.tags?.length ?? 0) > 0 && (
               <ArticleTagList tags={article.tags} />
             )}
 

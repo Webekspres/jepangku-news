@@ -42,7 +42,7 @@ export function useArticleDetail(slug: string) {
     try {
       const data = await fetch(`/api/articles/${slug}`).then((r) => {
         if (!r.ok) throw new Error();
-        return r.json() as Promise<ArticleDetail>;
+        return parseApiResponse<ArticleDetail>(r);
       });
       setArticle(data);
 
