@@ -11,11 +11,19 @@ import type {
   ExploreResponse,
 } from "@/lib/explore/types";
 
-const TRENDING_LIMIT = 6;
-const POLL_LIMIT = 3;
-const QUIZ_LIMIT = 3;
-const VIDEO_SIDEBAR_LIMIT = 6;
-const LEADERBOARD_LIMIT = 5;
+export const EXPLORE_LIMITS = {
+  trendingArticles: 6,
+  polls: 3,
+  quizzes: 3,
+  videoSidebar: 6,
+  leaderboard: 5,
+} as const;
+
+const TRENDING_LIMIT = EXPLORE_LIMITS.trendingArticles;
+const POLL_LIMIT = EXPLORE_LIMITS.polls;
+const QUIZ_LIMIT = EXPLORE_LIMITS.quizzes;
+const VIDEO_SIDEBAR_LIMIT = EXPLORE_LIMITS.videoSidebar;
+const LEADERBOARD_LIMIT = EXPLORE_LIMITS.leaderboard;
 
 async function fetchExplorePolls(): Promise<ExplorePollPreview[]> {
   const polls = await db.poll.findMany({

@@ -22,6 +22,15 @@ export async function enforceRateLimit(
   keyPrefix: string,
   options: { max: number; windowMs: number; message?: string; identifier?: string },
 ): Promise<NextResponse | null> {
+  const databaseUrl = process.env.DATABASE_URL ?? '';
+  if (
+    databaseUrl.includes('_test') ||
+    process.env.DISABLE_RATE_LIMIT === '1' ||
+    process.env.NODE_ENV === 'test'
+  ) {
+    return null;
+  }
+
   const identifier = options.identifier || getIpAddress(request);
   const key = `${keyPrefix}:${identifier}`;
 

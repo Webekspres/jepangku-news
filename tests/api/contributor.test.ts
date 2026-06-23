@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { parseApiResponse } from '@/lib/fetch-api';
 import {
   clientFor,
@@ -6,6 +6,7 @@ import {
   skipUnless,
   type IntegrationContext,
 } from "../helpers/integration";
+import { resetClerkUserContributorApplications } from "../helpers/contributor-test";
 
 const VALID_MOTIVATION =
   "Saya ingin berkontribusi artikel tentang budaya dan bahasa Jepang untuk komunitas Jepangku.";
@@ -15,6 +16,9 @@ describe("API — contributor", () => {
 
   beforeAll(async () => {
     ctx = await setupIntegration();
+    if (ctx.serverUp) {
+      await resetClerkUserContributorApplications();
+    }
   });
 
   describe("GET /api/contributor/status", () => {
@@ -50,6 +54,11 @@ describe("API — contributor", () => {
   });
 
   describe("POST /api/contributor/apply", () => {
+    beforeEach(async () => {
+      if (!ctx.serverUp) return;
+      await resetClerkUserContributorApplications();
+    });
+
     it("returns 401 for guest", async () => {
       if (skipUnless(ctx, "server")) return;
       const res = await clientFor(ctx).post("/api/contributor/apply", {

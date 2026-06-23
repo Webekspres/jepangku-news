@@ -85,12 +85,6 @@ export async function createContributorApplication(
     throw new Error('ALREADY_CONTRIBUTOR');
   }
 
-  const pending = await db.contributorApplication.findFirst({
-    where: { userId, status: 'PENDING' },
-    select: { id: true },
-  });
-  if (pending) throw new Error('PENDING_EXISTS');
-
   const motivation = sanitizeText(input.motivation).trim();
   if (motivation.length < 20) throw new Error('MOTIVATION_TOO_SHORT');
   if (motivation.length > 2000) throw new Error('MOTIVATION_TOO_LONG');
@@ -108,6 +102,12 @@ export async function createContributorApplication(
       throw new Error('INVALID_PORTFOLIO_URL');
     }
   }
+
+  const pending = await db.contributorApplication.findFirst({
+    where: { userId, status: 'PENDING' },
+    select: { id: true },
+  });
+  if (pending) throw new Error('PENDING_EXISTS');
 
   const created = await db.contributorApplication.create({
     data: {

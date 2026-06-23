@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { parseApiResponse } from '@/lib/fetch-api';
 import {
   fetchPublishedArticle,
@@ -11,6 +11,7 @@ import {
   skipUnless,
   type IntegrationContext,
 } from "../helpers/integration";
+import { resetClerkUserArticleShares } from "../helpers/article-share-test";
 
 const DRAFT_PAYLOAD = {
   title: `Integration Draft ${Date.now()}`,
@@ -180,6 +181,11 @@ describe("API — articles", () => {
   });
 
   describe("share", () => {
+    beforeEach(async () => {
+      if (!ctx.serverUp) return;
+      await resetClerkUserArticleShares();
+    });
+
     it("GET share status returns hasShared false for guest", async () => {
       if (skipUnless(ctx, "server") || !publishedSlug) return;
       const res = await clientFor(ctx).get(`/api/articles/${publishedSlug}/share`);
