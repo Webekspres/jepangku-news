@@ -77,6 +77,7 @@ jobs:
           if [ "$TARGET" = "production" ]; then
             echo "version_tag=latest" >> "$GITHUB_OUTPUT"
             echo "migrate_tag=migrate-latest" >> "$GITHUB_OUTPUT"
+            echo "migrate_sha_tag=migrate-sha-${{ github.sha }}" >> "$GITHUB_OUTPUT"
             echo "app_url=https://jepangku.com" >> "$GITHUB_OUTPUT"
             echo "api_url=https://jepangku.com/api" >> "$GITHUB_OUTPUT"
             echo "sign_in_url=https://jepangku.com/sign-in" >> "$GITHUB_OUTPUT"
@@ -84,6 +85,7 @@ jobs:
           else
             echo "version_tag=staging" >> "$GITHUB_OUTPUT"
             echo "migrate_tag=migrate-staging" >> "$GITHUB_OUTPUT"
+            echo "migrate_sha_tag=migrate-sha-${{ github.sha }}" >> "$GITHUB_OUTPUT"
             echo "app_url=https://portalinfo.jepangku.com" >> "$GITHUB_OUTPUT"
             echo "api_url=https://portalinfo.jepangku.com/api" >> "$GITHUB_OUTPUT"
             echo "sign_in_url=https://portalinfo.jepangku.com/sign-in" >> "$GITHUB_OUTPUT"
@@ -120,8 +122,10 @@ jobs:
           context: .
           target: migrator
           push: true
+          no-cache: true
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.migrate_tag }}
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.migrate_sha_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -139,6 +143,7 @@ jobs:
       DEPLOY_PATH: /opt/jepangku-staging
       PORTAL_IMAGE_TAG: staging
       MIGRATE_IMAGE_TAG: migrate-staging
+      MIGRATE_SHA_TAG: migrate-sha-${{ github.sha }}
       HEALTH_URL: http://127.0.0.1:3011/
     steps:
       - name: Setup SSH key
@@ -180,11 +185,18 @@ jobs:
           source .env
           set +a
 
-          docker pull ghcr.io/webekspres/jepangku-news:migrate-staging
+          docker pull ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
           docker run --rm \
             --network jepangku_staging_net \
             -e DATABASE_URL="postgresql://\${DB_USER}:\${DB_PASSWORD}@jepangku_staging_db:5432/stg_jepangku_portal" \
-            ghcr.io/webekspres/jepangku-news:migrate-staging
+            ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
+
+          docker run --rm \
+            --network jepangku_staging_net \
+            -e DATABASE_URL="postgresql://\${DB_USER}:\${DB_PASSWORD}@jepangku_staging_db:5432/stg_jepangku_portal" \
+            --entrypoint bunx \
+            ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }} \
+            prisma migrate status
 
           docker compose pull portal-berita
           docker compose up -d --force-recreate portal-berita
@@ -218,6 +230,7 @@ jobs:
       DEPLOY_PATH: /opt/jepangku
       PORTAL_IMAGE_TAG: latest
       MIGRATE_IMAGE_TAG: migrate-latest
+      MIGRATE_SHA_TAG: migrate-sha-${{ github.sha }}
       HEALTH_URL: http://127.0.0.1:3001/
     steps:
       - name: Setup SSH key
@@ -259,11 +272,18 @@ jobs:
           source .env
           set +a
 
-          docker pull ghcr.io/webekspres/jepangku-news:migrate-latest
+          docker pull ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
           docker run --rm \
             --network jepangku_net \
             -e DATABASE_URL="postgresql://\${DB_USER}:\${DB_PASSWORD}@jepangku_db:5432/jepangku_portal" \
-            ghcr.io/webekspres/jepangku-news:migrate-latest
+            ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
+
+          docker run --rm \
+            --network jepangku_net \
+            -e DATABASE_URL="postgresql://\${DB_USER}:\${DB_PASSWORD}@jepangku_db:5432/jepangku_portal" \
+            --entrypoint bunx \
+            ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }} \
+            prisma migrate status
 
           docker compose pull portal-berita
           docker compose up -d --force-recreate portal-berita
