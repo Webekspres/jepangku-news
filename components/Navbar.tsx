@@ -238,23 +238,24 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                     data-testid="navbar-auth-skeleton"
                     aria-hidden
                   >
-                    <div className="hidden h-8 w-20 animate-pulse rounded-lg bg-jepang-border/70 sm:block" />
+                    <div className="h-7 w-12 animate-pulse rounded-lg bg-jepang-border/70 sm:h-8 sm:w-20" />
                     <div className="h-9 w-9 animate-pulse rounded-full bg-jepang-border/70" />
                     <div className="h-9 w-9 animate-pulse rounded-full bg-jepang-border/70" />
                   </div>
                 ) : showAuthenticated ? (
                   <>
                     <div
-                      className="hidden items-center gap-2 rounded-lg bg-jepang-orange px-3 py-1.5 text-white sm:flex"
+                      className="flex items-center gap-1 rounded-lg bg-jepang-orange px-2 py-1 text-white sm:gap-2 sm:px-3 sm:py-1.5"
                       data-testid="user-points-display"
                     >
-                      <Award size={14} strokeWidth={1.5} />
+                      <Award size={14} strokeWidth={1.5} className="shrink-0" />
                       <span className="font-mono text-xs font-bold">{totalPoints}</span>
-                      <span className="text-xs font-semibold tracking-wide">Poin</span>
+                      <span className="hidden text-xs font-semibold tracking-wide sm:inline">
+                        Poin
+                      </span>
                     </div>
 
                     <NavbarNotifications />
-
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
@@ -406,26 +407,6 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                 {link.label}
               </Link>
             ))}
-
-            {contributorCta.disabled ? (
-              <span
-                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-muted cursor-not-allowed"
-                data-testid="mobile-contributor-cta"
-              >
-                <PenSquare size={16} strokeWidth={1.5} />
-                {contributorCta.label}
-              </span>
-            ) : (
-              <Link
-                href={contributorCta.href}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
-                data-testid="mobile-contributor-cta"
-              >
-                <PenSquare size={16} strokeWidth={1.5} />
-                {contributorCta.label}
-              </Link>
-            )}
 
             {showGuest && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">

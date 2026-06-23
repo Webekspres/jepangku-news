@@ -44,7 +44,7 @@ function logApiRequest(request: NextRequest) {
   return response;
 }
 
-export default clerkMiddleware(async (auth, request) => {
+const clerk = clerkMiddleware(async (auth, request) => {
   const { pathname, search } = request.nextUrl;
 
   if (pathname.startsWith('/api/')) {
@@ -63,6 +63,18 @@ export default clerkMiddleware(async (auth, request) => {
 
   return NextResponse.next();
 });
+
+export default function proxy(request: NextRequest) {
+  // Some users still arrive with stale cross-subdomain Clerk handshakes
+  // from old instances; drop the param and continue a clean auth flow.
+  if (request.nextUrl.searchParams.has('__clerk_handshake')) {
+    const cleanUrl = request.nextUrl.clone();
+    cleanUrl.searchParams.delete('__clerk_handshake');
+    return NextResponse.redirect(cleanUrl);
+  }
+
+  return clerk(request);
+}
 
 export const config = {
   matcher: [
