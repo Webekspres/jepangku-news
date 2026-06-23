@@ -19,6 +19,7 @@ jobs:
       CI: true
       DB_USER: ci
       DB_PASSWORD: ci
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/jepangku_news_test?client_encoding=UTF8
       DATABASE_ADMIN_URL: postgresql://ci:ci@localhost:5432/postgres
       AUTH_PROVIDER: clerk
       NEXT_PUBLIC_AUTH_PROVIDER: clerk
