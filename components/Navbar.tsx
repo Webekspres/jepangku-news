@@ -407,26 +407,6 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
               </Link>
             ))}
 
-            {contributorCta.disabled ? (
-              <span
-                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-muted cursor-not-allowed"
-                data-testid="mobile-contributor-cta"
-              >
-                <PenSquare size={16} strokeWidth={1.5} />
-                {contributorCta.label}
-              </span>
-            ) : (
-              <Link
-                href={contributorCta.href}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 py-2 text-sm font-semibold text-jepang-orange"
-                data-testid="mobile-contributor-cta"
-              >
-                <PenSquare size={16} strokeWidth={1.5} />
-                {contributorCta.label}
-              </Link>
-            )}
-
             {showGuest && (
               <div className="flex gap-2 border-t border-jepang-border pt-3">
                 <Button variant="outline" size="sm" asChild className="flex-1" data-testid="mobile-login-btn">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
 import TrendingArticlesPanel from "@/components/home/TrendingArticlesPanel";
@@ -19,6 +19,8 @@ type HomeFeedSectionProps = {
   error: Error | null;
 };
 
+const DRAG_THRESHOLD_PX = 48;
+
 export default function HomeFeedSection({
   featuredArticles,
   trending,
@@ -27,6 +29,9 @@ export default function HomeFeedSection({
   error,
 }: HomeFeedSectionProps) {
   const [featuredIndex, setFeaturedIndex] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef({ startX: 0, active: false, dragged: false });
   const slideCount = featuredArticles.length;
 
   const goPrevFeatured = () => {
@@ -37,19 +42,70 @@ export default function HomeFeedSection({
     setFeaturedIndex((prev) => (prev === slideCount - 1 ? 0 : prev + 1));
   };
 
+  const finishDrag = (clientX: number) => {
+    if (!dragStateRef.current.active) return;
+
+    const { startX, dragged } = dragStateRef.current;
+    const delta = clientX - startX;
+
+    if (delta < -DRAG_THRESHOLD_PX) goNextFeatured();
+    else if (delta > DRAG_THRESHOLD_PX) goPrevFeatured();
+
+    dragStateRef.current = { startX: 0, active: false, dragged };
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
+  const handleCarouselPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (slideCount <= 1) return;
+
+    dragStateRef.current = {
+      startX: event.clientX,
+      active: true,
+      dragged: false,
+    };
+    setIsDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleCarouselPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!dragStateRef.current.active) return;
+
+    const delta = event.clientX - dragStateRef.current.startX;
+    if (Math.abs(delta) > 5) {
+      dragStateRef.current.dragged = true;
+    }
+    setDragOffset(delta);
+  };
+
+  const handleCarouselPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    finishDrag(event.clientX);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleCarouselClickCapture = (event: MouseEvent) => {
+    if (!dragStateRef.current.dragged) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    dragStateRef.current.dragged = false;
+  };
+
   useEffect(() => {
     setFeaturedIndex(0);
   }, [slideCount]);
 
   useEffect(() => {
-    if (slideCount <= 1) return;
+    if (slideCount <= 1 || isDragging) return;
 
     const interval = setInterval(() => {
       setFeaturedIndex((prev) => (prev === slideCount - 1 ? 0 : prev + 1));
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [slideCount]);
+  }, [slideCount, isDragging]);
 
   return (
     <section
@@ -80,11 +136,31 @@ export default function HomeFeedSection({
             <div className="min-w-0 flex flex-col">
               {slideCount > 0 ? (
                 <div className="flex flex-col">
-                  <div className="relative flex-1 overflow-hidden rounded-lg border border-jepang-border shadow-jepang">
+                  <div
+                    className="relative flex-1 overflow-hidden rounded-lg border border-jepang-border shadow-jepang touch-pan-y"
+                    onClickCapture={handleCarouselClickCapture}
+                  >
                     <motion.div
-                      className="flex h-full"
-                      animate={{ x: `-${featuredIndex * 100}%` }}
-                      transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+                      className={cn(
+                        "flex h-full select-none",
+                        slideCount > 1 &&
+                          (isDragging ? "cursor-grabbing" : "cursor-grab"),
+                      )}
+                      style={{ touchAction: "pan-y pinch-zoom" }}
+                      onPointerDown={handleCarouselPointerDown}
+                      onPointerMove={handleCarouselPointerMove}
+                      onPointerUp={handleCarouselPointerUp}
+                      onPointerCancel={handleCarouselPointerUp}
+                      animate={{
+                        x: isDragging
+                          ? `calc(-${featuredIndex * 100}% + ${dragOffset}px)`
+                          : `-${featuredIndex * 100}%`,
+                      }}
+                      transition={
+                        isDragging
+                          ? { duration: 0 }
+                          : { duration: 0.7, ease: [0.32, 0.72, 0, 1] }
+                      }
                     >
                       {featuredArticles.map((article, idx) => (
                         <div key={article.id} className="w-full shrink-0">
