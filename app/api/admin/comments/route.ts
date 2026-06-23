@@ -48,10 +48,11 @@ export async function GET(request: NextRequest) {
     ARTICLE: new Set(),
     POLL: new Set(),
     QUIZ: new Set(),
+    VIDEO: new Set(),
   };
   for (const c of comments) idsByType[c.targetType].add(c.targetId);
 
-  const [articles, polls, quizzes] = await Promise.all([
+  const [articles, polls, quizzes, videos] = await Promise.all([
     idsByType.ARTICLE.size
       ? db.article.findMany({ where: { id: { in: [...idsByType.ARTICLE] } }, select: { id: true, title: true, slug: true } })
       : Promise.resolve([]),
@@ -61,12 +62,16 @@ export async function GET(request: NextRequest) {
     idsByType.QUIZ.size
       ? db.quiz.findMany({ where: { id: { in: [...idsByType.QUIZ] } }, select: { id: true, title: true, slug: true } })
       : Promise.resolve([]),
+    idsByType.VIDEO.size
+      ? db.video.findMany({ where: { id: { in: [...idsByType.VIDEO] } }, select: { id: true, title: true, slug: true } })
+      : Promise.resolve([]),
   ]);
 
   const titleMap = new Map<string, { title: string; slug: string }>();
   for (const a of articles) titleMap.set(`ARTICLE:${a.id}`, { title: a.title, slug: a.slug });
   for (const p of polls) titleMap.set(`POLL:${p.id}`, { title: p.title, slug: p.slug });
   for (const qz of quizzes) titleMap.set(`QUIZ:${qz.id}`, { title: qz.title, slug: qz.slug });
+  for (const v of videos) titleMap.set(`VIDEO:${v.id}`, { title: v.title, slug: v.slug });
 
   const data = comments.map((c) => {
     const target = titleMap.get(`${c.targetType}:${c.targetId}`);

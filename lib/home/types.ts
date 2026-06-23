@@ -72,6 +72,7 @@ export type PublicVideoSummary = {
   title: string;
   slug: string;
   description: string | null;
+  content?: string;
   youtubeId: string;
   thumbnailUrl: string;
   publishedAt: string | null;

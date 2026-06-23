@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageShell from "@/components/admin/AdminPageShell";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -15,6 +16,7 @@ export default function AdminVideoCreatePage() {
   const [form, setForm] = useState({
     title: "",
     description: "",
+    content: "",
     youtubeUrl: "",
     status: "DRAFT",
     isFeatured: false,
@@ -86,6 +88,14 @@ export default function AdminVideoCreatePage() {
                 rows={4}
                 className="w-full rounded-md border border-jepang-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-jepang-red"
                 placeholder="Deskripsi singkat (opsional)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1.5">Konten artikel</label>
+              <RichTextEditor
+                value={form.content}
+                onChange={(content) => setForm((f) => ({ ...f, content }))}
               />
             </div>
 

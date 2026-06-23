@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import AuthorLink from "@/components/AuthorLink";
 import UserAvatar from "@/components/media/UserAvatar";
 
-export type CommentTargetType = "ARTICLE" | "POLL" | "QUIZ";
+export type CommentTargetType = "ARTICLE" | "POLL" | "QUIZ" | "VIDEO";
 
 interface CommentAuthor {
   id: string;

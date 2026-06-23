@@ -3,7 +3,7 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
-import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
+import { sanitizeMediaUrl, sanitizePlainField, sanitizeHtmlContent } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
 
@@ -39,6 +39,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const {
     title,
     description,
+    content,
     youtubeUrl,
     youtubeId: rawYoutubeId,
     thumbnailUrl,
@@ -57,6 +58,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   if (description !== undefined) {
     updateData.description = description ? sanitizePlainField(description, 2000) : null;
+  }
+
+  if (content !== undefined) {
+    updateData.content = content ? sanitizeHtmlContent(content) : null;
   }
 
   if (youtubeUrl !== undefined || rawYoutubeId !== undefined) {

@@ -6,17 +6,10 @@ import {
 import type { HomeTvResponse } from "@/lib/home/types";
 
 export async function fetchHomeTv(): Promise<HomeTvResponse> {
-  let featured = await db.video.findFirst({
-    where: { ...publishedVideoWhere, isFeatured: true },
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+  const featured = await db.video.findFirst({
+    where: publishedVideoWhere,
+    orderBy: [{ viewCount: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
   });
-
-  if (!featured) {
-    featured = await db.video.findFirst({
-      where: publishedVideoWhere,
-      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-    });
-  }
 
   const sidebar = await db.video.findMany({
     where: {
@@ -24,7 +17,7 @@ export async function fetchHomeTv(): Promise<HomeTvResponse> {
       ...(featured ? { id: { not: featured.id } } : {}),
     },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-    take: 4,
+    take: 7,
   });
 
   return {

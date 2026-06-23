@@ -79,64 +79,74 @@ export default function HomeFeedSection({
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-stretch">
             <div className="min-w-0 flex flex-col">
               {slideCount > 0 ? (
-                <div className="relative flex-1 overflow-hidden rounded-lg border border-jepang-border shadow-jepang">
-                  <motion.div
-                    className="flex h-full"
-                    animate={{ x: `-${featuredIndex * 100}%` }}
-                    transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-                  >
-                    {featuredArticles.map((article, idx) => (
-                      <div key={article.id} className="w-full shrink-0">
-                        <ArticleCard
-                          article={article}
-                          variant="featured"
-                          priority={idx === 0}
-                        />
-                      </div>
-                    ))}
-                  </motion.div>
+                <div className="flex flex-col">
+                  <div className="relative flex-1 overflow-hidden rounded-lg border border-jepang-border shadow-jepang">
+                    <motion.div
+                      className="flex h-full"
+                      animate={{ x: `-${featuredIndex * 100}%` }}
+                      transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+                    >
+                      {featuredArticles.map((article, idx) => (
+                        <div key={article.id} className="w-full shrink-0">
+                          <ArticleCard
+                            article={article}
+                            variant="featured"
+                            priority={idx === 0}
+                          />
+                        </div>
+                      ))}
+                    </motion.div>
+
+                    {slideCount > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={goPrevFeatured}
+                          className="absolute left-0 top-[50%] z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white shadow-none backdrop-blur-sm transition-colors hover:border-white/35 hover:bg-black/55 md:flex cursor-pointer"
+                          aria-label="Artikel sebelumnya"
+                        >
+                          <ChevronLeft size={18} strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={goNextFeatured}
+                          className="absolute right-0 top-[50%] z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white shadow-none backdrop-blur-sm transition-colors hover:border-white/35 hover:bg-black/55 md:flex cursor-pointer"
+                          aria-label="Artikel berikutnya"
+                        >
+                          <ChevronRight size={18} strokeWidth={2} />
+                        </button>
+                      </>
+                    )}
+                  </div>
 
                   {slideCount > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={goPrevFeatured}
-                        className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
-                        aria-label="Artikel sebelumnya"
-                      >
-                        <ChevronLeft size={20} strokeWidth={1.5} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={goNextFeatured}
-                        className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-jepang-border bg-white/90 text-jepang-navy shadow-sm backdrop-blur-sm transition-colors hover:bg-jepang-navy hover:text-white cursor-pointer"
-                        aria-label="Artikel berikutnya"
-                      >
-                        <ChevronRight size={20} strokeWidth={1.5} />
-                      </button>
-                      <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0">
-                        {featuredArticles.map((article, idx) => (
-                          <button
-                            key={article.id}
-                            type="button"
-                            onClick={() => setFeaturedIndex(idx)}
-                            className="flex h-11 w-11 items-center justify-center rounded-full"
-                            aria-label={`Slide ${idx + 1}`}
-                            aria-current={idx === featuredIndex ? "true" : undefined}
-                          >
-                            <span
-                              className={cn(
-                                "block rounded-full transition-all",
-                                idx === featuredIndex
-                                  ? "h-3 w-6 bg-jepang-red"
-                                  : "h-3 w-3 bg-white/20 hover:bg-white/30",
-                              )}
-                              aria-hidden
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </>
+                    <div
+                      className="flex items-center justify-center gap-1.5 pt-2"
+                      role="tablist"
+                      aria-label="Slide berita utama"
+                    >
+                      {featuredArticles.map((article, idx) => (
+                        <button
+                          key={article.id}
+                          type="button"
+                          role="tab"
+                          onClick={() => setFeaturedIndex(idx)}
+                          className="flex items-center justify-center p-1"
+                          aria-label={`Slide ${idx + 1}`}
+                          aria-selected={idx === featuredIndex}
+                        >
+                          <span
+                            className={cn(
+                              "block rounded-full transition-all duration-300",
+                              idx === featuredIndex
+                                ? "h-1.5 w-5 bg-jepang-red"
+                                : "h-1.5 w-1.5 bg-jepang-border hover:bg-jepang-muted",
+                            )}
+                            aria-hidden
+                          />
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               ) : featuredFallback ? (

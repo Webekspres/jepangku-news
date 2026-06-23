@@ -47,6 +47,13 @@ async function commentHref(
     });
     return quiz ? `/quizzes/${quiz.slug}` : null;
   }
+  if (targetType === 'VIDEO') {
+    const video = await db.video.findUnique({
+      where: { id: targetId },
+      select: { slug: true },
+    });
+    return video ? `/tv/${video.slug}` : null;
+  }
   return null;
 }
 

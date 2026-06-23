@@ -1,3 +1,4 @@
+import { parseApiResponse } from "@/lib/fetch-api";
 import type { ApiClient } from "./api-client";
 
 type Paginated<T> = {
@@ -72,11 +73,25 @@ export async function fetchActivePollWithQuestions(
   return { slug: poll.slug, questions: poll.questions };
 }
 
-export async function fetchPublishedVideoSlug(api: ApiClient): Promise<string | null> {
-  const res = await api.get("/api/videos?limit=1");
+export async function fetchPublishedVideo(
+  api: ApiClient,
+): Promise<{ id: string; slug: string } | null> {
+  const res = await api.get("/api/videos?limit=5");
   if (!res.ok) return null;
-  const data = (await api.json(res)) as { videos?: { slug: string }[] };
-  return data.videos?.[0]?.slug ?? null;
+  const data = (await parseApiResponse(res)) as {
+    videos?: { id: string; slug: string }[];
+  };
+  return data.videos?.[0] ?? null;
+}
+
+export async function fetchPublishedVideoSlug(api: ApiClient): Promise<string | null> {
+  const video = await fetchPublishedVideo(api);
+  return video?.slug ?? null;
+}
+
+export async function fetchPublishedVideoId(api: ApiClient): Promise<string | null> {
+  const video = await fetchPublishedVideo(api);
+  return video?.id ?? null;
 }
 
 export async function fetchCategoryId(api: ApiClient): Promise<string | null> {

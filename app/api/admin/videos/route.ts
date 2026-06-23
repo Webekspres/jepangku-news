@@ -4,7 +4,7 @@ import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import { createSlug } from "@/lib/slug";
-import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
+import { sanitizeMediaUrl, sanitizePlainField, sanitizeHtmlContent } from "@/lib/sanitizer";
 import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
 
@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
   const {
     title,
     description,
+    content,
     youtubeUrl,
     youtubeId: rawYoutubeId,
     thumbnailUrl,
@@ -83,6 +84,7 @@ export async function POST(request: NextRequest) {
       title: safeTitle,
       slug,
       description: description ? sanitizePlainField(description, 2000) : null,
+      content: content ? sanitizeHtmlContent(content) : null,
       youtubeId,
       thumbnailUrl: resolvedThumbnail,
       status: normalizedStatus,

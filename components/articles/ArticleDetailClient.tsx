@@ -41,7 +41,7 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
   return (
     <div className="bg-white" data-testid="article-detail-page">
       <article className="px-4 mx-auto max-w-7xl py-12">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
           <div className="mx-auto w-full max-w-4xl min-w-0 lg:mx-0">
             <ArticleBreadcrumb
               isLoading={isLoading}
@@ -100,7 +100,7 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
             )}
           </div>
 
-          <aside className="hidden lg:block">
+          <aside className="hidden lg:block self-start">
             <div className="sticky top-24">
               <ArticleSidebarAd excludeArticleSlug={slug} />
             </div>

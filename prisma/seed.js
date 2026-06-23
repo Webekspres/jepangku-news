@@ -1015,13 +1015,16 @@ async function main() {
       video.status === "PUBLISHED"
         ? daysAgo(video.daysAgo ?? 0)
         : null;
-    const thumbnailUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+    const thumbnailUrl = video.useYoutubeThumbnail
+      ? null
+      : `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
 
     await prisma.video.upsert({
       where: { slug: video.slug },
       update: {
         title: video.title,
         description: video.description,
+        content: video.content ?? null,
         youtubeId: video.youtubeId,
         thumbnailUrl,
         status: video.status,
@@ -1033,6 +1036,7 @@ async function main() {
         title: video.title,
         slug: video.slug,
         description: video.description,
+        content: video.content ?? null,
         youtubeId: video.youtubeId,
         thumbnailUrl,
         status: video.status,

@@ -61,6 +61,7 @@ enum CommentTargetType {
   ARTICLE
   POLL
   QUIZ
+  VIDEO
 }
 
 enum CommentStatus {
@@ -73,6 +74,7 @@ enum ReactionTargetType {
   POLL
   QUIZ
   COMMENT
+  VIDEO
 }
 
 enum ReactionType {
@@ -631,6 +633,7 @@ model Video {
   title        String
   slug         String      @unique
   description  String?
+  content      String?     @db.Text
   youtubeId    String      @map("youtube_id")
   thumbnailUrl String?     @map("thumbnail_url")
   status       VideoStatus @default(DRAFT)

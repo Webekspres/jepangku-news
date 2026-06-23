@@ -1,4 +1,5 @@
 import type { Video } from "@prisma/client";
+import { sanitizeHtmlContent, sanitizePlainField } from "@/lib/sanitizer";
 import { youtubeThumbnailUrl } from "@/lib/video/youtube";
 
 export type PublicVideo = {
@@ -6,6 +7,7 @@ export type PublicVideo = {
   title: string;
   slug: string;
   description: string | null;
+  content: string;
   youtubeId: string;
   thumbnailUrl: string;
   publishedAt: string | null;
@@ -14,11 +16,18 @@ export type PublicVideo = {
 };
 
 export function serializePublicVideo(video: Video): PublicVideo {
+  const content = video.content
+    ? sanitizeHtmlContent(video.content)
+    : video.description
+      ? `<p>${sanitizePlainField(video.description, 2000)}</p>`
+      : "";
+
   return {
     id: video.id,
     title: video.title,
     slug: video.slug,
     description: video.description,
+    content,
     youtubeId: video.youtubeId,
     thumbnailUrl: video.thumbnailUrl ?? youtubeThumbnailUrl(video.youtubeId),
     publishedAt: video.publishedAt?.toISOString() ?? null,

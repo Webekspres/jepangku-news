@@ -1,7 +1,7 @@
 import { db } from './db';
 import type { ReactionTargetType, ReactionType } from '@prisma/client';
 
-export const REACTION_TARGET_TYPES = ['ARTICLE', 'POLL', 'QUIZ', 'COMMENT'] as const;
+export const REACTION_TARGET_TYPES = ['ARTICLE', 'POLL', 'QUIZ', 'COMMENT', 'VIDEO'] as const;
 
 // Reaksi konten (artikel, quiz, polling/voting) — ditampilkan di atas kolom komentar.
 export const ARTICLE_REACTION_TYPES = [
@@ -67,6 +67,14 @@ export async function reactionTargetExists(
       select: { id: true },
     });
     return quiz !== null;
+  }
+
+  if (targetType === 'VIDEO') {
+    const video = await db.video.findFirst({
+      where: { id: targetId, status: 'PUBLISHED' },
+      select: { id: true },
+    });
+    return video !== null;
   }
 
   // COMMENT: hanya komentar yang tampil dan belum dihapus yang dapat direaksi.
