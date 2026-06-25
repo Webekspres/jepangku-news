@@ -23,7 +23,7 @@ export default function ArticleCoverImage({
   if (!src) return null;
 
   return (
-    <div className="my-8 -mx-4 md:mx-0 relative aspect-16/10 max-h-150 w-full overflow-hidden">
+    <div className="my-8 -mx-4 md:mx-0 relative aspect-16/10 max-h-150 w-full overflow-hidden flex items-center justify-center">
       <Image
         src={src}
         alt={alt}

@@ -7,6 +7,7 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Typography from "@tiptap/extension-typography";
+import { Markdown } from "tiptap-markdown";
 import { useEffect, useCallback, useState } from "react";
 import {
   Bold,
@@ -120,6 +121,14 @@ export default function RichTextEditor({
         // Hard break: Shift+Enter
       }),
       Underline,
+      // Markdown: paste teks markdown (# judul, **tebal**, - list, dst.)
+      // langsung dikonversi jadi konten terformat.
+      Markdown.configure({
+        html: true,
+        tightLists: true,
+        transformPastedText: true,
+        transformCopiedText: false,
+      }),
       // Typography converts markdown-like input in real time:
       // (c) → ©, (r) → ®, (tm) → ™
       // -- → en dash, --- → em dash

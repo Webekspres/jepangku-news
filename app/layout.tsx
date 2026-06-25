@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
+import { idID } from '@clerk/localizations';
 import ClientProviders from '@/components/ClientProviders';
 import {
   SITE_DEFAULT_DESCRIPTION,
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://img.clerk.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://img.clerk.com" />
       </head>
-      <ClerkProvider telemetry={false}>
+      <ClerkProvider telemetry={false} localization={idID}>
         <body className="thin-scrollbar min-h-full flex flex-col overflow-x-clip">
           <ClientProviders>{children}</ClientProviders>
         </body>

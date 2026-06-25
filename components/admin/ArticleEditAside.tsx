@@ -106,6 +106,8 @@ export default function ArticleEditAside({
   const [previousRevision, setPreviousRevision] = useState<RevisionDetailPayload | null>(null);
   const [selectedReview, setSelectedReview] = useState<ReviewEntry | null>(null);
 
+  const changeNoteRequired = status !== "DRAFT";
+
   const loadActivity = useCallback(async () => {
     setHistoryLoading(true);
     try {
@@ -164,10 +166,17 @@ export default function ArticleEditAside({
         <div className="space-y-3">
           <div className="space-y-2">
             <Label htmlFor="change-note">
-              Catatan Perubahan <span className="text-jepang-red">*</span>
+              Catatan Perubahan{" "}
+              {changeNoteRequired ? (
+                <span className="text-jepang-red">*</span>
+              ) : (
+                <span className="text-jepang-muted font-normal">(opsional)</span>
+              )}
             </Label>
             <p className="text-[11px] text-jepang-muted leading-snug">
-              Terlihat oleh penulis di riwayat artikel
+              {changeNoteRequired
+                ? "Terlihat oleh penulis di riwayat artikel"
+                : "Opsional untuk draf — wajib setelah artikel terbit"}
             </p>
             <Textarea
               id="change-note"

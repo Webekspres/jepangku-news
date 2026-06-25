@@ -95,7 +95,7 @@ export default function AdminEditArticlePage() {
       toast.error("Judul dan konten wajib diisi");
       return;
     }
-    if (!changeNote.trim()) {
+    if (status !== "DRAFT" && !changeNote.trim()) {
       toast.error("Catatan perubahan wajib diisi");
       return;
     }

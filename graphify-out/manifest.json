@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "app/(admin)/admin/articles/[id]/edit/page.tsx": {
-    "mtime": 1782203776.4210865,
-    "ast_hash": "0b3f9d48f90149a7a28f00a4f23eeab4",
+    "mtime": 1782379459.2231817,
+    "ast_hash": "b54b1c02dad5a31659702232de98ee0d",
     "semantic_hash": ""
   },
   "app/(admin)/admin/articles/[id]/page.tsx": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "app/(auth)/login/LoginClient.tsx": {
-    "mtime": 1782203776.4910603,
-    "ast_hash": "2ce4df134344ed87f98380e58530fba9",
+    "mtime": 1782379143.231102,
+    "ast_hash": "ecf7a5f13a52deb7d162b9ce1ee945cf",
     "semantic_hash": ""
   },
   "app/(auth)/login/page.tsx": {
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "app/layout.tsx": {
-    "mtime": 1782203776.7550051,
-    "ast_hash": "f492842f4d2f8cf6170668e975258eb9",
+    "mtime": 1782380050.3692708,
+    "ast_hash": "af6f987da38bbc6af5c2918c0e2fc1a4",
     "semantic_hash": ""
   },
   "app/not-found.tsx": {
@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "components/Footer.tsx": {
-    "mtime": 1782372219.3415716,
-    "ast_hash": "dc4714f2984a727acd0d9ddca2d78be9",
+    "mtime": 1782379142.2569566,
+    "ast_hash": "b4be41a6f9ab58546cbc2d7536cc7063",
     "semantic_hash": ""
   },
   "components/InfoPageServer.tsx": {
@@ -875,8 +875,8 @@
     "semantic_hash": ""
   },
   "components/RichTextEditor.tsx": {
-    "mtime": 1782203776.7829509,
-    "ast_hash": "2345123b9727924ed455aae700f35ab8",
+    "mtime": 1782379051.2659447,
+    "ast_hash": "a275b8cd3301868290f89af9c0b0585f",
     "semantic_hash": ""
   },
   "components/SectionHeader.tsx": {
@@ -895,8 +895,8 @@
     "semantic_hash": ""
   },
   "components/admin/AdminSidebar.tsx": {
-    "mtime": 1782360222.863953,
-    "ast_hash": "8a5e6ba4194337854bd0473d7ce2b25c",
+    "mtime": 1782378968.303494,
+    "ast_hash": "71c905b3ca0039410d87f2d67fc0ba98",
     "semantic_hash": ""
   },
   "components/admin/AdminStatCards.tsx": {
@@ -965,8 +965,8 @@
     "semantic_hash": ""
   },
   "components/home/HomeLmsTeaser.tsx": {
-    "mtime": 1782358882.6942313,
-    "ast_hash": "4bb7691b982768107bcfa0fbed63ba48",
+    "mtime": 1782379162.033764,
+    "ast_hash": "8766a9cc3896086bdb0290d44a8177e8",
     "semantic_hash": ""
   },
   "components/home/HomePlaceholderSection.tsx": {
@@ -1235,8 +1235,8 @@
     "semantic_hash": ""
   },
   "lib/article-audit.ts": {
-    "mtime": 1782203778.1139755,
-    "ast_hash": "13bf6b3af8c4072bdd4a4e9952940804",
+    "mtime": 1782379459.2231817,
+    "ast_hash": "9fe697de369eedcba63ea3f61e841f8e",
     "semantic_hash": ""
   },
   "lib/article-tags.ts": {
@@ -1560,8 +1560,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1782205999.2880857,
-    "ast_hash": "0b8419d2753a578faa2f7e0939dc4c2d",
+    "mtime": 1782380033.8460653,
+    "ast_hash": "a854b65129af2950746d3af2b083a4ce",
     "semantic_hash": ""
   },
   "postcss.config.mjs": {
@@ -1845,8 +1845,8 @@
     "semantic_hash": ""
   },
   "docs/design-system.md": {
-    "mtime": 1782203776.9997058,
-    "ast_hash": "f349eedef5a8dff358563f5aff7f2339",
+    "mtime": 1782379143.2768073,
+    "ast_hash": "bb1e07aea873d7ad3daefa3562d23248",
     "semantic_hash": ""
   },
   "docs/development-roadmap.md": {
@@ -1860,8 +1860,8 @@
     "semantic_hash": ""
   },
   "docs/feature-status.md": {
-    "mtime": 1782374090.51415,
-    "ast_hash": "97cf50111783523776ebfda90d4b6d9c",
+    "mtime": 1782379191.9754455,
+    "ast_hash": "10adbc5b631a4fe6b1c97c91b975f862",
     "semantic_hash": ""
   },
   "docs/soft-launch-content.md": {
@@ -1899,22 +1899,22 @@
     "ast_hash": "4acfcc41caa4c88a4d0937ab2f9ccccb",
     "semantic_hash": ""
   },
-  "public/assets/images/logo/Logo-01.svg": {
+  "public/assets/images/logo/logo-01.svg": {
     "mtime": 1782203778.6032865,
     "ast_hash": "9027a6130c0e42bb6beb50ae89b63811",
     "semantic_hash": ""
   },
-  "public/assets/images/logo/Logo-02-dark.svg": {
+  "public/assets/images/logo/logo-02-dark.svg": {
     "mtime": 1782370546.0258884,
     "ast_hash": "bbef73862efd7dfc86cd8b2f4c39bca4",
     "semantic_hash": ""
   },
-  "public/assets/images/logo/Logo-02.svg": {
+  "public/assets/images/logo/logo-02.svg": {
     "mtime": 1782203778.6053584,
     "ast_hash": "5bcb8da788b3491032d1709e647b7ebb",
     "semantic_hash": ""
   },
-  "public/assets/images/logo/Logo-03.svg": {
+  "public/assets/images/logo/logo-03.svg": {
     "mtime": 1782203778.606359,
     "ast_hash": "ff57d05d2d3af392c7f45d6b8647f65e",
     "semantic_hash": ""
@@ -1950,8 +1950,8 @@
     "semantic_hash": ""
   },
   "lib/site-config.ts": {
-    "mtime": 1782203778.4309118,
-    "ast_hash": "81e982b185b680f159acd29fd6dee8ac",
+    "mtime": 1782377817.2707205,
+    "ast_hash": "88aed1674fadcb24d70d9d0cfe4e93d1",
     "semantic_hash": ""
   },
   "components/InfoPageSidebar.tsx": {
@@ -1985,8 +1985,8 @@
     "semantic_hash": ""
   },
   "components/articles/ArticleDetailClient.tsx": {
-    "mtime": 1782203776.8170247,
-    "ast_hash": "e59c93c81211e7f0d52a4116f0b562a6",
+    "mtime": 1782379653.6220367,
+    "ast_hash": "8c01dc872fa42c46dd0e4a015bbaf150",
     "semantic_hash": ""
   },
   "components/home/TrendingArticlesPanel.tsx": {
@@ -2270,8 +2270,8 @@
     "semantic_hash": ""
   },
   "components/admin/ArticleEditAside.tsx": {
-    "mtime": 1782203776.7992957,
-    "ast_hash": "615720d055380677362b11450a275d06",
+    "mtime": 1782379475.1595554,
+    "ast_hash": "3518c6b7e4c42bc1ad4e01144aa122ba",
     "semantic_hash": ""
   },
   "components/admin/ArticleRevisionDetailModal.tsx": {
@@ -2565,8 +2565,8 @@
     "semantic_hash": ""
   },
   "components/articles/ArticleCoverImage.tsx": {
-    "mtime": 1782203776.8150082,
-    "ast_hash": "e7c2865fd9bb3a0a9aeaa59634a29854",
+    "mtime": 1782379592.7922523,
+    "ast_hash": "556492b16de55b4b6a873e282c062af0",
     "semantic_hash": ""
   },
   "components/articles/ArticleDetailContent.tsx": {
@@ -2575,8 +2575,8 @@
     "semantic_hash": ""
   },
   "components/articles/ArticleDetailHero.tsx": {
-    "mtime": 1782203776.8190415,
-    "ast_hash": "86ef3e8d5b29abcd044bfb981e5958af",
+    "mtime": 1782379446.161657,
+    "ast_hash": "363bc93002d764b2977ce513743d56cb",
     "semantic_hash": ""
   },
   "components/articles/ArticleDetailMetaBar.tsx": {
@@ -2902,11 +2902,6 @@
   "lib/admin-stats-route.ts": {
     "mtime": 1782203778.0964632,
     "ast_hash": "28dfd325ab0aa0b71e65c74bb1f8ed32",
-    "semantic_hash": ""
-  },
-  "public/assets/images/logo/Logo-Nihongo.svg": {
-    "mtime": 1782203778.6134386,
-    "ast_hash": "59680744bf7a708bbdb0d432a8f7b571",
     "semantic_hash": ""
   },
   "app/(admin)/admin/info-pages/[slug]/preview/page.tsx": {
@@ -3517,6 +3512,11 @@
   "public/assets/images/icons/multiple-icon.webp": {
     "mtime": 1782356419.683159,
     "ast_hash": "0bc4a039a6da96b50f9f75c93a59f77c",
+    "semantic_hash": ""
+  },
+  "public/assets/images/logo/logo-nihongo.svg": {
+    "mtime": 1782203778.6134386,
+    "ast_hash": "59680744bf7a708bbdb0d432a8f7b571",
     "semantic_hash": ""
   }
 }

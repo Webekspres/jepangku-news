@@ -12,7 +12,7 @@ export default function ArticleDetailHero({
   return (
     <>
       <h1
-        className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-6 leading-[1.05]"
+        className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter mb-6 leading-[1.05]"
         data-testid="article-title"
       >
         {isLoading ? (

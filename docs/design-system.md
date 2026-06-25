@@ -128,9 +128,9 @@ Didefinisikan di `@theme` (`globals.css`):
 
 | Varian | File | Konteks |
 | :--- | :--- | :--- |
-| Light background | `public/assets/images/logo/Logo-03.svg` | Navbar |
-| Dark background | `public/assets/images/logo/Logo-02-dark.svg` | Footer |
-| Full color | `public/assets/images/logo/Logo-01.svg` | Marketing |
+| Light background | `public/assets/images/logo/logo-03.svg` | Navbar |
+| Dark background | `public/assets/images/logo/logo-02-dark.svg` | Footer |
+| Full color | `public/assets/images/logo/logo-01.svg` | Marketing |
 
 ---
 

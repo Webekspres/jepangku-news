@@ -201,7 +201,15 @@ export async function applyArticleUpdateWithAudit(params: {
   const tagsChanged = tags !== undefined;
   const statusChanged = newStatus !== before.status;
 
-  if (editorRole === 'ADMIN' && (contentChanged || tagsChanged) && !changeNote?.trim()) {
+  // Catatan perubahan hanya wajib untuk artikel yang sudah keluar dari draft
+  // (audit trail konten yang pernah direview/terbit). Draft bebas diedit.
+  const changeNoteRequired = before.status !== 'DRAFT';
+  if (
+    editorRole === 'ADMIN' &&
+    changeNoteRequired &&
+    (contentChanged || tagsChanged) &&
+    !changeNote?.trim()
+  ) {
     throw new Error('Catatan perubahan wajib diisi saat admin mengedit konten artikel');
   }
 
