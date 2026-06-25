@@ -25,6 +25,14 @@ const LEVEL_BADGE: Record<LmsTeaserCourse["level"], string> = {
   N1: "bg-jepang-red text-white",
 };
 
+const LEVEL_GRADIENT: Record<LmsTeaserCourse["level"], string> = {
+  N5: "from-emerald-600 to-emerald-800",
+  N4: "from-blue-600 to-blue-900",
+  N3: "from-amber-500 to-amber-700",
+  N2: "from-violet-600 to-violet-900",
+  N1: "from-jepang-red to-rose-900",
+};
+
 function LmsComingSoonPlaceholder({ catalogUrl }: { catalogUrl: string }) {
   return (
     <div
@@ -81,18 +89,19 @@ function CourseCard({ course }: { course: LmsTeaserCourse }) {
       href={course.href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-white/15 bg-white/5 transition-colors hover:border-white/30 hover:bg-white/10"
+      className="group flex h-full w-full max-w-sm flex-col overflow-hidden rounded-lg border border-white/15 bg-white/5 transition-colors hover:border-white/30 hover:bg-white/10 sm:w-64"
       data-testid={`lms-course-card-${course.slug}`}
     >
-      <div className="relative aspect-16/10 overflow-hidden bg-jepang-navy">
-        <MotionHoverScale className="h-full w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={course.thumbnailUrl}
-            alt={course.title}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
+      <div
+        className={cn(
+          "relative flex aspect-16/10 items-center justify-center overflow-hidden bg-linear-to-br",
+          LEVEL_GRADIENT[course.level],
+        )}
+      >
+        <MotionHoverScale className="flex h-full w-full items-center justify-center">
+          <span className="font-heading text-6xl font-black tracking-tighter text-white/95 drop-shadow-sm">
+            {course.level}
+          </span>
         </MotionHoverScale>
         <span
           className={cn(
@@ -102,7 +111,7 @@ function CourseCard({ course }: { course: LmsTeaserCourse }) {
         >
           {course.level}
         </span>
-        <span className="absolute right-3 top-3 rounded bg-black/50 px-2 py-0.5 text-[10px] font-mono text-white">
+        <span className="absolute right-3 top-3 rounded bg-black/40 px-2 py-0.5 text-[10px] font-mono text-white">
           {course.badge}
         </span>
       </div>
@@ -153,10 +162,11 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
       <div className="px-4 mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
-            <p className="section-label mb-1 text-jepang-orange">学ぶ / BELAJAR BAHASA JEPANG</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
               <BookOpen size={32} strokeWidth={1.5} className="text-jepang-orange shrink-0" />
-              <span className="section-title-gradient">Belajar Bahasa Jepang</span>
+              <span className="bg-linear-to-r from-jepang-red via-jepang-orange to-jepang-yellow bg-clip-text text-transparent">
+                Belajar Bahasa Jepang
+              </span>
             </h2>
             <p className="mt-2 text-sm text-zinc-300 max-w-2xl">
               Kursus JLPT interaktif dengan progress tracking — powered by Jepangku LMS.
@@ -201,27 +211,35 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
         {data.source === "placeholder" || data.courses.length === 0 ? (
           <LmsComingSoonPlaceholder catalogUrl={data.catalogUrl} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            {data.courses.map((course) => (
-              <CourseCard key={course.slug} course={course} />
-            ))}
+          <div className="relative flex flex-col items-center gap-6 overflow-hidden md:gap-8 lg:block">
+            <div className="flex w-full flex-col items-center gap-6 md:gap-8 lg:max-w-2xl">
+              <div className="flex flex-wrap justify-center gap-6">
+                {data.courses.slice(0, 3).map((course) => (
+                  <CourseCard key={course.slug} course={course} />
+                ))}
+              </div>
+              {data.source === "live" && data.courses.length > 0 && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  data-testid="lms-catalog-cta"
+                >
+                  <Link href={data.catalogUrl} target="_blank" rel="noopener noreferrer">
+                    Jelajahi Semua Kursus
+                    <ArrowRight size={16} />
+                  </Link>
+                </Button>
+              )}
+            </div>
+            <AssetImage
+              src="/assets/images/icons/mascot.webp"
+              alt="Maskot Jepangku"
+              width={320}
+              height={320}
+              className="hidden shrink-0 object-contain object-top lg:absolute lg:bottom-0 lg:right-0 lg:block lg:w-110 lg:translate-y-40"
+            />
           </div>
-        )}
-
-        {data.source === "live" && data.courses.length > 0 && (
-        <div className="flex justify-center">
-          <Button
-            asChild
-            variant="outline"
-            className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            data-testid="lms-catalog-cta"
-          >
-            <Link href={data.catalogUrl} target="_blank" rel="noopener noreferrer">
-              Jelajahi Semua Kursus
-              <ArrowRight size={16} />
-            </Link>
-          </Button>
-        </div>
         )}
       </div>
     </section>

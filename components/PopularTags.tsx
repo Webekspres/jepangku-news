@@ -96,7 +96,7 @@ export default function PopularTags({
               isProminent
                 ? "h-10 w-28 rounded-md"
                 : isToolbar
-                  ? "h-[30px] w-14 border-r border-jepang-border"
+                  ? "h-7.5 w-14 border-r border-jepang-border"
                   : compact
                     ? "h-6 w-16"
                     : "h-8 w-24",

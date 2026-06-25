@@ -52,7 +52,7 @@ export default function CategoryListColumn({ column }: CategoryListColumnProps) 
           className="inline-flex rounded-full bg-jepang-red px-5 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-jepang-red-hover transition-colors"
           data-testid={`editorial-list-view-more-${slug}`}
         >
-          View More
+          Selengkapnya
         </Link>
       </div>
     </article>

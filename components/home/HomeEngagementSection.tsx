@@ -105,17 +105,17 @@ function QuizListItem({
       data-testid={isPrimary ? "homepage-quiz-cta" : `homepage-quiz-item-${quiz.slug}`}
     >
       <div className="min-w-0 flex-1">
-        <Badge variant="red" className="mb-2 w-fit">
+        <Badge variant="black" className="mb-2 w-fit text-white">
           Kuis
         </Badge>
-        <h3 className="font-heading text-base font-bold leading-snug tracking-tight line-clamp-2 group-hover:text-jepang-orange transition-colors">
+        <h3 className="font-heading text-base font-bold leading-snug tracking-tight line-clamp-2 group-hover:text-jepang-yellow transition-colors">
           {quiz.title}
         </h3>
-        <p className="mt-1 text-xs text-zinc-400">
+        <p className="mt-1 text-xs text-white/70">
           {quiz.questionCount} pertanyaan · +10 poin
         </p>
       </div>
-      <MotionHoverChevron className="mt-1 shrink-0 text-zinc-400 group-hover:text-jepang-orange">
+      <MotionHoverChevron className="mt-1 shrink-0 text-white/70 group-hover:text-jepang-yellow">
         <ChevronRight size={18} />
       </MotionHoverChevron>
     </Link>
@@ -206,16 +206,16 @@ export default function HomeEngagementSection({
                 </div>
               </div>
 
-              <div className="rounded-lg bg-jepang-navy p-6 text-white shadow-jepang">
-                <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-white/10">
+              <div className="rounded-lg bg-jepang-red p-6 text-white shadow-jepang">
+                <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-white/15">
                   <div className="flex items-start gap-3 min-w-0">
                     <Zap
                       size={18}
                       strokeWidth={1.5}
-                      className="mt-0.5 shrink-0 text-jepang-red"
+                      className="mt-0.5 shrink-0 text-white"
                     />
                     <div>
-                      <p className="section-label mb-1">Kuis</p>
+                      <p className="section-label mb-1 text-jepang-yellow!">Kuis</p>
                       <h3 className="font-heading font-bold text-xl tracking-tight">
                         Uji Pengetahuanmu
                       </h3>
@@ -223,7 +223,7 @@ export default function HomeEngagementSection({
                   </div>
                   <Link
                     href="/quizzes"
-                    className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors shrink-0"
+                    className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-white transition-colors shrink-0"
                   >
                     Semua <ArrowRight size={12} />
                   </Link>

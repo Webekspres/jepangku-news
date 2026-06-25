@@ -62,7 +62,7 @@ export default function NavbarCategoryBar({
           </button>
 
           <nav
-            className="thin-scrollbar hidden lg:flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
+            className="thin-scrollbar hidden lg:flex min-w-0 flex-1 items-center gap-0 overflow-x-auto"
             aria-label="Kategori artikel"
           >
             {categories.map((cat) => {

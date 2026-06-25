@@ -22,7 +22,7 @@ import { imageLoadingProps } from "@/lib/image-loading";
 import type { SocialLink } from "@/lib/site-config";
 import {
   Menu,
-  X,
+  Search,
   User,
   LogOut,
   FileText,
@@ -46,7 +46,6 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
     useAuth();
   const router = useRouter();
 
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -153,18 +152,15 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
     router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery("");
     setSearchOpen(false);
-    setMobileOpen(false);
     setSidebarOpen(false);
   };
 
   const openSearch = () => {
-    setMobileOpen(false);
     setSidebarOpen(false);
     setSearchOpen(true);
   };
 
   const openSidebar = () => {
-    setMobileOpen(false);
     setSearchOpen(false);
     setSidebarOpen(true);
   };
@@ -188,6 +184,10 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
           showAuthSkeleton={showAuthSkeleton}
           authUser={authUser}
           displayName={displayName}
+          displayUsername={displayUsername}
+          avatarUrl={avatarUrl}
+          totalPoints={totalPoints}
+          isAdmin={isAdmin}
           onLogout={handleLogout}
           socialLinks={socialLinks}
         />
@@ -201,7 +201,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
         >
           <div className="mx-auto max-w-7xl px-4">
             <div className="flex h-14 items-center justify-between gap-4">
-              <div className="flex items-center gap-4 justify-start">
+              <div className="flex items-center gap-10 justify-start">
               <Link
                 href="/"
                 className="flex shrink-0 items-center gap-2"
@@ -217,7 +217,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                 />
               </Link>
 
-              <nav className="hidden min-w-0 flex-1 items-center justify-start gap-6 lg:flex">
+              <nav className="hidden min-w-0 flex-1 items-center justify-start gap-4 lg:flex">
                 {NAV_LINKS.map((link) => (
                   <Link
                     key={link.path}
@@ -238,19 +238,19 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                     data-testid="navbar-auth-skeleton"
                     aria-hidden
                   >
-                    <div className="h-7 w-12 animate-pulse rounded-lg bg-jepang-border/70 sm:h-8 sm:w-20" />
+                    <div className="hidden h-8 w-20 animate-pulse rounded-lg bg-jepang-border/70 lg:block" />
                     <div className="h-9 w-9 animate-pulse rounded-full bg-jepang-border/70" />
-                    <div className="h-9 w-9 animate-pulse rounded-full bg-jepang-border/70" />
+                    <div className="hidden h-9 w-9 animate-pulse rounded-full bg-jepang-border/70 lg:block" />
                   </div>
                 ) : showAuthenticated ? (
                   <>
                     <div
-                      className="flex items-center gap-1 rounded-lg bg-jepang-orange px-2 py-1 text-white sm:gap-2 sm:px-3 sm:py-1.5"
+                      className="hidden items-center gap-2 rounded-lg bg-jepang-orange px-3 py-1.5 text-white lg:flex"
                       data-testid="user-points-display"
                     >
                       <Award size={14} strokeWidth={1.5} className="shrink-0" />
                       <span className="font-mono text-xs font-bold">{totalPoints}</span>
-                      <span className="hidden text-xs font-semibold tracking-wide sm:inline">
+                      <span className="text-xs font-semibold tracking-wide">
                         Poin
                       </span>
                     </div>
@@ -259,7 +259,7 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
+                          className="hidden cursor-pointer items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none lg:flex"
                           data-testid="user-menu-button"
                         >
                           <UserAvatar
@@ -366,15 +366,17 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                   </>
                 ) : null}
 
-                <button
-                  type="button"
-                  className="rounded-md p-2 lg:hidden"
-                  onClick={() => setMobileOpen((v) => !v)}
-                  data-testid="mobile-menu-toggle"
-                  aria-label="Buka menu"
-                >
-                  {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-                </button>
+                {showAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={openSidebar}
+                    className="rounded-full transition-opacity hover:opacity-80 lg:hidden cursor-pointer"
+                    data-testid="navbar-mobile-avatar"
+                    aria-label="Buka menu profil"
+                  >
+                    <UserAvatar src={avatarUrl} alt={displayName} size={32} />
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -389,42 +391,6 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
           />
         </Suspense>
       </div>
-
-      {mobileOpen && (
-        <div
-          className="border-t border-jepang-border bg-white lg:hidden"
-          data-testid="mobile-menu"
-        >
-          <div className="space-y-2 px-4 py-3">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.path}
-                href={link.path}
-                onClick={() => setMobileOpen(false)}
-                className="block py-2 text-sm font-semibold hover:text-jepang-orange"
-                data-testid={`mobile-nav-${link.label.toLowerCase()}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-
-            {showGuest && (
-              <div className="flex gap-2 border-t border-jepang-border pt-3">
-                <Button variant="outline" size="sm" asChild className="flex-1" data-testid="mobile-login-btn">
-                  <Link href={getAuthLoginPath()} onClick={() => setMobileOpen(false)}>
-                    Masuk
-                  </Link>
-                </Button>
-                <Button size="sm" asChild className="flex-1" data-testid="mobile-register-btn">
-                  <Link href={getAuthRegisterPath()} onClick={() => setMobileOpen(false)}>
-                    Daftar
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </header>
   );
 }

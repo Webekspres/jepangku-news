@@ -634,7 +634,12 @@ model Video {
   slug         String      @unique
   description  String?
   content      String?     @db.Text
-  youtubeId    String      @map("youtube_id")
+  /// URL lengkap video (YouTube, Facebook, TikTok, dll.) — sumber kebenaran utama
+  videoUrl     String?     @map("video_url")
+  /// Platform yang terdeteksi otomatis: YOUTUBE | FACEBOOK | TIKTOK | INSTAGRAM | OTHER
+  platform     String      @default("YOUTUBE") @map("platform")
+  /// YouTube ID (tetap ada untuk backward-compat; nullable untuk platform non-YouTube)
+  youtubeId    String?     @map("youtube_id")
   thumbnailUrl String?     @map("thumbnail_url")
   status       VideoStatus @default(DRAFT)
   isFeatured   Boolean     @default(false) @map("is_featured")
@@ -646,6 +651,7 @@ model Video {
 
   @@index([status, publishedAt])
   @@index([isFeatured, status])
+  @@index([platform])
   @@map("videos")
 }
 

@@ -60,31 +60,32 @@ export default function HomeTodaySection({
 
         {loading ? (
           <LazySectionSkeleton minHeight={720}>
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:col-span-2">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[...Array(TODAY_ARTICLE_LIMIT)].map((_, idx) => (
-                  <ArticleCardSkeleton key={idx} />
+                  <ArticleCardSkeleton key={idx} variant="grid" />
                 ))}
               </div>
-              <aside className="hidden lg:block lg:col-span-1">
+              <aside className="hidden lg:block">
                 <div className="h-64 animate-pulse rounded-lg bg-jepang-border/60" />
               </aside>
             </div>
           </LazySectionSkeleton>
         ) : displayArticles.length > 0 ? (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 lg:col-span-2">
+          <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_280px] xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid grid-cols-1 gap-3 items-start sm:grid-cols-2 lg:grid-cols-2">
               {displayArticles.map((article) => (
                 <ArticleCard
                   key={article.id}
                   article={article}
+                  variant="grid"
                 />
               ))}
             </div>
 
-            <aside className="lg:col-span-1">
+            <aside className="hidden lg:block">
               <div
-                className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start"
+                className="flex flex-col gap-6 lg:sticky lg:top-24"
                 data-testid="home-today-sidebar"
               >
                 <TrendingArticlesPanel

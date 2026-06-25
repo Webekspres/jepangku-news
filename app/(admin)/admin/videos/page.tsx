@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
+import { PLATFORM_LABELS, PLATFORM_BADGE_CLASSES } from "@/lib/video/platform";
+import type { VideoPlatform } from "@/lib/video/platform";
 import {
   Table,
   TableBody,
@@ -28,7 +30,9 @@ type AdminVideo = {
   id: string;
   title: string;
   slug: string;
-  youtubeId: string;
+  videoUrl: string | null;
+  youtubeId: string | null;
+  platform: string;
   status: string;
   isFeatured: boolean;
   viewCount: number;
@@ -279,7 +283,16 @@ export default function AdminVideosPage() {
                     <TableCell>
                       <div className="min-w-0">
                         <p className="font-semibold line-clamp-1">{video.title}</p>
-                        <p className="text-xs text-jepang-muted font-mono">{video.youtubeId}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span
+                            className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${PLATFORM_BADGE_CLASSES[(video.platform ?? "OTHER") as VideoPlatform]}`}
+                          >
+                            {PLATFORM_LABELS[(video.platform ?? "OTHER") as VideoPlatform]}
+                          </span>
+                          <p className="text-xs text-jepang-muted font-mono truncate max-w-[180px]">
+                            {video.videoUrl ?? video.youtubeId ?? "—"}
+                          </p>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

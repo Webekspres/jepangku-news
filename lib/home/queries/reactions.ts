@@ -9,7 +9,7 @@ import { ARTICLE_REACTION_TYPES } from "@/lib/reactions";
 import { CONTENT_REACTIONS, getReactionDisplay } from "@/lib/reactions-display";
 
 const ROLLING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
-const TOP_REACTED_LIMIT = 6;
+const TOP_REACTED_LIMIT = 8;
 
 type ArticleAgg = {
   total: number;

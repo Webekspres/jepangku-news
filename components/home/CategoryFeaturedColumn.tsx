@@ -32,7 +32,7 @@ export default function CategoryFeaturedColumn({
           className="shrink-0 rounded-full bg-jepang-red px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white hover:bg-jepang-red-hover transition-colors"
           data-testid={`editorial-view-more-${slug}`}
         >
-          View More
+          Selengkapnya
         </Link>
       </div>
 

@@ -61,13 +61,13 @@ function verifyPerformanceSource() {
     "responsive sizes on card images",
   );
   record(
-    "P5 LazyYoutubeEmbed click-to-play",
-    sourceIncludes("components/video/LazyYoutubeEmbed.tsx", "youtube-thumbnail"),
+    "P5 LazyVideoEmbed click-to-play",
+    sourceIncludes("components/video/LazyVideoEmbed.tsx", "video-thumbnail-"),
     "iframe only after user click",
   );
   record(
-    "P5 YouTube iframe loading=lazy",
-    sourceIncludes("components/video/LazyYoutubeEmbed.tsx", 'loading="lazy"'),
+    "P5 Video iframe loading=lazy",
+    sourceIncludes("components/video/LazyVideoEmbed.tsx", 'loading="lazy"'),
     "lazy iframe after play",
   );
 }

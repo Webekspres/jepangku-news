@@ -6,25 +6,17 @@ import {
 import type { LmsPublicCoursesResponse } from "@/lib/lms/types";
 
 const SAMPLE_LIVE_PAYLOAD: LmsPublicCoursesResponse = {
-  catalogUrl: "https://dev.kursus.jepangku.com/kursus",
-  meta: { total: 1, limit: 3, offset: 0 },
-  courses: [
+  meta: { count: 1 },
+  data: [
     {
       slug: "jlpt-n5-pemula",
       title: "JLPT N5 untuk Pemula",
       description: "Mulai dari hiragana hingga kosakata dasar.",
       level: "N5",
-      lessons: 24,
-      duration: "8 jam",
-      availability: "tersedia",
-      availabilityLabel: "Tersedia sekarang",
-      price: "Rp 199.000",
-      thumbnailUrl: "https://cdn.example.com/n5.jpg",
-      accent: "#10b981",
-      badge: "Populer",
-      tags: ["pemula"],
-      featured: true,
-      detailUrl: "/kursus/jlpt-n5-pemula",
+      priceIdr: 199000,
+      lessonCount: 24,
+      moduleCount: 4,
+      url: "https://dev.kursus.jepangku.com/kursus/jlpt-n5-pemula",
     },
   ],
 };
@@ -48,6 +40,8 @@ describe("§13.3 LMS teaser live course cards", () => {
     const course = data.courses[0]!;
     expect(course.slug).toBe("jlpt-n5-pemula");
     expect(course.title).toBe("JLPT N5 untuk Pemula");
+    expect(course.lessons).toBe(24);
+    expect(course.price).toBe("Rp 199.000");
     expect(course.href).toContain("/kursus/jlpt-n5-pemula");
     expect(course.href).toContain("utm_medium=homepage-lms-card");
     expect(course.href).toContain("utm_campaign=jlpt-n5-pemula");

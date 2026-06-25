@@ -1,10 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { apiError, apiSuccess } from '@/lib/api-response';
+import { NextRequest } from "next/server";
+import { apiError, apiSuccess } from "@/lib/api-response";
 import { getCurrentAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import { sanitizeMediaUrl, sanitizePlainField, sanitizeHtmlContent } from "@/lib/sanitizer";
-import { extractYoutubeId, youtubeThumbnailUrl } from "@/lib/video/youtube";
+import {
+  parseVideoUrl,
+  youtubeThumbnailUrl,
+} from "@/lib/video/platform";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
 
 type Params = { params: Promise<{ id: string }> };
@@ -18,30 +21,29 @@ async function clearOtherFeatured(exceptId: string) {
 
 export async function GET(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return apiError("Admin access required" , { status: 403 });
+  if (!admin) return apiError("Admin access required", { status: 403 });
 
   const { id } = await params;
   const video = await db.video.findUnique({ where: { id } });
-  if (!video) return apiError("Video not found" , { status: 404 });
+  if (!video) return apiError("Video not found", { status: 404 });
 
   return apiSuccess(video);
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return apiError("Admin access required" , { status: 403 });
+  if (!admin) return apiError("Admin access required", { status: 403 });
 
   const { id } = await params;
   const existing = await db.video.findUnique({ where: { id } });
-  if (!existing) return apiError("Video not found" , { status: 404 });
+  if (!existing) return apiError("Video not found", { status: 404 });
 
   const body = await request.json();
   const {
     title,
     description,
     content,
-    youtubeUrl,
-    youtubeId: rawYoutubeId,
+    videoUrl: rawVideoUrl,
     thumbnailUrl,
     status,
     isFeatured,
@@ -52,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   if (title !== undefined) {
     const safeTitle = sanitizePlainField(title, 200);
-    if (!safeTitle) return apiError("Title is required" , { status: 400 });
+    if (!safeTitle) return apiError("Title is required", { status: 400 });
     updateData.title = safeTitle;
   }
 
@@ -64,20 +66,40 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     updateData.content = content ? sanitizeHtmlContent(content) : null;
   }
 
-  if (youtubeUrl !== undefined || rawYoutubeId !== undefined) {
-    const youtubeId =
-      extractYoutubeId(rawYoutubeId ?? "") ?? extractYoutubeId(youtubeUrl ?? "");
-    if (!youtubeId) {
-      return apiError("Valid YouTube URL or ID is required" , { status: 400 });
+  // Update video URL / platform
+  if (rawVideoUrl !== undefined) {
+    if (!rawVideoUrl || !rawVideoUrl.trim()) {
+      return apiError("URL video tidak boleh kosong", { status: 400 });
     }
-    updateData.youtubeId = youtubeId;
+
+    const parsed = parseVideoUrl(rawVideoUrl.trim());
+    if (!parsed) {
+      return apiError(
+        "URL video tidak valid. Masukkan URL YouTube, Facebook, TikTok, Instagram, atau URL video lainnya (harus http/https).",
+        { status: 400 },
+      );
+    }
+
+    updateData.videoUrl = parsed.originalUrl;
+    updateData.platform = parsed.platform;
+    updateData.youtubeId =
+      parsed.platform === "YOUTUBE" && parsed.platformId ? parsed.platformId : null;
+
+    // Auto-update thumbnail hanya jika thumbnailUrl tidak dikirim sekaligus
     if (thumbnailUrl === undefined) {
-      updateData.thumbnailUrl = youtubeThumbnailUrl(youtubeId);
+      if (parsed.platform === "YOUTUBE" && parsed.platformId) {
+        updateData.thumbnailUrl = youtubeThumbnailUrl(parsed.platformId);
+      }
+      // Untuk platform lain, biarkan thumbnail yang sudah ada
     }
   }
 
   if (thumbnailUrl !== undefined) {
-    updateData.thumbnailUrl = sanitizeMediaUrl(thumbnailUrl) ?? youtubeThumbnailUrl(existing.youtubeId);
+    const safe = sanitizeMediaUrl(thumbnailUrl);
+    if (thumbnailUrl && !safe) {
+      return apiError("URL thumbnail tidak valid (harus http/https)", { status: 400 });
+    }
+    updateData.thumbnailUrl = safe ?? null;
   }
 
   if (status !== undefined) {
@@ -125,11 +147,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 export async function DELETE(request: NextRequest, { params }: Params) {
   const admin = await getCurrentAdmin(request);
-  if (!admin) return apiError("Admin access required" , { status: 403 });
+  if (!admin) return apiError("Admin access required", { status: 403 });
 
   const { id } = await params;
   const video = await db.video.findUnique({ where: { id } });
-  if (!video) return apiError("Video not found" , { status: 404 });
+  if (!video) return apiError("Video not found", { status: 404 });
 
   if (video.status !== "DRAFT") {
     return apiSuccess(
@@ -138,7 +160,12 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     );
   }
 
-  auditAdminEntity(admin, "video", "delete", { type: "video", id: video.id, label: video.title, href: `/admin/videos/${id}/edit` });
+  auditAdminEntity(admin, "video", "delete", {
+    type: "video",
+    id: video.id,
+    label: video.title,
+    href: `/admin/videos/${id}/edit`,
+  });
 
   await db.video.delete({ where: { id } });
 

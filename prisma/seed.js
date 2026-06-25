@@ -1015,9 +1015,18 @@ async function main() {
       video.status === "PUBLISHED"
         ? daysAgo(video.daysAgo ?? 0)
         : null;
+    const videoUrl =
+      video.videoUrl ??
+      (video.youtubeId
+        ? `https://www.youtube.com/watch?v=${video.youtubeId}`
+        : null);
+    const platform = video.platform ?? "YOUTUBE";
     const thumbnailUrl = video.useYoutubeThumbnail
       ? null
-      : `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+      : (video.thumbnailUrl ??
+        (video.youtubeId
+          ? `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`
+          : null));
 
     await prisma.video.upsert({
       where: { slug: video.slug },
@@ -1025,7 +1034,9 @@ async function main() {
         title: video.title,
         description: video.description,
         content: video.content ?? null,
-        youtubeId: video.youtubeId,
+        videoUrl,
+        platform,
+        youtubeId: platform === "YOUTUBE" ? video.youtubeId : null,
         thumbnailUrl,
         status: video.status,
         isFeatured: video.isFeatured,
@@ -1037,7 +1048,9 @@ async function main() {
         slug: video.slug,
         description: video.description,
         content: video.content ?? null,
-        youtubeId: video.youtubeId,
+        videoUrl,
+        platform,
+        youtubeId: platform === "YOUTUBE" ? video.youtubeId : null,
         thumbnailUrl,
         status: video.status,
         isFeatured: video.isFeatured,

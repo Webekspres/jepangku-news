@@ -125,7 +125,7 @@ export default function HomeReactionsSection({
         </div>
 
         {data.articles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.articles.map((article) => (
               <div key={article.id} data-testid={`reacted-article-card-${article.slug}`}>
                 <ArticleCard

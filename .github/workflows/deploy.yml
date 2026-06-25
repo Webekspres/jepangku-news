@@ -261,6 +261,17 @@ jobs:
           source .env
           set +a
 
+          PORTAL_CLIENT_ENV="\${DEPLOY_PATH}/portal-berita/.env"
+          if [ ! -f "\$PORTAL_CLIENT_ENV" ]; then
+            echo "::error::Missing \$PORTAL_CLIENT_ENV — run vps-setup-staging-clients-env.sh on VPS"
+            exit 1
+          fi
+          if [ -f deploy/scripts/vps-sync-client-env-from-core.py ]; then
+            python3 deploy/scripts/vps-sync-client-env-from-core.py \
+              --core-env "\${DEPLOY_PATH}/.env" --client portal \
+              --client-env "\$PORTAL_CLIENT_ENV"
+          fi
+
           docker pull ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
           docker run --rm \
             --network jepangku_staging_net \

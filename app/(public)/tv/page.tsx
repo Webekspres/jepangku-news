@@ -12,6 +12,11 @@ import SectionHeader from "@/components/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import type { PublicVideoSummary } from "@/lib/home/types";
+import {
+  PLATFORM_BADGE_CLASSES,
+  PLATFORM_LABELS,
+  type VideoPlatform,
+} from "@/lib/video/platform";
 
 const PER_PAGE = 12;
 
@@ -38,11 +43,18 @@ function VideoCard({ video }: { video: PublicVideoSummary }) {
             <Play size={20} fill="currentColor" className="ml-0.5" />
           </span>
         </span>
-        {video.isFeatured ? (
-          <span className="absolute left-2 top-2 rounded bg-jepang-red px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-            Featured
+        <span className="absolute left-2 top-2 flex flex-wrap gap-1">
+          <span
+            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${PLATFORM_BADGE_CLASSES[(video.platform ?? "YOUTUBE") as VideoPlatform]}`}
+          >
+            {PLATFORM_LABELS[(video.platform ?? "YOUTUBE") as VideoPlatform]}
           </span>
-        ) : null}
+          {video.isFeatured ? (
+            <span className="rounded bg-jepang-red px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              Featured
+            </span>
+          ) : null}
+        </span>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="font-heading text-base font-bold leading-snug tracking-tight line-clamp-2 group-hover:text-jepang-red transition-colors">
@@ -105,7 +117,7 @@ export default function TvArchivePage() {
       <SectionHeader
         label="テレビ / JEPANGKU TV"
         title="Jepangku TV"
-        subtitle="Video budaya, lifestyle, dan cerita Jepang dari komunitas Jepangku."
+        subtitle="Video budaya, lifestyle, dan cerita Jepang — dari YouTube, Facebook, TikTok, Instagram, dan platform lain."
       />
 
       <div className="px-4 mx-auto max-w-7xl py-12">

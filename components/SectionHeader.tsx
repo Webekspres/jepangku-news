@@ -9,6 +9,10 @@ type SectionHeaderProps = {
   bgImage?: string;
   dark?: boolean;
   className?: string;
+  /** Override gaya judul (mis. ukuran teks responsif) */
+  titleClassName?: string;
+  /** Override gaya label (mis. warna agar kontras dengan latar) */
+  labelClassName?: string;
   /** Lebar penuh tanpa max-w-7xl (mis. halaman admin) */
   fullWidth?: boolean;
   children?: ReactNode;
@@ -22,6 +26,8 @@ export default function SectionHeader({
   bgImage,
   dark = false,
   className,
+  titleClassName,
+  labelClassName,
   fullWidth = false,
   children,
 }: SectionHeaderProps) {
@@ -54,10 +60,21 @@ export default function SectionHeader({
               <div className="shrink-0 text-jepang-red">{icon}</div>
             ) : null}
             <div>
-              <p className={cn("section-label mb-2", darkMode && "text-jepang-orange")}>
+              <p
+                className={cn(
+                  "section-label mb-2",
+                  darkMode && "text-jepang-orange",
+                  labelClassName,
+                )}
+              >
                 {label}
               </p>
-              <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter mb-4">
+              <h1
+                className={cn(
+                  "font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter mb-4 max-w-4xl",
+                  titleClassName,
+                )}
+              >
                 {title}
               </h1>
             </div>

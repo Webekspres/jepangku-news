@@ -126,6 +126,9 @@ describe("API — home tv", () => {
 
       expect(data.featuredVideo.slug).toBeTruthy();
       expect(data.featuredVideo.title).toBeTruthy();
+      expect(data.featuredVideo.platform).toBe("YOUTUBE");
+      expect(data.featuredVideo.videoUrl).toMatch(/youtube\.com|youtu\.be/);
+      expect(data.featuredVideo.embedUrl).toContain("youtube.com/embed");
       expect(data.featuredVideo.youtubeId).toMatch(/^[a-zA-Z0-9_-]{11}$/);
       expect(data.featuredVideo.thumbnailUrl).toContain("youtube.com/vi/");
       expect(typeof data.featuredVideo.viewCount).toBe("number");

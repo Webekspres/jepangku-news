@@ -20,7 +20,7 @@ function TvSkeleton() {
     <LazySectionSkeleton minHeight={520} data-testid="tv-loading">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-0 overflow-hidden rounded-lg border border-jepang-border animate-pulse">
         <div className="aspect-video bg-jepang-border" />
-        <div className="bg-jepang-navy p-4 space-y-3">
+        <div className="bg-jepang-red p-4 space-y-3">
           {[0, 1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="flex gap-3">
               <div className="h-16 w-24 bg-white/10 rounded shrink-0" />
@@ -105,7 +105,7 @@ function SidebarItem({ video }: { video: PublicVideoSummary }) {
           {video.title}
         </p>
         {video.viewCount > 0 ? (
-          <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+          <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-white/70">
             {video.viewCount.toLocaleString("id-ID")} views
           </p>
         ) : null}
@@ -214,9 +214,9 @@ export default function JepangkuTvSection({
             </div>
 
             {sidebarVideos.length > 0 ? (
-              <aside className="bg-jepang-navy lg:border-l border-jepang-border">
-                <div className="border-b border-white/10 px-4 py-3">
-                  <p className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">
+              <aside className="bg-jepang-red lg:border-l border-jepang-border">
+                <div className="border-b border-white/15 px-4 py-3">
+                  <p className="text-xs font-mono font-bold uppercase tracking-wider text-white/80">
                     Video Terbaru
                   </p>
                 </div>

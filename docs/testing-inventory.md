@@ -113,11 +113,12 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 
 | # | Fitur | Entry point | Verifikasi | Functional test |
 | :-: | :--- | :--- | :---: | :--- |
-| 6.1 | Daftar video | `/tv` | ✅ | [x] Grid video |
-| 6.2 | Detail video | `/tv/[slug]` | ✅ | [x] Lazy YouTube embed |
-| 6.3 | API video publik | `GET /api/videos`, `/[slug]` | ✅ | [x] Data lengkap |
+| 6.1 | Daftar video | `/tv` | ✅ | [x] Grid video + badge platform |
+| 6.2 | Detail video | `/tv/[slug]` | ✅ | [x] Lazy embed (YT/FB/TikTok) · link-out (IG/Other) |
+| 6.3 | API video publik | `GET /api/videos`, `/[slug]` | ✅ | [x] `platform`, `videoUrl`, `embedUrl` |
 | 6.4 | Homepage TV section | Wave 3 lazy | ✅ `GET /api/home/tv` | [x] Load on scroll |
-| 6.5 | Admin CRUD video | `/admin/videos/**` 👑 | ✅ | [x] Create/edit/delete |
+| 6.5 | Admin CRUD video | `/admin/videos/**` 👑 | ✅ | [x] URL multi-platform · deteksi real-time |
+| 6.6 | Migrasi multi-platform | `prisma/migrations/20260625100000_*` | ✅ | [x] Backfill `video_url` dari `youtube_id` |
 
 ---
 
@@ -327,7 +328,7 @@ Dokumen ini menjadi dasar **functional testing** (perilaku fitur) dan **non-func
 | P2 | LCP homepage featured | `fetchPriority=high` | Verified via `verify:non-functional` + manual QA | [x] |
 | P3 | Homepage wave lazy | scroll sections | Wave 1 only on load — manual QA + `verify:home` | [x] |
 | P4 | Image formats | AVIF/WebP + `sizes` | `next.config.ts` + CardCoverImage | [x] |
-| P5 | YouTube lazy embed | `/tv/[slug]` | `LazyYoutubeEmbed` click-to-play | [x] |
+| P5 | Video lazy embed | `/tv/[slug]` | `LazyVideoEmbed` click-to-play (YT/FB/TikTok) | [x] |
 | P6 | API cache headers | home APIs | `s-maxage` + SWR on home wave APIs | [x] |
 
 ### 20.2 Keamanan
