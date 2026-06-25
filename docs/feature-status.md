@@ -95,7 +95,10 @@
 
 [x] Model `Video`, admin `/admin/videos`, `/tv`, `/tv/[slug]`  
 [x] `GET /api/home/tv` — Wave 3 lazy homepage  
-[x] Lazy-load YouTube embed (`LazyYoutubeEmbed`)
+[x] Multi-platform embed — YouTube, Facebook, TikTok (iframe); Instagram & URL lain (link-out)  
+[x] `lib/video/platform.ts` — deteksi platform + `parseVideoUrl`  
+[x] Lazy embed click-to-play (`LazyVideoEmbed`) · wrapper YouTube (`LazyYoutubeEmbed`)  
+[x] Kolom DB `video_url` + `platform` (migrasi backfill dari `youtube_id`)
 
 ### §7 Engagement & interaksi
 
@@ -361,13 +364,14 @@
 [x] **5.4** Admin CRUD — builder · gambar opsi  
 [x] **5.5** Analytics — breakdown vote
 
-### §6 Video — Jepangku TV *(5 fitur · 5 kondisi)*
+### §6 Video — Jepangku TV *(5 fitur · 6 kondisi)*
 
-[x] **6.1** `/tv` — grid video  
-[x] **6.2** Detail — lazy YouTube embed  
-[x] **6.3** API video — data lengkap  
+[x] **6.1** `/tv` — grid video + badge platform  
+[x] **6.2** Detail — lazy embed (YouTube/Facebook/TikTok) atau link-out (Instagram/Other)  
+[x] **6.3** API video — `platform`, `videoUrl`, `embedUrl` + backward-compat `youtubeId`  
 [x] **6.4** Homepage TV — load on scroll  
-[x] **6.5** Admin CRUD video — create/edit/delete
+[x] **6.5** Admin CRUD video — URL multi-platform, deteksi real-time  
+[x] **6.6** Migrasi DB — `video_url` + `platform`, backfill dari `youtube_id`
 
 ### §7 Engagement & interaksi *(10 fitur · 11 kondisi)*
 

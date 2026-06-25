@@ -8,7 +8,7 @@ import ArticleDetailHero from "@/components/articles/ArticleDetailHero";
 import ArticleSidebarAd from "@/components/articles/ArticleSidebarAd";
 import CommentSection from "@/components/CommentSection";
 import ReactionBar from "@/components/ReactionBar";
-import LazyYoutubeEmbed from "@/components/video/LazyYoutubeEmbed";
+import LazyVideoEmbed from "@/components/video/LazyVideoEmbed";
 import VideoBreadcrumb from "@/components/videos/VideoBreadcrumb";
 import VideoDetailMetaBar from "@/components/videos/VideoDetailMetaBar";
 import type { PublicVideoSummary } from "@/lib/home/types";
@@ -46,8 +46,10 @@ export default function VideoDetailClient({ slug }: VideoDetailClientProps) {
 
             {!isLoading && video ? (
               <div className="mb-8 overflow-hidden rounded-lg border border-jepang-border shadow-jepang">
-                <LazyYoutubeEmbed
-                  youtubeId={video.youtubeId}
+                <LazyVideoEmbed
+                  platform={(video.platform ?? "YOUTUBE") as import("@/lib/video/platform").VideoPlatform}
+                  embedUrl={video.embedUrl ?? null}
+                  videoUrl={video.videoUrl ?? `https://www.youtube.com/watch?v=${video.youtubeId}`}
                   title={video.title}
                   thumbnailUrl={video.thumbnailUrl}
                 />

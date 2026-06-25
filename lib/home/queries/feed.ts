@@ -7,7 +7,7 @@ import { getJakartaDayBounds } from "@/lib/home/jakarta-day";
 import type { HomeFeedResponse } from "@/lib/home/types";
 
 const TODAY_MIN_COUNT = 3;
-const TODAY_TAKE = 6;
+const TODAY_TAKE = 12;
 
 export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
   const { start, end } = getJakartaDayBounds();
@@ -40,7 +40,7 @@ export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
           NOT: { isFeatured: true },
         },
         orderBy: { publishedAt: "desc" },
-        take: 7,
+        take: TODAY_TAKE,
         include: homeArticleInclude,
       }),
     ]);

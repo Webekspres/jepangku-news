@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
       orderBy = { viewCount: "desc" };
     } else if (sort === "trending") {
       orderBy = { weeklyViewCount: "desc" };
+    } else if (sort === "reactions") {
+      orderBy = { totalReactionCount: "desc" };
     }
 
     const [articles, total] = await Promise.all([

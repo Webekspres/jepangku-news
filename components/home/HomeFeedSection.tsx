@@ -65,15 +65,17 @@ export default function HomeFeedSection({
       dragged: false,
     };
     setIsDragging(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handleCarouselPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragStateRef.current.active) return;
 
     const delta = event.clientX - dragStateRef.current.startX;
-    if (Math.abs(delta) > 5) {
+    if (Math.abs(delta) > 5 && !dragStateRef.current.dragged) {
       dragStateRef.current.dragged = true;
+      // Capture the pointer only once a real drag begins, otherwise a plain
+      // tap stays retargeted to the card link so navigation keeps working.
+      event.currentTarget.setPointerCapture(event.pointerId);
     }
     setDragOffset(delta);
   };

@@ -44,7 +44,7 @@ export default function AdminSidebar({ onNavigate, className }: AdminSidebarProp
       <div className="shrink-0 border-b border-jepang-border px-4 py-5 flex flex-col items-center justify-center">
         <Link href="/admin" className="flex items-center gap-3" onClick={onNavigate}>
           <AssetImage
-            src="/assets/images/logo/Logo-03.svg"
+            src="/assets/images/logo/Logo-04.svg"
             alt="Jepangku"
             width={120}
             height={40}

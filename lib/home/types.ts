@@ -73,7 +73,14 @@ export type PublicVideoSummary = {
   slug: string;
   description: string | null;
   content?: string;
-  youtubeId: string;
+  /** Platform video: YOUTUBE | FACEBOOK | TIKTOK | INSTAGRAM | OTHER */
+  platform: string;
+  /** URL embed iframe. Null untuk Instagram / Other — gunakan videoUrl untuk link-out. */
+  embedUrl: string | null;
+  /** URL video asli */
+  videoUrl: string;
+  /** YouTube ID (hanya untuk YouTube; null untuk platform lain) */
+  youtubeId: string | null;
   thumbnailUrl: string;
   publishedAt: string | null;
   viewCount: number;

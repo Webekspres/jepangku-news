@@ -63,11 +63,17 @@ describe("API — videos", () => {
         slug: string;
         title: string;
         content: string;
-        youtubeId: string;
+        platform: string;
+        videoUrl: string;
+        embedUrl: string | null;
+        youtubeId: string | null;
         thumbnailUrl: string;
         viewCount: number;
       };
       expect(video.slug).toBe(publishedSlug);
+      expect(video.platform).toBe("YOUTUBE");
+      expect(video.videoUrl).toMatch(/youtube\.com|youtu\.be/);
+      expect(video.embedUrl).toContain("youtube.com/embed");
       expect(video.youtubeId).toMatch(/^[a-zA-Z0-9_-]{11}$/);
       expect(video.thumbnailUrl).toContain("youtube.com/vi/");
       expect(typeof video.content).toBe("string");

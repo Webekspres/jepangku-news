@@ -65,7 +65,7 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
           type="email"
           name="email"
           autoComplete="email"
-          placeholder="email@contoh.com"
+          placeholder="email@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={submitting}
@@ -76,7 +76,7 @@ export default function FooterNewsletterForm({ defaultEmail = "" }: FooterNewsle
         <Button
           type="submit"
           disabled={submitting}
-          className="bg-jepang-orange text-white hover:bg-jepang-orange/90"
+          className="bg-jepang-yellow text-jepang-navy font-semibold hover:bg-jepang-yellow/90"
           data-testid="newsletter-submit"
         >
           {submitting ? (

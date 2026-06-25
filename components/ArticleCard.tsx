@@ -72,7 +72,7 @@ export default function ArticleCard({
           )}
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-          <h2 className="font-heading font-black text-3xl md:text-5xl tracking-tighter mb-3 group-hover:text-jepang-red transition-colors">
+          <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter mb-3 group-hover:text-jepang-yellow transition-colors">
             <Link
               href={`/articles/${article.slug}`}
               className="after:absolute after:inset-0 after:z-10"
@@ -141,8 +141,8 @@ export default function ArticleCard({
   if (variant === "grid") {
     return (
       <div className="group relative block h-full">
-        <motion.div whileHover={{ borderColor: "var(--color-jepang-navy)" }} transition={{ duration: 0.2 }}>
-          <Card className="group h-full overflow-hidden border border-jepang-border bg-white">
+        <motion.div className="h-full" whileHover={{ borderColor: "var(--color-jepang-navy)" }} transition={{ duration: 0.2 }}>
+          <Card className="group flex h-full flex-col overflow-hidden border border-jepang-border bg-white">
             <div className="relative aspect-5/3 overflow-hidden bg-jepang-off-white">
               <MotionHoverScale className="relative h-full w-full">
                 <CardCoverImage
@@ -154,7 +154,7 @@ export default function ArticleCard({
                 />
               </MotionHoverScale>
             </div>
-            <CardContent className="p-2.5">
+            <CardContent className="flex flex-1 flex-col p-2.5">
               <div className="mb-1.5 flex flex-wrap items-center gap-1">
                 {article.category ? (
                   <Badge className="px-1.5 py-0 text-[9px]">{article.category.name}</Badge>
@@ -179,7 +179,7 @@ export default function ArticleCard({
                   {article.excerpt}
                 </p>
               ) : null}
-              <div className="relative z-20 mt-2 flex items-center justify-between border-t border-jepang-border pt-1.5 text-[9px] font-mono uppercase tracking-wider text-jepang-muted">
+              <div className="relative z-20 mt-auto flex items-center justify-between border-t border-jepang-border pt-1.5 text-[9px] font-mono uppercase tracking-wider text-jepang-muted">
                 <AuthorLink
                   username={article.author?.username}
                   className="max-w-[58%] truncate hover:text-jepang-red"
@@ -199,8 +199,8 @@ export default function ArticleCard({
 
   return (
     <div className="group block relative h-full">
-      <motion.div whileHover={{ borderColor: "var(--color-jepang-navy)" }} transition={{ duration: 0.2 }}>
-      <Card className="group h-full overflow-hidden bg-white border border-jepang-border relative">
+      <motion.div className="h-full" whileHover={{ borderColor: "var(--color-jepang-navy)" }} transition={{ duration: 0.2 }}>
+      <Card className="group flex h-full flex-col overflow-hidden bg-white border border-jepang-border relative">
         <div className="relative aspect-16/10 overflow-hidden bg-jepang-off-white">
           <MotionHoverScale className="relative h-full w-full">
             <CardCoverImage
@@ -211,16 +211,18 @@ export default function ArticleCard({
               quality={75}
             />
           </MotionHoverScale>
+          {reactionBadge ? (
+            <Badge
+              variant="yellow"
+              className="absolute left-3 top-3 z-20 inline-flex items-center gap-1 uppercase shadow-md"
+            >
+              <ReactionIcon src={reactionBadge.iconSrc} size={26} />
+            </Badge>
+          ) : null}
         </div>
-        <CardContent className="p-5">
+        <CardContent className="flex flex-1 flex-col p-5">
           <div className="flex items-center gap-2 mb-3">
             {article.category && <Badge>{article.category.name}</Badge>}
-            {reactionBadge ? (
-              <Badge variant="red" className="inline-flex items-center gap-1">
-                <ReactionIcon src={reactionBadge.iconSrc} size={14} />
-                {reactionBadge.label}
-              </Badge>
-            ) : null}
             {isHot && <Badge variant="red">HOT</Badge>}
           </div>
           <h3 className="font-heading font-bold text-xl tracking-tight mb-2 group-hover:text-jepang-red transition-colors line-clamp-2">
@@ -237,7 +239,7 @@ export default function ArticleCard({
               {article.excerpt}
             </p>
           )}
-          <div className="pt-3 border-t border-jepang-border flex items-center justify-between text-xs text-jepang-muted font-mono uppercase tracking-wider relative z-20">
+          <div className="mt-auto pt-3 border-t border-jepang-border flex items-center justify-between text-xs text-jepang-muted font-mono uppercase tracking-wider relative z-20">
             <AuthorLink username={article.author?.username} className="hover:text-jepang-red">
               {article.author?.name || "Jepangku"}
             </AuthorLink>

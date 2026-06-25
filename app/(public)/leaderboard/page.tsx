@@ -19,6 +19,9 @@ import {
   type LeaderboardPeriod,
 } from "@/lib/leaderboard/period";
 import type { LeaderboardEntry } from "@/lib/leaderboard/types";
+import LeaderboardSidebar from "@/components/leaderboard/LeaderboardSidebar";
+import RecommendedArticlesSection from "@/components/leaderboard/RecommendedArticlesSection";
+import RecommendedQuizzesSection from "@/components/leaderboard/RecommendedQuizzesSection";
 
 const PERIOD_OPTIONS: LeaderboardPeriod[] = ["weekly", "monthly", "sepanjang-waktu"];
 const LEADERBOARD_TOP_LIMIT = 10;
@@ -67,9 +70,9 @@ export default function LeaderboardPage() {
         subtitle={PERIOD_SUBTITLES[period]}
       />
 
-      {/* tambahkan aside yang isinya ajakan untuk bergabung di jepangku jika belum terautentikasi jika sudah terautentikasi tampilkan ajakan menambah poin dengan menampilkan rekomendasi artikel, kuis dan polling, dibawah itu tampilkan iklan */}
-
       <div className="px-4 mx-auto max-w-7xl py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <main className="min-w-0">
         <div className="max-w-3xl mx-auto mb-8">
           <div
             className="flex flex-wrap gap-2 border border-jepang-border p-1 bg-jepang-off-white"
@@ -84,7 +87,7 @@ export default function LeaderboardPage() {
                 aria-selected={period === option}
                 onClick={() => setPeriod(option)}
                 data-state={period === option ? "active" : "inactive"}
-                className={`flex-1 min-w-28 px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
+                className={`flex-1 min-w-28 px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
                   period === option
                     ? "bg-jepang-red text-white"
                     : "text-jepang-muted hover:text-foreground hover:bg-white"
@@ -118,7 +121,7 @@ export default function LeaderboardPage() {
                   </div>
                 ))}
               </div>
-              <Card className="border border-foreground">
+              <Card className="overflow-hidden border border-foreground">
                 <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em]">
                     SEMUA PERINGKAT
@@ -204,7 +207,7 @@ export default function LeaderboardPage() {
                 </div>
               )}
 
-              <Card className="border border-foreground">
+              <Card className="overflow-hidden border border-foreground">
                 <CardHeader className="border-b border-jepang-border bg-jepang-off-white py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-center">
                     TOP {LEADERBOARD_TOP_LIMIT} — {LEADERBOARD_PERIOD_LABELS[period]}
@@ -247,7 +250,27 @@ export default function LeaderboardPage() {
             </div>
           )}
         </div>
+          </main>
+
+          {/* Sidebar */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <LeaderboardSidebar />
+            </div>
+          </aside>
+        </div>
+
+        {/* Mobile Sidebar */}
+        <div className="lg:hidden mt-8">
+          <LeaderboardSidebar />
+        </div>
       </div>
+
+      {/* Rekomendasi Artikel Trending */}
+      <RecommendedArticlesSection />
+
+      {/* Rekomendasi Kuis Berhadiah */}
+      <RecommendedQuizzesSection />
     </div>
   );
 }

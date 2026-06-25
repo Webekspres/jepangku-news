@@ -59,6 +59,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "static.prod-images.emergentagent.com" },
       { protocol: "https", hostname: "img.youtube.com" },
+      // Facebook video thumbnails
+      { protocol: "https", hostname: "**.fbcdn.net" },
+      { protocol: "https", hostname: "**.facebook.com" },
+      // TikTok video thumbnails
+      { protocol: "https", hostname: "**.tiktokcdn.com" },
+      { protocol: "https", hostname: "**.tiktokcdn-us.com" },
+      // Instagram thumbnails (CDN)
+      { protocol: "https", hostname: "**.cdninstagram.com" },
+      { protocol: "https", hostname: "**.instagram.com" },
     ],
   },
   allowedDevOrigins: [
