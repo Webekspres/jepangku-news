@@ -1,4 +1,4 @@
-export const SITE_BRAND_NAME = "jepangKu";
+export const SITE_BRAND_NAME = "JepangKu";
 export const SITE_DEFAULT_TITLE = `${SITE_BRAND_NAME} | Pusat Ekosistem Jepang`;
 export const SITE_TITLE_TEMPLATE = `%s | ${SITE_BRAND_NAME}`;
 export const SITE_DEFAULT_DESCRIPTION =

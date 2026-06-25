@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",
+    "@clerk/localizations": "^4.10.0",
     "@clerk/nextjs": "^7.4.3",
     "@hookform/resolvers": "5.0.1",
     "@prisma/adapter-pg": "^7.8.0",
@@ -91,6 +92,7 @@
     "sonner": "2.0.3",
     "tailwind-merge": "3.2.0",
     "tailwindcss-animate": "1.0.7",
+    "tiptap-markdown": "^0.9.0",
     "vaul": "1.1.2",
     "ws": "^8.21.0",
     "zod": "^3.25.76"

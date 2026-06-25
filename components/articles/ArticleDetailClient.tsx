@@ -71,11 +71,13 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
               onShared={handleShareComplete}
             />
 
-            <ArticleCoverImage
-              isLoading={isLoading}
-              src={article?.coverImageUrl}
-              alt={article?.title ?? "Cover artikel"}
-            />
+            <div className="flex justify-center">
+              <ArticleCoverImage
+                isLoading={isLoading}
+                src={article?.coverImageUrl}
+                alt={article?.title ?? "Cover artikel"}
+              />
+            </div>
 
             <ArticleDetailContent
               ref={contentRef}

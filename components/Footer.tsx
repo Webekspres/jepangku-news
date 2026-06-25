@@ -35,7 +35,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
           <div className="col-span-2 md:col-span-3">
             <div className="flex flex-col items-center md:items-start">
               <AssetImage
-                src="/assets/images/logo/Logo-02-dark.svg"
+                src="/assets/images/logo/logo-02-dark.svg"
                 alt="Jepangku"
                 width={160}
                 height={48}
@@ -45,7 +45,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
               <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm">
                 JepangKu - Jepang versi kamu! 
               </p>
-              <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm text-center md:items-start">
+              <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm text-center md:text-start">
                 Portal media interaktif bertema Jepang untuk pembaca Indonesia, menghadirkan berita terbaru, artikel menarik, dan berbagai informasi seputar budaya, hiburan, lifestyle, hingga edukasi bahasa Jepang.
               </p>
               <div className="w-full max-w-sm">
@@ -56,7 +56,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
             </div>
           </div>
           <div>
-            <p className="section-label text-jepang-yellow! mb-3">Kategori</p>
+            <p className="section-label text-jepang-yellow! mb-3 text-lg">Kategori</p>
             <ul className="space-y-2 text-sm">
               {NAV_CATEGORIES.map((cat) => (
                 <li key={cat.slug}>

@@ -219,7 +219,8 @@
 
 [x] `POST /api/upload` — R2 + validasi MIME/size + moderasi  
 [x] `lib/r2.ts`, `lib/image-moderation.ts`  
-[x] `RichTextEditor` — embed gambar · `ArticleFigure` lazy load
+[x] `RichTextEditor` — embed gambar · `ArticleFigure` lazy load  
+[x] Paste markdown → auto-format (`tiptap-markdown`, `transformPastedText`)
 
 ### §20 Non-functional & QA
 
@@ -508,7 +509,7 @@
 [x] **19.1** Upload — validasi MIME/size  
 [x] **19.2** R2 — URL publik accessible  
 [x] **19.3** Image moderation — tolak konten tidak aman  
-[x] **19.4** Rich text editor — embed gambar
+[x] **19.4** Rich text editor — embed gambar · paste markdown auto-format
 
 ### §20 Non-functional *(29 kondisi)*
 

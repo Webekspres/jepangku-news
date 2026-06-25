@@ -49,7 +49,7 @@ function LoginForm() {
               className="font-heading font-black tracking-tighter"
             >
               <AssetImage
-                src="/assets/images/logo/Logo-01.svg"
+                src="/assets/images/logo/logo-01.svg"
                 alt="Jepangku Logo"
                 width={180}
                 height={18}

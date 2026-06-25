@@ -180,7 +180,7 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
             data-testid="lms-nihongo-logo-link"
           >
             <AssetImage
-              src="/assets/images/logo/Logo-Nihongo.svg"
+              src="/assets/images/logo/logo-nihongo.svg"
               alt="Jepangku Nihongo LMS"
               width={400}
               height={98}
