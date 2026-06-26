@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter, useParams } from "next/navigation";
+import {
+  commitStagedUrl,
+  deleteMediaFile,
+  stageFile,
+} from "@/lib/upload-media";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, X } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
@@ -50,24 +55,13 @@ interface QuizForm {
 }
 
 /* ─── Image upload helper ────────────────────────────── */
+// Files are staged locally (no upload) until the quiz is saved, so swapping
+// images repeatedly never leaves orphans in the R2 bucket.
 function useImageUpload() {
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploading] = useState<Record<string, boolean>>({});
   const upload = useCallback(
-    async (file: File, key: string, onSuccess: (url: string) => void) => {
-      setUploading((p) => ({ ...p, [key]: true }));
-      try {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        if (!res.ok) throw new Error("Upload gagal");
-        const data = await parseApiResponse(res);
-        onSuccess(data.url);
-        toast.success("Gambar berhasil diupload");
-      } catch {
-        toast.error("Upload gagal");
-      } finally {
-        setUploading((p) => ({ ...p, [key]: false }));
-      }
+    async (file: File, _key: string, onSuccess: (url: string) => void) => {
+      onSuccess(stageFile(file, "content"));
     },
     [],
   );
@@ -144,6 +138,8 @@ export default function AdminEditQuizPage() {
 
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
+  // Image URLs that exist in R2 at load time; any dropped on save is deleted.
+  const originalImageUrls = useRef<string[]>([]);
 
   const [form, setForm] = useState<QuizForm>({
     title: "",
@@ -194,6 +190,16 @@ export default function AdminEditQuizPage() {
             })),
           );
         }
+
+        const urls: string[] = [];
+        if (data.thumbnailUrl) urls.push(data.thumbnailUrl);
+        for (const q of data.questions ?? []) {
+          if (q.imageUrl) urls.push(q.imageUrl);
+          for (const o of q.options ?? []) {
+            if (o.imageUrl) urls.push(o.imageUrl);
+          }
+        }
+        originalImageUrls.current = urls;
       } catch (e: any) {
         toast.error(e.message || "Gagal memuat data kuis");
         router.push("/admin/quizzes");
@@ -257,32 +263,39 @@ export default function AdminEditQuizPage() {
 
     setLoading(true);
     try {
+      const thumbnailUrl = (await commitStagedUrl(form.thumbnail_url)) || null;
+      const committedQuestions = await Promise.all(
+        questions.map(async (q, i) => ({
+          id: q.id,
+          question_text: q.question_text,
+          image_url: (await commitStagedUrl(q.image_url)) || null,
+          sort_order: i,
+          options: await Promise.all(
+            q.options.map(async (o, j) => ({
+              id: o.id,
+              option_text: o.option_text,
+              image_url: (await commitStagedUrl(o.image_url)) || null,
+              is_correct: o.is_correct,
+              sort_order: j,
+            })),
+          ),
+        })),
+      );
+
       const res = await fetch(`/api/admin/quizzes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: form.title,
           description: form.description || null,
-          thumbnailUrl: form.thumbnail_url || null,
+          thumbnailUrl,
           quizType: form.quiz_type,
           status: form.status,
           pointsReward: form.points_reward,
           correctAnswerPoints: form.correct_answer_points,
           allowRetry: form.allow_retry,
           showResultImmediately: form.show_result_immediately,
-          questions: questions.map((q, i) => ({
-            id: q.id,
-            question_text: q.question_text,
-            image_url: q.image_url || null,
-            sort_order: i,
-            options: q.options.map((o, j) => ({
-              id: o.id,
-              option_text: o.option_text,
-              image_url: o.image_url || null,
-              is_correct: o.is_correct,
-              sort_order: j,
-            })),
-          })),
+          questions: committedQuestions,
         }),
       });
 
@@ -290,6 +303,18 @@ export default function AdminEditQuizPage() {
         const e = await parseApiResponse(res);
         throw new Error(e.error);
       }
+
+      // Remove R2 objects that are no longer referenced after this save.
+      const finalUrls = new Set<string>();
+      if (thumbnailUrl) finalUrls.add(thumbnailUrl);
+      for (const q of committedQuestions) {
+        if (q.image_url) finalUrls.add(q.image_url);
+        for (const o of q.options) if (o.image_url) finalUrls.add(o.image_url);
+      }
+      for (const url of originalImageUrls.current) {
+        if (!finalUrls.has(url)) deleteMediaFile(url).catch(() => {});
+      }
+      originalImageUrls.current = Array.from(finalUrls);
 
       toast.success("Kuis berhasil diperbarui");
       router.push("/admin/quizzes");

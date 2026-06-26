@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter, useParams } from "next/navigation";
+import {
+  commitStagedUrl,
+  deleteMediaFile,
+  stageFile,
+} from "@/lib/upload-media";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
@@ -37,24 +42,13 @@ interface PollQuestion {
 }
 
 /* ─── Image upload hook ──────────────────────────────── */
+// Files are staged locally (no upload) until the poll is saved, so swapping
+// images repeatedly never leaves orphans in the R2 bucket.
 function useImageUpload() {
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploading] = useState<Record<string, boolean>>({});
   const upload = useCallback(
-    async (file: File, key: string, onSuccess: (url: string) => void) => {
-      setUploading((p) => ({ ...p, [key]: true }));
-      try {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        if (!res.ok) throw new Error("Upload gagal");
-        const data = await parseApiResponse(res);
-        onSuccess(data.url);
-        toast.success("Gambar berhasil diupload");
-      } catch {
-        toast.error("Upload gagal");
-      } finally {
-        setUploading((p) => ({ ...p, [key]: false }));
-      }
+    async (file: File, _key: string, onSuccess: (url: string) => void) => {
+      onSuccess(stageFile(file, "content"));
     },
     [],
   );
@@ -127,6 +121,8 @@ export default function AdminEditPollPage() {
 
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
+  // Image URLs that exist in R2 at load time; any dropped on save is deleted.
+  const originalImageUrls = useRef<string[]>([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -174,6 +170,16 @@ export default function AdminEditPollPage() {
             })),
           );
         }
+
+        const urls: string[] = [];
+        if (data.thumbnailUrl) urls.push(data.thumbnailUrl);
+        for (const q of data.questions ?? []) {
+          if (q.imageUrl) urls.push(q.imageUrl);
+          for (const o of q.options ?? []) {
+            if (o.imageUrl) urls.push(o.imageUrl);
+          }
+        }
+        originalImageUrls.current = urls;
       } catch (e: any) {
         toast.error(e.message || "Gagal memuat data polling");
         router.push("/admin/polls");
@@ -231,6 +237,24 @@ export default function AdminEditPollPage() {
 
     setLoading(true);
     try {
+      const thumbnailUrl = (await commitStagedUrl(form.thumbnail_url)) || null;
+      const committedQuestions = await Promise.all(
+        questions.map(async (q, qi) => ({
+          id: q.id,
+          questionText: q.questionText,
+          imageUrl: (await commitStagedUrl(q.imageUrl)) || null,
+          sortOrder: qi,
+          options: await Promise.all(
+            q.options.map(async (o, oi) => ({
+              id: o.id,
+              optionText: o.optionText,
+              imageUrl: (await commitStagedUrl(o.imageUrl)) || null,
+              sortOrder: oi,
+            })),
+          ),
+        })),
+      );
+
       const res = await fetch(`/api/admin/polls/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -238,23 +262,12 @@ export default function AdminEditPollPage() {
           title: form.title,
           description: form.description || null,
           pollType: form.poll_type,
-          thumbnailUrl: form.thumbnail_url || null,
+          thumbnailUrl,
           status: form.status,
           pointsReward: form.points_reward,
           allowGuestVote: form.allow_guest_vote,
           showResultBeforeVote: form.show_result_before_vote,
-          questions: questions.map((q, qi) => ({
-            id: q.id,
-            questionText: q.questionText,
-            imageUrl: q.imageUrl || null,
-            sortOrder: qi,
-            options: q.options.map((o, oi) => ({
-              id: o.id,
-              optionText: o.optionText,
-              imageUrl: o.imageUrl || null,
-              sortOrder: oi,
-            })),
-          })),
+          questions: committedQuestions,
         }),
       });
 
@@ -262,6 +275,17 @@ export default function AdminEditPollPage() {
         const e = await parseApiResponse(res);
         throw new Error(e.error);
       }
+
+      const finalUrls = new Set<string>();
+      if (thumbnailUrl) finalUrls.add(thumbnailUrl);
+      for (const q of committedQuestions) {
+        if (q.imageUrl) finalUrls.add(q.imageUrl);
+        for (const o of q.options) if (o.imageUrl) finalUrls.add(o.imageUrl);
+      }
+      for (const url of originalImageUrls.current) {
+        if (!finalUrls.has(url)) deleteMediaFile(url).catch(() => {});
+      }
+      originalImageUrls.current = Array.from(finalUrls);
 
       toast.success("Polling berhasil diperbarui");
       router.push("/admin/polls");

@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
 import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
@@ -25,67 +25,70 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import {
   useAutosave,
-  type ArticleDraftInfo,
+  newDraftClientId,
   type ArticleFormSnapshot,
+  type StoredDraft,
 } from "@/hooks/useAutosave";
-import { uploadMediaFile } from "@/lib/upload-media";
+import { useStagedImage } from "@/hooks/useStagedImage";
+import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
   isAdminAuthor,
   submitSuccessMessage,
   userPortalCreateSubtitle,
 } from "@/lib/article-workflow";
 
+const STORAGE_KEY = "jepangku:draft:user-submit-article";
+const DRAFT_ENDPOINT = "/api/articles/create";
+
 // ---------------------------------------------------------------------------
-// API helpers
+// API helpers — every write is an idempotent upsert keyed by the client id.
 // ---------------------------------------------------------------------------
 
-async function apiCreateDraft(data: ArticleFormSnapshot): Promise<ArticleDraftInfo> {
-  const res = await fetch("/api/articles/create", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: data.title,
-      excerpt: data.excerpt,
-      content: data.content,
-      coverImageUrl: data.coverImageUrl || null,
-      categoryId: data.categoryId || null,
-      tags: data.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-      status: "DRAFT",
-    }),
-  });
-  if (!res.ok) {
-    const e = await parseApiResponse(res);
-    throw new Error(e.error || "Gagal membuat draft");
-  }
-  const article = await parseApiResponse(res);
-  return { id: article.id, slug: article.slug };
+function buildDraftPayload(
+  clientId: string,
+  data: ArticleFormSnapshot,
+  status: string,
+) {
+  return {
+    id: clientId,
+    title: data.title,
+    excerpt: data.excerpt,
+    content: data.content,
+    coverImageUrl: data.coverImageUrl || null,
+    categoryId: data.categoryId || null,
+    tags: data.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean),
+    status,
+  };
 }
 
-async function apiUpdateDraft(
-  id: string,
+async function flushDraft(
+  clientId: string,
   data: ArticleFormSnapshot,
 ): Promise<void> {
-  const res = await fetch(`/api/articles/drafts/${id}`, {
-    method: "PATCH",
+  const res = await fetch(DRAFT_ENDPOINT, {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      title: data.title,
-      excerpt: data.excerpt,
-      content: data.content,
-      coverImageUrl: data.coverImageUrl || null,
-      categoryId: data.categoryId || null,
-      tags: data.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-    }),
+    body: JSON.stringify(buildDraftPayload(clientId, data, "DRAFT")),
   });
   if (!res.ok) {
     const e = await parseApiResponse(res);
     throw new Error(e.error || "Gagal menyimpan draft");
+  }
+}
+
+function beaconDraft(clientId: string, data: ArticleFormSnapshot): void {
+  try {
+    const blob = new Blob(
+      [JSON.stringify(buildDraftPayload(clientId, data, "DRAFT"))],
+      { type: "application/json" },
+    );
+    navigator.sendBeacon(DRAFT_ENDPOINT, blob);
+  } catch {
+    /* best effort */
   }
 }
 
@@ -108,7 +111,14 @@ export default function SubmitArticlePage() {
     tags: "",
   });
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [clientId, setClientId] = useState(newDraftClientId);
+  const [restoreRecord, setRestoreRecord] = useState<StoredDraft | null>(null);
+
+  const cover = useStagedImage({
+    value: form.coverImageUrl,
+    onValueChange: (url) => setForm((f) => ({ ...f, coverImageUrl: url })),
+    purpose: "cover",
+  });
 
   // Redirect if not logged in
   useEffect(() => {
@@ -121,35 +131,48 @@ export default function SubmitArticlePage() {
       .then((d) => setCategories(Array.isArray(d) ? d : []));
   }, []);
 
-  // Stable callbacks for useAutosave (wrapped in useCallback so the refs
-  // inside the hook stay current without the hook re-subscribing).
-  const createDraft = useCallback(apiCreateDraft, []);
-  const updateDraft = useCallback(apiUpdateDraft, []);
+  const {
+    status: autosaveStatus,
+    lastSavedAt,
+    draftId,
+    loadStored,
+    restore,
+    clearStored,
+    markSaved,
+  } = useAutosave({
+    data: form,
+    clientId,
+    storageKey: STORAGE_KEY,
+    flushDraft,
+    beaconFlush: beaconDraft,
+    disabled: loading,
+  });
 
-  const { status: autosaveStatus, lastSavedAt, draftId, setDraftInfo, getDraftId } =
-    useAutosave({
-      data: form,
-      createDraft,
-      updateDraft,
-      debounceMs: 3000,
-      disabled: loading,
-    });
+  // Offer to recover a locally-saved draft from a previous session.
+  useEffect(() => {
+    const stored = loadStored();
+    if (stored) setRestoreRecord(stored);
+  }, [loadStored]);
+
+  const applyRestore = () => {
+    if (!restoreRecord) return;
+    setForm(restoreRecord.data);
+    setClientId(restoreRecord.clientId);
+    restore(restoreRecord);
+    setRestoreRecord(null);
+  };
+
+  const declineRestore = () => {
+    clearStored();
+    setRestoreRecord(null);
+  };
 
   // -------------------------------------------------------------------------
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const data = await uploadMediaFile(file, "cover");
-      setForm((f) => ({ ...f, coverImageUrl: data.url }));
-      toast.success("Gambar berhasil diupload");
-    } catch {
-      toast.error("Upload gagal");
-    } finally {
-      setUploading(false);
-    }
+    if (file) cover.selectFile(file);
+    e.target.value = "";
   };
 
   const handleSubmit = async (status: string) => {
@@ -159,46 +182,30 @@ export default function SubmitArticlePage() {
     }
     setLoading(true);
 
-    const draftId = getDraftId();
     const parsedTags = form.tags
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
 
     try {
-      let res: Response;
+      const coverImageUrl = (await cover.commit()) || null;
 
-      if (draftId) {
-        // A draft already exists — update it with the final status
-        res = await fetch(`/api/articles/drafts/${draftId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: form.title,
-            excerpt: form.excerpt,
-            content: form.content,
-            coverImageUrl: form.coverImageUrl || null,
-            categoryId: form.categoryId || null,
-            tags: parsedTags,
-            status,
-          }),
-        });
-      } else {
-        // No draft yet — create fresh
-        res = await fetch("/api/articles/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: form.title,
-            excerpt: form.excerpt,
-            content: form.content,
-            coverImageUrl: form.coverImageUrl || null,
-            categoryId: form.categoryId || null,
-            tags: parsedTags,
-            status,
-          }),
-        });
-      }
+      // Idempotent upsert by client id — never creates a duplicate even if a
+      // background flush already persisted this draft.
+      const res = await fetch("/api/articles/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: clientId,
+          title: form.title,
+          excerpt: form.excerpt,
+          content: form.content,
+          coverImageUrl,
+          categoryId: form.categoryId || null,
+          tags: parsedTags,
+          status,
+        }),
+      });
 
       if (!res.ok) {
         const e = await parseApiResponse(res);
@@ -207,10 +214,11 @@ export default function SubmitArticlePage() {
 
       const article = await parseApiResponse(res);
 
-      // Sync autosave state so a late-firing timer doesn't create a duplicate
+      // Sync autosave state and clear the local backup — it's safely in the DB.
       if (article?.id && article?.slug) {
-        setDraftInfo({ id: article.id, slug: article.slug });
+        markSaved({ id: article.id, slug: article.slug });
       }
+      clearStored();
 
       toast.success(submitSuccessMessage(status as "DRAFT" | "PUBLISHED" | "PENDING_REVIEW", isAdmin));
       router.push("/my-articles");
@@ -249,6 +257,19 @@ export default function SubmitArticlePage() {
 
   return (
     <ContributorGate>
+    <UnsavedChangesGuard enabled={cover.dirty && !loading} />
+    <ConfirmModal
+      open={!!restoreRecord}
+      onOpenChange={(open) => {
+        if (!open) declineRestore();
+      }}
+      title="Pulihkan draf lokal?"
+      description="Ada draf yang tersimpan otomatis di perangkat ini dan belum tentu tersimpan ke server. Pulihkan untuk melanjutkan, atau mulai dari awal."
+      confirmLabel="Pulihkan Draf"
+      cancelLabel="Mulai Baru"
+      variant="info"
+      onConfirm={applyRestore}
+    />
     <div className="bg-white min-h-screen" data-testid="submit-article-page">
       <SectionHeader
         label="ARTIKEL BARU"
@@ -332,37 +353,53 @@ export default function SubmitArticlePage() {
                 onChange={(e) =>
                   setForm({ ...form, coverImageUrl: e.target.value })
                 }
-                placeholder="URL gambar atau upload..."
+                placeholder="URL gambar atau unggah..."
                 data-testid="article-cover-input"
               />
               <Button
                 variant="outline"
                 asChild
-                disabled={uploading}
+                disabled={cover.busy}
                 className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengunggah..." : "Unggah"}
+                  {cover.busy ? "Memproses..." : "Pilih Gambar"}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleUpload}
-                    disabled={uploading}
+                    onChange={handleFilePick}
+                    disabled={cover.busy}
                     data-testid="article-cover-upload"
                   />
                 </label>
               </Button>
             </div>
-            {form.coverImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={form.coverImageUrl}
-                alt="Preview cover artikel"
-                className="mt-3 max-h-48 object-cover border border-jepang-border"
-                data-testid="cover-preview"
-              />
+            <p className="text-xs text-jepang-muted">
+              Gambar baru diunggah ke penyimpanan saat artikel disimpan.
+            </p>
+            {cover.hasImage && (
+              <div className="mt-3 space-y-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={cover.previewUrl}
+                  alt="Preview cover artikel"
+                  className="max-h-48 object-cover border border-jepang-border"
+                  data-testid="cover-preview"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={cover.busy}
+                  onClick={() => void cover.remove()}
+                  className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+                  data-testid="article-cover-remove"
+                >
+                  Hapus Gambar
+                </Button>
+              </div>
             )}
           </div>
 

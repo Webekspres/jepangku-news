@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AvatarCropModal from "@/components/profile/AvatarCropModal";
 import { preloadMediaImage } from "@/lib/media/client-cache";
-import { uploadMediaFile } from "@/lib/upload-media";
+import { useStagedImage } from "@/hooks/useStagedImage";
 import UserAvatar from "@/components/media/UserAvatar";
 import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
 
@@ -52,12 +52,17 @@ export default function EditProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [usernameCooldownDays, setUsernameCooldownDays] = useState(0);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const avatar = useStagedImage({
+    value: form.avatarUrl,
+    onValueChange: (url) => setForm((prev) => ({ ...prev, avatarUrl: url })),
+    purpose: "avatar",
+  });
 
   // Redirect jika belum login
   useEffect(() => {
@@ -105,31 +110,27 @@ export default function EditProfilePage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const uploadCroppedAvatar = async (file: File) => {
-    setUploading(true);
-    try {
-      const data = await uploadMediaFile(file, "avatar");
-      const url = data.url;
+  const stageCroppedAvatar = async (file: File) => {
+    avatar.selectFile(file);
+    toast.success('Foto siap. Klik "Simpan Perubahan" untuk menerapkan.');
+  };
 
-      const saveRes = await fetch("/api/user/profile", {
+  const handleRemoveAvatar = async () => {
+    try {
+      await avatar.remove();
+      const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarUrl: url }),
+        body: JSON.stringify({ avatarUrl: null }),
       });
-      if (!saveRes.ok) {
-        const err = await parseApiResponse(saveRes);
-        throw new Error(err.message || "Gagal menyimpan foto profil");
+      if (!res.ok) {
+        const err = await parseApiResponse(res);
+        throw new Error(err.error || "Gagal menghapus foto");
       }
-
-      setForm((prev) => ({ ...prev, avatarUrl: url }));
-      preloadMediaImage(url);
       await refreshUser();
-      toast.success("Foto profil diperbarui");
+      toast.success("Foto profil dihapus");
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Upload gagal");
-      throw err;
-    } finally {
-      setUploading(false);
+      toast.error(err instanceof Error ? err.message : "Gagal menghapus foto");
     }
   };
 
@@ -156,6 +157,8 @@ export default function EditProfilePage() {
 
     setSaving(true);
     try {
+      const avatarUrl = (await avatar.commit()) || null;
+      if (avatarUrl) preloadMediaImage(avatarUrl);
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -164,7 +167,7 @@ export default function EditProfilePage() {
           username: form.username.trim(),
           displayName: form.displayName.trim() || form.name.trim(),
           bio: form.bio.trim(),
-          avatarUrl: form.avatarUrl || null,
+          avatarUrl,
         }),
       });
 
@@ -243,13 +246,13 @@ export default function EditProfilePage() {
                 {/* Avatar preview */}
                 <div className="relative shrink-0">
                   <UserAvatar
-                    src={form.avatarUrl || null}
+                    src={avatar.previewUrl || null}
                     alt="Avatar"
                     size={96}
                     fallbackInitial={avatarInitial}
-                    testId={form.avatarUrl ? "avatar-preview" : "avatar-initial"}
+                    testId={avatar.hasImage ? "avatar-preview" : "avatar-initial"}
                   />
-                  {uploading && (
+                  {avatar.busy && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <Loader2 size={24} className="text-white animate-spin" />
                     </div>
@@ -260,50 +263,29 @@ export default function EditProfilePage() {
                 <div className="flex-1">
                   <p className="text-sm text-jepang-muted mb-3">
                     Unggah foto JPG, PNG, atau WebP. Akan di-crop persegi{" "}
-                    {AVATAR_OUTPUT_SIZE}×{AVATAR_OUTPUT_SIZE}px sebelum diupload.
+                    {AVATAR_OUTPUT_SIZE}×{AVATAR_OUTPUT_SIZE}px. Foto baru diunggah
+                    saat kamu menyimpan perubahan.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={uploading}
+                      disabled={avatar.busy}
                       onClick={() => fileInputRef.current?.click()}
                       className="hover:bg-foreground hover:text-white"
                       data-testid="upload-avatar-btn"
                     >
                       <Camera size={14} className="mr-1" />
-                      {uploading ? "Mengunggah..." : "Unggah Foto"}
+                      {avatar.busy ? "Memproses..." : "Pilih Foto"}
                     </Button>
-                    {form.avatarUrl && (
+                    {avatar.hasImage && (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        disabled={uploading || saving}
-                        onClick={async () => {
-                          setUploading(true);
-                          try {
-                            const res = await fetch("/api/user/profile", {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ avatarUrl: null }),
-                            });
-                            if (!res.ok) {
-                              const err = await parseApiResponse(res);
-                              throw new Error(err.error || "Gagal menghapus foto");
-                            }
-                            setForm((prev) => ({ ...prev, avatarUrl: "" }));
-                            await refreshUser();
-                            toast.success("Foto profil dihapus");
-                          } catch (err: unknown) {
-                            toast.error(
-                              err instanceof Error ? err.message : "Gagal menghapus foto",
-                            );
-                          } finally {
-                            setUploading(false);
-                          }
-                        }}
+                        disabled={avatar.busy || saving}
+                        onClick={handleRemoveAvatar}
                         className="text-jepang-red hover:bg-jepang-red hover:text-white border-jepang-red"
                         data-testid="remove-avatar-btn"
                       >
@@ -467,7 +449,7 @@ export default function EditProfilePage() {
           <div className="flex items-center gap-3">
             <Button
               type="submit"
-              disabled={saving || uploading}
+              disabled={saving || avatar.busy}
               className="flex-1 sm:flex-none"
               data-testid="save-profile-btn"
             >
@@ -499,7 +481,7 @@ export default function EditProfilePage() {
           open={cropOpen}
           imageSrc={cropImageSrc}
           onOpenChange={handleCropOpenChange}
-          onConfirm={uploadCroppedAvatar}
+          onConfirm={stageCroppedAvatar}
         />
       </div>
     </div>

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, excerpt, content, coverImageUrl, categoryId, tags = [], status = 'DRAFT' } = body;
+    const { id, title, excerpt, content, coverImageUrl, categoryId, tags = [], status = 'DRAFT' } = body;
 
     const safeTitle = sanitizeText(String(title || ''));
     const safeExcerpt = excerpt ? sanitizeText(String(excerpt)) : null;
@@ -57,42 +57,88 @@ export async function POST(request: NextRequest) {
 
     const resolvedCategoryId = await resolveCategoryId(categoryId);
 
-    const article = await db.article.create({
-      data: {
-        authorId: user.id,
-        categoryId: resolvedCategoryId,
-        title: safeTitle,
-        slug,
-        excerpt: safeExcerpt,
-        content: safeContent,
-        coverImageUrl: coverImageUrl || null,
-        status: articleStatus as any,
-        visibility: 'public',
-        publishedAt: articleStatus === 'PUBLISHED' ? new Date() : null,
-      },
-    });
+    // Optional client-supplied id makes autosave/draft flushes idempotent.
+    const providedId =
+      typeof id === 'string' && id.trim().length > 0 ? id.trim() : null;
+
+    const existing = providedId
+      ? await db.article.findUnique({
+          where: { id: providedId },
+          select: { id: true, authorId: true, status: true, publishedAt: true },
+        })
+      : null;
+
+    if (existing && existing.authorId !== user.id) {
+      return apiError('Not authorized to edit this article', { status: 403 });
+    }
+
+    const created = !existing;
+    const now = new Date();
+    const sharedData = {
+      categoryId: resolvedCategoryId,
+      title: safeTitle,
+      excerpt: safeExcerpt,
+      content: safeContent,
+      coverImageUrl: coverImageUrl || null,
+      status: articleStatus as any,
+    };
+
+    const article = providedId
+      ? await db.article.upsert({
+          where: { id: providedId },
+          create: {
+            id: providedId,
+            authorId: user.id,
+            slug,
+            visibility: 'public',
+            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            ...sharedData,
+          },
+          update: {
+            ...sharedData,
+            ...(existing?.status === 'PUBLISHED' ? {} : { slug }),
+            publishedAt:
+              articleStatus === 'PUBLISHED'
+                ? (existing?.publishedAt ?? now)
+                : null,
+          },
+        })
+      : await db.article.create({
+          data: {
+            authorId: user.id,
+            slug,
+            visibility: 'public',
+            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            ...sharedData,
+          },
+        });
 
     if (tags.length > 0) {
       await syncArticleTags(article.id, tags);
     }
 
-    auditArticleCreate(
-      user,
-      { id: article.id, title: article.title, status: article.status },
-      'user',
-    );
+    if (created) {
+      auditArticleCreate(
+        user,
+        { id: article.id, title: article.title, status: article.status },
+        'user',
+      );
+    }
 
-    if (article.status === 'PENDING_REVIEW') {
+    if (
+      article.status === 'PENDING_REVIEW' &&
+      existing?.status !== 'PENDING_REVIEW'
+    ) {
       dispatchNotificationEventSafe({
         type: 'article.status_changed',
         articleId: article.id,
         reviewerId: user.id,
-        previousStatus: 'DRAFT',
+        previousStatus: existing?.status ?? 'DRAFT',
         newStatus: 'PENDING_REVIEW',
       });
     }
 
-    return apiSuccess(article, { status: 201 });
+    return apiSuccess(article, { status: created ? 201 : 200 });
   } catch (e: any) {
     await captureException(e, { route: 'articles-create', userId: user.id });
     return apiError(e.message , { status: 500 });

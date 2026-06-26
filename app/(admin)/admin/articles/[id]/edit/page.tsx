@@ -20,7 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import RichTextEditor from "@/components/RichTextEditor";
-import { uploadMediaFile } from "@/lib/upload-media";
+import { useStagedImage } from "@/hooks/useStagedImage";
+import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 
 export default function AdminEditArticlePage() {
   const { id } = useParams<{ id: string }>();
@@ -37,12 +38,17 @@ export default function AdminEditArticlePage() {
     tags: "",
   });
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [rejectNote, setRejectNote] = useState("");
   const [changeNote, setChangeNote] = useState("");
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const { confirm, confirmProps } = useConfirm();
+
+  const cover = useStagedImage({
+    value: form.coverImageUrl,
+    onValueChange: (url) => setForm((f) => ({ ...f, coverImageUrl: url })),
+    purpose: "cover",
+  });
 
   useEffect(() => {
     fetch("/api/categories")
@@ -75,19 +81,10 @@ export default function AdminEditArticlePage() {
       });
   }, [id, router]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const data = await uploadMediaFile(file, "cover");
-      setForm((f) => ({ ...f, coverImageUrl: data.url }));
-      toast.success("Gambar berhasil diupload");
-    } catch {
-      toast.error("Upload gagal");
-    } finally {
-      setUploading(false);
-    }
+    if (file) cover.selectFile(file);
+    e.target.value = "";
   };
 
   const saveArticle = async (targetStatus: string) => {
@@ -102,6 +99,7 @@ export default function AdminEditArticlePage() {
 
     setLoading(true);
     try {
+      const coverImageUrl = (await cover.commit()) || null;
       const res = await fetch(`/api/admin/articles/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -109,7 +107,7 @@ export default function AdminEditArticlePage() {
           title: form.title,
           excerpt: form.excerpt,
           content: form.content,
-          coverImageUrl: form.coverImageUrl || null,
+          coverImageUrl,
           categoryId: form.categoryId || null,
           tags: form.tags
             .split(",")
@@ -156,6 +154,7 @@ export default function AdminEditArticlePage() {
         }
         setLoading(true);
         try {
+          const coverImageUrl = (await cover.commit()) || null;
           const patchRes = await fetch(`/api/admin/articles/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -163,7 +162,7 @@ export default function AdminEditArticlePage() {
               title: form.title,
               excerpt: form.excerpt,
               content: form.content,
-              coverImageUrl: form.coverImageUrl || null,
+              coverImageUrl,
               categoryId: form.categoryId || null,
               tags: form.tags
                 .split(",")
@@ -245,6 +244,7 @@ export default function AdminEditArticlePage() {
       title="Edit Artikel"
     >
       <ConfirmModal {...confirmProps} />
+      <UnsavedChangesGuard enabled={cover.dirty && !loading} />
       <div className="grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-6">
           <div className="space-y-2">
@@ -317,29 +317,46 @@ export default function AdminEditArticlePage() {
               <Button
                 variant="outline"
                 asChild
-                disabled={uploading}
+                disabled={cover.busy}
                 className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengunggah..." : "Unggah"}
+                  {cover.busy ? "Memproses..." : "Pilih Gambar"}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleUpload}
-                    disabled={uploading}
+                    onChange={handleFilePick}
+                    disabled={cover.busy}
                   />
                 </label>
               </Button>
             </div>
-            {form.coverImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={form.coverImageUrl}
-                alt="Preview cover"
-                className="mt-3 max-h-48 object-cover border border-jepang-border"
-              />
+            <p className="text-xs text-jepang-muted">
+              Gambar baru diunggah ke penyimpanan saat perubahan disimpan; gambar
+              lama yang diganti otomatis dihapus.
+            </p>
+            {cover.hasImage && (
+              <div className="mt-3 space-y-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={cover.previewUrl}
+                  alt="Preview cover"
+                  className="max-h-48 object-cover border border-jepang-border"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={cover.busy || loading}
+                  onClick={() => void cover.remove()}
+                  className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+                  data-testid="admin-article-cover-remove"
+                >
+                  Hapus Gambar
+                </Button>
+              </div>
             )}
           </div>
 

@@ -31,11 +31,8 @@ export async function GET(
     return apiError('Article not found' , { status: 404 });
   }
 
-  if (article.status === 'DRAFT') {
-    return apiSuccess(
-      { error: 'Draft articles are only visible to their author' },
-      { status: 403 },
-    );
+  if (article.status === 'DRAFT' && article.authorId !== admin.id) {
+    return apiError('Draft articles are only visible to their author', { status: 403 });
   }
 
   return apiSuccess({
@@ -61,11 +58,8 @@ export async function PATCH(
   const article = await db.article.findUnique({ where: { id } });
   if (!article) return apiError('Article not found' , { status: 404 });
 
-  if (article.status === 'DRAFT') {
-    return apiSuccess(
-      { error: 'Draft articles can only be edited by their author' },
-      { status: 403 },
-    );
+  if (article.status === 'DRAFT' && article.authorId !== admin.id) {
+    return apiError('Draft articles can only be edited by their author', { status: 403 });
   }
 
   try {
@@ -136,6 +130,6 @@ export async function PATCH(
     await captureException(e, { route: 'admin-articles-patch', id });
     const message = e instanceof Error ? e.message : 'Failed to update article';
     const status = message.includes('wajib') ? 400 : 500;
-    return apiSuccess({ error: message }, { status });
+    return apiError(message, { status });
   }
 }

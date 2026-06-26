@@ -1,16 +1,16 @@
 # Graph Report - jepangku-news  (2026-06-26)
 
 ## Corpus Check
-- 685 files · ~378,532 words
+- 689 files · ~382,830 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3367 nodes · 9108 edges · 155 communities (145 shown, 10 thin omitted)
+- 3393 nodes · 9224 edges · 152 communities (142 shown, 10 thin omitted)
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 422 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6977b7c9`
+- Built from commit: `5e1381e5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -131,28 +131,25 @@
 - [[_COMMUNITY_Community 120|Community 120]]
 - [[_COMMUNITY_Community 121|Community 121]]
 - [[_COMMUNITY_Community 122|Community 122]]
+- [[_COMMUNITY_Community 124|Community 124]]
 - [[_COMMUNITY_Community 125|Community 125]]
 - [[_COMMUNITY_Community 126|Community 126]]
 - [[_COMMUNITY_Community 127|Community 127]]
 - [[_COMMUNITY_Community 128|Community 128]]
 - [[_COMMUNITY_Community 129|Community 129]]
+- [[_COMMUNITY_Community 130|Community 130]]
 - [[_COMMUNITY_Community 131|Community 131]]
 - [[_COMMUNITY_Community 132|Community 132]]
-- [[_COMMUNITY_Community 133|Community 133]]
 - [[_COMMUNITY_Community 134|Community 134]]
-- [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 137|Community 137]]
-- [[_COMMUNITY_Community 138|Community 138]]
 - [[_COMMUNITY_Community 139|Community 139]]
 - [[_COMMUNITY_Community 140|Community 140]]
 - [[_COMMUNITY_Community 141|Community 141]]
+- [[_COMMUNITY_Community 142|Community 142]]
 - [[_COMMUNITY_Community 143|Community 143]]
 - [[_COMMUNITY_Community 145|Community 145]]
 - [[_COMMUNITY_Community 146|Community 146]]
 - [[_COMMUNITY_Community 147|Community 147]]
-- [[_COMMUNITY_Community 151|Community 151]]
-- [[_COMMUNITY_Community 153|Community 153]]
-- [[_COMMUNITY_Community 155|Community 155]]
 - [[_COMMUNITY_Community 158|Community 158]]
 - [[_COMMUNITY_Community 160|Community 160]]
 - [[_COMMUNITY_Community 161|Community 161]]
@@ -163,41 +160,41 @@
 - [[_COMMUNITY_Community 172|Community 172]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `apiSuccess()` - 265 edges
-2. `apiError()` - 254 edges
+1. `apiSuccess()` - 266 edges
+2. `apiError()` - 255 edges
 3. `cn()` - 175 edges
 4. `getCurrentAdmin()` - 132 edges
 5. `parseApiResponse()` - 131 edges
-6. `getCurrentUser()` - 90 edges
+6. `getCurrentUser()` - 91 edges
 7. `Button` - 88 edges
 8. `useAuth()` - 75 edges
 9. `ERD dan Struktur Database MVP Jepangku` - 71 edges
-10. `captureException()` - 52 edges
+10. `captureException()` - 53 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `RejectArticleModal()` --calls--> `cn()`  [INFERRED]
-  app/(admin)/admin/articles/page.tsx → lib/utils.ts
-- `PollListPage()` --calls--> `useAdSlot()`  [INFERRED]
-  app/(public)/polls/page.tsx → hooks/useAdSlot.ts
-- `QuizListPage()` --calls--> `useAdSlot()`  [INFERRED]
-  app/(public)/quizzes/page.tsx → hooks/useAdSlot.ts
+- `AdminCategoriesPage()` --calls--> `useConfirm()`  [INFERRED]
+  app/(admin)/admin/categories/page.tsx → components/ui/confirm-modal.tsx
 - `GET()` --calls--> `apiSuccess()`  [INFERRED]
   app/api/videos/route.ts → lib/api-response.ts
 - `CategoryAnalyticsPage()` --calls--> `useAuth()`  [INFERRED]
   app/(admin)/admin/analytics/categories/page.tsx → contexts/AuthContext.tsx
+- `AdminEditArticlePage()` --calls--> `useConfirm()`  [INFERRED]
+  app/(admin)/admin/articles/[id]/edit/page.tsx → components/ui/confirm-modal.tsx
+- `AdminArticleViewPage()` --calls--> `cn()`  [INFERRED]
+  app/(admin)/admin/articles/[id]/page.tsx → lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (155 total, 10 thin omitted)
+## Communities (152 total, 10 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.09
-Nodes (48): applyCoreGamification(), flattenCoreRoles(), rolesFromClaims(), toSessionUser(), buildNewsIdempotencyKey(), PORTAL_TO_CORE_ACTIVITY, toCoreActivityType(), exchangeClerkToken() (+40 more)
+Cohesion: 0.06
+Nodes (74): isClerkUserId(), isLegacyPortalUserId(), displayName(), ensureLocalUserFromClerk(), generateUniqueUsername(), getSessionUserByClerkId(), linkOrCreateLocalUser(), loginSyncData() (+66 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.13
-Nodes (31): GET(), PATCH(), GET(), PATCH(), POST(), POST(), adminArticleInclude, AdminArticlesSort (+23 more)
+Cohesion: 0.14
+Nodes (31): GET(), PATCH(), GET(), PATCH(), GET(), GET(), POST(), POST() (+23 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.03
@@ -209,27 +206,27 @@ Nodes (67): 10.1 Latest, 10.2 Popular, 10.3 Trending, 10.4 Hot, 10. Aturan Lates
 
 ### Community 4 - "Community 4"
 Cohesion: 0.06
-Nodes (73): GROWTH_PERIODS, AdminEmptyState(), AdminEmptyStateProps, AdminPageLayoutProps, AdminPagination(), AdminPaginationProps, AdminStatCardItem, AdminStatCards() (+65 more)
+Nodes (69): GROWTH_PERIODS, AdminEmptyState(), AdminEmptyStateProps, AdminPageLayoutProps, AdminPagination(), AdminPaginationProps, AdminStatCardItem, AdminStatCardsProps (+61 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.06
-Nodes (80): GET(), GET(), isValidAdSlotPosition(), revalidateAdSlots(), POST(), DELETE(), GET(), Params (+72 more)
+Nodes (79): GET(), GET(), isValidAdSlotPosition(), revalidateAdSlots(), POST(), DELETE(), GET(), Params (+71 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.08
-Nodes (38): DELETE(), PATCH(), DELETE(), PATCH(), GET(), POST(), USER_SELECT, adminArticleHref() (+30 more)
+Cohesion: 0.06
+Nodes (78): DELETE(), PATCH(), GET(), GET(), DELETE(), POST(), POST(), POST() (+70 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.33
-Nodes (7): EXPLORE_LIMITS, fetchExploreContent(), fetchExplorePolls(), fetchExploreQuizzes(), HomeTvResponse, fetchHomeTv(), GET()
+Cohesion: 0.13
+Nodes (20): chevronHoverTransition, dialogTransition, dialogVariants, easeOut, imageHoverTransition, motionTransition, overlayVariants, popoverTransition (+12 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.04
 Nodes (46): 📰 1. News Jepang, 1. Tabel Jumlah Artikel per Kategori, 2. Checklist Konten per Kategori, ✈️ 2. Travel Jepang, 🎌 3. Culture Jepang, 🎭 4. Entertainment (Anime, Manga, J-Pop), 🧋 5. Lifestyle Jepang, 💼 6. Work in Japan (+38 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.07
-Nodes (30): ArticleCoverImageProps, CategoryFeaturedColumn(), CategoryFeaturedColumnProps, formatArticleDate(), JepangkuTvSectionProps, VideoThumbnailLink(), EditorialFeaturedColumn, imageLoadingProps (+22 more)
+Cohesion: 0.09
+Nodes (18): CategoryFormValues, AdminCategoriesPage(), Category, EMPTY_FORM, CATEGORY_ORDER, EmailConfigListClientProps, EmailTemplateEditorProps, EmailVariable (+10 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.14
@@ -240,8 +237,8 @@ Cohesion: 0.07
 Nodes (29): 1. Revisi UI/UX *(Juni 2026)*, 2.1 Schema & migrasi, 2.2 API, 2.3 Admin, 2.4 UI & entry point, 2.5 QA, 2. Kontributor & Gate Upload — *Fase A″*, 3.1 Schema (+21 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.08
-Nodes (27): Article, ArticleCard(), ArticleCardProps, CardCoverImage(), CardCoverImageProps, getCoverUrl(), TrendingArticleItem, TrendingArticlesPanel() (+19 more)
+Cohesion: 0.13
+Nodes (20): SectionHeaderProps, InteractiveBentoGrid(), interactiveBentoSpan(), LeaderboardAvatar(), LeaderboardAvatarProps, sizePx, resolveThumbnailUrl(), getReactionDisplay() (+12 more)
 
 ### Community 13 - "Community 13"
 Cohesion: 0.05
@@ -256,32 +253,32 @@ Cohesion: 0.09
 Nodes (23): { generateMetadata, default: AboutPage }, { generateMetadata, default: AdvertisePage }, NotFound(), { generateMetadata, default: CareerPage }, generateInfoPageMetadata(), InfoPageServer(), InfoPageSidebar(), InfoPageSidebarProps (+15 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.13
-Nodes (22): POST(), ALLOWED_ACTIONS, POST(), applyArticleUpdateWithAudit(), ArticleSnapshot, articleStatusAction(), CONTENT_FIELDS, getArticleAuditContext() (+14 more)
+Cohesion: 0.10
+Nodes (27): GET(), POST(), ALLOWED_ACTIONS, POST(), DELETE(), applyArticleUpdateWithAudit(), ArticleSnapshot, articleStatusAction() (+19 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.11
-Nodes (22): SectionHeader(), SectionHeaderProps, InteractiveBentoGrid(), interactiveBentoSpan(), LeaderboardAvatar(), LeaderboardAvatarProps, sizePx, resolveThumbnailUrl() (+14 more)
+Cohesion: 0.18
+Nodes (21): AdminEmailConfigPage(), EmailTemplateConfigDto, getEmailTemplateConfig(), getResolvedEmailTemplateConfig(), getStaticEmailTemplateList(), listEmailTemplateConfigs(), parseEmailTemplateIdParam(), resetEmailTemplateConfig() (+13 more)
 
 ### Community 18 - "Community 18"
-Cohesion: 0.22
-Nodes (16): CommentSection(), Footer(), Navbar(), getAuthLoginPath(), getAuthRegisterPath(), isAuthUser(), HomeHero(), QUICK_LINKS (+8 more)
+Cohesion: 0.21
+Nodes (15): CommentSection(), Footer(), Navbar(), getAuthLoginPath(), getAuthRegisterPath(), isAuthUser(), HomeHero(), QUICK_LINKS (+7 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.04
-Nodes (50): AdminCard(), AdminPageLayout(), CategoryFormModal(), AssetImage(), AssetImageProps, chipClass(), PopularTag, PopularTags() (+42 more)
+Cohesion: 0.07
+Nodes (21): CategoryEditorialSectionProps, CategoryFeaturedColumn(), CategoryFeaturedColumnProps, CategoryListColumn(), CategoryListColumnProps, formatArticleDate(), HomeFeedSection(), HomeFeedSectionProps (+13 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.10
-Nodes (16): getUserActivityFeed(), GET(), GET(), GET(), GET(), clearCoreSessionCookie(), GET(), ADMIN_LIST_ARTICLE_STATUSES (+8 more)
+Cohesion: 0.67
+Nodes (3): formatPublishedDate(), VideoDetailMetaBar(), VideoDetailMetaBarProps
 
 ### Community 21 - "Community 21"
 Cohesion: 0.06
-Nodes (45): GET, GET, GET, GET, GET, GET, GET, GET (+37 more)
+Nodes (41): GET, GET, GET, GET, GET, GET, GET, GET (+33 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.10
-Nodes (20): metadata, ArticleBreadcrumb(), ArticleBreadcrumbProps, FooterProps, PLATFORM_ICONS, SocialMediaLinks(), SocialMediaLinksProps, SocialLink (+12 more)
+Cohesion: 0.14
+Nodes (12): ArticleBreadcrumb(), ArticleBreadcrumbProps, PLATFORM_ICONS, SocialMediaLinks(), SocialMediaLinksProps, SocialLink, categoryArticlesHref(), NAV_CATEGORIES (+4 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.08
@@ -296,20 +293,20 @@ Cohesion: 0.09
 Nodes (22): 8.10 `core_daily_login_rewards`, 8.11 `core_badges`, 8.12 `core_user_badges`, 8.13 `core_notifications`, 8.14 `core_membership_plans`, 8.15 `core_memberships`, 8.16 `core_subscriptions`, 8.17 `core_payments` (+14 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.25
-Nodes (14): ActivityFeedItem, ActivityFeedKind, commentHref(), queueEmailSafe(), handleArticleStatusChanged(), ArticleViewTarget, getArticleViewHref(), getArticleViewLabel() (+6 more)
+Cohesion: 0.27
+Nodes (12): getActiveAdminIds(), notifyAdminsArticlePendingReview(), notifyAdminsContributorApplication(), handleCommentCreated(), resolveArticleForComment(), handleContributorReviewed(), createNotification(), defaultExpiresAt() (+4 more)
 
 ### Community 27 - "Community 27"
 Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.29
-Nodes (6): ACTION_LABELS, ARTICLE_STATUS_LABELS, AUDIT_CATEGORIES, AUDIT_CATEGORY_BADGE, AUDIT_CATEGORY_FILTERS, AuditCategory
+Cohesion: 0.20
+Nodes (9): AuditLogInput, ACTION_LABELS, ARTICLE_STATUS_LABELS, AUDIT_CATEGORIES, AUDIT_CATEGORY_BADGE, AUDIT_CATEGORY_FILTERS, AuditCategory, getAuditActionLabel() (+1 more)
 
 ### Community 29 - "Community 29"
-Cohesion: 0.05
-Nodes (82): getEmailFromAddress(), getEmailFromHeader(), getEmailQueueSecret(), getEmailReplyTo(), getQstashCurrentSigningKey(), getQstashNextSigningKey(), getQstashToken(), getQstashUrl() (+74 more)
+Cohesion: 0.17
+Nodes (16): GET(), AdminNewsletterRow, createUnsubscribeToken(), deleteNewsletterSubscription(), exportNewsletterSubscriptions(), getNewsletterSubscriptionByToken(), listNewsletterSubscriptions(), SubscribeNewsletterResult (+8 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.10
@@ -324,16 +321,16 @@ Cohesion: 0.08
 Nodes (23): A1. Keamanan & Hardening (paling kritis), A2. Engagement & Sosial (domain portal), A3. Profil & Discovery (domain portal), A4. Analytics Konten (data milik portal), A5. Soft Launch (konten + halaman statis), A″ — Kontributor & gate upload *(revisi produk)*, B1. Core Service (`jepangku-core`) — sebagian sudah ada, B2. Portal Berita — Clerk bridge (selesai) + Core shadow (+15 more)
 
 ### Community 33 - "Community 33"
-Cohesion: 0.06
-Nodes (45): CLERK_TEST_ACCOUNTS, ClerkTestRole, resetClerkUserArticleShares(), clearClerkTokenCache(), ensureClerkTestUser(), getClerkSessionToken(), isClerkAuthConfigured(), isJwtExpired() (+37 more)
+Cohesion: 0.17
+Nodes (15): resetClerkUserArticleShares(), resetClerkUserContributorApplications(), articleTitleOr(), cleanupTestDatabase(), TestDbCleanupReport, createPrismaClient(), { PrismaClient }, { PrismaPg } (+7 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.16
-Nodes (19): isClerkUserId(), isLegacyPortalUserId(), displayName(), ensureLocalUserFromClerk(), generateUniqueUsername(), getSessionUserByClerkId(), linkOrCreateLocalUser(), loginSyncData() (+11 more)
+Cohesion: 0.07
+Nodes (55): metadata, RootLayout(), metadata, ClientProviders(), getEmailFromAddress(), getEmailFromHeader(), getEmailQueueSecret(), getEmailReplyTo() (+47 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.11
@@ -344,8 +341,8 @@ Cohesion: 0.12
 Nodes (15): ANIME_OPTIONS, buildOptions(), CITY_OPTIONS, clamp(), EXPERIENCE_OPTIONS, FOOD_OPTIONS, GACHA_OPTIONS, IMAGE_OPTION_INDICES (+7 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.14
-Nodes (17): AdminBreadcrumbContext, AdminBreadcrumbContextValue, AdminBreadcrumbProvider(), useAdminBreadcrumbOverrides(), AdminSidebar(), AdminSidebarProps, AdminTopbar(), AdminTopbarProps (+9 more)
+Cohesion: 0.15
+Nodes (14): buildR2PublicUrl(), getSignedUrlR2(), LOCAL_UPLOAD_ROOT, uploadToLocal(), uploadToR2(), extractR2Key(), getR2PublicHostname(), isR2MediaUrl() (+6 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.12
@@ -353,7 +350,7 @@ Nodes (16): devDependencies, dotenv, eslint, eslint-config-next, prisma, tailwin
 
 ### Community 40 - "Community 40"
 Cohesion: 0.09
-Nodes (26): UserActivityPage(), AdminPageShell(), LINKS, AdminDashboard(), OPTIONS, PeriodSelector(), BarDatum, SimpleBarChart() (+18 more)
+Nodes (25): UserActivityPage(), AdminPageShell(), LINKS, AdminDashboard(), OPTIONS, PeriodSelector(), BarDatum, SimpleBarChart() (+17 more)
 
 ### Community 41 - "Community 41"
 Cohesion: 0.12
@@ -364,44 +361,44 @@ Cohesion: 0.14
 Nodes (21): buildPlaceholderThumbnail(), formatPriceIdr(), getLmsTeaserPlaceholder(), LEVEL_ACCENT, LMS_TEASER_HIGHLIGHTS, mapCourseToTeaser(), mapLmsPublicCoursesToTeaser(), HomeLmsTeaserResponse (+13 more)
 
 ### Community 43 - "Community 43"
-Cohesion: 0.13
-Nodes (17): GET(), GET(), getNavbarCategories(), NavbarCategory, EDITORIAL_FEATURED_GROUPS, EDITORIAL_LIST_GROUPS, EditorialGroupConfig, editorialViewMoreHref() (+9 more)
+Cohesion: 0.23
+Nodes (10): PATCH(), GET(), countNavbarCategories(), getNavbarCategories(), NavbarCategory, POST(), { CATEGORIES_DATA }, seedDatabase() (+2 more)
 
 ### Community 44 - "Community 44"
-Cohesion: 0.18
-Nodes (15): GET(), aggregateScores(), buildLeaderboardEntry(), fetchLeaderboard(), fetchViewerScore(), loadUserMaps(), PortalUserRow, ProfileRow (+7 more)
+Cohesion: 0.06
+Nodes (58): AdminPointTransactionSource, AdminPointTransactionUser, enrichAdminPointTransactions(), fallbackSourceLabel(), RawPointTx, SOURCE_TYPE_LABELS, sourceTypeLabel(), titleFromDescription() (+50 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.13
 Nodes (11): ARTICLE_REVISIONS_DATA, CHANGE_NOTES, { CLERK_TEST_SAMPLE_USER_EMAIL }, EDITORS, ARTICLE_SHARES_DATA, AUTHORS, { CLERK_TEST_SAMPLE_USER_EMAIL }, SHARE_METHODS (+3 more)
 
 ### Community 46 - "Community 46"
-Cohesion: 0.16
-Nodes (10): LogoImage(), LogoImageProps, getLogoErrorStats(), LogoAnalytics, LogoErrorEvent, trackLogoError(), getLogoPath(), LOGO_VARIANTS (+2 more)
+Cohesion: 0.13
+Nodes (16): AdminBreadcrumbContext, AdminBreadcrumbContextValue, AdminBreadcrumbProvider(), AdminShell(), AdminSidebar(), AdminSidebarProps, ADMIN_NAV_GROUPS, AdminBreadcrumb (+8 more)
 
 ### Community 47 - "Community 47"
 Cohesion: 0.11
-Nodes (9): ExploreContentSectionsProps, ExplorePollCard(), ExploreQuizCard(), ExploreSidebarProps, ExploreCategory, ExplorePollPreview, ExploreQuizPreview, ExploreResponse (+1 more)
+Nodes (20): ArticleEditAsideProps, formatDate(), ReviewStatusDetailModal(), STATUS_LABEL, TimelineItem, MyArticlesPage(), STATUS_BADGE, STATUS_LABELS (+12 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.12
-Nodes (24): GET(), GET(), POST(), GET(), VALID_STATUSES, DELETE(), POST(), auditArticleDelete() (+16 more)
+Cohesion: 0.23
+Nodes (11): POST(), GET(), VALID_STATUSES, POST(), approveContributorApplication(), createContributorApplication(), getLatestContributorApplication(), listContributorApplicationsForAdmin() (+3 more)
 
 ### Community 49 - "Community 49"
 Cohesion: 0.14
 Nodes (13): 1. Tujuan Utama, 2. Prioritas Saat Ini, 3. Deployment & Development Roadmap, 4. Dokumen Referensi, 5. Kriteria Sukses MVP, 6. Integrasi Shared Core Service, 7. Risiko dan Mitigasi, 8. Tindakan Selanjutnya (+5 more)
 
 ### Community 50 - "Community 50"
-Cohesion: 0.14
-Nodes (9): ArticleRelatedSection(), ArticleRelatedSectionProps, HomeArticle, HomeFeedSection(), HomeFeedSectionProps, ArticleCardSkeleton(), ArticleCardSkeletonProps, TrendingArticleSkeleton() (+1 more)
+Cohesion: 0.11
+Nodes (20): BACKFILL_SPECS, BACKFILL_TABLES, BackfillTable, html(), mediaUrl(), NullableUrlField, plain(), sanitizeRowFields() (+12 more)
 
 ### Community 51 - "Community 51"
 Cohesion: 0.07
-Nodes (37): allowedMimeTypes, detectImageType(), moderateImage(), UploadClientError, validateImageBuffer(), DrainPayload, forwardLogDrain(), isLogDrainEnabled() (+29 more)
+Nodes (38): allowedMimeTypes, detectImageType(), moderateImage(), UploadClientError, validateImageBuffer(), DrainPayload, forwardLogDrain(), isLogDrainEnabled() (+30 more)
 
 ### Community 52 - "Community 52"
-Cohesion: 0.17
-Nodes (11): metadata, RootLayout(), ClientProviders(), Providers(), ClerkAuthProvider(), getCriticalLogoPaths(), DailyPointsModal(), dismissSession() (+3 more)
+Cohesion: 0.11
+Nodes (18): GamificationPatch, Providers(), AuthContext, AuthContextType, AuthUser, ClerkAuthProvider(), ClerkGetToken, ClerkUser (+10 more)
 
 ### Community 53 - "Community 53"
 Cohesion: 0.15
@@ -412,8 +409,8 @@ Cohesion: 0.15
 Nodes (12): 1. Apa itu Cloudflare R2?, 2.1 Buat bucket R2, 2.2 Buat API token, 2.3 Ambil Account ID, 2. Langkah Setup, 3. Konfigurasi Environment, 4. Install SDK, 5. Contoh Utility R2 (+4 more)
 
 ### Community 55 - "Community 55"
-Cohesion: 0.04
-Nodes (62): AdminDetailModal(), AdminDetailModalProps, ArticleEditAside(), ArticleEditAsideProps, formatDate(), ReviewStatusDetailModal(), STATUS_LABEL, TimelineItem (+54 more)
+Cohesion: 0.07
+Nodes (31): AdminDetailModalProps, AdminDetailRow(), AdminPointTransaction, PointTransactionDetailModal(), PointTransactionDetailModalProps, CategoryFormModalProps, CategorySubscribeButtonProps, ALLOWED_TYPES (+23 more)
 
 ### Community 56 - "Community 56"
 Cohesion: 0.23
@@ -428,16 +425,16 @@ Cohesion: 0.17
 Nodes (12): 4.10 point_activity_type_enum, 4.11 activity_action_enum, 4.1 source_app_enum, 4.2 user_role_enum, 4.3 user_status_enum, 4.4 article_status_enum, 4.5 article_visibility_enum, 4.6 quiz_status_enum (+4 more)
 
 ### Community 59 - "Community 59"
-Cohesion: 0.18
-Nodes (9): CategoryFormModalProps, CategoryFormValues, Category, EMPTY_FORM, EmailTemplateEditorProps, EmailVariable, FormState, DraftLink (+1 more)
+Cohesion: 0.25
+Nodes (10): purgeExpiredNotifications(), PurgeExpiredNotificationsResult, CreateNotificationPayload, NewsNotificationEvent, NotificationCreateResult, NotificationDto, NotificationSessionDto, apply (+2 more)
 
 ### Community 60 - "Community 60"
-Cohesion: 0.15
-Nodes (18): GET(), GET(), GET(), GET(), GET(), GET(), GET(), ARTICLE_STATUS_LABELS (+10 more)
+Cohesion: 0.06
+Nodes (42): getUserActivityFeed(), GET(), GET(), GET(), GET(), GET(), GET(), GET() (+34 more)
 
 ### Community 61 - "Community 61"
-Cohesion: 0.06
-Nodes (60): GET(), GET(), GET(), GET(), GET(), GET(), GET(), DELETE() (+52 more)
+Cohesion: 0.21
+Nodes (9): AssetImage(), AssetImageProps, FooterProps, LogoImage(), LogoImageProps, getLogoPath(), LOGO_VARIANTS, LogoVariant (+1 more)
 
 ### Community 62 - "Community 62"
 Cohesion: 0.20
@@ -448,32 +445,32 @@ Cohesion: 0.20
 Nodes (10): 14.1 Admin Dashboard Overview, 14.2 Manage Articles, 14.3 Review Articles, 14.4 Manage Categories, 14.5 Manage Tags, 14.6 Manage Quiz, 14.7 Manage Polling/Voting, 14.8 Manage Users (+2 more)
 
 ### Community 64 - "Community 64"
-Cohesion: 0.16
-Nodes (12): adSlotEndpoint(), CacheEntry, fetchAdSlotClient(), inFlight, invalidateAdSlotClientCache(), memoryCache, preloadAdBannerImage(), readCache() (+4 more)
+Cohesion: 0.09
+Nodes (35): ArticleResponse, ArticleListResponse, DRAFT_PAYLOAD, VideosListResponse, FooterNewsletterFormProps, ADMIN_BOUNDARY_ENDPOINTS, fetchActivePollSlug(), fetchActivePollWithQuestions() (+27 more)
 
 ### Community 65 - "Community 65"
-Cohesion: 0.13
-Nodes (8): PageProps, ArticleDetailContent, ArticleDetailContentProps, ArticleDetailHeroProps, PublicVideoSummary, VideoBreadcrumbProps, VideoDetailClient(), VideoDetailClientProps
+Cohesion: 0.17
+Nodes (13): ArticleRevisionDetailModal(), ArticleRevisionDetailModalProps, ChangeBlock(), EditorInfo, formatDate(), RevisionDetailPayload, STATUS_LABEL, toSnapshot() (+5 more)
 
 ### Community 66 - "Community 66"
-Cohesion: 0.38
-Nodes (3): FooterShell(), NavbarShell(), getPublicSocialLinks
+Cohesion: 0.31
+Nodes (4): GET(), FooterShell(), NavbarShell(), getPublicSocialLinks
 
 ### Community 67 - "Community 67"
 Cohesion: 0.36
 Nodes (10): findPublicAuthorByUsername(), getProfileRecommendedArticles(), getPublicAuthorArticles(), getPublicAuthorStats(), isPublicContributor(), PUBLIC_ARTICLE_WHERE, PublicAuthorProfile, PublicAuthorStats (+2 more)
 
 ### Community 68 - "Community 68"
-Cohesion: 0.14
-Nodes (19): GET(), AdminVideoCreatePage(), AdminVideoEditPage(), LazyYoutubeEmbed(), extractFacebookVideoId(), extractTikTokVideoId(), extractYoutubeId(), facebookEmbedUrl() (+11 more)
+Cohesion: 0.18
+Nodes (16): AdminVideoCreatePage(), AdminVideoEditPage(), LazyYoutubeEmbed(), extractFacebookVideoId(), extractTikTokVideoId(), extractYoutubeId(), facebookEmbedUrl(), ParsedVideo (+8 more)
 
 ### Community 69 - "Community 69"
-Cohesion: 0.60
-Nodes (4): getNewsletterSubscriptionByToken(), unsubscribeNewsletterForUser(), DELETE(), GET()
+Cohesion: 0.04
+Nodes (45): AdminCard(), AdminDetailModal(), AdminPageLayout(), AdminStatCards(), statCardClassName(), ArticleEditAside(), RejectArticleModal(), CategoryFormModal() (+37 more)
 
 ### Community 70 - "Community 70"
-Cohesion: 0.25
-Nodes (12): getJakartaDateKey(), getJakartaDayBounds(), isWithinJakartaDay(), getNotificationSession(), Check, checks, main(), readSource() (+4 more)
+Cohesion: 0.14
+Nodes (23): getJakartaDateKey(), getJakartaDayBounds(), isWithinJakartaDay(), decodeCursor(), dismissNotificationSession(), encodeCursor(), getNotificationSession(), getUnreadNotificationCount() (+15 more)
 
 ### Community 71 - "Community 71"
 Cohesion: 0.22
@@ -483,13 +480,17 @@ Nodes (9): 16.1 Flow Admin Login, 16.2 Flow Admin Review Artikel, 16.3 Flow Admi
 Cohesion: 0.25
 Nodes (6): buildOptions(), { IMAGES }, pickN(), QUESTION_BANK, SAMPLE_QUIZZES, TOPICS
 
+### Community 73 - "Community 73"
+Cohesion: 0.06
+Nodes (30): ArticleCoverImage(), ArticleCoverImageProps, getCoverUrl(), TrendingArticleItem, TrendingArticlesPanel(), TrendingArticlesPanelProps, imageLoadingProps, UserAvatar() (+22 more)
+
 ### Community 74 - "Community 74"
 Cohesion: 0.22
 Nodes (8): allowScripts, sharp@0.34.5, unrs-resolver, ignoreScripts, name, private, trustedDependencies, version
 
 ### Community 75 - "Community 75"
-Cohesion: 0.33
-Nodes (7): GET(), HomeReactionsResponse, aggregateRows(), ArticleAgg, emptyContentCounts(), fetchHomeReactions(), loadReactionAggregate()
+Cohesion: 0.20
+Nodes (11): fetchNotificationList(), fetchUnreadCount(), NotificationListResponse, StreamMessage, useNotifications(), useNotificationUnreadCount(), invalidateNotifications(), Listener (+3 more)
 
 ### Community 76 - "Community 76"
 Cohesion: 0.25
@@ -500,8 +501,8 @@ Cohesion: 0.14
 Nodes (10): ADS_DATA, { IMAGES }, IMAGES, PHOTOS, bad, dir, { IMAGES }, ok (+2 more)
 
 ### Community 78 - "Community 78"
-Cohesion: 0.15
-Nodes (15): NavbarNotifications(), NavbarReactionLinks(), NavbarLayerThreeSkeleton(), formatNotificationTime(), NotificationBellMenuProps, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem (+7 more)
+Cohesion: 0.14
+Nodes (17): useAdminBreadcrumbOverrides(), AdminTopbar(), AdminTopbarProps, NavbarNotifications(), NavbarLayerThreeSkeleton(), formatNotificationTime(), NotificationBellMenuProps, DropdownMenuCheckboxItem (+9 more)
 
 ### Community 79 - "Community 79"
 Cohesion: 0.13
@@ -529,35 +530,35 @@ Nodes (6): 18. Minimum Tables untuk MVP Paling Awal, Phase 1 — Auth dan Artike
 
 ### Community 85 - "Community 85"
 Cohesion: 0.05
-Nodes (30): PageProps, ArticleCoverImage(), ArticleDetailClient(), ArticleDetailClientProps, ArticleDetailMetaBarProps, ArticleTagList(), ArticleTagListProps, ArticleDetail (+22 more)
+Nodes (30): PageProps, ArticleDetailClient(), ArticleDetailClientProps, ArticleDetailContent, ArticleDetailContentProps, ArticleDetailHeroProps, ArticleDetailMetaBarProps, ArticleTagList() (+22 more)
 
 ### Community 86 - "Community 86"
 Cohesion: 0.33
 Nodes (5): Dokumentasi — Jepangku News, Integrasi & arsitektur, Operasional, Steering produk (`.agents/`), Urutan baca (tim integrasi)
 
 ### Community 88 - "Community 88"
-Cohesion: 0.20
-Nodes (8): ArticleListFiltersMobile(), ArticleListFiltersProps, ArticleListSearch(), ArticleListSearchProps, Category, sortOptions, CategorySubscribeButton(), CategorySubscribeButtonProps
+Cohesion: 0.07
+Nodes (20): ArticleRelatedSection(), ArticleRelatedSectionProps, Article, ArticleCard(), ArticleCardProps, CardCoverImage(), CardCoverImageProps, ExploreContentSectionsProps (+12 more)
 
 ### Community 89 - "Community 89"
 Cohesion: 0.32
 Nodes (6): clerk, CLERK_PROTECTED_ROUTES, config, getClientIp(), logApiRequest(), proxy()
 
 ### Community 90 - "Community 90"
-Cohesion: 0.29
-Nodes (11): enrichAdminPointTransactions(), AdminAuditEntry, countByDay(), countByWeek(), getAdminPointsSummary(), getUserGrowthSeries(), lastNDays(), weekKey() (+3 more)
+Cohesion: 0.26
+Nodes (12): CLERK_TEST_ACCOUNTS, ClerkTestRole, clearClerkTokenCache(), ensureClerkTestAccountRoles(), ensureClerkTestUser(), getClerkSessionToken(), isClerkAuthConfigured(), isJwtExpired() (+4 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.40
 Nodes (5): 19. Rekomendasi Awal Seed Data, Admin Settings, Categories, Roles, Source App
 
 ### Community 92 - "Community 92"
-Cohesion: 0.11
-Nodes (22): AdminShell(), CORE_ADMIN_ROLES, GamificationPatch, hasNewsAdminAccess(), SessionUser, ProtectedRoute(), ProtectedRouteProps, AuthContext (+14 more)
+Cohesion: 0.16
+Nodes (16): CORE_ADMIN_ROLES, hasNewsAdminAccess(), SessionUser, ProtectedRoute(), ProtectedRouteProps, EditArticlePage(), isAdminAuthor(), submitSuccessMessage() (+8 more)
 
 ### Community 93 - "Community 93"
-Cohesion: 0.15
-Nodes (13): buildR2PublicUrl(), getSignedUrlR2(), LOCAL_UPLOAD_ROOT, uploadToLocal(), uploadToR2(), getR2PublicHostname(), isR2MediaUrl(), nextConfig (+5 more)
+Cohesion: 0.24
+Nodes (7): AdBannerImage(), AdBannerImageProps, AdCarousel(), AdCarouselProps, AdBannerSlot(), AdBannerSlotProps, PublicAdBanner
 
 ### Community 94 - "Community 94"
 Cohesion: 0.40
@@ -592,20 +593,20 @@ Cohesion: 0.67
 Nodes (3): 11.1 Konsep Polling dan Voting, 11.2 Fitur Polling/Voting, 11. Modul Polling / Voting
 
 ### Community 105 - "Community 105"
-Cohesion: 0.20
-Nodes (11): fetchNotificationList(), fetchUnreadCount(), NotificationListResponse, StreamMessage, useNotifications(), useNotificationUnreadCount(), invalidateNotifications(), Listener (+3 more)
+Cohesion: 0.33
+Nodes (5): GET(), GET(), GET(), getUserPointBalance(), getUserPointTransactions()
 
 ### Community 110 - "Community 110"
 Cohesion: 0.50
 Nodes (3): Agent context — Jepangku News, Mulai di sini, Steering historis
 
 ### Community 113 - "Community 113"
-Cohesion: 0.27
-Nodes (12): getActiveAdminIds(), notifyAdminsArticlePendingReview(), notifyAdminsContributorApplication(), handleCommentCreated(), resolveArticleForComment(), handleContributorReviewed(), createNotification(), defaultExpiresAt() (+4 more)
+Cohesion: 0.23
+Nodes (13): channelFor(), getBackend(), getNotificationSignalVersion(), getRedisClient(), getUpstash(), memoryVersions, NotificationRealtimePayload, publishNotificationUpdate() (+5 more)
 
 ### Community 114 - "Community 114"
-Cohesion: 0.08
-Nodes (44): ArticleListResponse, DRAFT_PAYLOAD, VideosListResponse, apiCreateDraft(), apiUpdateDraft(), ApiJson, authedApi(), createApiClient() (+36 more)
+Cohesion: 0.36
+Nodes (4): getLogoErrorStats(), LogoAnalytics, LogoErrorEvent, trackLogoError()
 
 ### Community 115 - "Community 115"
 Cohesion: 0.50
@@ -616,8 +617,8 @@ Cohesion: 0.22
 Nodes (9): article(), ARTICLE_DEFS, AUTHORS, CATEGORY_COVER_KEY, { CLERK_TEST_SAMPLE_USER_EMAIL }, coverFor(), { IMAGES }, SAMPLE_ARTICLES (+1 more)
 
 ### Community 117 - "Community 117"
-Cohesion: 0.23
-Nodes (13): channelFor(), getBackend(), getNotificationSignalVersion(), getRedisClient(), getUpstash(), memoryVersions, NotificationRealtimePayload, publishNotificationUpdate() (+5 more)
+Cohesion: 0.39
+Nodes (6): ApiJson, authedApi(), createApiClient(), guestApi(), getNewsBaseUrl(), isNewsServerUp()
 
 ### Community 118 - "Community 118"
 Cohesion: 0.33
@@ -628,60 +629,48 @@ Cohesion: 0.27
 Nodes (7): PreviewArticleBreadcrumb(), PreviewArticleBreadcrumbProps, PreviewBreadcrumbNav(), PreviewArticlePage(), getPreviewArticleBreadcrumbs(), isAdminPreviewContext(), PreviewBreadcrumb
 
 ### Community 120 - "Community 120"
-Cohesion: 0.67
-Nodes (3): formatPublishedDate(), VideoDetailMetaBar(), VideoDetailMetaBarProps
+Cohesion: 0.33
+Nodes (5): prismaUniqueViolation(), basePayload, mockNotificationCreate, mockNotificationFindFirst, mockNotificationUpdate
 
 ### Community 122 - "Community 122"
 Cohesion: 0.73
 Nodes (4): clampSearchLimit(), normalizeSearchQuery(), searchAll(), GET()
 
 ### Community 125 - "Community 125"
-Cohesion: 0.19
-Nodes (10): AdminPointTransactionSource, AdminPointTransactionUser, fallbackSourceLabel(), RawPointTx, SOURCE_TYPE_LABELS, sourceTypeLabel(), titleFromDescription(), ACTIVITY_ICONS (+2 more)
+Cohesion: 0.21
+Nodes (18): ActivityFeedItem, ActivityFeedKind, commentHref(), queueEmailSafe(), handleArticleStatusChanged(), ArticleViewTarget, getArticleViewHref(), getArticleViewLabel() (+10 more)
 
 ### Community 126 - "Community 126"
 Cohesion: 0.08
 Nodes (25): §10 Newsletter *(6 fitur · 8 kondisi)*, §11 Kontributor *(5 fitur · 6 kondisi)*, §12 Homepage & discovery *(14 fitur · 17 kondisi)*, §13 Integrasi LMS teaser *(6 fitur · 7 kondisi)*, §14 Iklan & monetisasi *(4 fitur · 5 kondisi)*, §15 Admin — dashboard & monitoring *(6 fitur · 9 kondisi)*, §16 Admin — konten & taxonomi *(5 fitur · 5 kondisi)*, §17 Admin — analytics *(5 fitur · 5 kondisi)* (+17 more)
 
 ### Community 127 - "Community 127"
-Cohesion: 0.38
-Nodes (9): getJakartaMonthBounds(), getJakartaWeekBounds(), getPeriodBounds(), jakartaParts(), LEADERBOARD_PERIOD_LABELS, LEADERBOARD_PERIOD_SHORT, parseLeaderboardPeriod(), WEEKDAY_TO_OFFSET (+1 more)
+Cohesion: 0.60
+Nodes (4): GET(), hashVisitorSeed(), recordArticleView(), resolveVisitorKey()
 
 ### Community 128 - "Community 128"
 Cohesion: 0.67
 Nodes (3): ARTICLE_VIEWS_CONFIG, buildViewsForArticle(), mulberry32()
 
 ### Community 129 - "Community 129"
-Cohesion: 0.33
-Nodes (5): prismaUniqueViolation(), basePayload, mockNotificationCreate, mockNotificationFindFirst, mockNotificationUpdate
+Cohesion: 0.50
+Nodes (3): EmailConfigDetailClient(), EmailConfigDetailClientProps, EmailTemplateDetail
+
+### Community 130 - "Community 130"
+Cohesion: 0.35
+Nodes (8): DELETE(), GET(), POST(), CategorySubscriptionDto, listUserCategorySubscriptions(), resolveCategoryId(), subscribeToCategory(), unsubscribeFromCategory()
 
 ### Community 131 - "Community 131"
-Cohesion: 0.06
-Nodes (57): DEFAULT_OPTION(), DEFAULT_QUESTION(), useImageUpload(), DEFAULT_OPTION(), DEFAULT_QUESTION(), useImageUpload(), DEFAULT_OPTION(), DEFAULT_QUESTION() (+49 more)
-
-### Community 132 - "Community 132"
-Cohesion: 0.24
-Nodes (6): GET(), publishedArticleWhere, getJakartaDayBounds(), HomeFeedResponse, CategoryWithArticles, fetchHomeFeed()
-
-### Community 133 - "Community 133"
-Cohesion: 0.11
-Nodes (25): AuthProvider, getAuthProvider(), getSignInPath(), getSignUpPath(), isClerkAuthEnabled(), isClerkAuthEnabledClient(), DELETE(), GET() (+17 more)
+Cohesion: 0.05
+Nodes (77): AdBannerUploadFieldProps, DEFAULT_OPTION(), DEFAULT_QUESTION(), useImageUpload(), DEFAULT_OPTION(), DEFAULT_QUESTION(), useImageUpload(), DEFAULT_OPTION() (+69 more)
 
 ### Community 134 - "Community 134"
 Cohesion: 0.22
 Nodes (3): BarPoint, DashboardChartsData, DayPoint
 
-### Community 135 - "Community 135"
-Cohesion: 0.39
-Nodes (6): GET(), RouteContext, getQuizLeaderboard(), parseQuizLeaderboardPeriod(), QuizLeaderboardEntry, QuizLeaderboardPeriod
-
 ### Community 137 - "Community 137"
 Cohesion: 0.22
 Nodes (12): GET(), ARTICLE_REACTION_TYPES, browseByReaction(), filterValidTargetIds(), parseBrowseTargetType(), parseReactionTypeParam(), REACTION_BROWSE_TARGETS, ReactionBrowseArticleItem (+4 more)
-
-### Community 138 - "Community 138"
-Cohesion: 0.67
-Nodes (5): fallbackUsernameFromCoreUser(), hasValidUsernameChars(), hasValidUsernameLength(), isValidUsername(), slugifyUsername()
 
 ### Community 139 - "Community 139"
 Cohesion: 0.08
@@ -689,27 +678,23 @@ Nodes (24): §10 Newsletter, §11 Kontributor, §12 Homepage & discovery, §13 I
 
 ### Community 140 - "Community 140"
 Cohesion: 0.07
-Nodes (40): AdBannerImage(), AdBannerImageProps, AdCarousel(), AdCarouselProps, peekAdSlotClient(), ArticleListSidebar(), ArticleListSidebarProps, ArticleSidebarAd() (+32 more)
+Nodes (35): ArticleListFiltersMobile(), ArticleListFiltersProps, ArticleListSearch(), ArticleListSearchProps, Category, sortOptions, ArticleListSidebar(), ArticleListSidebarProps (+27 more)
 
 ### Community 141 - "Community 141"
-Cohesion: 0.08
-Nodes (34): PointRow, TabId, useAdminBreadcrumbs(), AdminCardProps, AdBannerUploadFieldProps, AD_SLOT_POSITIONS, FooterNewsletterFormProps, ProfileData (+26 more)
+Cohesion: 0.07
+Nodes (36): PointRow, TabId, useAdminBreadcrumbs(), AdminCardProps, AD_SLOT_POSITIONS, StatusResponse, ProfileData, ProfileForm (+28 more)
+
+### Community 142 - "Community 142"
+Cohesion: 0.05
+Nodes (45): GET(), GET(), PageProps, GET(), EXPLORE_LIMITS, fetchExploreContent(), fetchExplorePolls(), fetchExploreQuizzes() (+37 more)
 
 ### Community 145 - "Community 145"
-Cohesion: 0.18
-Nodes (12): LeaderboardScore(), LeaderboardScoreProps, formatLeaderboardRank(), LeaderboardTableRow(), LeaderboardTableRowProps, LeaderboardTableSeparator(), PERIOD_OPTIONS, PERIOD_SUBTITLES (+4 more)
+Cohesion: 0.15
+Nodes (12): ExploreSidebarProps, LeaderboardScore(), LeaderboardScoreProps, formatLeaderboardRank(), LeaderboardTableRow(), LeaderboardTableRowProps, LeaderboardTableSeparator(), PERIOD_OPTIONS (+4 more)
 
 ### Community 147 - "Community 147"
 Cohesion: 0.40
 Nodes (5): Check, checks, main(), record(), WAVE_ENDPOINTS
-
-### Community 151 - "Community 151"
-Cohesion: 0.16
-Nodes (20): decodeCursor(), encodeCursor(), getUnreadNotificationCount(), listNotificationsForUser(), markAllNotificationsRead(), markNotificationRead(), notExpiredFilter(), parseLimit() (+12 more)
-
-### Community 153 - "Community 153"
-Cohesion: 0.17
-Nodes (7): AdminDetailRow(), DayPoint, AdminPointTransaction, PointTransactionDetailModal(), PointTransactionDetailModalProps, PERIODS, PointsSummary
 
 ### Community 158 - "Community 158"
 Cohesion: 0.50
@@ -732,23 +717,23 @@ Cohesion: 0.40
 Nodes (3): ArticleFigure, ArticleFigureAttrs, Commands
 
 ### Community 170 - "Community 170"
-Cohesion: 0.10
-Nodes (29): AdBannerCropModal(), AdBannerCropModalProps, AdBannerUploadField(), adPositionDbValues(), AdSlotPosition, getAdSlotLabel(), LEGACY_POSITION_MAP, normalizeAdPosition() (+21 more)
+Cohesion: 0.06
+Nodes (40): AdBannerCropModal(), AdBannerCropModalProps, AdBannerUploadField(), adSlotEndpoint(), CacheEntry, fetchAdSlotClient(), inFlight, invalidateAdSlotClientCache() (+32 more)
 
 ## Knowledge Gaps
-- **1228 isolated node(s):** `GROWTH_PERIODS`, `POSITION_FILTERS`, `HubStats`, `DOMAIN_SECTIONS`, `Props` (+1223 more)
+- **1232 isolated node(s):** `GROWTH_PERIODS`, `POSITION_FILTERS`, `HubStats`, `DOMAIN_SECTIONS`, `Props` (+1227 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `parseApiResponse()` connect `Community 114` to `Community 131`, `Community 4`, `Community 9`, `Community 140`, `Community 141`, `Community 12`, `Community 15`, `Community 145`, `Community 17`, `Community 19`, `Community 147`, `Community 22`, `Community 153`, `Community 40`, `Community 42`, `Community 47`, `Community 50`, `Community 51`, `Community 52`, `Community 55`, `Community 59`, `Community 64`, `Community 65`, `Community 73`, `Community 85`, `Community 88`, `Community 92`, `Community 105`, `Community 121`?**
-  _High betweenness centrality (0.063) - this node is a cross-community bridge._
-- **Why does `createPrismaClient()` connect `Community 33` to `Community 35`, `Community 14`, `Community 151`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
-- **Why does `cn()` connect `Community 19` to `Community 131`, `Community 4`, `Community 9`, `Community 140`, `Community 141`, `Community 12`, `Community 15`, `Community 17`, `Community 18`, `Community 22`, `Community 153`, `Community 38`, `Community 40`, `Community 170`, `Community 50`, `Community 55`, `Community 59`, `Community 78`, `Community 85`, `Community 88`, `Community 105`, `Community 119`?**
-  _High betweenness centrality (0.038) - this node is a cross-community bridge._
+- **Why does `parseApiResponse()` connect `Community 64` to `Community 131`, `Community 4`, `Community 9`, `Community 140`, `Community 141`, `Community 142`, `Community 12`, `Community 145`, `Community 147`, `Community 22`, `Community 40`, `Community 170`, `Community 42`, `Community 47`, `Community 51`, `Community 52`, `Community 55`, `Community 69`, `Community 73`, `Community 75`, `Community 85`, `Community 88`, `Community 117`, `Community 121`?**
+  _High betweenness centrality (0.072) - this node is a cross-community bridge._
+- **Why does `cn()` connect `Community 69` to `Community 131`, `Community 4`, `Community 7`, `Community 9`, `Community 12`, `Community 141`, `Community 140`, `Community 15`, `Community 18`, `Community 19`, `Community 22`, `Community 40`, `Community 170`, `Community 46`, `Community 47`, `Community 55`, `Community 61`, `Community 65`, `Community 73`, `Community 75`, `Community 78`, `Community 85`, `Community 88`, `Community 93`, `Community 119`?**
+  _High betweenness centrality (0.048) - this node is a cross-community bridge._
+- **Why does `createPrismaClient()` connect `Community 33` to `Community 0`, `Community 50`, `Community 59`, `Community 14`?**
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Are the 79 inferred relationships involving `apiSuccess()` (e.g. with `POST()` and `GET()`) actually correct?**
   _`apiSuccess()` has 79 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 71 inferred relationships involving `apiError()` (e.g. with `POST()` and `GET()`) actually correct?**
