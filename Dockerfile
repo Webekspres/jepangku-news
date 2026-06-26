@@ -25,7 +25,7 @@ ENV R2_ACCOUNT_ID=build
 ENV R2_ACCESS_KEY_ID=build
 ENV R2_SECRET_ACCESS_KEY=build
 ENV R2_BUCKET_NAME=build
-ENV R2_PUBLIC_URL=https://example.com
+ENV R2_PUBLIC_URL=https://assets.jepangku.com
 ENV CORE_API_URL=http://localhost:8080
 ENV CORE_SERVICE_TOKEN=build-placeholder
 RUN bunx prisma generate

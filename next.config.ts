@@ -52,7 +52,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "**.r2.cloudflarestorage.com" },
       { protocol: "https", hostname: "**.r2.dev" },
-      ...(r2PublicHost
+      { protocol: "https", hostname: "assets.jepangku.com" },
+      ...(r2PublicHost && r2PublicHost !== "assets.jepangku.com"
         ? [{ protocol: "https" as const, hostname: r2PublicHost }]
         : []),
       { protocol: "https", hostname: "img.clerk.com" },
