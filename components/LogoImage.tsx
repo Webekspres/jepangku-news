@@ -69,8 +69,10 @@ export default function LogoImage({
       className={className}
       onError={handleError}
       priority
-      // Add loading strategy for better performance
-      sizes={`${width}px`}
+      // SVG logos are static, trusted assets in /public. Serving them
+      // unoptimized bypasses the Next.js image optimizer (which rejects SVG
+      // by default in production) while keeping the fallback behavior.
+      unoptimized
     />
   );
 }

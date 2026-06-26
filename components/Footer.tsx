@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import LogoImage from "@/components/LogoImage";
 import { useRouter } from "next/navigation";
 import FooterNewsletterForm from "@/components/FooterNewsletterForm";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
@@ -33,13 +32,13 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
         <div className="grid grid-cols-2 md:grid-cols-7 gap-8 text-white">
           <div className="col-span-2 md:col-span-3">
             <div className="flex flex-col items-center md:items-start">
-              <LogoImage
-                variant="02-dark"
+              <img
+                src="/assets/images/logo/logo-02-dark.svg"
                 width={160}
                 height={48}
                 className="h-40 w-auto mb-4"
                 alt="Jepangku"
-                fallbackSrc="/assets/images/logo/logo-04.svg"
+                draggable={false}
               />
               <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm">
                 JepangKu - Jepang versi kamu! 

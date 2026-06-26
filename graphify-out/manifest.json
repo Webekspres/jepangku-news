@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "components/Footer.tsx": {
-    "mtime": 1782438492.1937609,
-    "ast_hash": "8537207f9fa294286d7c9ba9760b8c92",
+    "mtime": 1782443950.453348,
+    "ast_hash": "0374957bfe4e4b63c7371ea25eef2694",
     "semantic_hash": ""
   },
   "components/InfoPageServer.tsx": {
@@ -1560,8 +1560,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1782438737.8371606,
-    "ast_hash": "1a4c54d599d3436660d838aad63662c2",
+    "mtime": 1782439560.9607196,
+    "ast_hash": "a854b65129af2950746d3af2b083a4ce",
     "semantic_hash": ""
   },
   "postcss.config.mjs": {
@@ -1820,8 +1820,8 @@
     "semantic_hash": ""
   },
   ".github/workflows/deploy.yml": {
-    "mtime": 1782354284.4943595,
-    "ast_hash": "7763afa44e45528ff5273263f6c5284a",
+    "mtime": 1782440672.6332982,
+    "ast_hash": "ba3b872e8a5efd688739fce60940abbe",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -3525,8 +3525,8 @@
     "semantic_hash": ""
   },
   "components/LogoImage.tsx": {
-    "mtime": 1782438766.5123117,
-    "ast_hash": "80a19c158b98eb539989cee735f84313",
+    "mtime": 1782444029.9338021,
+    "ast_hash": "ae62a56cb1eee9e7afd7f7ea9ab738ab",
     "semantic_hash": ""
   },
   "components/ads/AdCarousel.tsx": {
@@ -3547,11 +3547,6 @@
   "lib/logo-utils.ts": {
     "mtime": 1782438645.466052,
     "ast_hash": "fec236fc2d9eeb4541992e86b55847b7",
-    "semantic_hash": ""
-  },
-  "scripts/verify-logo-paths.js": {
-    "mtime": 1782438691.1927886,
-    "ast_hash": "d6f8d0736af37d21cc2a9a14fd09b5be",
     "semantic_hash": ""
   }
 }
