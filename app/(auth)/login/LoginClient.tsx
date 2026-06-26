@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import AssetImage from "@/components/AssetImage";
-import { imageLoadingProps } from "@/lib/image-loading";
+import LogoImage from "@/components/LogoImage";
 
 function LoginForm() {
   const { login } = useAuth();
@@ -48,13 +47,13 @@ function LoginForm() {
               href="/"
               className="font-heading font-black tracking-tighter"
             >
-              <AssetImage
-                src="/assets/images/logo/logo-01.svg"
-                alt="Jepangku Logo"
+              <LogoImage
+                variant="01"
                 width={180}
                 height={18}
                 className="mx-auto"
-                {...imageLoadingProps(true)}
+                alt="Jepangku Logo"
+                fallbackSrc="/assets/images/logo/logo-04.svg"
               />
             </Link>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-muted mt-2">

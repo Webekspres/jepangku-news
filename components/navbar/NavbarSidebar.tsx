@@ -75,7 +75,7 @@ export default function NavbarSidebar({
   const activeCategory =
     pathname === "/articles" ? searchParams.get("category") : null;
 
-  const { data: adData, isLoading: adLoading } = useAdSlot("homepage-sidebar", {
+  const { data: adData, isLoading: adLoading } = useAdSlot("sidebar", {
     enabled: open,
     immediate: true,
   });

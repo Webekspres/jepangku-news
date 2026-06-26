@@ -103,7 +103,7 @@ export type PublicAdBanner = {
 
 export type HomeAdResponse = {
   slot: string;
-  banner: PublicAdBanner | null;
+  banners: PublicAdBanner[];
 };
 
 export type LmsTeaserHighlight = {

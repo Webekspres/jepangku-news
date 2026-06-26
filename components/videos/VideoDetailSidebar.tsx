@@ -21,7 +21,7 @@ const TRENDING_LIMIT = 5;
 export default function VideoDetailSidebar({
   excludeVideoSlug,
 }: VideoDetailSidebarProps) {
-  const { data, isLoading, error } = useAdSlot("article-sidebar", {
+  const { data, isLoading, error } = useAdSlot("sidebar", {
     immediate: true,
   });
 

@@ -15,7 +15,7 @@ export default function AdminAdCreatePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    position: "homepage-mid",
+    position: "center",
     title: "",
     imageUrl: "",
     linkUrl: "",

@@ -24,11 +24,13 @@ import { cn } from "@/lib/utils";
 
 /* ─── Types ─────────────────────────────────────────── */
 interface PollOption {
+  id?: string;
   optionText: string;
   imageUrl: string;
 }
 
 interface PollQuestion {
+  id?: string;
   questionText: string;
   imageUrl: string;
   options: PollOption[];
@@ -161,9 +163,11 @@ export default function AdminEditPollPage() {
         if (Array.isArray(data.questions) && data.questions.length > 0) {
           setQuestions(
             data.questions.map((q: any) => ({
+              id: q.id,
               questionText: q.questionText,
               imageUrl: q.imageUrl || "",
               options: (q.options || []).map((o: any) => ({
+                id: o.id,
                 optionText: o.optionText,
                 imageUrl: o.imageUrl || "",
               })),
@@ -240,10 +244,12 @@ export default function AdminEditPollPage() {
           allowGuestVote: form.allow_guest_vote,
           showResultBeforeVote: form.show_result_before_vote,
           questions: questions.map((q, qi) => ({
+            id: q.id,
             questionText: q.questionText,
             imageUrl: q.imageUrl || null,
             sortOrder: qi,
             options: q.options.map((o, oi) => ({
+              id: o.id,
               optionText: o.optionText,
               imageUrl: o.imageUrl || null,
               sortOrder: oi,

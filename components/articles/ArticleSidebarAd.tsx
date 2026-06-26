@@ -19,7 +19,7 @@ const TRENDING_LIMIT = 5;
 export default function ArticleSidebarAd({
   excludeArticleSlug,
 }: ArticleSidebarProps) {
-  const { data, isLoading, error } = useAdSlot("article-sidebar", {
+  const { data, isLoading, error } = useAdSlot("sidebar", {
     immediate: true,
   });
 

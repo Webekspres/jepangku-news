@@ -32,7 +32,7 @@ function ArticleListContent() {
   const PER_PAGE = 15;
 
   const { data: mobileAd, isLoading: mobileAdLoading, error: mobileAdError } = useAdSlot(
-    "article-sidebar",
+    "sidebar",
     { immediate: true },
   );
 

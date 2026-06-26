@@ -30,7 +30,7 @@ export default function HomeTodaySection({
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useAdSlot("homepage-sidebar", { immediate: true });
+  } = useAdSlot("sidebar", { immediate: true });
 
   const displayArticles = articles.slice(0, TODAY_ARTICLE_LIMIT);
 

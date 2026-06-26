@@ -331,17 +331,17 @@ export default function AdminPollsPage() {
                         >
                           <BarChart2 size={13} className="mr-1" /> Statistik
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/admin/polls/${poll.id}/edit`)}
+                          data-testid={`edit-poll-${poll.id}`}
+                          className="hover:bg-foreground hover:text-white"
+                        >
+                          <Pencil size={13} className="mr-1" /> Ubah
+                        </Button>
                         {poll.status === "DRAFT" && (
                           <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => router.push(`/admin/polls/${poll.id}/edit`)}
-                              data-testid={`edit-poll-${poll.id}`}
-                              className="hover:bg-foreground hover:text-white"
-                            >
-                              <Pencil size={13} className="mr-1" /> Ubah
-                            </Button>
                             <Button
                               size="sm"
                               variant="outline"

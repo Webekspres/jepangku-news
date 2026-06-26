@@ -1,4 +1,5 @@
 import type { AdSlot } from "@prisma/client";
+import { adPositionDbValues } from "@/lib/ads/constants";
 
 export type PublicAdBanner = {
   id: string;
@@ -22,7 +23,7 @@ export function serializePublicAdBanner(ad: AdSlot): PublicAdBanner {
 
 export function activeAdSlotWhere(position: string, at = new Date()) {
   return {
-    position,
+    position: { in: adPositionDbValues(position) },
     isActive: true,
     AND: [
       { OR: [{ startAt: null }, { startAt: { lte: at } }] },

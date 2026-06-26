@@ -8,7 +8,7 @@ import type { ComponentProps } from "react";
 type ArticleListSidebarProps = ComponentProps<typeof ArticleListFilters>;
 
 export default function ArticleListSidebar(props: ArticleListSidebarProps) {
-  const { data, isLoading, error } = useAdSlot("article-sidebar", {
+  const { data, isLoading, error } = useAdSlot("sidebar", {
     immediate: true,
   });
 

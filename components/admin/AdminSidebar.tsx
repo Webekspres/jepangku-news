@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import AssetImage from '@/components/AssetImage';
-import { imageLoadingProps } from '@/lib/image-loading';
+import LogoImage from '@/components/LogoImage';
 import { usePathname } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -43,13 +42,13 @@ export default function AdminSidebar({ onNavigate, className }: AdminSidebarProp
       {/* Brand — seperti NextUI dashboard sidebar header */}
       <div className="shrink-0 border-b border-jepang-border px-4 py-5 flex flex-col items-center justify-center">
         <Link href="/admin" className="flex items-center gap-3" onClick={onNavigate}>
-          <AssetImage
-            src="/assets/images/logo/logo-04.svg"
-            alt="Jepangku"
+          <LogoImage
+            variant="04"
             width={120}
             height={40}
             className="h-8 w-auto"
-            {...imageLoadingProps(false)}
+            alt="Jepangku"
+            fallbackSrc="/assets/images/logo/logo-01.svg"
           />
         </Link>
       </div>

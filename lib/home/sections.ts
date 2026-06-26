@@ -69,7 +69,7 @@ export const HOME_SECTIONS: HomeSectionConfig[] = [
     id: "ads",
     order: 6,
     wave: 3,
-    lazyEndpoint: "/api/home/ads?slot=homepage-mid",
+    lazyEndpoint: "/api/home/ads?slot=center",
     label: "Advertisement",
     implemented: true,
   },

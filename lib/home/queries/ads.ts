@@ -8,14 +8,15 @@ import { AD_SLOTS_CACHE_TAG } from '@/lib/ads/cache';
 import type { HomeAdResponse } from '@/lib/home/types';
 
 async function loadHomeAd(slot: string): Promise<HomeAdResponse> {
-  const banner = await db.adSlot.findFirst({
+  const banners = await db.adSlot.findMany({
     where: activeAdSlotWhere(slot),
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+    take: 12,
   });
 
   return {
     slot,
-    banner: banner ? serializePublicAdBanner(banner) : null,
+    banners: banners.map(serializePublicAdBanner),
   };
 }
 

@@ -10,7 +10,7 @@ import AdBannerUploadField from "@/components/admin/ads/AdBannerUploadField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
-import { AD_SLOT_POSITIONS } from "@/lib/ads/constants";
+import { AD_SLOT_POSITIONS, normalizeAdPosition } from "@/lib/ads/constants";
 
 function toDatetimeLocal(value: string | null | undefined) {
   if (!value) return "";
@@ -26,7 +26,7 @@ export default function AdminAdEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    position: "homepage-mid",
+    position: "center",
     title: "",
     imageUrl: "",
     linkUrl: "",
@@ -46,7 +46,7 @@ export default function AdminAdEditPage() {
       })
       .then((ad) => {
         setForm({
-          position: ad.position ?? "homepage-mid",
+          position: normalizeAdPosition(ad.position ?? "center"),
           title: ad.title ?? "",
           imageUrl: ad.imageUrl ?? "",
           linkUrl: ad.linkUrl ?? "",

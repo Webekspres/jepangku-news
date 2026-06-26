@@ -32,7 +32,9 @@ function readCache(slot: string): HomeAdResponse | null {
 
 function writeCache(slot: string, data: HomeAdResponse): HomeAdResponse {
   memoryCache.set(slot, { data, fetchedAt: Date.now() });
-  preloadAdBannerImage(data.banner?.imageUrl);
+  for (const banner of data.banners) {
+    preloadAdBannerImage(banner.imageUrl);
+  }
   return data;
 }
 
@@ -48,7 +50,7 @@ export async function fetchAdSlotClient(
   if (pending) return pending;
 
   const promise = fetch(adSlotEndpoint(slot), {
-    cache: 'force-cache',
+    cache: 'no-store',
     ...init,
   })
     .then(async (res) => {
