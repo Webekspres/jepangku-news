@@ -300,6 +300,15 @@ jobs:
 
           curl -fsS "\$HEALTH_URL"
           echo "Deploy OK: portal-berita @ staging"
+
+          echo "==> Prune unused Docker resources (safe)"
+          if [ -f "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh" ]; then
+            bash "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh"
+          else
+            docker container prune -f
+            docker image prune -a -f
+            docker builder prune -a -f
+          fi
           REMOTE
 
   deploy-production:
@@ -387,4 +396,13 @@ jobs:
 
           curl -fsS "\$HEALTH_URL"
           echo "Deploy OK: portal-berita @ latest"
+
+          echo "==> Prune unused Docker resources (safe)"
+          if [ -f "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh" ]; then
+            bash "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh"
+          else
+            docker container prune -f
+            docker image prune -a -f
+            docker builder prune -a -f
+          fi
           REMOTE
