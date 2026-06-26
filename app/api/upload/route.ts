@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const uploadBuffer = optimized.buffer;
     const uploadContentType = optimized.contentType;
 
-    const fileName = `jepangku/uploads/${user.id}/${purpose}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${optimized.ext}`;
+    const fileName = `portal-berita/${user.id}/${purpose}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${optimized.ext}`;
 
     const url = await uploadToR2(uploadBuffer, fileName, uploadContentType);
 

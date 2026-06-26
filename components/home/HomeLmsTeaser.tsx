@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowRight, Award, BarChart3, BookOpen, GraduationCap } from "lucide-react";
-import LogoImage from "@/components/LogoImage";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import { Button } from "@/components/ui/button";
 import { MotionHoverScale } from "@/components/ui/motion";
@@ -180,13 +179,13 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
             className="shrink-0 self-start md:self-end"
             data-testid="lms-nihongo-logo-link"
           >
-            <LogoImage
-              variant="nihongo"
+            <img
+              src="/assets/images/logo/logo-nihongo.svg"
               width={400}
               height={98}
               className="w-72 h-auto opacity-90 transition-opacity hover:opacity-100"
               alt="Jepangku Nihongo LMS"
-              fallbackSrc="/assets/images/logo/logo-04.svg"
+              draggable={false}
             />
           </Link>
         </div>
