@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import AssetImage from "@/components/AssetImage";
+import LogoImage from "@/components/LogoImage";
 import { useRouter } from "next/navigation";
 import FooterNewsletterForm from "@/components/FooterNewsletterForm";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
 import { useAuth, getAuthLoginPath, getAuthRegisterPath, isAuthUser } from "@/contexts/AuthContext";
 import { getContributorCta } from "@/lib/contributor";
-import { imageLoadingProps } from "@/lib/image-loading";
 import type { SocialLink } from "@/lib/site-config";
 import { NAV_CATEGORIES, categoryArticlesHref } from "@/components/navbar/nav-config";
 
@@ -34,13 +33,13 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
         <div className="grid grid-cols-2 md:grid-cols-7 gap-8 text-white">
           <div className="col-span-2 md:col-span-3">
             <div className="flex flex-col items-center md:items-start">
-              <AssetImage
-                src="/assets/images/logo/logo-02-dark.svg"
-                alt="Jepangku"
+              <LogoImage
+                variant="02-dark"
                 width={160}
                 height={48}
-                className="h-40 w-auto mb-4 se"
-                {...imageLoadingProps(false)}
+                className="h-40 w-auto mb-4"
+                alt="Jepangku"
+                fallbackSrc="/assets/images/logo/logo-04.svg"
               />
               <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm">
                 JepangKu - Jepang versi kamu! 

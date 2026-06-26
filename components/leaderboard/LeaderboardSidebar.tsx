@@ -50,7 +50,7 @@ export default function LeaderboardSidebar() {
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useAdSlot("article-sidebar", { immediate: true });
+  } = useAdSlot("sidebar", { immediate: true });
 
   // Load artikel trending berdasarkan total reactions
   useEffect(() => {

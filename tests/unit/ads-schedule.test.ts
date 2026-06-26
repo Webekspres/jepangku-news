@@ -37,9 +37,11 @@ describe("getAdScheduleInfo — §14.3 jadwal", () => {
 describe("activeAdSlotWhere — §14.3 aktif + jadwal", () => {
   const at = new Date("2026-06-15T12:00:00+07:00");
 
-  test("requires isActive and position", () => {
-    const where = activeAdSlotWhere("article-sidebar", at);
-    expect(where.position).toBe("article-sidebar");
+  test("requires isActive and position (incl. legacy aliases)", () => {
+    const where = activeAdSlotWhere("sidebar", at);
+    expect(where.position.in).toContain("sidebar");
+    expect(where.position.in).toContain("homepage-sidebar");
+    expect(where.position.in).toContain("article-sidebar");
     expect(where.isActive).toBe(true);
     expect(where.AND).toHaveLength(2);
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import AdBannerImage from "@/components/ads/AdBannerImage";
+import AdCarousel from "@/components/ads/AdCarousel";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import type { HomeAdResponse } from "@/lib/home/types";
 
@@ -27,7 +27,7 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
     return null;
   }
 
-  if (!data?.banner) {
+  if (!data || data.banners.length === 0) {
     return (
       <section
         className="py-8 bg-white"
@@ -45,20 +45,6 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
     );
   }
 
-  const { banner } = data;
-  const alt = banner.altText || banner.title || "Partner";
-
-  const image = (
-    <AdBannerImage
-      imageUrl={banner.imageUrl}
-      alt={alt}
-      width={1200}
-      height={280}
-      className="max-h-[280px]"
-      testId={`ad-banner-image-${banner.id}`}
-    />
-  );
-
   return (
     <section
       className="py-8 bg-white"
@@ -66,19 +52,15 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
       data-testid="home-ad-banner"
     >
       <div className="px-4 mx-auto max-w-7xl">
-        {banner.linkUrl ? (
-          <a
-            href={banner.linkUrl}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="block overflow-hidden rounded-lg shadow-jepang transition-opacity hover:opacity-95"
-            data-testid={`ad-banner-link-${banner.id}`}
-          >
-            {image}
-          </a>
-        ) : (
-          <div className="overflow-hidden rounded-lg">{image}</div>
-        )}
+        <AdCarousel
+          banners={data.banners}
+          width={1200}
+          height={280}
+          imageClassName="max-h-[280px]"
+          frameClassName="rounded-lg shadow-jepang"
+          testId="ad-banner"
+          priorityFirst
+        />
       </div>
     </section>
   );

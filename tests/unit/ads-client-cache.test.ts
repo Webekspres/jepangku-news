@@ -7,15 +7,17 @@ import {
 import type { HomeAdResponse } from "@/lib/home/types";
 
 const SAMPLE: HomeAdResponse = {
-  slot: "homepage-mid",
-  banner: {
-    id: "ad-1",
-    position: "homepage-mid",
-    title: "Test",
-    imageUrl: "https://cdn.example.com/banner.jpg",
-    linkUrl: null,
-    altText: "Test banner",
-  },
+  slot: "center",
+  banners: [
+    {
+      id: "ad-1",
+      position: "center",
+      title: "Test",
+      imageUrl: "https://cdn.example.com/banner.jpg",
+      linkUrl: null,
+      altText: "Test banner",
+    },
+  ],
 };
 
 describe("ads client-cache — §14.4 tidak over-fetch", () => {
@@ -43,9 +45,9 @@ describe("ads client-cache — §14.4 tidak over-fetch", () => {
     }) as typeof fetch;
 
     const [a, b, c] = await Promise.all([
-      fetchAdSlotClient("homepage-mid"),
-      fetchAdSlotClient("homepage-mid"),
-      fetchAdSlotClient("homepage-mid"),
+      fetchAdSlotClient("center"),
+      fetchAdSlotClient("center"),
+      fetchAdSlotClient("center"),
     ]);
 
     expect(fetchCount).toBe(1);
@@ -66,11 +68,11 @@ describe("ads client-cache — §14.4 tidak over-fetch", () => {
       );
     }) as typeof fetch;
 
-    await fetchAdSlotClient("homepage-mid");
-    await fetchAdSlotClient("homepage-mid");
+    await fetchAdSlotClient("center");
+    await fetchAdSlotClient("center");
 
     expect(fetchCount).toBe(1);
-    expect(peekAdSlotClient("homepage-mid")).toEqual(SAMPLE);
+    expect(peekAdSlotClient("center")).toEqual(SAMPLE);
   });
 
   test("invalidateAdSlotClientCache clears one slot", async () => {
@@ -85,9 +87,9 @@ describe("ads client-cache — §14.4 tidak over-fetch", () => {
       );
     }) as typeof fetch;
 
-    await fetchAdSlotClient("homepage-mid");
-    invalidateAdSlotClientCache("homepage-mid");
-    await fetchAdSlotClient("homepage-mid");
+    await fetchAdSlotClient("center");
+    invalidateAdSlotClientCache("center");
+    await fetchAdSlotClient("center");
 
     expect(fetchCount).toBe(2);
   });

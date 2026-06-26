@@ -19,7 +19,7 @@ const RECOMMENDED_LIMIT = 4;
 const TRENDING_LIMIT = 5;
 
 export default function QuizDetailSidebar({ excludeQuizSlug }: QuizDetailSidebarProps) {
-  const { data, isLoading, error } = useAdSlot("article-sidebar", {
+  const { data, isLoading, error } = useAdSlot("sidebar", {
     immediate: true,
   });
 

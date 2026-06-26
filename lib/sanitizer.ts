@@ -99,6 +99,7 @@ export function sanitizeHtmlContent(input: string) {
 }
 
 type QuestionInput = {
+  id?: string;
   questionText?: string;
   question_text?: string;
   imageUrl?: string | null;
@@ -109,6 +110,7 @@ type QuestionInput = {
 };
 
 type OptionInput = {
+  id?: string;
   optionText?: string;
   option_text?: string;
   imageUrl?: string | null;
@@ -119,13 +121,21 @@ type OptionInput = {
   isCorrect?: boolean;
 };
 
-/** Sanitasi bundle pertanyaan + opsi (mendukung camelCase & snake_case dari builder). */
+/** Passthrough id eksisting (untuk edit in-place); abaikan nilai non-string/kosong. */
+function sanitizeId(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+/** Sanitasi bundle pertanyaan + opsi (mendukung camelCase & snake_case dari builder).
+ *  Menyertakan `id` opsional agar route edit bisa update in-place tanpa reset relasi. */
 export function sanitizeQuestionBundle(questions: QuestionInput[]) {
   return questions.map((q, qi) => ({
+    id: sanitizeId(q.id),
     questionText: sanitizePlainField(q.questionText ?? q.question_text, 1000),
     imageUrl: sanitizeMediaUrl(q.imageUrl ?? q.image_url),
     sortOrder: q.sortOrder ?? q.sort_order ?? qi,
     options: (q.options ?? []).map((o, oi) => ({
+      id: sanitizeId(o.id),
       optionText: sanitizePlainField(o.optionText ?? o.option_text, 500),
       imageUrl: sanitizeMediaUrl(o.imageUrl ?? o.image_url),
       sortOrder: o.sortOrder ?? o.sort_order ?? oi,

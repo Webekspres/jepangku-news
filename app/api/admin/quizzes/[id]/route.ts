@@ -78,35 +78,128 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   // Update quiz metadata
   await db.quiz.update({ where: { id }, data: updateData });
 
-  // Replace questions if provided
+  // Sinkronkan pertanyaan secara in-place (update by id) agar jawaban peserta
+  // yang sudah masuk tidak ikut ter-reset. Pertanyaan/opsi yang sudah memiliki
+  // jawaban tidak boleh dihapus.
   if (Array.isArray(questions)) {
     const safeQuestions = sanitizeQuestionBundle(questions);
-    await db.quizQuestion.deleteMany({ where: { quizId: id } });
 
-    for (let i = 0; i < safeQuestions.length; i++) {
-      const q = safeQuestions[i];
-      const question = await db.quizQuestion.create({
-        data: {
-          quizId: id,
-          questionText: q.questionText,
-          imageUrl: q.imageUrl,
-          sortOrder: q.sortOrder,
-        },
-      });
+    const existingQuestions = await db.quizQuestion.findMany({
+      where: { quizId: id },
+      include: {
+        _count: { select: { answers: true } },
+        options: { select: { id: true, _count: { select: { answers: true } } } },
+      },
+    });
 
-      for (let j = 0; j < q.options.length; j++) {
-        const opt = q.options[j];
-        await db.quizOption.create({
-          data: {
-            questionId: question.id,
-            optionText: opt.optionText,
-            imageUrl: opt.imageUrl,
-            isCorrect: opt.isCorrect,
-            sortOrder: opt.sortOrder,
-          },
-        });
+    const incomingQuestionIds = new Set(
+      safeQuestions.map((q) => q.id).filter((qid): qid is string => Boolean(qid)),
+    );
+    const incomingOptionIds = new Set(
+      safeQuestions
+        .flatMap((q) => q.options.map((o) => o.id))
+        .filter((oid): oid is string => Boolean(oid)),
+    );
+
+    // Guard: pertanyaan ber-jawaban tidak boleh dihapus
+    const removedQuestions = existingQuestions.filter(
+      (q) => !incomingQuestionIds.has(q.id),
+    );
+    if (removedQuestions.some((q) => q._count.answers > 0)) {
+      return apiError(
+        'Pertanyaan yang sudah dijawab peserta tidak dapat dihapus. Anda tetap bisa memperbaiki teks atau gambarnya.',
+        { status: 400 },
+      );
+    }
+
+    // Guard: opsi ber-jawaban tidak boleh dihapus
+    for (const q of existingQuestions) {
+      for (const o of q.options) {
+        if (o._count.answers > 0 && !incomingOptionIds.has(o.id)) {
+          return apiError(
+            'Opsi jawaban yang sudah dipilih peserta tidak dapat dihapus. Anda tetap bisa memperbaiki teks atau gambarnya.',
+            { status: 400 },
+          );
+        }
       }
     }
+
+    await db.$transaction(async (tx) => {
+      if (removedQuestions.length > 0) {
+        await tx.quizQuestion.deleteMany({
+          where: { id: { in: removedQuestions.map((q) => q.id) } },
+        });
+      }
+
+      for (const q of safeQuestions) {
+        const existing = q.id
+          ? existingQuestions.find((eq) => eq.id === q.id)
+          : undefined;
+
+        let questionId: string;
+        if (existing) {
+          await tx.quizQuestion.update({
+            where: { id: existing.id },
+            data: {
+              questionText: q.questionText,
+              imageUrl: q.imageUrl,
+              sortOrder: q.sortOrder,
+            },
+          });
+          questionId = existing.id;
+        } else {
+          const created = await tx.quizQuestion.create({
+            data: {
+              quizId: id,
+              questionText: q.questionText,
+              imageUrl: q.imageUrl,
+              sortOrder: q.sortOrder,
+            },
+          });
+          questionId = created.id;
+        }
+
+        const existingOptions = existing?.options ?? [];
+        const keptOptionIds = new Set(
+          q.options.map((o) => o.id).filter((oid): oid is string => Boolean(oid)),
+        );
+        const removedOptions = existingOptions.filter(
+          (o) => !keptOptionIds.has(o.id),
+        );
+        if (removedOptions.length > 0) {
+          await tx.quizOption.deleteMany({
+            where: { id: { in: removedOptions.map((o) => o.id) } },
+          });
+        }
+
+        for (const opt of q.options) {
+          const existingOption = opt.id
+            ? existingOptions.find((eo) => eo.id === opt.id)
+            : undefined;
+          if (existingOption) {
+            await tx.quizOption.update({
+              where: { id: existingOption.id },
+              data: {
+                optionText: opt.optionText,
+                imageUrl: opt.imageUrl,
+                isCorrect: opt.isCorrect,
+                sortOrder: opt.sortOrder,
+              },
+            });
+          } else {
+            await tx.quizOption.create({
+              data: {
+                questionId,
+                optionText: opt.optionText,
+                imageUrl: opt.imageUrl,
+                isCorrect: opt.isCorrect,
+                sortOrder: opt.sortOrder,
+              },
+            });
+          }
+        }
+      }
+    });
   }
 
   auditAdminEntity(admin, 'quiz', 'update', {

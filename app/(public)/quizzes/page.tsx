@@ -132,7 +132,7 @@ export default function QuizListPage() {
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useAdSlot("article-sidebar", { immediate: true });
+  } = useAdSlot("sidebar", { immediate: true });
 
   useEffect(() => {
     loadQuizzes(1, true);

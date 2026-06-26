@@ -131,7 +131,7 @@ export default function HomeEngagementSection({
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useAdSlot("homepage-sidebar", { immediate: true });
+  } = useAdSlot("sidebar", { immediate: true });
 
   if (error) {
     return (

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import AssetImage from "@/components/AssetImage";
+import LogoImage from "@/components/LogoImage";
 import { useRouter } from "next/navigation";
 import {
   useAuth,
@@ -18,7 +18,6 @@ import NavbarSidebar from "@/components/navbar/NavbarSidebar";
 import UserAvatar from "@/components/media/UserAvatar";
 import { NAV_LINKS } from "@/components/navbar/nav-config";
 import { getContributorCta, canCreateArticles } from "@/lib/contributor";
-import { imageLoadingProps } from "@/lib/image-loading";
 import type { SocialLink } from "@/lib/site-config";
 import {
   Menu,
@@ -207,13 +206,13 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
                 className="flex shrink-0 items-center gap-2"
                 data-testid="navbar-logo"
               >
-                <AssetImage
-                  src="/assets/images/logo/logo-04.svg"
-                  alt="Jepangku Berita"
+                <LogoImage
+                  variant="04"
                   width={160}
                   height={42}
                   className="h-9 w-auto"
-                  {...imageLoadingProps(true)}
+                  alt="Jepangku Berita"
+                  fallbackSrc="/assets/images/logo/logo-01.svg"
                 />
               </Link>
 

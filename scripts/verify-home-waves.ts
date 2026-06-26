@@ -10,7 +10,7 @@ const WAVE_ENDPOINTS = [
   { wave: 1, path: "/api/home/feed" },
   { wave: 2, path: "/api/home/categories-editorial" },
   { wave: 3, path: "/api/home/tv" },
-  { wave: 3, path: "/api/home/ads?slot=homepage-mid" },
+  { wave: 3, path: "/api/home/ads?slot=center" },
   { wave: 3, path: "/api/home/lms-teaser" },
   { wave: 3, path: "/api/home/reactions" },
   { wave: 4, path: "/api/home/engagement" },

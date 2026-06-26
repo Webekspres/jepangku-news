@@ -272,17 +272,17 @@ export default function AdminQuizzesPage() {
                         >
                           <BarChart2 size={13} className="mr-1" /> Statistik
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/admin/quizzes/${quiz.id}/edit`)}
+                          data-testid={`edit-quiz-${quiz.id}`}
+                          className="hover:bg-foreground hover:text-white"
+                        >
+                          <Pencil size={13} className="mr-1" /> Ubah
+                        </Button>
                         {quiz.status === "DRAFT" && (
                           <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => router.push(`/admin/quizzes/${quiz.id}/edit`)}
-                              data-testid={`edit-quiz-${quiz.id}`}
-                              className="hover:bg-foreground hover:text-white"
-                            >
-                              <Pencil size={13} className="mr-1" /> Ubah
-                            </Button>
                             <Button
                               size="sm"
                               variant="outline"

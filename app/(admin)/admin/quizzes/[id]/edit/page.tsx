@@ -24,12 +24,14 @@ import { cn } from "@/lib/utils";
 
 /* ─── Types ─────────────────────────────────────────── */
 interface QuizOption {
+  id?: string;
   option_text: string;
   image_url: string;
   is_correct: boolean;
 }
 
 interface QuizQuestion {
+  id?: string;
   question_text: string;
   image_url: string;
   options: QuizOption[];
@@ -180,9 +182,11 @@ export default function AdminEditQuizPage() {
         if (Array.isArray(data.questions) && data.questions.length > 0) {
           setQuestions(
             data.questions.map((q: any) => ({
+              id: q.id,
               question_text: q.questionText,
               image_url: q.imageUrl || "",
               options: (q.options || []).map((o: any) => ({
+                id: o.id,
                 option_text: o.optionText,
                 image_url: o.imageUrl || "",
                 is_correct: o.isCorrect,
@@ -267,10 +271,12 @@ export default function AdminEditQuizPage() {
           allowRetry: form.allow_retry,
           showResultImmediately: form.show_result_immediately,
           questions: questions.map((q, i) => ({
+            id: q.id,
             question_text: q.question_text,
             image_url: q.image_url || null,
             sort_order: i,
             options: q.options.map((o, j) => ({
+              id: o.id,
               option_text: o.option_text,
               image_url: o.image_url || null,
               is_correct: o.is_correct,

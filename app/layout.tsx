@@ -8,6 +8,7 @@ import {
   SITE_TITLE_TEMPLATE,
 } from '@/lib/site-config';
 import { getSiteUrl } from '@/lib/site-url';
+import { getCriticalLogoPaths } from '@/lib/logo-utils';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -34,11 +35,23 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const criticalLogos = getCriticalLogoPaths();
+  
   return (
     <html lang="id" className="h-full">
       <head>
         <link rel="preconnect" href="https://img.clerk.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://img.clerk.com" />
+        {/* Preload critical logo assets */}
+        {criticalLogos.map((logoPath) => (
+          <link 
+            key={logoPath} 
+            rel="preload" 
+            href={logoPath} 
+            as="image" 
+            type="image/svg+xml" 
+          />
+        ))}
       </head>
       <ClerkProvider telemetry={false} localization={idID}>
         <body className="thin-scrollbar min-h-full flex flex-col overflow-x-clip">

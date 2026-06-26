@@ -366,7 +366,7 @@ export default function PollListPage() {
     data: sidebarAd,
     isLoading: sidebarAdLoading,
     error: sidebarAdError,
-  } = useAdSlot("article-sidebar", { immediate: true });
+  } = useAdSlot("sidebar", { immediate: true });
 
   useEffect(() => {
     loadPolls(1, true);

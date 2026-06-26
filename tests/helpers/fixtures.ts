@@ -121,7 +121,7 @@ export const HOME_WAVE_ENDPOINTS = [
   { wave: 1, path: "/api/home/feed", expectCache: true },
   { wave: 2, path: "/api/home/categories-editorial", expectCache: true },
   { wave: 3, path: "/api/home/tv", expectCache: true },
-  { wave: 3, path: "/api/home/ads?slot=homepage-mid", expectCache: false },
+  { wave: 3, path: "/api/home/ads?slot=center", expectCache: false },
   { wave: 3, path: "/api/home/lms-teaser", expectCache: true },
   { wave: 3, path: "/api/home/reactions", expectCache: true },
   { wave: 4, path: "/api/home/engagement", expectCache: true },

@@ -50,7 +50,7 @@ export default function HomePage() {
     data: ads,
     isLoading: adsLoading,
     error: adsError,
-  } = useAdSlot("homepage-mid");
+  } = useAdSlot("center");
 
   const {
     sentinelRef: lmsSentinelRef,

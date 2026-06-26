@@ -19,7 +19,7 @@ const RECOMMENDED_LIMIT = 4;
 const TRENDING_LIMIT = 5;
 
 export default function PollDetailSidebar({ excludePollSlug }: PollDetailSidebarProps) {
-  const { data, isLoading, error } = useAdSlot("article-sidebar", {
+  const { data, isLoading, error } = useAdSlot("sidebar", {
     immediate: true,
   });
 
