@@ -1,12 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AdBannerCropModal from "@/components/admin/ads/AdBannerCropModal";
 import { getAdSlotDimensions } from "@/lib/ads/dimensions";
-import { uploadMediaFile } from "@/lib/upload-media";
+import {
+  deleteMediaFile,
+  discardStagedUrl,
+  getReplacedUrl,
+  isStagedUrl,
+  stageFile,
+} from "@/lib/upload-media";
 
 type AdBannerUploadFieldProps = {
   position: string;
@@ -24,7 +30,7 @@ export default function AdBannerUploadField({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { width, height } = getAdSlotDimensions(position);
 
@@ -45,17 +51,44 @@ export default function AdBannerUploadField({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const uploadCroppedBanner = async (file: File) => {
-    setUploading(true);
-    try {
-      const data = await uploadMediaFile(file, "banner");
-      onImageUrlChange(data.url);
-      toast.success("Gambar banner diunggah");
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Upload gagal");
-      throw err;
-    } finally {
-      setUploading(false);
+  const stageCroppedBanner = async (file: File) => {
+    // Preserve the original saved URL across re-crops so it is cleaned up on save.
+    const replaced = isStagedUrl(imageUrl)
+      ? getReplacedUrl(imageUrl)
+      : imageUrl || undefined;
+    if (isStagedUrl(imageUrl)) discardStagedUrl(imageUrl);
+    onImageUrlChange(stageFile(file, "banner", replaced));
+    toast.success('Gambar siap. Klik "Simpan" untuk menerapkan.');
+  };
+
+  const handleRemove = async () => {
+    if (isStagedUrl(imageUrl)) {
+      const carried = getReplacedUrl(imageUrl);
+      discardStagedUrl(imageUrl);
+      onImageUrlChange("");
+      if (carried) {
+        setDeleting(true);
+        try {
+          await deleteMediaFile(carried);
+        } catch {
+          // best effort
+        } finally {
+          setDeleting(false);
+        }
+      }
+      return;
+    }
+    const previous = imageUrl;
+    onImageUrlChange("");
+    if (previous) {
+      setDeleting(true);
+      try {
+        await deleteMediaFile(previous);
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Gagal menghapus gambar");
+      } finally {
+        setDeleting(false);
+      }
     }
   };
 
@@ -76,21 +109,37 @@ export default function AdBannerUploadField({
             Crop ke {width}×{height}px sesuai slot
           </p>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled || uploading}
-          onClick={() => fileInputRef.current?.click()}
-          data-testid="ad-banner-upload-btn"
-        >
-          {uploading ? (
-            <Loader2 size={14} className="mr-1 animate-spin" />
-          ) : (
-            <ImagePlus size={14} className="mr-1" />
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled || deleting}
+            onClick={() => fileInputRef.current?.click()}
+            data-testid="ad-banner-upload-btn"
+          >
+            {deleting ? (
+              <Loader2 size={14} className="mr-1 animate-spin" />
+            ) : (
+              <ImagePlus size={14} className="mr-1" />
+            )}
+            {imageUrl ? "Ganti Gambar" : "Pilih & Crop"}
+          </Button>
+          {imageUrl && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled || deleting}
+              onClick={handleRemove}
+              className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+              data-testid="ad-banner-remove-btn"
+            >
+              <Trash2 size={14} className="mr-1" />
+              Hapus
+            </Button>
           )}
-          {imageUrl ? "Ganti Gambar" : "Unggah & Crop"}
-        </Button>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -120,7 +169,7 @@ export default function AdBannerUploadField({
         imageSrc={cropImageSrc}
         position={position}
         onOpenChange={handleCropOpenChange}
-        onConfirm={uploadCroppedBanner}
+        onConfirm={stageCroppedBanner}
       />
     </div>
   );

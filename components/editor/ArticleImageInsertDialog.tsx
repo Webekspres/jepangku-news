@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { uploadMediaFile } from "@/lib/upload-media";
+import { deleteMediaFile, uploadMediaFile } from "@/lib/upload-media";
 import { cn } from "@/lib/utils";
 
 export type ArticleImageInsertValues = {
@@ -43,12 +43,16 @@ export default function ArticleImageInsertDialog({
   const [previewUrl, setPreviewUrl] = useState(initialValues?.src ?? "");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  // Tracks an image uploaded during this dialog session so re-picking a new
+  // file cleans up the abandoned one from R2 instead of orphaning it.
+  const sessionUploadRef = useRef<string | null>(null);
 
   const resetFromInitial = () => {
     setAlt(initialValues?.alt ?? "");
     setCaption(initialValues?.caption ?? "");
     setPreviewUrl(initialValues?.src ?? "");
     setError("");
+    sessionUploadRef.current = null;
   };
 
   const handleOpenChange = (next: boolean) => {
@@ -70,6 +74,12 @@ export default function ArticleImageInsertDialog({
     setError("");
     try {
       const data = await uploadMediaFile(file, "content");
+      // Drop a previously uploaded (but not yet inserted) image to avoid orphans.
+      const previous = sessionUploadRef.current;
+      if (previous && previous !== data.url) {
+        deleteMediaFile(previous).catch(() => {});
+      }
+      sessionUploadRef.current = data.url;
       setPreviewUrl(data.url);
       if (!alt.trim()) {
         const baseName = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
@@ -87,6 +97,8 @@ export default function ArticleImageInsertDialog({
       setError("Pilih gambar terlebih dahulu");
       return;
     }
+    // The image is now committed into the article content — keep it.
+    sessionUploadRef.current = null;
     onConfirm({
       src: previewUrl.trim(),
       alt: alt.trim(),

@@ -20,7 +20,8 @@ import {
 import SectionHeader from "@/components/SectionHeader";
 import ContributorGate from "@/components/ContributorGate";
 import RichTextEditor from "@/components/RichTextEditor";
-import { uploadMediaFile } from "@/lib/upload-media";
+import { useStagedImage } from "@/hooks/useStagedImage";
+import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import {
   canEditOnUserPortal,
   isAdminAuthor,
@@ -44,8 +45,13 @@ export default function EditArticlePage() {
     tags: "",
   });
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
+
+  const cover = useStagedImage({
+    value: form.coverImageUrl,
+    onValueChange: (url) => setForm((f) => ({ ...f, coverImageUrl: url })),
+    purpose: "cover",
+  });
 
   useEffect(() => {
     fetch("/api/categories")
@@ -82,19 +88,10 @@ export default function EditArticlePage() {
       });
   }, [id, router]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const data = await uploadMediaFile(file, "cover");
-      setForm((f) => ({ ...f, coverImageUrl: data.url }));
-      toast.success("Gambar berhasil diupload");
-    } catch {
-      toast.error("Upload gagal");
-    } finally {
-      setUploading(false);
-    }
+    if (file) cover.selectFile(file);
+    e.target.value = "";
   };
 
   const handleSubmit = async (status: string) => {
@@ -104,11 +101,12 @@ export default function EditArticlePage() {
     }
     setLoading(true);
     try {
+      const coverImageUrl = (await cover.commit()) || null;
       const payload = {
         title: form.title,
         excerpt: form.excerpt,
         content: form.content,
-        coverImageUrl: form.coverImageUrl || null,
+        coverImageUrl,
         categoryId: form.categoryId || null,
         tags: form.tags
           .split(",")
@@ -154,6 +152,7 @@ export default function EditArticlePage() {
 
   return (
     <ContributorGate>
+    <UnsavedChangesGuard enabled={cover.dirty && !loading} />
     <div className="bg-white min-h-screen" data-testid="edit-article-page">
       <SectionHeader
         label="UBAH ARTIKEL"
@@ -237,37 +236,53 @@ export default function EditArticlePage() {
                 onChange={(e) =>
                   setForm({ ...form, coverImageUrl: e.target.value })
                 }
-                placeholder="URL gambar atau upload..."
+                placeholder="URL gambar atau unggah..."
                 data-testid="article-cover-input"
               />
               <Button
                 variant="outline"
                 asChild
-                disabled={uploading}
+                disabled={cover.busy}
                 className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
               >
                 <label>
                   <Upload size={14} strokeWidth={1.5} />
-                  {uploading ? "Mengunggah..." : "Unggah"}
+                  {cover.busy ? "Memproses..." : "Pilih Gambar"}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handleUpload}
-                    disabled={uploading}
+                    onChange={handleFilePick}
+                    disabled={cover.busy}
                     data-testid="article-cover-upload"
                   />
                 </label>
               </Button>
             </div>
-            {form.coverImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={form.coverImageUrl}
-                alt="Preview cover artikel"
-                className="mt-3 max-h-48 object-cover border border-jepang-border"
-                data-testid="cover-preview"
-              />
+            <p className="text-xs text-jepang-muted">
+              Gambar baru diunggah ke penyimpanan saat artikel disimpan.
+            </p>
+            {cover.hasImage && (
+              <div className="mt-3 space-y-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={cover.previewUrl}
+                  alt="Preview cover artikel"
+                  className="max-h-48 object-cover border border-jepang-border"
+                  data-testid="cover-preview"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={cover.busy || loading}
+                  onClick={() => void cover.remove()}
+                  className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
+                  data-testid="article-cover-remove"
+                >
+                  Hapus Gambar
+                </Button>
+              </div>
             )}
           </div>
 

@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { getCurrentUser } from '@/lib/auth';
+import { hasNewsAdminAccess } from '@/lib/auth/types';
 import { auditAdminEntity } from '@/lib/audit-routes';
-import { uploadToR2 } from '@/lib/r2';
+import { uploadToR2, deleteFromR2 } from '@/lib/r2';
+import { extractR2Key } from '@/lib/media/url';
 import { db } from '@/lib/db';
 import {
   moderateImage,
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
     const uploadBuffer = optimized.buffer;
     const uploadContentType = optimized.contentType;
 
-    const fileName = `jepangku/uploads/${user.id}/${purpose}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${optimized.ext}`;
+    const fileName = `portal-berita/${user.id}/${purpose}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${optimized.ext}`;
 
     const url = await uploadToR2(uploadBuffer, fileName, uploadContentType);
 
@@ -81,6 +83,66 @@ export async function POST(request: NextRequest) {
     if (status === 500) {
       await captureException(e, { route: 'upload', userId: user?.id });
     }
-    return apiSuccess({ error: message }, { status });
+    return apiError(message, { status });
+  }
+}
+
+/**
+ * DELETE /api/upload
+ *
+ * Immediately removes a previously uploaded object from Cloudflare R2 so the
+ * bucket does not accumulate orphaned images when users replace or remove them.
+ * Accepts a JSON body of `{ url }` or `{ path }`. Only the owner of the object
+ * (key prefixed with their user id) or an admin may delete it; non-R2 / external
+ * URLs are treated as a no-op so callers can fire-and-forget safely.
+ */
+export async function DELETE(request: NextRequest) {
+  const user = await getCurrentUser(request);
+  if (!user) {
+    return apiError('Not authenticated', { status: 401 });
+  }
+
+  const blocked = await enforceRateLimit(request, 'upload-delete', {
+    max: 60,
+    windowMs: 60 * 60 * 1000,
+    identifier: user.id,
+    message: 'Terlalu banyak permintaan. Coba lagi nanti.',
+  });
+  if (blocked) return blocked;
+
+  try {
+    const body = await request.json().catch(() => ({}));
+    const target =
+      typeof body?.path === 'string'
+        ? body.path
+        : typeof body?.url === 'string'
+          ? body.url
+          : '';
+
+    const key = extractR2Key(target);
+    if (!key) {
+      // External / empty / non-R2 value — nothing for us to clean up.
+      return apiSuccess({ deleted: false });
+    }
+
+    const isAdmin = hasNewsAdminAccess(user);
+    if (!isAdmin && !key.startsWith(`portal-berita/${user.id}/`)) {
+      return apiError('You can only delete your own uploads', { status: 403 });
+    }
+
+    await deleteFromR2(key);
+    await db.file.deleteMany({ where: { storagePath: key } });
+
+    auditAdminEntity(user, 'file', 'delete', {
+      type: 'file',
+      id: key,
+      label: key,
+    });
+
+    return apiSuccess({ deleted: true, path: key });
+  } catch (e: unknown) {
+    await captureException(e, { route: 'upload-delete', userId: user?.id });
+    const message = e instanceof Error ? e.message : 'Delete failed';
+    return apiError(message, { status: 500 });
   }
 }

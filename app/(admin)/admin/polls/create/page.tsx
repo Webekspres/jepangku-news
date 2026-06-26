@@ -20,6 +20,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { commitStagedUrl, stageFile } from "@/lib/upload-media";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface PollOption {
@@ -34,24 +35,13 @@ interface PollQuestion {
 }
 
 /* ─── Image upload hook ──────────────────────────────── */
+// Files are staged locally (no upload) until the poll is saved, so swapping
+// images repeatedly never leaves orphans in the R2 bucket.
 function useImageUpload() {
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploading] = useState<Record<string, boolean>>({});
   const upload = useCallback(
-    async (file: File, key: string, onSuccess: (url: string) => void) => {
-      setUploading((p) => ({ ...p, [key]: true }));
-      try {
-        const fd = new FormData();
-        fd.append("file", file);
-        const res = await fetch("/api/upload", { method: "POST", body: fd });
-        if (!res.ok) throw new Error("Upload gagal");
-        const data = await parseApiResponse(res);
-        onSuccess(data.url);
-        toast.success("Gambar berhasil diupload");
-      } catch {
-        toast.error("Upload gagal");
-      } finally {
-        setUploading((p) => ({ ...p, [key]: false }));
-      }
+    async (file: File, _key: string, onSuccess: (url: string) => void) => {
+      onSuccess(stageFile(file, "content"));
     },
     [],
   );
@@ -225,6 +215,21 @@ export default function AdminCreatePoll() {
 
     setLoading(true);
     try {
+      const thumbnailUrl = (await commitStagedUrl(form.thumbnail_url)) || null;
+      const committedQuestions = await Promise.all(
+        questions.map(async (q, qi) => ({
+          questionText: q.questionText,
+          imageUrl: (await commitStagedUrl(q.imageUrl)) || null,
+          sortOrder: qi,
+          options: await Promise.all(
+            q.options.map(async (o, oi) => ({
+              optionText: o.optionText,
+              imageUrl: (await commitStagedUrl(o.imageUrl)) || null,
+              sortOrder: oi,
+            })),
+          ),
+        })),
+      );
       const res = await fetch("/api/admin/polls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -232,21 +237,12 @@ export default function AdminCreatePoll() {
           title: form.title,
           description: form.description || null,
           poll_type: form.poll_type,
-          thumbnailUrl: form.thumbnail_url || null,
+          thumbnailUrl,
           status: form.status,
           pointsReward: form.points_reward,
           allowGuestVote: form.allow_guest_vote,
           showResultBeforeVote: form.show_result_before_vote,
-          questions: questions.map((q, qi) => ({
-            questionText: q.questionText,
-            imageUrl: q.imageUrl || null,
-            sortOrder: qi,
-            options: q.options.map((o, oi) => ({
-              optionText: o.optionText,
-              imageUrl: o.imageUrl || null,
-              sortOrder: oi,
-            })),
-          })),
+          questions: committedQuestions,
         }),
       });
 

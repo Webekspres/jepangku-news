@@ -10,6 +10,7 @@ import AdBannerUploadField from "@/components/admin/ads/AdBannerUploadField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AD_SLOT_POSITIONS } from "@/lib/ads/constants";
+import { commitStagedUrl } from "@/lib/upload-media";
 
 export default function AdminAdCreatePage() {
   const router = useRouter();
@@ -35,11 +36,13 @@ export default function AdminAdCreatePage() {
 
     setSaving(true);
     try {
+      const imageUrl = await commitStagedUrl(form.imageUrl);
       const res = await fetch("/api/admin/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          imageUrl,
           sortOrder: Number(form.sortOrder) || 0,
           startAt: form.startAt || null,
           endAt: form.endAt || null,

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { AD_SLOT_POSITIONS, normalizeAdPosition } from "@/lib/ads/constants";
+import { commitStagedUrl } from "@/lib/upload-media";
 
 function toDatetimeLocal(value: string | null | undefined) {
   if (!value) return "";
@@ -70,11 +71,13 @@ export default function AdminAdEditPage() {
 
     setSaving(true);
     try {
+      const imageUrl = await commitStagedUrl(form.imageUrl);
       const res = await fetch(`/api/admin/ads/${params.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          imageUrl,
           sortOrder: Number(form.sortOrder) || 0,
           startAt: form.startAt || null,
           endAt: form.endAt || null,

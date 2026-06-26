@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
+      id,
       title,
       excerpt,
       content,
@@ -93,21 +94,65 @@ export async function POST(request: NextRequest) {
     const slug = createSlug(safeTitle);
     const now = new Date();
 
-    const article = await db.article.create({
-      data: {
-        authorId: admin.id,
-        categoryId: resolvedCategoryId,
-        title: safeTitle,
-        slug,
-        excerpt: safeExcerpt,
-        content: safeContent,
-        coverImageUrl: coverImageUrl || null,
-        status: articleStatus as any,
-        visibility: 'public',
-        publishedAt: articleStatus === 'PUBLISHED' ? now : null,
-      },
-      include: adminArticleInclude,
-    });
+    // Optional client-supplied id makes autosave/draft flushes idempotent: a
+    // repeated POST with the same id updates the existing row instead of
+    // creating a duplicate.
+    const providedId =
+      typeof id === 'string' && id.trim().length > 0 ? id.trim() : null;
+
+    const existing = providedId
+      ? await db.article.findUnique({
+          where: { id: providedId },
+          select: { id: true, authorId: true, status: true, publishedAt: true },
+        })
+      : null;
+
+    if (existing && existing.authorId !== admin.id) {
+      return apiError('Not authorized to edit this article', { status: 403 });
+    }
+
+    const created = !existing;
+    const sharedData = {
+      categoryId: resolvedCategoryId,
+      title: safeTitle,
+      excerpt: safeExcerpt,
+      content: safeContent,
+      coverImageUrl: coverImageUrl || null,
+      status: articleStatus as any,
+    };
+
+    const article = providedId
+      ? await db.article.upsert({
+          where: { id: providedId },
+          create: {
+            id: providedId,
+            authorId: admin.id,
+            slug,
+            visibility: 'public',
+            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            ...sharedData,
+          },
+          update: {
+            ...sharedData,
+            // Keep the published slug stable; otherwise refresh it.
+            ...(existing?.status === 'PUBLISHED' ? {} : { slug }),
+            publishedAt:
+              articleStatus === 'PUBLISHED'
+                ? (existing?.publishedAt ?? now)
+                : null,
+          },
+          include: adminArticleInclude,
+        })
+      : await db.article.create({
+          data: {
+            authorId: admin.id,
+            slug,
+            visibility: 'public',
+            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            ...sharedData,
+          },
+          include: adminArticleInclude,
+        });
 
     if (Array.isArray(tags) && tags.length > 0) {
       await syncArticleTags(article.id, tags);
@@ -118,23 +163,26 @@ export async function POST(request: NextRequest) {
       include: adminArticleInclude,
     });
 
-    if (articleStatus === 'PUBLISHED') {
+    if (articleStatus === 'PUBLISHED' && existing?.status !== 'PUBLISHED') {
       await recordStatusReview({
         articleId: article.id,
         reviewerId: admin.id,
-        previousStatus: 'DRAFT',
+        previousStatus: existing?.status ?? 'DRAFT',
         newStatus: 'PUBLISHED',
         note: 'Published by admin',
       });
     }
 
-    auditArticleCreate(
-      admin,
-      { id: article.id, title: article.title, status: article.status },
-      'admin',
-    );
+    // Only log the initial creation — repeated autosave upserts must not spam.
+    if (created) {
+      auditArticleCreate(
+        admin,
+        { id: article.id, title: article.title, status: article.status },
+        'admin',
+      );
+    }
 
-    return apiSuccess(full, { status: 201 });
+    return apiSuccess(full, { status: created ? 201 : 200 });
   } catch (e: any) {
     await captureException(e, { route: 'admin-articles-create' });
     return apiError(e.message || 'Failed to create article' , { status: 500 });
