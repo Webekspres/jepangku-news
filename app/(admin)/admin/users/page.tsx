@@ -24,7 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import { SkeletonAvatar, SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
+import UserAvatar from "@/components/media/UserAvatar";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -228,40 +229,40 @@ export default function AdminUsersPage() {
                   <TableRow key={r}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <SkeletonBox height="2rem" width="2rem" />
+                        <SkeletonAvatar size={32} />
 
                         <div>
-                          <SkeletonBox height="1rem" width="8rem" />
+                          <SkeletonBox height="2rem" width="8rem" />
 
                           <div className="mt-2">
-                            <SkeletonBox height="0.8rem" width="6rem" />
+                            <SkeletonBox height="2rem" width="6rem" />
                           </div>
                         </div>
                       </div>
                     </TableCell>
 
                     <TableCell>
-                      <SkeletonBox height="0.9rem" width="10rem" />
+                      <SkeletonBox height="2rem" width="10rem" />
                     </TableCell>
 
                     <TableCell>
-                      <SkeletonBox height="0.9rem" width="4rem" />
+                      <SkeletonBox height="2rem" width="4rem" />
                     </TableCell>
 
                     <TableCell>
-                      <SkeletonBox height="0.9rem" width="3rem" />
+                      <SkeletonBox height="2rem" width="3rem" />
                     </TableCell>
 
                     <TableCell>
-                      <SkeletonBox height="0.9rem" width="4rem" />
+                      <SkeletonBox height="2rem" width="4rem" />
                     </TableCell>
 
                     <TableCell>
-                      <SkeletonBox height="0.9rem" width="4rem" />
+                      <SkeletonBox height="2rem" width="4rem" />
                     </TableCell>
 
                     <TableCell>
-                      <SkeletonBox height="0.9rem" width="6rem" />
+                      <SkeletonBox height="2rem" width="6rem" />
                     </TableCell>
                   </TableRow>
                 ))
@@ -279,10 +280,12 @@ export default function AdminUsersPage() {
                   <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-foreground text-white flex items-center justify-center font-bold text-xs">
-                          {user.name?.charAt(0).toUpperCase() || "?"}
-                        </div>
-
+                        <UserAvatar
+                          src={user.avatarUrl ?? undefined}
+                          alt={user.name ?? ""}
+                          size={32}
+                          className="shrink-0 rounded-full"
+                        />
                         <div>
                           <p className="font-semibold">{user.name}</p>
 

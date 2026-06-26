@@ -94,11 +94,11 @@ export default function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
                 data-testid="admin-user-menu-button"
               >
                 <UserAvatar
-                  src={authUser.avatarUrl}
+                  src={authUser.avatarUrl ?? undefined}
                   alt={authUser.displayName}
                   size={36}
                   fallbackInitial={authUser.displayName}
-                  className="rounded-none border-foreground"
+                  className="shrink-0 rounded-full border border-jepang-border"
                 />
               </button>
             </DropdownMenuTrigger>
