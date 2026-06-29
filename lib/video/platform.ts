@@ -34,20 +34,51 @@ export type ParsedVideo = {
 // ─── YouTube ──────────────────────────────────────────────────────────────────
 
 const YT_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
-const YT_URL_PATTERNS = [
-  /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-  /youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]{11})/,
-];
+
+/**
+ * Parse a URL with the WHATWG `URL` parser (linear) instead of regex to avoid
+ * ReDoS. Tries the raw string first, then with an `https://` prefix so
+ * protocol-less inputs like "youtu.be/ID" still work. Returns null when the
+ * value cannot be parsed as a URL.
+ */
+function safeParseUrl(raw: string): URL | null {
+  for (const candidate of [raw, `https://${raw}`]) {
+    try {
+      return new URL(candidate);
+    } catch {
+      // try the next candidate
+    }
+  }
+  return null;
+}
 
 export function extractYoutubeId(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
   if (YT_ID_RE.test(trimmed)) return trimmed;
-  for (const re of YT_URL_PATTERNS) {
-    const m = trimmed.match(re);
-    if (m?.[1]) return m[1];
+
+  const url = safeParseUrl(trimmed);
+  if (!url) return null;
+
+  const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+  let candidate: string | null = null;
+
+  if (host === "youtu.be") {
+    candidate = url.pathname.split("/").filter(Boolean)[0] ?? null;
+  } else if (
+    host === "youtube.com" ||
+    host === "m.youtube.com" ||
+    host === "music.youtube.com"
+  ) {
+    const segments = url.pathname.split("/").filter(Boolean);
+    if (segments[0] === "embed" || segments[0] === "shorts") {
+      candidate = segments[1] ?? null;
+    } else {
+      candidate = url.searchParams.get("v");
+    }
   }
-  return null;
+
+  return candidate && YT_ID_RE.test(candidate) ? candidate : null;
 }
 
 export function youtubeEmbedUrl(id: string, autoplay = false): string {
@@ -69,12 +100,32 @@ export function youtubeThumbnailUrl(
 //   https://www.facebook.com/video/1234567890
 //   https://fb.watch/abcdefg/
 //   https://www.facebook.com/FacebookPage/videos/1234567890/
-const FB_VIDEO_ID_RE =
-  /facebook\.com\/(?:watch\/?\?(?:.*&)?v=|video\/|[^/]+\/videos\/)(\d+)/;
+const FB_HOSTS = new Set(["facebook.com", "m.facebook.com", "web.facebook.com"]);
 
 export function extractFacebookVideoId(url: string): string | null {
-  const m = url.match(FB_VIDEO_ID_RE);
-  return m?.[1] ?? null;
+  const parsed = safeParseUrl(url.trim());
+  if (!parsed) return null;
+
+  const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+  if (!FB_HOSTS.has(host)) return null;
+
+  const segments = parsed.pathname.split("/").filter(Boolean);
+
+  // facebook.com/watch/?v=ID
+  if (segments[0] === "watch") {
+    const v = parsed.searchParams.get("v");
+    return v && /^\d+$/.test(v) ? v : null;
+  }
+  // facebook.com/video/ID
+  if (segments[0] === "video" && segments[1] && /^\d+$/.test(segments[1])) {
+    return segments[1];
+  }
+  // facebook.com/{page}/videos/ID
+  const idx = segments.indexOf("videos");
+  const id = idx >= 0 ? segments[idx + 1] : undefined;
+  if (id && /^\d+$/.test(id)) return id;
+
+  return null;
 }
 
 /**

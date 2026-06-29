@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
+import { safeImageSrc } from "@/lib/safe-url";
 import { useRouter, useParams } from "next/navigation";
 import {
   commitStagedUrl,
@@ -98,7 +99,7 @@ function ImageField({
       </div>
       {value && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={value} alt="Preview"
+        <img src={safeImageSrc(value)} alt="Preview"
           className="mt-1 max-h-24 object-cover border border-jepang-border" />
       )}
     </div>

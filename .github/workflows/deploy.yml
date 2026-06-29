@@ -25,6 +25,9 @@ concurrency:
   group: deploy-portal-${{ github.ref }}-${{ inputs.environment || 'auto' }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -278,6 +281,15 @@ jobs:
               --client-env "\$PORTAL_CLIENT_ENV"
           fi
 
+          echo "==> Free disk before pull (prune unused Docker resources)"
+          if [ -f "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh" ]; then
+            bash "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh"
+          else
+            docker container prune -f
+            docker image prune -a -f
+            docker builder prune -a -f
+          fi
+
           docker pull ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
           docker run --rm \
             --network jepangku_staging_net \
@@ -373,6 +385,15 @@ jobs:
           set -a
           source .env
           set +a
+
+          echo "==> Free disk before pull (prune unused Docker resources)"
+          if [ -f "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh" ]; then
+            bash "\${DEPLOY_PATH}/deploy/scripts/vps-docker-prune-safe.sh"
+          else
+            docker container prune -f
+            docker image prune -a -f
+            docker builder prune -a -f
+          fi
 
           docker pull ghcr.io/webekspres/jepangku-news:${{ env.MIGRATE_SHA_TAG }}
           docker run --rm \
