@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
+import { safeImageSrc } from "@/lib/safe-url";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
@@ -118,7 +119,7 @@ function ImageField({
       {value && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={value}
+          src={safeImageSrc(value)}
           alt="Preview"
           className="mt-1 max-h-24 object-cover border border-jepang-border"
         />

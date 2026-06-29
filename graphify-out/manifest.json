@@ -100,13 +100,13 @@
     "semantic_hash": ""
   },
   "app/(admin)/admin/polls/[id]/edit/page.tsx": {
-    "mtime": 1782448870.1575043,
-    "ast_hash": "1a8b3d008be8554053f5294cf160b424",
+    "mtime": 1782704504.239516,
+    "ast_hash": "4b44ee184cbfc5ca55fbc717965d4770",
     "semantic_hash": ""
   },
   "app/(admin)/admin/polls/create/page.tsx": {
-    "mtime": 1782448753.6204402,
-    "ast_hash": "efa969fc5ebccbf361c41fbbbc28e0e0",
+    "mtime": 1782704500.9664755,
+    "ast_hash": "8b26dcf010b8bb39c366dabacd20fb06",
     "semantic_hash": ""
   },
   "app/(admin)/admin/polls/page.tsx": {
@@ -115,13 +115,13 @@
     "semantic_hash": ""
   },
   "app/(admin)/admin/quizzes/[id]/edit/page.tsx": {
-    "mtime": 1782448814.6520944,
-    "ast_hash": "93a873551a6a32012fa735bf17dc3931",
+    "mtime": 1782704498.165352,
+    "ast_hash": "f4710c6ac4a5c91a01e5dbbf389767d0",
     "semantic_hash": ""
   },
   "app/(admin)/admin/quizzes/create/page.tsx": {
-    "mtime": 1782448719.546374,
-    "ast_hash": "ea985a4897ec910f2b58d3a43df687e0",
+    "mtime": 1782704494.7513328,
+    "ast_hash": "517aa2d5deb13471dfdf29cda143c680",
     "semantic_hash": ""
   },
   "app/(admin)/admin/quizzes/page.tsx": {
@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "app/(admin)/admin/users/page.tsx": {
-    "mtime": 1782203776.4812484,
-    "ast_hash": "1186252206e476ef3a931a7be0292dba",
+    "mtime": 1782468152.8387394,
+    "ast_hash": "7aec99d334b1c9a34ff2f1972847d58c",
     "semantic_hash": ""
   },
   "app/(admin)/admin/videos/[id]/edit/page.tsx": {
@@ -905,8 +905,8 @@
     "semantic_hash": ""
   },
   "components/admin/AdminTopbar.tsx": {
-    "mtime": 1782203776.7952776,
-    "ast_hash": "e29cde7bb8e9f43ec855e14e532d6c28",
+    "mtime": 1782468216.0318687,
+    "ast_hash": "b79a3955d35552fb964b5dc45a77562a",
     "semantic_hash": ""
   },
   "components/admin/AnalyticsNav.tsx": {
@@ -1295,8 +1295,8 @@
     "semantic_hash": ""
   },
   "lib/core/config.ts": {
-    "mtime": 1782203778.1445143,
-    "ast_hash": "859518738fb4935eb1bd178b38566f60",
+    "mtime": 1782704477.9027545,
+    "ast_hash": "115c8c5bc61a5d6b18480146bf95e239",
     "semantic_hash": ""
   },
   "lib/core/gamification.ts": {
@@ -1555,8 +1555,8 @@
     "semantic_hash": ""
   },
   "next.config.ts": {
-    "mtime": 1782373310.6828432,
-    "ast_hash": "59fc6e52007b95718975c9b5f4501d8c",
+    "mtime": 1782458543.6352777,
+    "ast_hash": "85c767900138f3dde166a93474be420d",
     "semantic_hash": ""
   },
   "package.json": {
@@ -1820,8 +1820,8 @@
     "semantic_hash": ""
   },
   ".github/workflows/deploy.yml": {
-    "mtime": 1782440672.6332982,
-    "ast_hash": "ba3b872e8a5efd688739fce60940abbe",
+    "mtime": 1782704485.0254664,
+    "ast_hash": "5bcca871d0494bfc7e55e057223c1218",
     "semantic_hash": ""
   },
   "AGENTS.md": {
@@ -3045,8 +3045,8 @@
     "semantic_hash": ""
   },
   "lib/email/interpolate.ts": {
-    "mtime": 1782203778.1536326,
-    "ast_hash": "7c46e05e02fdcc15417367b2a209abb1",
+    "mtime": 1782704483.3444695,
+    "ast_hash": "260ae02ed662b04845575633deb6233f",
     "semantic_hash": ""
   },
   "lib/email/qstash.ts": {
@@ -3500,8 +3500,8 @@
     "semantic_hash": ""
   },
   "lib/video/platform.ts": {
-    "mtime": 1782373075.513544,
-    "ast_hash": "8885b783b485ae7b67e577a6c3fdc77b",
+    "mtime": 1782704474.9590988,
+    "ast_hash": "31b0f017c47ec48616ec8c3691e2e0e8",
     "semantic_hash": ""
   },
   "prisma/migrations/20260625100000_video_multi_platform/migration.sql": {
@@ -3567,6 +3567,21 @@
   "tests/unit/draft-client-id.test.ts": {
     "mtime": 1782455144.608745,
     "ast_hash": "b0c16960c5faa7aa63c1e4ef820e5b95",
+    "semantic_hash": ""
+  },
+  ".github/rulesets/protect-main.json": {
+    "mtime": 1782699632.093929,
+    "ast_hash": "0a2d520e908a5341d0fef11841ce4e58",
+    "semantic_hash": ""
+  },
+  "lib/safe-url.ts": {
+    "mtime": 1782704466.640381,
+    "ast_hash": "3cde487567f40ba4aebd4ca3a3adba84",
+    "semantic_hash": ""
+  },
+  "SECURITY.md": {
+    "mtime": 1782699260.6404407,
+    "ast_hash": "5c34ee4fae887cbaeb10d78bbf7479e2",
     "semantic_hash": ""
   }
 }

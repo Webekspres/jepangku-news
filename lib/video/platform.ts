@@ -35,8 +35,8 @@ export type ParsedVideo = {
 
 const YT_ID_RE = /^[a-zA-Z0-9_-]{11}$/;
 const YT_URL_PATTERNS = [
-  /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-  /youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]{11})/,
+  /(?:youtube\.com\/watch\?(?:[^&]*&)*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  /youtube\.com\/watch\?(?:[^&]*&)*v=([a-zA-Z0-9_-]{11})/,
 ];
 
 export function extractYoutubeId(input: string): string | null {
@@ -70,7 +70,7 @@ export function youtubeThumbnailUrl(
 //   https://fb.watch/abcdefg/
 //   https://www.facebook.com/FacebookPage/videos/1234567890/
 const FB_VIDEO_ID_RE =
-  /facebook\.com\/(?:watch\/?\?(?:.*&)?v=|video\/|[^/]+\/videos\/)(\d+)/;
+  /facebook\.com\/(?:watch\/?\?(?:[^&]*&)*v=|video\/|[^/]+\/videos\/)(\d+)/;
 
 export function extractFacebookVideoId(url: string): string | null {
   const m = url.match(FB_VIDEO_ID_RE);

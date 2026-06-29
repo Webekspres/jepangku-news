@@ -3,8 +3,14 @@
 /** Normalize CORE_API_URL — nginx prod redirects HTTP→HTTPS; POST on 301 becomes GET → 404. */
 function normalizeCoreApiUrl(raw: string): string {
   const trimmed = raw.trim().replace(/\/$/, '');
-  if (trimmed.startsWith('http://core.jepangku.com')) {
-    return trimmed.replace(/^http:\/\//, 'https://');
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol === 'http:' && url.hostname === 'core.jepangku.com') {
+      url.protocol = 'https:';
+      return url.toString().replace(/\/$/, '');
+    }
+  } catch {
+    // Not a valid absolute URL — leave as-is.
   }
   return trimmed;
 }
