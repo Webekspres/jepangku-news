@@ -28,31 +28,38 @@
 
 ### P1 — Artikel Editor (prioritas tinggi)
 
-- [ ] **Refactor: Satukan komponen submit & edit artikel menjadi satu `ArticleFormEditor` yang reusable**
-  - `app/(user)/submit-article/page.tsx` dan `app/(user)/edit-article/[id]/page.tsx` saat ini duplikasi logika yang hampir identik
-  - Autosave, staged image, unsaved-changes guard, dan form state harus dikelola di satu tempat
+- [x] **Refactor: Satukan komponen submit & edit artikel menjadi satu `ArticleFormEditor` yang reusable**
+  - `components/article-editor/ArticleFormEditor.tsx` — komponen tunggal dengan prop `mode: "create" | "edit"`
+  - `app/(user)/submit-article/page.tsx` dan `app/(user)/edit-article/[id]/page.tsx` masing-masing hanya 1 baris render
+  - Autosave, staged image, unsaved-changes guard, dan form state dikelola di satu tempat
+  - Edit-article kini fetch langsung `GET /api/articles/[id]` (bukan `.find()` client-side dari `my`)
+  - Unit test: `tests/unit/article-form-editor.test.ts` — 47 kasus, semua pass
   - Referensi: [`hooks/useAutosave.ts`](../hooks/useAutosave.ts), [`hooks/useStagedImage.ts`](../hooks/useStagedImage.ts)
 
-- [ ] **Bug: Upload gambar di editor mengembalikan `text/html` bukan JSON** — `components/editor/ArticleImageInsertDialog.tsx:128`
-  - Kemungkinan penyebab: endpoint `/api/upload` men-redirect ke login saat sesi habis, bukan mengembalikan `401 JSON`
-  - Akibat: gambar tidak muncul meskipun proses upload tampak berhasil
+- [x] **Refactor: Satukan admin create & edit artikel ke `AdminArticleFormEditor`**
+  - `components/article-editor/AdminArticleFormEditor.tsx` — prop `mode: "create" | "edit"`
+  - `app/(admin)/admin/articles/create/page.tsx` dan `app/(admin)/admin/articles/[id]/edit/page.tsx` masing-masing 1 baris render
+  - Autosave server-side draft + `prepareSnapshot` commit cover sebelum flush
 
-- [ ] **Bug: Autosave menggunakan localStorage sehingga state coverImage tidak konsisten** 
-  - Gambar cover tersimpan sebagai URL di localStorage tapi tidak ikut terupload ulang saat sesi baru
-  - Pindahkan state autosave ke server-side draft (endpoint sudah ada di `/api/articles/create` sebagai upsert)
+- [x] **Bug: Upload gambar di editor mengembalikan `text/html` bukan JSON** — `components/editor/ArticleImageInsertDialog.tsx`
+  - `lib/upload-errors.ts` — pesan error berbahasa Indonesia saat sesi habis / respons non-JSON
+  - `lib/upload-media.ts` — gunakan `parseUploadApiResponse` + `credentials: 'same-origin'`
 
-- [ ] **Bug: `edit-article/[id]` mengambil data dengan `GET /api/articles/my` lalu `.find()` client-side**
-  - Tidak efisien dan bisa gagal jika artikel tidak ada di halaman pertama
-  - Seharusnya fetch langsung `GET /api/articles/[id]` dengan guard owner/admin
+- [x] **Bug: Autosave menggunakan localStorage sehingga state coverImage tidak konsisten**
+  - `hooks/useAutosave.ts` — flush server-side debounced (3 detik), sanitasi blob URL dari localStorage
+  - `prepareSnapshot` commit cover staged sebelum flush ke DB
+  - Helper: [`lib/article-form-helpers.ts`](../lib/article-form-helpers.ts)
 
-- [ ] **Validasi ukuran file image belum ada di sisi client** — `components/editor/ArticleImageInsertDialog.tsx:127`
-  - UI hanya menampilkan hint "Maks. 5 MB", belum ada validasi dan error message berbahasa Indonesia sebelum upload
+- [x] **Bug: `edit-article/[id]` mengambil data dengan `GET /api/articles/my` lalu `.find()` client-side**
+  - Sudah diperbaiki: fetch langsung `GET /api/articles/[id]` di `app/(user)/edit-article/[id]/page.tsx`
+
+- [x] **Validasi ukuran file image di sisi client** — `components/editor/ArticleImageInsertDialog.tsx`
+  - `validateArticleImageFile()` — maks. 5 MB, pesan error berbahasa Indonesia
 
 ### P2 — Profil User
 
-- [ ] **Bug: Field bio ter-reset ke nilai awal setelah beberapa detik** — `app/(user)/profile/edit/page.tsx:419`
-  - Ada background request yang menimpa state form sebelum user selesai mengetik
-  - Solusi: debounce save, atau pisahkan state lokal (controlled) dari data yang di-fetch
+- [x] **Bug: Field bio ter-reset ke nilai awal setelah beberapa detik** — `app/(user)/profile/edit/page.tsx`
+  - Profile fetch hanya sekali via `profileLoadedRef` — tidak re-fetch saat AuthContext sync ulang
 
 ### P3 — Endpoint Tidak Relevan di Halaman Edit Artikel
 

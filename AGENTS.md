@@ -14,4 +14,4 @@
 
 ## Steering historis
 
-Scope MVP & arsitektur awal: [`.agents/`](.agents/) — referensi historis; implementasi aktual ada di `docs/feature-status.md`.
+Scope arsitektur: [`.agents/`](.agents/) — referensi historis; implementasi aktual ada di `docs/feature-status.md`.

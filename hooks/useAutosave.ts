@@ -37,8 +37,15 @@ interface UseAutosaveOptions {
   flushDraft: (clientId: string, data: ArticleFormSnapshot) => Promise<void>;
   /** Fire-and-forget flush that survives a page unload (navigator.sendBeacon). */
   beaconFlush: (clientId: string, data: ArticleFormSnapshot) => void;
+  /**
+   * Opsional: siapkan snapshot sebelum flush (mis. commit cover image yang distage).
+   * Mengembalikan snapshot terbaru untuk disimpan ke DB.
+   */
+  prepareSnapshot?: () => Promise<ArticleFormSnapshot>;
   /** Debounce before writing to localStorage. */
   debounceMs?: number;
+  /** Debounce sebelum flush ke DB (server-side draft). Default 3 detik. */
+  serverFlushDebounceMs?: number;
   /** Disable autosave entirely (e.g. while a manual save is in progress). */
   disabled?: boolean;
 }
@@ -71,19 +78,11 @@ export function newDraftClientId(): string {
 }
 
 /**
- * Local-first autosave.
+ * Server-first autosave dengan localStorage sebagai cadangan offline.
  *
- * On every change the snapshot is debounced into `localStorage` only — no
- * network. The draft is flushed to the database (an idempotent upsert keyed by
- * a stable client id) only when the user actually leaves:
- *  - in-app navigation → the unmount cleanup fires `flushDraft` (the SPA realm
- *    survives so the fetch completes);
- *  - reload / tab close → `pagehide` fires `beaconFlush` via `navigator.sendBeacon`;
- *  - the explicit "Simpan Draft"/"Publikasikan" button → the page persists and
- *    then calls `markSaved`.
- *
- * Because every write uses the same client id, repeated flushes (beacon + a
- * later explicit save, etc.) can never create duplicate drafts.
+ * On every change the snapshot is debounced into `localStorage` (tanpa blob:
+ * URLs) dan ke database (idempotent upsert keyed by stable client id) setelah
+ * `serverFlushDebounceMs`. Flush tambahan saat unmount / pagehide.
  */
 export function useAutosave({
   data,
@@ -91,7 +90,9 @@ export function useAutosave({
   storageKey,
   flushDraft,
   beaconFlush,
+  prepareSnapshot,
   debounceMs = 800,
+  serverFlushDebounceMs = 3000,
   disabled = false,
 }: UseAutosaveOptions): UseAutosaveReturn {
   const [status, setStatus] = useState<AutosaveStatus>('idle');
@@ -102,6 +103,7 @@ export function useAutosave({
   const clientIdRef = useRef(clientId);
   const flushRef = useRef(flushDraft);
   const beaconRef = useRef(beaconFlush);
+  const prepareRef = useRef(prepareSnapshot);
   const disabledRef = useRef(disabled);
 
   // Snapshot bookkeeping
@@ -111,16 +113,25 @@ export function useAutosave({
   // True when localStorage holds changes not yet flushed to the DB.
   const dirtyRef = useRef<boolean>(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const serverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { dataRef.current = data; }, [data]);
   useEffect(() => { clientIdRef.current = clientId; }, [clientId]);
   useEffect(() => { flushRef.current = flushDraft; }, [flushDraft]);
   useEffect(() => { beaconRef.current = beaconFlush; }, [beaconFlush]);
+  useEffect(() => { prepareRef.current = prepareSnapshot; }, [prepareSnapshot]);
   useEffect(() => { disabledRef.current = disabled; }, [disabled]);
+
+  const sanitizeSnapshot = useCallback((snapshot: ArticleFormSnapshot): ArticleFormSnapshot => ({
+    ...snapshot,
+    coverImageUrl: snapshot.coverImageUrl.startsWith('blob:')
+      ? ''
+      : snapshot.coverImageUrl,
+  }), []);
 
   const writeLocal = useCallback(() => {
     if (typeof window === 'undefined') return;
-    const snapshot = dataRef.current;
+    const snapshot = sanitizeSnapshot(dataRef.current);
     if (!snapshot.title.trim()) return;
 
     const snapshotStr = JSON.stringify(snapshot);
@@ -142,25 +153,20 @@ export function useAutosave({
     if (snapshotStr !== lastFlushedSnapshotRef.current) dirtyRef.current = true;
     setLastSavedAt(new Date());
     setStatus('saved');
-  }, [storageKey]);
+  }, [sanitizeSnapshot, storageKey]);
 
-  // Schedule a local save on data change.
-  useEffect(() => {
-    if (disabled) return;
-    if (!data.title.trim()) return;
+  const resolveSnapshot = useCallback(async (): Promise<ArticleFormSnapshot> => {
+    const prepared = prepareRef.current
+      ? await prepareRef.current()
+      : dataRef.current;
+    return sanitizeSnapshot(prepared);
+  }, [sanitizeSnapshot]);
 
-    setStatus('pending');
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(writeLocal, debounceMs);
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [data, debounceMs, disabled, writeLocal]);
+  const flushToDbRef = useRef<() => Promise<void>>(async () => {});
 
   const flushToDb = useCallback(async () => {
     if (!dirtyRef.current) return;
-    const snapshot = dataRef.current;
+    let snapshot = await resolveSnapshot();
     if (!snapshot.title.trim() || !snapshot.content.trim()) return;
 
     const snapshotStr = JSON.stringify(snapshot);
@@ -172,7 +178,9 @@ export function useAutosave({
     try {
       setStatus('saving');
       await flushRef.current(clientIdRef.current, snapshot);
+      dataRef.current = snapshot;
       lastFlushedSnapshotRef.current = snapshotStr;
+      lastLocalSnapshotRef.current = snapshotStr;
       dirtyRef.current = false;
       persistedRef.current = true;
       setDraftId(clientIdRef.current);
@@ -196,10 +204,29 @@ export function useAutosave({
     } catch {
       setStatus('error');
     }
-  }, [storageKey]);
+  }, [resolveSnapshot, storageKey]);
 
-  const flushToDbRef = useRef(flushToDb);
   useEffect(() => { flushToDbRef.current = flushToDb; }, [flushToDb]);
+
+  // Schedule a local save on data change.
+  useEffect(() => {
+    if (disabled) return;
+    if (!data.title.trim()) return;
+
+    setStatus('pending');
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(writeLocal, debounceMs);
+
+    if (serverTimerRef.current) clearTimeout(serverTimerRef.current);
+    serverTimerRef.current = setTimeout(() => {
+      void flushToDbRef.current();
+    }, serverFlushDebounceMs);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (serverTimerRef.current) clearTimeout(serverTimerRef.current);
+    };
+  }, [data, debounceMs, disabled, serverFlushDebounceMs, writeLocal]);
 
   // Flush on the way out. Empty deps so the cleanup only runs on true unmount.
   useEffect(() => {
@@ -207,7 +234,7 @@ export function useAutosave({
 
     const onPageHide = () => {
       if (disabledRef.current || !dirtyRef.current) return;
-      const snapshot = dataRef.current;
+      const snapshot = sanitizeSnapshot(dataRef.current);
       if (!snapshot.title.trim() || !snapshot.content.trim()) return;
       beaconRef.current(clientIdRef.current, snapshot);
       dirtyRef.current = false;
