@@ -11,6 +11,7 @@
 
 ## Daftar isi
 
+1. [Perbaikan](#perbaikan)
 1. [Ringkasan](#ringkasan)
 2. [Sudah diimplementasi — per domain §1–§20](#sudah-diimplementasi--per-domain-120)
 3. [Checklist testing — kerjakan](#checklist-testing--kerjakan)
@@ -18,6 +19,50 @@
 5. [Referensi](#referensi)
 
 ---
+
+
+## Perbaikan
+
+> **Legenda:** `[ ]` belum dikerjakan · `[x]` sudah selesai  
+> Item yang berasal dari TODO/FIXME di kode dicantumkan dengan lokasi file-nya.
+
+### P1 — Artikel Editor (prioritas tinggi)
+
+- [ ] **Refactor: Satukan komponen submit & edit artikel menjadi satu `ArticleFormEditor` yang reusable**
+  - `app/(user)/submit-article/page.tsx` dan `app/(user)/edit-article/[id]/page.tsx` saat ini duplikasi logika yang hampir identik
+  - Autosave, staged image, unsaved-changes guard, dan form state harus dikelola di satu tempat
+  - Referensi: [`hooks/useAutosave.ts`](../hooks/useAutosave.ts), [`hooks/useStagedImage.ts`](../hooks/useStagedImage.ts)
+
+- [ ] **Bug: Upload gambar di editor mengembalikan `text/html` bukan JSON** — `components/editor/ArticleImageInsertDialog.tsx:128`
+  - Kemungkinan penyebab: endpoint `/api/upload` men-redirect ke login saat sesi habis, bukan mengembalikan `401 JSON`
+  - Akibat: gambar tidak muncul meskipun proses upload tampak berhasil
+
+- [ ] **Bug: Autosave menggunakan localStorage sehingga state coverImage tidak konsisten** 
+  - Gambar cover tersimpan sebagai URL di localStorage tapi tidak ikut terupload ulang saat sesi baru
+  - Pindahkan state autosave ke server-side draft (endpoint sudah ada di `/api/articles/create` sebagai upsert)
+
+- [ ] **Bug: `edit-article/[id]` mengambil data dengan `GET /api/articles/my` lalu `.find()` client-side**
+  - Tidak efisien dan bisa gagal jika artikel tidak ada di halaman pertama
+  - Seharusnya fetch langsung `GET /api/articles/[id]` dengan guard owner/admin
+
+- [ ] **Validasi ukuran file image belum ada di sisi client** — `components/editor/ArticleImageInsertDialog.tsx:127`
+  - UI hanya menampilkan hint "Maks. 5 MB", belum ada validasi dan error message berbahasa Indonesia sebelum upload
+
+### P2 — Profil User
+
+- [ ] **Bug: Field bio ter-reset ke nilai awal setelah beberapa detik** — `app/(user)/profile/edit/page.tsx:419`
+  - Ada background request yang menimpa state form sebelum user selesai mengetik
+  - Solusi: debounce save, atau pisahkan state lokal (controlled) dari data yang di-fetch
+
+### P3 — Endpoint Tidak Relevan di Halaman Edit Artikel
+
+- [ ] **Halaman edit draft memanggil endpoint yang tidak relevan** (leaderboard, kuis, dll.)
+  - Audit semua `fetch()` / `useEffect` di `app/(user)/edit-article/[id]/page.tsx` dan pastikan hanya memanggil endpoint yang dibutuhkan halaman tersebut
+
+### P4 — Monitoring (low priority)
+
+- [ ] **Integrasi monitoring service belum selesai** — `lib/logo-analytics.ts:61`
+  - `sendErrorToMonitoring()` masih hanya `console.error`, belum terintegrasi ke Sentry / DataDog
 
 ## Ringkasan
 

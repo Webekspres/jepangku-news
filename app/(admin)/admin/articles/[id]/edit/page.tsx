@@ -333,10 +333,6 @@ export default function AdminEditArticlePage() {
                 </label>
               </Button>
             </div>
-            <p className="text-xs text-jepang-muted">
-              Gambar baru diunggah ke penyimpanan saat perubahan disimpan; gambar
-              lama yang diganti otomatis dihapus.
-            </p>
             {cover.hasImage && (
               <div className="mt-3 space-y-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

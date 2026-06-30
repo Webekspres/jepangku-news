@@ -416,6 +416,7 @@ export default function EditProfilePage() {
             <CardContent className="pt-6 pb-6">
               <div className="space-y-2">
                 <Label htmlFor="bio">Tentang Kamu</Label>
+                {/* TODO: terdapat bug disini ketika mengetik di bio untuk diganti dan kondisinya belum disimpan, setelah beberapa detik bio kembali ke awal dan menghilangkan semua karakter yang sudah ditulis karena ada request yang terkirim, perbaiki bug ini */}
                 <Textarea
                   id="bio"
                   value={form.bio}

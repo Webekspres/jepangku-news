@@ -124,7 +124,9 @@ export default function ArticleImageInsertDialog({
                 Sisipkan Gambar
               </DialogTitle>
               <p className="text-xs text-jepang-muted mt-0.5">
-                Gambar dioptimasi otomatis (WebP, maks. 1200px) lalu disimpan ke R2
+                {/* TODO: tambahkan sistem maksimal ukuran file dan buat error handling jika melebihi maksimal dan pastikan setiap alert muncul dengan bahasa indonesia */}
+                {/* TODO: terdapat bug saat menyisipkan gambar, saat menyisipkan gambar muncul error expected JSON response, received text/html;  */}
+                Maks. 5 MB
               </p>
             </div>
             <DialogClose asChild>
