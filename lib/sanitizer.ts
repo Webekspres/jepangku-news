@@ -46,14 +46,19 @@ const allowedSchemes = ['http', 'https', 'mailto', 'tel'];
 
 /** Decode HTML entities umum yang dihasilkan sanitize-html saat allowedTags: [] */
 function decodeHtmlEntities(str: string): string {
-  return str
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ');
+  const entityMap: Record<string, string> = {
+    amp: '&',
+    lt: '<',
+    gt: '>',
+    quot: '"',
+    '#39': "'",
+    apos: "'",
+    nbsp: ' ',
+  };
+
+  return str.replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (_, entity) => {
+    return entityMap[entity] ?? _;
+  });
 }
 
 export function sanitizeText(input: string) {

@@ -23,6 +23,11 @@ describe('sanitizeText', () => {
     expect(sanitizeText('<b>hello</b> <i>world</i>')).toBe('hello world');
   });
 
+  test('decodes HTML entities safely', () => {
+    expect(sanitizeText('hello &amp; world')).toBe('hello & world');
+    expect(sanitizeText('foo &amp;amp; bar')).toBe('foo &amp; bar');
+  });
+
   for (const payload of XSS_PAYLOADS) {
     test(`neutralizes XSS payload: ${payload.slice(0, 40)}`, () => {
       const result = sanitizeText(payload);
