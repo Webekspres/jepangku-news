@@ -11,6 +11,7 @@
 
 ## Daftar isi
 
+1. [Perbaikan](#perbaikan)
 1. [Ringkasan](#ringkasan)
 2. [Sudah diimplementasi — per domain §1–§20](#sudah-diimplementasi--per-domain-120)
 3. [Checklist testing — kerjakan](#checklist-testing--kerjakan)
@@ -18,6 +19,57 @@
 5. [Referensi](#referensi)
 
 ---
+
+
+## Perbaikan
+
+> **Legenda:** `[ ]` belum dikerjakan · `[x]` sudah selesai  
+> Item yang berasal dari TODO/FIXME di kode dicantumkan dengan lokasi file-nya.
+
+### P1 — Artikel Editor (prioritas tinggi)
+
+- [x] **Refactor: Satukan komponen submit & edit artikel menjadi satu `ArticleFormEditor` yang reusable**
+  - `components/article-editor/ArticleFormEditor.tsx` — komponen tunggal dengan prop `mode: "create" | "edit"`
+  - `app/(user)/submit-article/page.tsx` dan `app/(user)/edit-article/[id]/page.tsx` masing-masing hanya 1 baris render
+  - Autosave, staged image, unsaved-changes guard, dan form state dikelola di satu tempat
+  - Edit-article kini fetch langsung `GET /api/articles/[id]` (bukan `.find()` client-side dari `my`)
+  - Unit test: `tests/unit/article-form-editor.test.ts` — 47 kasus, semua pass
+  - Referensi: [`hooks/useAutosave.ts`](../hooks/useAutosave.ts), [`hooks/useStagedImage.ts`](../hooks/useStagedImage.ts)
+
+- [x] **Refactor: Satukan admin create & edit artikel ke `AdminArticleFormEditor`**
+  - `components/article-editor/AdminArticleFormEditor.tsx` — prop `mode: "create" | "edit"`
+  - `app/(admin)/admin/articles/create/page.tsx` dan `app/(admin)/admin/articles/[id]/edit/page.tsx` masing-masing 1 baris render
+  - Autosave server-side draft + `prepareSnapshot` commit cover sebelum flush
+
+- [x] **Bug: Upload gambar di editor mengembalikan `text/html` bukan JSON** — `components/editor/ArticleImageInsertDialog.tsx`
+  - `lib/upload-errors.ts` — pesan error berbahasa Indonesia saat sesi habis / respons non-JSON
+  - `lib/upload-media.ts` — gunakan `parseUploadApiResponse` + `credentials: 'same-origin'`
+
+- [x] **Bug: Autosave menggunakan localStorage sehingga state coverImage tidak konsisten**
+  - `hooks/useAutosave.ts` — flush server-side debounced (3 detik), sanitasi blob URL dari localStorage
+  - `prepareSnapshot` commit cover staged sebelum flush ke DB
+  - Helper: [`lib/article-form-helpers.ts`](../lib/article-form-helpers.ts)
+
+- [x] **Bug: `edit-article/[id]` mengambil data dengan `GET /api/articles/my` lalu `.find()` client-side**
+  - Sudah diperbaiki: fetch langsung `GET /api/articles/[id]` di `app/(user)/edit-article/[id]/page.tsx`
+
+- [x] **Validasi ukuran file image di sisi client** — `components/editor/ArticleImageInsertDialog.tsx`
+  - `validateArticleImageFile()` — maks. 5 MB, pesan error berbahasa Indonesia
+
+### P2 — Profil User
+
+- [x] **Bug: Field bio ter-reset ke nilai awal setelah beberapa detik** — `app/(user)/profile/edit/page.tsx`
+  - Profile fetch hanya sekali via `profileLoadedRef` — tidak re-fetch saat AuthContext sync ulang
+
+### P3 — Endpoint Tidak Relevan di Halaman Edit Artikel
+
+- [ ] **Halaman edit draft memanggil endpoint yang tidak relevan** (leaderboard, kuis, dll.)
+  - Audit semua `fetch()` / `useEffect` di `app/(user)/edit-article/[id]/page.tsx` dan pastikan hanya memanggil endpoint yang dibutuhkan halaman tersebut
+
+### P4 — Monitoring (low priority)
+
+- [ ] **Integrasi monitoring service belum selesai** — `lib/logo-analytics.ts:61`
+  - `sendErrorToMonitoring()` masih hanya `console.error`, belum terintegrasi ke Sentry / DataDog
 
 ## Ringkasan
 

@@ -14,6 +14,10 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { deleteMediaFile, uploadMediaFile } from "@/lib/upload-media";
+import {
+  ARTICLE_IMAGE_MAX_LABEL,
+  validateArticleImageFile,
+} from "@/lib/article-form-helpers";
 import { cn } from "@/lib/utils";
 
 export type ArticleImageInsertValues = {
@@ -28,8 +32,6 @@ type ArticleImageInsertDialogProps = {
   initialValues?: Partial<ArticleImageInsertValues>;
   onConfirm: (values: ArticleImageInsertValues) => void;
 };
-
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 export default function ArticleImageInsertDialog({
   open,
@@ -65,8 +67,9 @@ export default function ArticleImageInsertDialog({
     if (!file) return;
     if (fileInputRef.current) fileInputRef.current.value = "";
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setError("Format harus JPG, PNG, GIF, atau WebP");
+    const validationError = validateArticleImageFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -124,7 +127,7 @@ export default function ArticleImageInsertDialog({
                 Sisipkan Gambar
               </DialogTitle>
               <p className="text-xs text-jepang-muted mt-0.5">
-                Gambar dioptimasi otomatis (WebP, maks. 1200px) lalu disimpan ke R2
+                Maks. {ARTICLE_IMAGE_MAX_LABEL}
               </p>
             </div>
             <DialogClose asChild>

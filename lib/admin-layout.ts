@@ -2,7 +2,7 @@
 export const ADMIN_CONTENT_CLASS = "w-full px-4 lg:px-6";
 
 /** Spasi vertikal & jarak antar blok konten halaman admin. */
-export const ADMIN_BODY_CLASS = "py-8 space-y-6";
+export const ADMIN_BODY_CLASS = "pt-8 pb-24 space-y-6";
 
 /** Label breadcrumb standar halaman admin. */
 export const ADMIN_LABEL = "管理 / ADMIN";

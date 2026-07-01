@@ -57,6 +57,7 @@ export default function EditProfilePage() {
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const profileLoadedRef = useRef(false);
 
   const avatar = useStagedImage({
     value: form.avatarUrl,
@@ -71,9 +72,10 @@ export default function EditProfilePage() {
     }
   }, [user, router]);
 
-  // Load profile data
+  // Load profile data sekali — hindari reset form saat AuthContext sync ulang.
   useEffect(() => {
-    if (!user) return;
+    if (!user || profileLoadedRef.current) return;
+    profileLoadedRef.current = true;
     fetch("/api/user/profile")
       .then((r) => parseApiResponse(r))
       .then((data: ProfileData) => {

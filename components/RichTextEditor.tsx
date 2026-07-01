@@ -3,9 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
 import Typography from "@tiptap/extension-typography";
 import { Markdown } from "tiptap-markdown";
 import { useEffect, useCallback, useState } from "react";
@@ -113,14 +111,13 @@ export default function RichTextEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3, 4] },
-        // StarterKit already includes keyboard shortcuts for:
-        // Bold: Ctrl/⌘+B, Italic: Ctrl/⌘+I, Strike: Ctrl/⌘+Shift+X
-        // Code: Ctrl/⌘+E, Blockquote: Ctrl/⌘+Shift+B
-        // BulletList: Ctrl/⌘+Shift+8, OrderedList: Ctrl/⌘+Shift+7
-        // Undo: Ctrl/⌘+Z, Redo: Ctrl/⌘+Shift+Z (or Ctrl+Y on Windows)
-        // Hard break: Shift+Enter
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "text-jepang-red underline underline-offset-2 cursor-pointer",
+          },
+        },
       }),
-      Underline,
       // Markdown: paste teks markdown (# judul, **tebal**, - list, dst.)
       // langsung dikonversi jadi konten terformat.
       Markdown.configure({
@@ -143,12 +140,6 @@ export default function RichTextEditor({
         placeholder,
         emptyEditorClass:
           "before:content-[attr(data-placeholder)] before:text-jepang-muted before:float-left before:pointer-events-none before:h-0",
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-jepang-red underline underline-offset-2 cursor-pointer",
-        },
       }),
       ArticleFigure,
     ],

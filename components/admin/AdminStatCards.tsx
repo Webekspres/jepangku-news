@@ -25,7 +25,7 @@ type AdminStatCardsProps = {
 
 function statCardClassName(highlight?: boolean) {
   return cn(
-    "block p-5 border transition-colors",
+    "block p-3.5 sm:p-5 border transition-colors",
     highlight
       ? "bg-jepang-red text-white border-jepang-red hover:opacity-90"
       : "bg-white border-jepang-border hover:border-foreground",
@@ -39,9 +39,9 @@ function StatCardContent({ item }: { item: AdminStatCardItem }) {
 
   return (
     <>
-      <Icon size={20} strokeWidth={1.5} className="mb-3" />
-      <p className="font-mono font-black text-3xl">{displayValue}</p>
-      <p className="mt-1 text-[10px] font-bold uppercase tracking-wider">{item.label}</p>
+      <Icon size={18} strokeWidth={1.5} className="mb-2 sm:mb-3" />
+      <p className="font-mono font-black text-xl sm:text-2xl md:text-3xl">{displayValue}</p>
+      <p className="mt-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">{item.label}</p>
     </>
   );
 }
@@ -57,12 +57,12 @@ export default function AdminStatCards({
     <div className={cn(gridClassName, className)}>
       {loading
         ? Array.from({ length: skeletonCount }, (_, index) => (
-            <div key={index} className="border border-jepang-border bg-white p-5">
-              <SkeletonBox height="1rem" width="30%" className="mb-3" />
-              <div className="my-3">
-                <SkeletonBox height="2rem" width="100%" />
+            <div key={index} className="border border-jepang-border bg-white p-3.5 sm:p-5">
+              <SkeletonBox height="0.8rem" width="30%" className="mb-2 sm:mb-3" />
+              <div className="my-2 sm:my-3">
+                <SkeletonBox height="1.6rem" width="100%" />
               </div>
-              <SkeletonBox height="0.6rem" width="60%" />
+              <SkeletonBox height="0.5rem" width="60%" />
             </div>
           ))
         : items.map((item) => {

@@ -28,7 +28,7 @@ import {
   AdminToolbar,
 } from "@/components/admin/AdminToolbar";
 import AdminStatCards from "@/components/admin/AdminStatCards";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -712,10 +712,10 @@ export default function AdminArticlesPage() {
                   />
                 </TableHead>
                 <TableHead>JUDUL</TableHead>
-                <TableHead>PENULIS</TableHead>
-                <TableHead>KATEGORI</TableHead>
+                <TableHead className="hidden md:table-cell">PENULIS</TableHead>
+                <TableHead className="hidden sm:table-cell">KATEGORI</TableHead>
                 <TableHead>STATUS</TableHead>
-                <TableHead>DILIHAT</TableHead>
+                <TableHead className="hidden sm:table-cell">DILIHAT</TableHead>
                 <TableHead className="text-right">AKSI</TableHead>
               </TableRow>
             </TableHeader>
@@ -758,10 +758,10 @@ export default function AdminArticlesPage() {
                         {article.title}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-jepang-muted">
+                    <TableCell className="hidden md:table-cell text-jepang-muted">
                       {article.author?.name || "-"}
                     </TableCell>
-                    <TableCell className="text-jepang-muted">
+                    <TableCell className="hidden sm:table-cell text-jepang-muted">
                       {article.category?.name || "-"}
                     </TableCell>
                     <TableCell>
@@ -769,7 +769,7 @@ export default function AdminArticlesPage() {
                         {STATUS_LABEL[article.status] || article.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="hidden sm:table-cell font-mono">
                       {article.viewCount || 0}
                     </TableCell>
                     <TableCell className="text-right">
@@ -828,20 +828,17 @@ export default function AdminArticlesPage() {
                               <span className="sr-only">Arsipkan</span>
                             </Button>
                           )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
+                        <Link
+                          href={`/admin/articles/${article.id}/edit`}
+                          data-testid={`edit-article-${article.id}`}
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" })
+                          )}
                           title="Ubah"
                         >
-                          <Link
-                            href={`/admin/articles/${article.id}/edit`}
-                            data-testid={`edit-article-${article.id}`}
-                          >
-                            <Pencil size={14} className="mr-1" />
-                            <span className="sr-only">Ubah</span>
-                          </Link>
-                        </Button>
+                          <Pencil size={14} className="mr-1" />
+                          <span>Ubah</span>
+                        </Link>
 
                       </div>
                     </TableCell>

@@ -63,7 +63,7 @@ export default function SectionHeader({
               <p
                 className={cn(
                   "section-label mb-2",
-                  darkMode && "text-jepang-orange",
+                  darkMode && !labelClassName && "text-jepang-orange",
                   labelClassName,
                 )}
               >

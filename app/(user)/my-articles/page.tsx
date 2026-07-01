@@ -241,10 +241,7 @@ export default function MyArticlesPage() {
 
                     {article.lastEditedBy?.role === "ADMIN" && (
                       <p className="text-xs text-jepang-muted mt-1">
-                        Terakhir diedit admin:{" "}
-                        <span className="font-semibold text-foreground">
-                          {article.lastEditedBy.name}
-                        </span>
+                        Terakhir diedit
                         {article.lastEditedAt && (
                           <span className="font-mono ml-1">
                             ·{" "}

@@ -1,4 +1,5 @@
 import { parseApiResponse } from '@/lib/fetch-api';
+import { parseUploadApiResponse } from '@/lib/upload-errors';
 export type UploadPurpose = 'avatar' | 'cover' | 'content' | 'banner';
 
 export type UploadMediaResult = {
@@ -14,8 +15,12 @@ export async function uploadMediaFile(
   fd.append('file', file);
   fd.append('purpose', purpose);
 
-  const res = await fetch('/api/upload', { method: 'POST', body: fd });
-  const data = await parseApiResponse(res);
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: fd,
+    credentials: 'same-origin',
+  });
+  const data = await parseUploadApiResponse<UploadMediaResult & { error?: string }>(res);
   if (!res.ok) {
     throw new Error(data.error || 'Upload gagal');
   }

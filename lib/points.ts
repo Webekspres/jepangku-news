@@ -49,7 +49,7 @@ export async function awardPoints(
   if (points <= 0) return EMPTY_AWARD;
 
   try {
-    await db.pointTransaction.create({
+    const result = await db.pointTransaction.createMany({
       data: {
         userId,
         sourceApp: SOURCE_APP,
@@ -59,7 +59,13 @@ export async function awardPoints(
         points,
         description: description ?? null,
       },
+      skipDuplicates: true,
     });
+
+    if (result.count === 0) {
+      const currentPoints = await getUserPointBalance(userId);
+      return { awarded: false, currentPoints, totalXp: null, currentLevel: null };
+    }
 
     const currentPoints = await getUserPointBalance(userId);
 
