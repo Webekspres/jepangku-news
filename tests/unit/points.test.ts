@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { prismaUniqueViolation } from '../helpers/prisma';
 
-const mockCreate = mock(() => Promise.resolve({ id: 'tx-1' }));
+const mockCreateMany = mock(() => Promise.resolve({ count: 1 }));
 const mockAggregate = mock(() => Promise.resolve({ _sum: { points: 10 } }));
 const mockFindMany = mock(() => Promise.resolve([]));
 
@@ -12,7 +12,7 @@ mock.module('@/lib/logger', () => ({
 mock.module('@/lib/db', () => ({
   db: {
     pointTransaction: {
-      create: mockCreate,
+      createMany: mockCreateMany,
       aggregate: mockAggregate,
       findMany: mockFindMany,
     },
@@ -36,9 +36,9 @@ const { awardPoints, checkDailyLogin, getUserPointBalance, getUserPointTransacti
 
 describe('awardPoints', () => {
   beforeEach(() => {
-    mockCreate.mockReset();
+    mockCreateMany.mockReset();
     mockAggregate.mockReset();
-    mockCreate.mockImplementation(() => Promise.resolve({ id: 'tx-1' }));
+    mockCreateMany.mockImplementation(() => Promise.resolve({ count: 1 }));
     mockAggregate.mockImplementation(() => Promise.resolve({ _sum: { points: 10 } }));
   });
 
@@ -55,7 +55,7 @@ describe('awardPoints', () => {
       totalXp: null,
       currentLevel: null,
     });
-    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreateMany).not.toHaveBeenCalled();
   });
 
   test('creates transaction and returns balance on success', async () => {
@@ -63,7 +63,7 @@ describe('awardPoints', () => {
 
     const result = await awardPoints('user-1', 'read_complete', 'article', 'art-1', 2, 'Baca artikel');
 
-    expect(mockCreate).toHaveBeenCalledWith({
+    expect(mockCreateMany).toHaveBeenCalledWith({
       data: {
         userId: 'user-1',
         sourceApp: 'news',
@@ -73,6 +73,7 @@ describe('awardPoints', () => {
         points: 2,
         description: 'Baca artikel',
       },
+      skipDuplicates: true,
     });
     expect(result).toEqual({
       awarded: true,
@@ -85,15 +86,16 @@ describe('awardPoints', () => {
   test('uses null description when omitted', async () => {
     await awardPoints('user-1', 'share', 'article', 'art-2', 5);
 
-    expect(mockCreate).toHaveBeenCalledWith(
+    expect(mockCreateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ description: null }),
+        skipDuplicates: true,
       }),
     );
   });
 
   test('returns awarded:false on unique constraint (anti-duplikat)', async () => {
-    mockCreate.mockImplementation(() => Promise.reject(prismaUniqueViolation()));
+    mockCreateMany.mockImplementation(() => Promise.resolve({ count: 0 }));
     mockAggregate.mockImplementation(() => Promise.resolve({ _sum: { points: 8 } }));
 
     const result = await awardPoints('user-1', 'daily_login', 'system', '2026-06-22', 3);
@@ -107,7 +109,7 @@ describe('awardPoints', () => {
   });
 
   test('returns empty result on other database errors', async () => {
-    mockCreate.mockImplementation(() => Promise.reject(new Error('connection lost')));
+    mockCreateMany.mockImplementation(() => Promise.reject(new Error('connection lost')));
 
     const result = await awardPoints('user-1', 'poll', 'poll', 'p-1', 1);
 
@@ -122,29 +124,30 @@ describe('awardPoints', () => {
 
 describe('checkDailyLogin', () => {
   beforeEach(() => {
-    mockCreate.mockReset();
+    mockCreateMany.mockReset();
     mockAggregate.mockReset();
     mockAggregate.mockImplementation(() => Promise.resolve({ _sum: { points: 3 } }));
   });
 
   test('awards daily_login points with Jakarta date key as sourceId', async () => {
-    mockCreate.mockImplementation(() => Promise.resolve({ id: 'tx-daily' }));
+    mockCreateMany.mockImplementation(() => Promise.resolve({ count: 1 }));
 
     const awarded = await checkDailyLogin('user-daily');
 
     expect(awarded).toBe(true);
-    expect(mockCreate).toHaveBeenCalledWith({
+    expect(mockCreateMany).toHaveBeenCalledWith({
       data: expect.objectContaining({
         activityType: 'daily_login',
         sourceType: 'system',
         sourceId: '2026-06-22',
         points: 3,
       }),
+      skipDuplicates: true,
     });
   });
 
   test('returns false when daily login already claimed (duplicate)', async () => {
-    mockCreate.mockImplementation(() => Promise.reject(prismaUniqueViolation()));
+    mockCreateMany.mockImplementation(() => Promise.resolve({ count: 0 }));
 
     const awarded = await checkDailyLogin('user-daily');
 
