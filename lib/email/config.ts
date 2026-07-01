@@ -16,7 +16,7 @@ export function getEmailReplyTo(): string | null {
   return process.env.EMAIL_REPLY_TO?.trim() || null;
 }
 
-/** Resend `from` header, e.g. `jepangKu <notifications@jepangku.com>`. */
+/** Resend `from` header, e.g. `JepangKu <notifications@jepangku.com>`. */
 export function getEmailFromHeader(): string | null {
   const from = getEmailFromAddress();
   if (!from) return null;

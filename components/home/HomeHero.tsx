@@ -55,7 +55,7 @@ export default function HomeHero() {
       subtitle="Pusat ekosistem Jepangku — baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!"
       dark
       titleClassName="md:text-6xl"
-      labelClassName="text-white/85"
+      labelClassName="!text-white/85"
       className="relative border-b border-jepang-border overflow-visible py-10 md:py-14 bg-[linear-gradient(to_right,#ec1d24_0%,#ff4b2b_100%)]"
     >
 

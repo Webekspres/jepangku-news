@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Globe, Pencil } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
 import { cn } from "@/lib/utils";
@@ -132,14 +132,13 @@ export default function AdminArticleViewPage() {
             )}
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link
-                  href={`/admin/articles/${article.id}/edit`}
-                  data-testid="edit-article-btn"
-                >
-                  <Pencil size={14} className="mr-1" /> Ubah
-                </Link>
-              </Button>
+              <Link
+                href={`/admin/articles/${article.id}/edit`}
+                data-testid="edit-article-btn"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              >
+                <Pencil size={14} className="mr-1" /> Ubah
+              </Link>
               {article.status === "PUBLISHED" && article.slug && (
                 <Button variant="outline" size="sm" asChild>
                   <Link

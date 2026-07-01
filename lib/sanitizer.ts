@@ -44,11 +44,24 @@ const allowedAttributes: sanitizeHtml.IOptions['allowedAttributes'] = {
 
 const allowedSchemes = ['http', 'https', 'mailto', 'tel'];
 
+/** Decode HTML entities umum yang dihasilkan sanitize-html saat allowedTags: [] */
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
+
 export function sanitizeText(input: string) {
-  return sanitizeHtml(input, {
+  const stripped = sanitizeHtml(input, {
     allowedTags: [],
     allowedAttributes: {},
   }).trim();
+  return decodeHtmlEntities(stripped);
 }
 
 /** Plain text dengan batas panjang — untuk judul, bio, pertanyaan quiz/poll. */
