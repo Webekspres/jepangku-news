@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  getArticleEditApiPath,
   getArticleViewHref,
   getArticleViewLabel,
   isArticleLiveView,
@@ -31,6 +32,12 @@ describe('getArticleViewHref', () => {
     expect(getArticleViewHref({ id: 'art-5', slug: 'rej-slug', status: 'REJECTED' })).toBe(
       '/preview-article/art-5',
     );
+  });
+});
+
+describe('getArticleEditApiPath', () => {
+  test('uses the preview API for editable draft articles', () => {
+    expect(getArticleEditApiPath('art-123')).toBe('/api/articles/preview/art-123');
   });
 });
 

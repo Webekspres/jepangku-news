@@ -25,6 +25,7 @@ import { preloadMediaImage } from "@/lib/media/client-cache";
 import { useStagedImage } from "@/hooks/useStagedImage";
 import UserAvatar from "@/components/media/UserAvatar";
 import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
+import { shouldApplyProfileSnapshot } from "@/lib/profile-form-state";
 
 interface ProfileForm {
   name: string;
@@ -56,6 +57,7 @@ export default function EditProfilePage() {
   const [usernameCooldownDays, setUsernameCooldownDays] = useState(0);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
+  const [hasUserEditedForm, setHasUserEditedForm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const profileLoadedRef = useRef(false);
 
@@ -79,13 +81,17 @@ export default function EditProfilePage() {
     fetch("/api/user/profile")
       .then((r) => parseApiResponse(r))
       .then((data: ProfileData) => {
-        setForm({
+        const snapshot = {
           name: data.name ?? "",
           username: data.username ?? "",
           displayName: data.displayName ?? data.name ?? "",
           bio: data.bio ?? "",
           avatarUrl: data.avatarUrl ?? "",
-        });
+        };
+
+        if (!hasUserEditedForm || shouldApplyProfileSnapshot(snapshot, hasUserEditedForm, form)) {
+          setForm(snapshot);
+        }
         setUsernameCooldownDays(data.usernameCooldownDaysLeft ?? 0);
         setLoading(false);
       })
@@ -93,7 +99,7 @@ export default function EditProfilePage() {
         toast.error("Gagal memuat data profil");
         setLoading(false);
       });
-  }, [user]);
+  }, [user, hasUserEditedForm, form]);
 
   const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -328,9 +334,10 @@ export default function EditProfilePage() {
                   id="name"
                   type="text"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, name: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setHasUserEditedForm(true);
+                    setForm((prev) => ({ ...prev, name: e.target.value }));
+                  }}
                   required
                   maxLength={100}
                   placeholder="Nama kamu"
@@ -353,12 +360,13 @@ export default function EditProfilePage() {
                     id="username"
                     type="text"
                     value={form.username}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      setHasUserEditedForm(true);
                       setForm((prev) => ({
                         ...prev,
                         username: e.target.value.toLowerCase(),
-                      }))
-                    }
+                      }));
+                    }}
                     required
                     minLength={3}
                     maxLength={30}
@@ -391,12 +399,13 @@ export default function EditProfilePage() {
                   id="displayName"
                   type="text"
                   value={form.displayName}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    setHasUserEditedForm(true);
                     setForm((prev) => ({
                       ...prev,
                       displayName: e.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                   maxLength={100}
                   placeholder="Nama yang ditampilkan publik (opsional)"
                   data-testid="input-display-name"
@@ -421,9 +430,10 @@ export default function EditProfilePage() {
                 <Textarea
                   id="bio"
                   value={form.bio}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, bio: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setHasUserEditedForm(true);
+                    setForm((prev) => ({ ...prev, bio: e.target.value }));
+                  }}
                   maxLength={300}
                   rows={4}
                   placeholder="Ceritakan sedikit tentang dirimu... (opsional)"
