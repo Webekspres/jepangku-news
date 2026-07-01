@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { parseApiResponse } from "@/lib/fetch-api";
 import { toast } from "sonner";
 import { canEditOnUserPortal } from "@/lib/article-workflow";
+import { getArticleEditApiPath } from "@/lib/article-view-url";
 import { ArticleFormEditor, type ArticleInitialData } from "@/components/article-editor";
 
 export default function EditArticlePage() {
@@ -17,8 +18,7 @@ export default function EditArticlePage() {
   );
 
   useEffect(() => {
-    // Fetch langsung by ID — lebih efisien daripada GET /api/articles/my + client-side find.
-    fetch(`/api/articles/${id}`)
+    fetch(getArticleEditApiPath(id))
       .then((r) => parseApiResponse(r))
       .then((article: any) => {
         if (!article || !article.id) {

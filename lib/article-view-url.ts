@@ -12,6 +12,10 @@ export function getArticleViewHref(article: ArticleViewTarget): string {
   return `/preview-article/${article.id}`;
 }
 
+export function getArticleEditApiPath(articleId: string): string {
+  return `/api/articles/preview/${articleId}`;
+}
+
 export function isArticleLiveView(article: ArticleViewTarget): boolean {
   return article.status === "PUBLISHED" && Boolean(article.slug);
 }
