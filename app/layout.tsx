@@ -11,6 +11,11 @@ import { getSiteUrl } from '@/lib/site-url';
 import { getCriticalLogoPaths } from '@/lib/logo-utils';
 import './globals.css';
 
+const SITE_OG_IMAGE_URL = new URL(
+  '/assets/images/og-image/og-image.png',
+  getSiteUrl(),
+).toString();
+
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
@@ -18,6 +23,21 @@ export const metadata: Metadata = {
     template: SITE_TITLE_TEMPLATE,
   },
   description: SITE_DEFAULT_DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    title: SITE_DEFAULT_TITLE,
+    description: SITE_DEFAULT_DESCRIPTION,
+    url: getSiteUrl(),
+    siteName: SITE_DEFAULT_TITLE,
+    locale: 'id_ID',
+    images: [SITE_OG_IMAGE_URL],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_DEFAULT_TITLE,
+    description: SITE_DEFAULT_DESCRIPTION,
+    images: [SITE_OG_IMAGE_URL],
+  },
   icons: {
     icon: [
       { url: '/assets/images/favicons/favicon.ico', sizes: 'any' },
