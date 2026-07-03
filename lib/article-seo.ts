@@ -27,7 +27,7 @@ export async function generateArticleMetadata(slug: string): Promise<Metadata> {
   const title = sanitizePlainField(article.title, 300);
   const description =
     (article.excerpt ? sanitizePlainField(article.excerpt, 500) : null) ??
-    `Baca "${title}" di ${SITE_BRAND_NAME} — pusat ekosistem Jepang untuk pembaca Indonesia.`;
+    `Baca "${title}" di ${SITE_BRAND_NAME} — Jepang Versi Kamu.`;
 
   const pageUrl = articlePageUrl(slug);
   const ogImageUrl = article.coverImageUrl

@@ -12,7 +12,8 @@ import { getCriticalLogoPaths } from '@/lib/logo-utils';
 import './globals.css';
 
 const SITE_OG_IMAGE_URL = new URL(
-  '/assets/images/og-image/og-image.png',
+  '/assets/images/og-image/og-image.webp',
+
   getSiteUrl(),
 ).toString();
 
