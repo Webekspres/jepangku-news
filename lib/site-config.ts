@@ -1,8 +1,8 @@
 export const SITE_BRAND_NAME = "JepangKu";
-export const SITE_DEFAULT_TITLE = `${SITE_BRAND_NAME} | Pusat Ekosistem Jepang`;
+export const SITE_DEFAULT_TITLE = `${SITE_BRAND_NAME} | Jepang versi Kamu!`;
 export const SITE_TITLE_TEMPLATE = `%s | ${SITE_BRAND_NAME}`;
 export const SITE_DEFAULT_DESCRIPTION =
-  "Jepang Versi kamu. Baca artikel, tonton video, belajar bahasa, ikut kuis & polling, raih poin!";
+  "Jepang versi Kamu! Baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!";
 
 export type {
   SocialLink,
