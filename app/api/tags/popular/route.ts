@@ -1,3 +1,5 @@
+import { NextRequest } from 'next/server';
+import { apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 
 // GET /api/tags/popular?limit=20

@@ -1,4 +1,7 @@
+import { NextResponse } from "next/server";
+import { apiSuccess } from '@/lib/api-response';
 import { fetchHomeCategoriesEditorial } from "@/lib/home/queries/categories-editorial";
+
 
 export async function GET(): Promise<NextResponse> {
   const data = await fetchHomeCategoriesEditorial();

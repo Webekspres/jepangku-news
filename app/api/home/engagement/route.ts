@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { apiSuccess } from '@/lib/api-response';
 import { fetchHomeEngagement } from "@/lib/home/queries/engagement";
 

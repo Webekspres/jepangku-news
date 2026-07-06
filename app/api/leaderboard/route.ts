@@ -1,3 +1,5 @@
+import { NextRequest } from 'next/server';
+import { apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import { parseLeaderboardPeriod } from '@/lib/leaderboard/period';

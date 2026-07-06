@@ -1,4 +1,7 @@
+import { NextResponse } from "next/server";
+import { apiSuccess } from '@/lib/api-response';
 import { fetchHomeFeed } from "@/lib/home/queries/feed";
+
 
 export async function GET(): Promise<NextResponse> {
   const data = await fetchHomeFeed();

@@ -1,5 +1,6 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
+import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import { R2_OBJECT_CACHE_CONTROL } from '@/lib/media/constants';
 

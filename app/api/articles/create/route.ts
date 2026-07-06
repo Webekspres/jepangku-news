@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';

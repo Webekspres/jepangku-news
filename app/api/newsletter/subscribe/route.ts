@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { enforceRateLimit } from '@/lib/rate-limit';

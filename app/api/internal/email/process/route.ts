@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getEmailQueueSecret, isQstashReceiverConfigured } from '@/lib/email/config';
 import { processEmailOutbox } from '@/lib/email/queue';

@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { getUserGrowthSeries } from '@/lib/admin-monitoring';

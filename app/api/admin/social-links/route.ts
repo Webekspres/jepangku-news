@@ -1,5 +1,6 @@
 import { revalidateTag } from "next/cache";
 import { apiError, apiSuccess } from '@/lib/api-response';
+import { NextRequest } from 'next/server';
 import { getCurrentAdmin } from "@/lib/auth";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import {
