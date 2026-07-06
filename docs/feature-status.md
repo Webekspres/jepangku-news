@@ -1,7 +1,8 @@
 # Status Fitur & Checklist — Jepangku News
 
-> **Diperbarui:** Juni 2026 (audit kode `jepangku-news`)  
+> **Diperbarui:** Juli 2026  
 > **Status aplikasi:** ✅ **Sepenuhnya diimplementasi** — portal production-ready.  
+> **Sedang dikerjakan:** **[§ Logging System](#-logging-system--belum)** — infrastruktur monitoring terpusat (Pino + Loki + Grafana).  
 > **Sisa rencana:** hanya **[§ Rencana Lanjutan](#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)** (ekosistem lintas-app; bukan blokir rilis).  
 > **Legenda:** `[ ]` belum · `[x]` selesai (verified) · `[~]` operasional / tim editorial  
 > **Rincian teknis:** [`backlog-plan.md`](./backlog-plan.md) · [`ecosystem-integration.md`](./ecosystem-integration.md) · [`development-roadmap.md`](./development-roadmap.md)  
@@ -11,74 +12,180 @@
 
 ## Daftar isi
 
-1. [Perbaikan](#perbaikan)
 1. [Ringkasan](#ringkasan)
-2. [Sudah diimplementasi — per domain §1–§20](#sudah-diimplementasi--per-domain-120)
-3. [Checklist testing — kerjakan](#checklist-testing--kerjakan)
-4. [Rencana lanjutan](#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)
-5. [Referensi](#referensi)
+2. [🪵 Logging System](#-logging-system--belum)
+3. [Rencana lanjutan](#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)
+4. [Checklist testing — kerjakan](#checklist-testing--kerjakan)
+5. [Perbaikan](#perbaikan)
+6. [Sudah diimplementasi — per domain §1–§20](#sudah-diimplementasi--per-domain-120)
+7. [Referensi](#referensi)
 
 ---
 
-
-## Perbaikan
-
-> **Legenda:** `[ ]` belum dikerjakan · `[x]` sudah selesai  
-> Item yang berasal dari TODO/FIXME di kode dicantumkan dengan lokasi file-nya.
-
-### P1 — Artikel Editor (prioritas tinggi)
-
-- [x] **Refactor: Satukan komponen submit & edit artikel menjadi satu `ArticleFormEditor` yang reusable**
-  - `components/article-editor/ArticleFormEditor.tsx` — komponen tunggal dengan prop `mode: "create" | "edit"`
-  - `app/(user)/submit-article/page.tsx` dan `app/(user)/edit-article/[id]/page.tsx` masing-masing hanya 1 baris render
-  - Autosave, staged image, unsaved-changes guard, dan form state dikelola di satu tempat
-  - Edit-article kini fetch langsung `GET /api/articles/[id]` (bukan `.find()` client-side dari `my`)
-  - Unit test: `tests/unit/article-form-editor.test.ts` — 47 kasus, semua pass
-  - Referensi: [`hooks/useAutosave.ts`](../hooks/useAutosave.ts), [`hooks/useStagedImage.ts`](../hooks/useStagedImage.ts)
-
-- [x] **Refactor: Satukan admin create & edit artikel ke `AdminArticleFormEditor`**
-  - `components/article-editor/AdminArticleFormEditor.tsx` — prop `mode: "create" | "edit"`
-  - `app/(admin)/admin/articles/create/page.tsx` dan `app/(admin)/admin/articles/[id]/edit/page.tsx` masing-masing 1 baris render
-  - Autosave server-side draft + `prepareSnapshot` commit cover sebelum flush
-
-- [x] **Bug: Upload gambar di editor mengembalikan `text/html` bukan JSON** — `components/editor/ArticleImageInsertDialog.tsx`
-  - `lib/upload-errors.ts` — pesan error berbahasa Indonesia saat sesi habis / respons non-JSON
-  - `lib/upload-media.ts` — gunakan `parseUploadApiResponse` + `credentials: 'same-origin'`
-
-- [x] **Bug: Autosave menggunakan localStorage sehingga state coverImage tidak konsisten**
-  - `hooks/useAutosave.ts` — flush server-side debounced (3 detik), sanitasi blob URL dari localStorage
-  - `prepareSnapshot` commit cover staged sebelum flush ke DB
-  - Helper: [`lib/article-form-helpers.ts`](../lib/article-form-helpers.ts)
-
-- [x] **Bug: `edit-article/[id]` mengambil data dengan `GET /api/articles/my` lalu `.find()` client-side**
-  - Sudah diperbaiki: fetch langsung `GET /api/articles/[id]` di `app/(user)/edit-article/[id]/page.tsx`
-
-- [x] **Validasi ukuran file image di sisi client** — `components/editor/ArticleImageInsertDialog.tsx`
-  - `validateArticleImageFile()` — maks. 5 MB, pesan error berbahasa Indonesia
-
-### P2 — Profil User
-
-- [x] **Bug: Field bio ter-reset ke nilai awal setelah beberapa detik** — `app/(user)/profile/edit/page.tsx`
-  - Profile fetch hanya sekali via `profileLoadedRef` — tidak re-fetch saat AuthContext sync ulang
-
-### P3 — Endpoint Tidak Relevan di Halaman Edit Artikel
-
-- [ ] **Halaman edit draft memanggil endpoint yang tidak relevan** (leaderboard, kuis, dll.)
-  - Audit semua `fetch()` / `useEffect` di `app/(user)/edit-article/[id]/page.tsx` dan pastikan hanya memanggil endpoint yang dibutuhkan halaman tersebut
-
-### P4 — Monitoring (low priority)
-
-- [ ] **Integrasi monitoring service belum selesai** — `lib/logo-analytics.ts:61`
-  - `sendErrorToMonitoring()` masih hanya `console.error`, belum terintegrasi ke Sentry / DataDog
 
 ## Ringkasan
 
 | Aspek | Status |
 | :--- | :--- |
 | Fitur fungsional | 160 fitur · ~197 kondisi — semua diimplementasi |
+| Logging system | **[§ Logging System](#-logging-system--belum)** — direncanakan (6 fase, ~50+ titik) |
 | Test otomatis | `bun run test` = unit (~156) + integration API inti (~146) |
 | QA browser/UI | Manual — [`testing-inventory.md`](./testing-inventory.md) |
 | Non-functional | Lighthouse Mobile **42** / Desktop **89** · `verify:non-functional` 47/47 |
+
+
+
+---
+
+## 🪵 Logging System — *(belum)*
+
+> **Status:** `[ ]` semua item — masih dalam perencanaan, belum diimplementasi.  
+> **Stack:** Pino (core logger) → stdout → Promtail → Loki → Grafana (dashboard).  
+> **Estimasi:** ~50+ titik pemasangan log di seluruh aplikasi, terbagi dalam 6 fase.  
+> **Prinsip:** JSON terstruktur sesuai standar industri, redact PII, child logger per modul, async non-blocking.
+
+### Phase 0 — Infrastruktur Docker Logging Stack
+
+- [ ] **0.1** Pasang `docker-compose` service: Promtail + Loki + Grafana  
+- [ ] **0.2** Konfigurasi Promtail — baca stdout semua container (`/var/lib/docker/containers`)  
+- [ ] **0.3** Konfigurasi Loki — penyimpanan log (bind mount / S3)  
+- [ ] **0.4** Konfigurasi Grafana — datasource Loki otomatis (provisioning YAML)  
+- [ ] **0.5** Konfigurasi retensi log — `max_retention_period` di Loki  
+- [ ] **0.6** Verifikasi — `docker logs` masuk ke Grafana Explore
+
+### Phase 1 — Core Logger (Pino)
+
+- [ ] **1.1** Install `pino` + `pino-pretty` (devDependency)  
+- [ ] **1.2** Tulis ulang `lib/logger.ts` — ganti custom JSON logger ke Pino  
+  - Pretty-print otomatis di `NODE_ENV=development`  
+  - JSON murni di `NODE_ENV=production`  
+  - Redact field sensitif: `password`, `token`, `secret`, `authorization`, `cookie`  
+  - Child logger: `logger.child({ module: "..." })`  
+- [ ] **1.3** Update `lib/log-drain.ts` — kirim error/warn ke webhook (tetap dipertahankan)  
+- [ ] **1.4** Setup `LOG_LEVEL` env — `info` default, `warn` di production  
+- [ ] **1.5** Verifikasi — log muncul dengan format JSON/stdout di terminal & Grafana
+
+### Phase 2 — Request Logging Middleware
+
+> Mencatat setiap HTTP request yang masuk.
+
+- [ ] **2.1** Buat `lib/logging/request-logger.ts` — helper log request  
+  - `method`, `path`, `status`, `durationMs`  
+  - `userId` (jika terautentikasi)  
+  - `reqId` (correlation ID — trace dari request ke response)  
+  - `userAgent`, `ip` (anonymized)  
+- [ ] **2.2** Integrasi ke route handler API — wrapper function atau middleware pattern  
+- [ ] **2.3** Verifikasi — tiap request muncul di Grafana dengan duration & status
+
+### Phase 3 — API Route Logging
+
+> Menambahkan log kontekstual di titik penting tiap modul API.
+
+#### §3.1 Autentikasi & Akun
+- [ ] **3.1.1** `GET /api/auth/me` — log akses user, 401 untuk guest  
+- [ ] **3.1.2** `lib/core/session.ts` — log success/failure exchange JWT  
+- [ ] **3.1.3** `lib/core/auth.ts` — log token verification, Core down degrade
+
+#### §3.2 Artikel — CRUD & Workflow
+- [ ] **3.2.1** `GET /api/articles` — log pagination, filter kategori, total count  
+- [ ] **3.2.2** `POST /api/articles/create` — log authorId, status, durasi write DB  
+- [ ] **3.2.3** `PATCH /api/articles/[slug]/update` — log field yang diubah  
+- [ ] **3.2.4** `DELETE /api/articles/[slug]` — log soft/hard delete  
+- [ ] **3.2.5** Workflow — `status_change`, `approve`, `reject`, `archive` (+ audit)
+
+#### §3.3 Komentar
+- [ ] **3.3.1** `POST /api/comments` — log targetType, targetId, isReply  
+- [ ] **3.3.2** `PATCH /api/comments/[id]` — log edit content  
+- [ ] **3.3.3** `DELETE /api/comments/[id]` — log soft/hard, moderatorId
+
+#### §3.4 Reaksi
+- [ ] **3.4.1** `POST /api/reactions` — log targetType, reactionType, action (created/switched/removed)
+
+#### §3.5 Kuis
+- [ ] **3.5.1** `POST /api/quizzes/[slug]/attempt` — log userId, score, totalQuestions, pointsAwarded
+
+#### §3.6 Poll
+- [ ] **3.6.1** `POST /api/polls/[slug]/vote` — log userId, questionId, optionId, duplicate guard
+
+#### §3.7 Bookmark
+- [ ] **3.7.1** `POST /api/bookmarks/[articleId]` — log toggle action
+
+#### §3.8 Upload & Media
+- [ ] **3.8.1** `POST /api/upload` — log fileName, size, MIME, moderation result  
+- [ ] **3.8.2** `lib/image-moderation.ts` — log unsafe content detected
+
+#### §3.9 Search
+- [ ] **3.9.1** `GET /api/search` — log query (anonymized), resultCount, durationMs
+
+#### §3.10 Newsletter
+- [ ] **3.10.1** `POST /api/newsletter/subscribe` — log email normalized, isDuplicate
+
+#### §3.11 Kontributor
+- [ ] **3.11.1** `POST /api/contributor/apply` — log userId, status setelah submit  
+- [ ] **3.11.2** Admin approve/reject — log reviewerId, note
+
+#### §3.12 Notifikasi
+- [ ] **3.12.1** `lib/notifications/create.ts` — log type, dedupe, group  
+- [ ] **3.12.2** SSE stream — log connect/disconnect, error  
+- [ ] **3.12.3** Email outbox — log send success/failure, template
+
+#### §3.13 Homepage & Feed
+- [ ] **3.13.1** Tiap wave API (`/api/home/*`) — log section name, durationMs, cache hit/miss
+
+#### §3.14 Admin Routes
+- [ ] **3.14.1** CRUD entities (kategori, tag, users, ads, video, quiz, poll) — log action + target  
+- [ ] **3.14.2** Review queue — log approve/reject dengan note  
+- [ ] **3.14.3** Export actions — log export type, recordCount
+
+#### §3.15 Internal Routes
+- [ ] **3.15.1** `app/api/internal/*` — log IP/secret validation, payload size  
+- [ ] **3.15.2** Webhook handlers — log event type, payload summary
+
+### Phase 4 — Service Layer Logging
+
+> Mencatat operasi penting di layer bisnis (`lib/`) yang tidak terekspos langsung ke API.
+
+- [ ] **4.1** Database — log slow query (>1 detik), query error, connection pool:  
+  - `lib/db.ts` — wrapper Prisma dengan timing  
+  - `lib/rate-limit.ts` — log rate limit hit (warn)  
+- [ ] **4.2** External API — log Core API calls (success/failure, duration, status):  
+  - `lib/core/users.ts`, `lib/core/session.ts`  
+  - `lib/core/gamification.ts` — log awardXp calls  
+- [ ] **4.3** Storage — log R2 operations (upload, delete, URL generation, error):  
+  - `lib/r2.ts`, `lib/upload-media.ts`  
+- [ ] **4.4** Email — log send result, retry attempts, template rendering:  
+  - `lib/newsletter/email.ts`, `lib/email/queue.ts`  
+- [ ] **4.5** Background jobs — log skrip maintenance, cron, purge:  
+  - `scripts/purge-expired-notifications.ts`, `scripts/purge-legacy-users.ts`  
+- [ ] **4.6** Cache — log Redis hit/miss, rate limit state
+
+### Phase 5 — Error Monitoring Upgrade
+
+> Meningkatkan `lib/monitoring.ts` dengan breadcrumbs & error grouping.
+
+- [ ] **5.1** Breadcrumbs system — track actions before error:  
+  - `addBreadcrumb(event, data?)` — simpan di memory (max 50)  
+  - Sertakan breadcrumbs di payload error  
+- [ ] **5.2** Error fingerprint — group error berdasarkan `name + message`  
+- [ ] **5.3** Source map — pastikan stack trace asli di production  
+- [ ] **5.4** Global error boundary — `app/error.tsx`, `app/global-error.tsx` — log ke Pino + webhook  
+- [ ] **5.5** `process.on('uncaughtException')` — log fatal + exit
+
+### Phase 6 — Dashboard & Alerting
+
+> Membuat visualisasi log di Grafana dan notifikasi.
+
+- [ ] **6.1** Grafana dashboard — log browser (Explore) + panel:  
+  - Error rate per module (bar chart)  
+  - Request duration P50/P95/P99  
+  - HTTP status distribution (2xx, 4xx, 5xx)  
+  - Top slowest endpoints  
+  - Error trend per jam  
+- [ ] **6.2** Alert rules:  
+  - Error rate > 5 error/menit → Telegram/Email  
+  - P95 latency > 5 detik → peringatan performa  
+  - Crash loop — multiple fatal dalam 1 menit  
+- [ ] **6.3** Log retention & backup — atur pruning Loki agar tidak penuh disk
 
 ---
 
@@ -310,6 +417,18 @@
 [x] **Tier D** — layout publik aside/breadcrumb (poll, quiz, HomeTodaySection)  
 [x] **Tier E** — fitur admin menengah (info-pages preview, categories modal, navbar 9 kategori, ads crop)  
 [x] **Tier F** — refactor analytics hub + bug video featured/homepage TV
+
+---
+
+## Rencana Lanjutan — Bisa Nanti *(ekosistem Fase D/E)*
+
+> Koordinasi lintas-repo: `jepangkuLMS`, `jepangku-core`. News consumer (teaser LMS) sudah ada; item di bawah = integrasi penuh ekosistem.
+
+[ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
+[ ] `GET /api/public/courses` di jepangkuLMS + katalog `/kursus` baca Prisma (single source of truth)  
+[ ] Super-admin / role hierarchy (`editor`, `moderator`, `instructor`, `student`)  
+[ ] Profil extended (bio) di Core *(sementara `user_profiles` News)*  
+[ ] Spend poin, membership — fase lanjutan apabila ada
 
 ---
 
@@ -594,18 +713,6 @@
 [x] **C3** Desktop 1280px+  
 [ ] **C4** Browser manual smoke — checklist [`testing-inventory.md`](./testing-inventory.md)  
 [ ] **C5** Safari/Firefox smoke
-
----
-
-## Rencana Lanjutan — Bisa Nanti *(ekosistem Fase D/E)*
-
-> Koordinasi lintas-repo: `jepangkuLMS`, `jepangku-core`. News consumer (teaser LMS) sudah ada; item di bawah = integrasi penuh ekosistem.
-
-[ ] LMS integration penuh — shared user Clerk/Core di `kursus.jepangku.com`  
-[ ] `GET /api/public/courses` di jepangkuLMS + katalog `/kursus` baca Prisma (single source of truth)  
-[ ] Super-admin / role hierarchy (`editor`, `moderator`, `instructor`, `student`)  
-[ ] Profil extended (bio) di Core *(sementara `user_profiles` News)*  
-[ ] Spend poin, membership — fase lanjutan apabila ada
 
 ---
 

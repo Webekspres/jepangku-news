@@ -6,11 +6,7 @@ import {
 } from "@/lib/lms/constants";
 
 describe("§13.4 LMS domain — staging vs production", () => {
-  const envKeys = [
-    "NEXT_PUBLIC_LMS_URL",
-    "NEXT_PUBLIC_VERCEL_ENV",
-    "VERCEL_ENV",
-  ] as const;
+  const envKeys = ["NEXT_PUBLIC_LMS_URL"] as const;
   const original: Record<string, string | undefined> = {};
 
   afterEach(() => {
@@ -35,18 +31,19 @@ describe("§13.4 LMS domain — staging vs production", () => {
     expect(getLmsBaseUrl()).toBe("https://custom-lms.example.com");
   });
 
-  it("uses production domain when Vercel env is production", () => {
+  it("uses production domain when NODE_ENV is production", () => {
     snapshotEnv();
+    const origNodeEnv = process.env.NODE_ENV;
     delete process.env.NEXT_PUBLIC_LMS_URL;
-    process.env.VERCEL_ENV = "production";
+    process.env.NODE_ENV = "production";
     expect(getLmsBaseUrl()).toBe("https://kursus.jepangku.com");
+    process.env.NODE_ENV = origNodeEnv;
   });
 
   it("defaults to staging dev domain otherwise", () => {
     snapshotEnv();
     delete process.env.NEXT_PUBLIC_LMS_URL;
-    delete process.env.NEXT_PUBLIC_VERCEL_ENV;
-    delete process.env.VERCEL_ENV;
+    delete process.env.NODE_ENV;
     expect(getLmsBaseUrl()).toBe("https://dev.kursus.jepangku.com");
   });
 });

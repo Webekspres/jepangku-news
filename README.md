@@ -164,7 +164,16 @@ docs/             # Dokumentasi proyek
 
 ## Deploy
 
-**Vercel** — set env dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
+**Docker** — build image dan jalankan container:
+
+```bash
+docker build -t jepangku-news .
+docker run -p 3001:3001 --env-file .env jepangku-news
+```
+
+Atau gunakan `docker-compose` jika sudah ada infrastruktur (PostgreSQL, Redis, Core).
+
+Set env dari `.env.example`, pastikan `bun run build` sukses. Detail R2: [docs/cloudflare-r2-setup.md](docs/cloudflare-r2-setup.md).
 
 Runbook Core down: [docs/runbooks/core-service-down.md](docs/runbooks/core-service-down.md).
 

@@ -50,7 +50,7 @@ Kami berkomitmen pada **coordinated disclosure**: mohon beri waktu yang wajar un
 
 **Di luar cakupan:**
 
-- Layanan pihak ketiga (Clerk, Vercel, Cloudflare R2, Upstash, Resend) — laporkan langsung ke vendor terkait
+- Layanan pihak ketiga (Clerk, Cloudflare R2, Upstash, Resend) — laporkan langsung ke vendor terkait
 - Serangan denial-of-service (DoS/DDoS) volumetrik
 - Temuan otomatis dari scanner tanpa bukti dampak nyata
 - Social engineering, phishing, atau akses fisik

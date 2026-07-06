@@ -5,7 +5,7 @@ Integrasi ekosistem (Core + Clerk): [`ecosystem-integration.md`](./ecosystem-int
 
 ## 📋 Ringkasan
 
-Jepangku News adalah aplikasi **full-stack Next.js** dengan backend API routes dan frontend React dalam satu repository. Strategi ini mempercepat development dan memudahkan deploy awal di Vercel.
+Jepangku News adalah aplikasi **full-stack Next.js** dengan backend API routes dan frontend React dalam satu repository. Strategi ini mempercepat development dan memudahkan deploy di VPS/Docker.
 
 Dalam ekosistem JepangKu, News adalah **aplikasi domain berita** — artikel, quiz/poll, komentar — yang mengonsumsi **identitas global** dari `jepangku-core` (Clerk ID, role, JWT). **Poin dan leaderboard poin** milik News DB sendiri (Core v2.1 tidak menyimpan poin).
 
@@ -21,7 +21,7 @@ Dalam ekosistem JepangKu, News adalah **aplikasi domain berita** — artikel, qu
 | Storage | Cloudflare R2 | - | S3-compatible object storage |
 | Auth | Clerk | - | SSO; session → JIT sync lokal (transisi) |
 | Shared identity | jepangku-core | - | Identitas + role global; XP/level untuk LMS (bukan poin portal) |
-| Deployment | Vercel | - | Deploy awal, CI/CD mudah |
+| Deployment | Docker / VPS | - | Self-hosted, kontrol penuh |
 
 ## 🧱 Arsitektur Aplikasi
 
@@ -108,13 +108,14 @@ Alur target: lihat [`ecosystem-integration.md`](./ecosystem-integration.md).
 ## 🧭 Deployment
 
 ### Saat ini
-- Vercel untuk deploy awal
-- Core: VPS / Docker (`jepangku-core`, port 8080)
+- Self-hosted VPS dengan Docker
+- Multi-app: News, Core, LMS dalam satu VPS
+- PostgreSQL terpisah (managed cloud atau container)
 
-### Masa depan
-- Fork repo ke organisasi GitHub
-- Self-hosted VPS untuk staging / production multi-app
-- CI/CD pipeline untuk build dan deploy
+### CI/CD
+- Build & deploy via GitHub Actions atau manual di VPS
+- Docker multi-stage build (lihat `Dockerfile`)
+- Health check endpoint untuk monitoring
 
 ## 📌 Kesiapan Multi-App
 
