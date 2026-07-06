@@ -52,7 +52,7 @@ export default function HomeHero() {
           <span className="text-jepang-yellow">Belajar Bahasa Jepang</span>
         </>
       }
-      subtitle="Pusat ekosistem Jepangku — baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!"
+      subtitle="Jepang versi Kamu! Baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!"
       dark
       titleClassName="md:text-6xl"
       labelClassName="!text-white/85"

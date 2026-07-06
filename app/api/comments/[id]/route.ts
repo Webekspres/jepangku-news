@@ -43,6 +43,13 @@ export async function PATCH(
     data: { content: normalized.content, editedAt: new Date() },
   });
 
+  logger.info('comment.updated', {
+    commentId: updated.id,
+    userId: user.id,
+    targetType: updated.targetType,
+    targetId: updated.targetId,
+  });
+
   auditCommentUpdate(user, updated.id);
 
   return apiSuccess({

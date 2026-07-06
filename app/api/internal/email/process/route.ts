@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getEmailQueueSecret, isQstashReceiverConfigured } from '@/lib/email/config';
+import { logger } from '@/lib/logger';
 import { processEmailOutbox } from '@/lib/email/queue';
 import { verifyQstashRequest } from '@/lib/email/qstash';
 import { captureException } from '@/lib/monitoring';
@@ -26,7 +27,13 @@ async function isAuthorized(request: NextRequest, rawBody: string): Promise<bool
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
-  if (!(await isAuthorized(request, rawBody))) {
+  const authorized = await isAuthorized(request, rawBody);
+  if (!authorized) {
+    logger.warn('internal.email.unauthorized', {
+      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      hasUpstashSignature: !!request.headers.get('upstash-signature'),
+      payloadSize: rawBody.length,
+    });
     return apiError('Unauthorized' , { status: 401 });
   }
 
@@ -37,9 +44,14 @@ export async function POST(request: NextRequest) {
       return apiError('outboxId required' , { status: 400 });
     }
 
+    logger.info('internal.email.process_started', { outboxId, payloadSize: rawBody.length });
+
     await processEmailOutbox(outboxId);
+
+    logger.info('internal.email.process_completed', { outboxId });
     return apiSuccess({ ok: true, outboxId });
   } catch (e) {
+    logger.warn('internal.email.process_failed', { errorMessage: e instanceof Error ? e.message : String(e) });
     await captureException(e, { route: 'internal-email-process' });
     return apiError('Email processing failed' , { status: 500 });
   }

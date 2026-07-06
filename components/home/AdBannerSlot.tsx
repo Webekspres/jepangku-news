@@ -54,9 +54,9 @@ export default function AdBannerSlot({ data, loading, error }: AdBannerSlotProps
       <div className="px-4 mx-auto max-w-7xl">
         <AdCarousel
           banners={data.banners}
-          width={1200}
-          height={280}
-          imageClassName="max-h-[280px]"
+          width={1920}
+          height={448}
+          imageClassName="max-h-[448px]"
           frameClassName="rounded-lg shadow-jepang"
           testId="ad-banner"
           priorityFirst

@@ -1,5 +1,8 @@
 /**
- * Analytics dan error tracking untuk logo loading
+ * Analytics dan error tracking untuk logo loading.
+ *
+ * Client-side only — berjalan di browser.
+ * Error dikirim ke endpoint internal yang mencatat via server-side logger.
  */
 
 type LogoErrorEvent = {
@@ -29,13 +32,8 @@ class LogoAnalytics {
     
     this.errors.push(event);
     
-    // In production, send to monitoring service
-    if (process.env.NODE_ENV === 'production') {
-      this.sendErrorToMonitoring(event);
-    } else {
-      // In development, log to console
-      console.warn('Logo loading error:', event);
-    }
+    // Kirim ke monitoring service di semua environment
+    this.sendErrorToMonitoring(event);
   }
   
   /**
@@ -55,32 +53,24 @@ class LogoAnalytics {
   }
   
   /**
-   * Send error to monitoring service
+   * Kirim error ke endpoint analytics internal.
+   * Server-side route yang mencatat via Pino logger.
    */
   private sendErrorToMonitoring(event: LogoErrorEvent) {
-    // TODO: Integrate with monitoring service like Sentry, DataDog, etc.
-    // For now, just log critical errors
-    console.error('Critical logo loading error:', {
-      variant: event.variant,
-      src: event.originalSrc,
-      url: event.url,
-    });
+    if (typeof fetch === 'undefined') return;
     
-    // Could also send to analytics endpoint
-    if (typeof fetch !== 'undefined') {
-      try {
-        fetch('/api/internal/analytics/logo-error', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(event),
-        }).catch(() => {
-          // Silent fail for analytics
-        });
-      } catch {
-        // Silent fail for analytics
-      }
+    try {
+      fetch('/api/internal/analytics/logo-error', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      }).catch(() => {
+        // Silent fail
+      });
+    } catch {
+      // Silent fail
     }
   }
 }

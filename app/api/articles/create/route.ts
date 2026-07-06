@@ -14,6 +14,7 @@ import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { auditArticleCreate } from '@/lib/audit-routes';
 import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser(request);
@@ -137,6 +138,19 @@ export async function POST(request: NextRequest) {
         newStatus: 'PENDING_REVIEW',
       });
     }
+
+    const durationMs = Date.now() - now.getTime();
+
+    logger.info('article.created', {
+      articleId: article.id,
+      authorId: user.id,
+      slug: article.slug,
+      status: article.status,
+      title: article.title?.substring(0, 100),
+      isUpdate: !created,
+      hasTags: tags.length > 0,
+      durationMs,
+    });
 
     return apiSuccess(article, { status: created ? 201 : 200 });
   } catch (e: any) {

@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/monitoring';
 import { getUnreadNotificationCount } from '@/lib/notifications/queries';
 import { getNotificationSignalVersion } from '@/lib/notifications/realtime';
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
       try {
         let lastVersion = await getNotificationSignalVersion(user.id);
         const initialCount = await getUnreadNotificationCount(user.id);
+        logger.info('notification.sse.connected', { userId: user.id, unreadCount: initialCount, version: lastVersion });
         send({ type: 'connected', unreadCount: initialCount, version: lastVersion });
 
         let ticks = 0;
@@ -71,6 +73,7 @@ export async function GET(request: NextRequest) {
       }
     },
     cancel() {
+      logger.info('notification.sse.disconnected', { userId: user.id });
       closed = true;
     },
   });

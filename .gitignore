@@ -43,6 +43,9 @@ yarn-error.log*
 .env
 .env.test
 
+# dev-only docker compose (local laptop config)
+docker-compose.dev.yml
+
 # vercel
 .vercel
 

@@ -29,10 +29,10 @@ const PRESETS: Record<ImageOptimizePreset, PresetConfig> = {
     format: 'webp',
   },
   banner: {
-    maxWidth: 1200,
-    maxHeight: 360,
-    quality: 88,
-    format: 'jpeg',
+    maxWidth: 1920,
+    maxHeight: 576,
+    quality: 90,
+    format: 'webp',
   },
 };
 

@@ -41,12 +41,15 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // ── Source maps for production stack traces (Phase 5.3) ──────────
+  productionBrowserSourceMaps: true,
+
   typescript: {
     ignoreBuildErrors: false,
   },
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920, 2400],
     imageSizes: [16, 32, 48, 64, 80, 96, 128, 256, 384],
     minimumCacheTTL: NEXT_IMAGE_CACHE_TTL_SEC,
     remotePatterns: [

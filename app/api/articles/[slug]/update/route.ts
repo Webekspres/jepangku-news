@@ -14,6 +14,7 @@ import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
+import { logger } from '@/lib/logger';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
@@ -93,6 +94,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    const start = Date.now();
     const updated = await applyArticleUpdateWithAudit({
       articleId: article.id,
       editorId: user.id,
@@ -109,6 +111,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       changeNote,
       tags: Array.isArray(tags) ? tags : undefined,
       syncTags: syncArticleTags,
+    });
+
+    const changedFields = Object.keys(updateData).filter(k => k !== 'slug');
+    logger.info('article.updated', {
+      articleId: article.id,
+      slug: article.slug,
+      editorId: user.id,
+      changedFields,
+      statusChanged: updateData.status && updateData.status !== article.status,
+      previousStatus: article.status,
+      newStatus: updateData.status || article.status,
+      durationMs: Date.now() - start,
     });
 
     return apiSuccess(updated);

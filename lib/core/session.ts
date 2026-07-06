@@ -107,8 +107,18 @@ export async function establishCoreSession(
   clerkSessionToken: string,
   options: EstablishCoreSessionOptions = {},
 ): Promise<CoreJwtClaims | null> {
-  if (!isCoreApiConfigured()) return null;
-  if (!clerkSessionToken?.trim()) return null;
+  if (!isCoreApiConfigured()) {
+    logger.warn('core.session.establish.skipped', {
+      reason: 'CORE_API_URL not configured',
+    });
+    return null;
+  }
+  if (!clerkSessionToken?.trim()) {
+    logger.warn('core.session.establish.skipped', {
+      reason: 'No Clerk session token provided',
+    });
+    return null;
+  }
 
   const maxAttempts = Math.max(1, options.maxAttempts ?? CORE_SESSION_RETRY_ATTEMPTS);
   let lastError: unknown = null;
@@ -122,13 +132,32 @@ export async function establishCoreSession(
       const { token } = await exchangeClerkToken(clerkSessionToken);
       const jar = await cookies();
       jar.set(CORE_SESSION_COOKIE, token, coreSessionCookieOptions());
-      return verifyAndParseClaims(token);
+
+      const claims = await verifyAndParseClaims(token);
+      if (claims) {
+        logger.info('core.session.establish.success', {
+          userId: claims.sub,
+          attempt: attempt + 1,
+          roles: claims.jepangku?.roles,
+        });
+      }
+      return claims;
     } catch (error) {
       lastError = error;
       const retryable =
         error instanceof CoreApiError &&
         (error.code === 'INVALID_SESSION' || error.code === 'USER_NOT_FOUND') &&
         attempt < maxAttempts - 1;
+
+      if (attempt > 0 || retryable) {
+        logger.warn('core.session.establish.retry', {
+          attempt: attempt + 1,
+          maxAttempts,
+          error: error instanceof CoreApiError
+            ? { code: error.code, status: error.status }
+            : { message: error instanceof Error ? error.message : 'unknown' },
+        });
+      }
 
       if (retryable) continue;
       break;

@@ -7,6 +7,7 @@ import { auditAdminEntity } from '@/lib/audit-routes';
 import { uploadToR2, deleteFromR2 } from '@/lib/r2';
 import { extractR2Key } from '@/lib/media/url';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import {
   moderateImage,
   UploadClientError,
@@ -27,7 +28,10 @@ export async function POST(request: NextRequest) {
     identifier: user.id,
     message: 'Terlalu banyak upload. Coba lagi nanti.',
   });
-  if (blocked) return blocked;
+  if (blocked) {
+    logger.warn('upload.rate_limited', { userId: user.id });
+    return blocked;
+  }
 
   try {
     const formData = await request.formData();
@@ -40,11 +44,13 @@ export async function POST(request: NextRequest) {
 
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
+      logger.warn('upload.file_too_large', { userId: user.id, fileName: file.name, size: file.size, maxSize });
       return apiError('File too large (max 10MB)' , { status: 400 });
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
+      logger.warn('upload.invalid_file_type', { userId: user.id, fileName: file.name, contentType: file.type });
       return apiError('Invalid file type' , { status: 400 });
     }
 
@@ -74,6 +80,15 @@ export async function POST(request: NextRequest) {
       type: 'file',
       id: fileRecord.id,
       label: file.name,
+    });
+
+    logger.info('upload.completed', {
+      userId: user.id,
+      fileId: fileRecord.id,
+      fileName: file.name,
+      size: uploadBuffer.length,
+      contentType: uploadContentType,
+      purpose,
     });
 
     return apiSuccess({ url, path: fileName });
@@ -108,7 +123,10 @@ export async function DELETE(request: NextRequest) {
     identifier: user.id,
     message: 'Terlalu banyak permintaan. Coba lagi nanti.',
   });
-  if (blocked) return blocked;
+  if (blocked) {
+    logger.warn('upload.delete_rate_limited', { userId: user.id });
+    return blocked;
+  }
 
   try {
     const body = await request.json().catch(() => ({}));
@@ -138,6 +156,8 @@ export async function DELETE(request: NextRequest) {
       id: key,
       label: key,
     });
+
+    logger.info('upload.deleted', { userId: user.id, path: key, isAdmin });
 
     return apiSuccess({ deleted: true, path: key });
   } catch (e: unknown) {

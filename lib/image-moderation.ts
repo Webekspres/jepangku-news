@@ -114,8 +114,10 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
     moderation?: string;
   };
   if (result?.decision === 'reject' || result?.moderation === 'unsafe') {
+    logger.warn('image_moderation.rejected', { contentType, decision: result.decision || result.moderation });
     throw new UploadClientError('Uploaded image was rejected by moderation.');
   }
 
+  logger.info('image_moderation.passed', { contentType, decision: result.decision || result.moderation });
   return true;
 }

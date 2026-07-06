@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
 import { auditArticleDelete } from '@/lib/audit-routes';
+import { logger } from '@/lib/logger';
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser(request);
@@ -25,6 +26,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return apiError('Cannot delete published articles' , { status: 400 });
   }
 
+  const isSoftDelete = article.status === 'PUBLISHED' && user.role === 'ADMIN';
   await db.article.delete({ where: { id: article.id } });
 
   auditArticleDelete(
@@ -32,6 +34,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     { id: article.id, title: article.title },
     user.role === 'ADMIN',
   );
+
+  logger.info('article.deleted', {
+    articleId: article.id,
+    slug: article.slug,
+    title: article.title?.substring(0, 100),
+    deletedBy: user.id,
+    deleteType: isSoftDelete ? 'admin_soft' : 'hard',
+    previousStatus: article.status,
+    isAdminDelete: user.role === 'ADMIN',
+  });
 
   return apiSuccess({ message: 'Article deleted' });
 }

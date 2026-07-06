@@ -10,14 +10,14 @@ type DrainPayload = {
 const drainUrl = process.env.LOG_DRAIN_URL;
 const serviceName = process.env.LOG_SERVICE_NAME ?? 'jepangku-news';
 
-/** Fire-and-forget forward for warn/error — Vercel Log Drain compatible JSON. */
+/** Fire-and-forget forward for warn/error via external HTTP endpoint. */
 export function forwardLogDrain(payload: DrainPayload) {
   if (!drainUrl) return;
 
   const body = JSON.stringify({
     ...payload,
     service: serviceName,
-    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? 'development',
+    environment: process.env.NODE_ENV ?? 'development',
   });
 
   void fetch(drainUrl, {
