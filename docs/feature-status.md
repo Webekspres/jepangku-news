@@ -223,51 +223,73 @@
 - [x] **3.15.2** Webhook handlers — log event type, payload summary
   _(existing logger sudah ada di internal/analytics/logo-error/route.ts via `logger.warn` + `logger.error`)
 
-### Phase 4 — Service Layer Logging
+### Phase 4 — Service Layer Logging ✅
 
 > Mencatat operasi penting di layer bisnis (`lib/`) yang tidak terekspos langsung ke API.
 
-- [ ] **4.1** Database — log slow query (>1 detik), query error, connection pool:  
-  - `lib/db.ts` — wrapper Prisma dengan timing  
-  - `lib/rate-limit.ts` — log rate limit hit (warn)  
-- [ ] **4.2** External API — log Core API calls (success/failure, duration, status):  
-  - `lib/core/users.ts`, `lib/core/session.ts`  
-  - `lib/core/gamification.ts` — log awardXp calls  
-- [ ] **4.3** Storage — log R2 operations (upload, delete, URL generation, error):  
-  - `lib/r2.ts`, `lib/upload-media.ts`  
-- [ ] **4.4** Email — log send result, retry attempts, template rendering:  
-  - `lib/newsletter/email.ts`, `lib/email/queue.ts`  
-- [ ] **4.5** Background jobs — log skrip maintenance, cron, purge:  
-  - `scripts/purge-expired-notifications.ts`, `scripts/purge-legacy-users.ts`  
-- [ ] **4.6** Cache — log Redis hit/miss, rate limit state
+- [x] **4.1** Database — log slow query (>1 detik), query error, connection pool:  
+  - ✅ `lib/create-prisma-client.ts` — Prisma `$extends` middleware timing >1s → `db.slow_query`  
+  - ✅ `lib/rate-limit.ts` / `lib/rate-limit-store.ts` — `rate_limit.exceeded`, `rate_limit.redis_fallback`  
+- [x] **4.2** External API — log Core API calls (success/failure, duration, status):  
+  - ✅ `lib/core/client.ts` — `coreFetch` dengan timing, `core.client.ok` / `.http_error` / `.timeout` / `.network_error`  
+  - ✅ `lib/core/users.ts` — `core.leaderboard.*`, `core.user_profile.*`, `core.user_me.*`  
+  - ✅ `lib/core/gamification.ts` — `core.gamification.award_xp.start/success/failed`  
+- [x] **4.3** Storage — log R2 operations (upload, delete, URL generation, error):  
+  - ✅ `lib/r2.ts` — `r2.upload.*`, `r2.delete.*`, `r2.signed_url.*` + timing  
+- [x] **4.4** Email — log send result, retry attempts:  
+  - ✅ `lib/email/transport.ts` — `email.send.start/ok/failed` + timing  
+  - ✅ `lib/email/queue.ts` — sudah ada sebelumnya (`email.queue.*`, `email.send.*`)  
+- [x] **4.5** Background jobs — log skrip maintenance, cron, purge:  
+  - ✅ `scripts/purge-expired-notifications.ts` — `purge.notifications.*` via Pino  
+  - ✅ `scripts/purge-legacy-users.ts` — `purge.legacy-users.*` via Pino  
+- [x] **4.6** Cache — log Redis hit/miss, rate limit state:  
+  - ✅ `lib/rate-limit-store.ts` — `rate_limit.backend`, `rate_limit.redis_client_error`, `rate_limit.redis_fallback`  
+  - ✅ `lib/notifications/realtime.ts` — `notification.realtime.backend`, `notification.realtime.*_failed`
 
-### Phase 5 — Error Monitoring Upgrade
+### Phase 5 — Error Monitoring Upgrade ✅
 
 > Meningkatkan `lib/monitoring.ts` dengan breadcrumbs & error grouping.
 
-- [ ] **5.1** Breadcrumbs system — track actions before error:  
-  - `addBreadcrumb(event, data?)` — simpan di memory (max 50)  
-  - Sertakan breadcrumbs di payload error  
-- [ ] **5.2** Error fingerprint — group error berdasarkan `name + message`  
-- [ ] **5.3** Source map — pastikan stack trace asli di production  
-- [ ] **5.4** Global error boundary — `app/error.tsx`, `app/global-error.tsx` — log ke Pino + webhook  
-- [ ] **5.5** `process.on('uncaughtException')` — log fatal + exit
+- [x] **5.1** Breadcrumbs system — track actions before error:  
+  - ✅ `addBreadcrumb(event, data?)` — ring buffer 50 entry di memory  
+  - ✅ Breadcrumbs disertakan di payload `captureException()`  
+  - ✅ `clearBreadcrumbs()` otomatis setelah tiap report  
+- [x] **5.2** Error fingerprint — group error berdasarkan `name + message`:  
+  - ✅ `computeErrorFingerprint()` — hash `name:message` → `err_xxxxxxxx`  
+- [x] **5.3** Source map — pastikan stack trace asli di production:  
+  - ✅ `productionBrowserSourceMaps: true` di `next.config.ts`  
+- [x] **5.4** Global error boundary — log ke Pino + webhook:  
+  - ✅ `app/error.tsx` (baru) — breadcrumb + `captureException` + UI user-friendly  
+  - ✅ `app/global-error.tsx` (upgrade) — breadcrumb + `captureException` + UI konsisten  
+- [x] **5.5** `process.on('uncaughtException')` — log fatal + exit:  
+  - ✅ `instrumentation.ts` (baru) — `register()` dengan handler `uncaughtException` (exit) + `unhandledRejection` (warn saja)
 
-### Phase 6 — Dashboard & Alerting
+### Phase 6 — Dashboard & Alerting ✅
 
 > Membuat visualisasi log di Grafana dan notifikasi.
 
-- [ ] **6.1** Grafana dashboard — log browser (Explore) + panel:  
-  - Error rate per module (bar chart)  
-  - Request duration P50/P95/P99  
-  - HTTP status distribution (2xx, 4xx, 5xx)  
-  - Top slowest endpoints  
-  - Error trend per jam  
-- [ ] **6.2** Alert rules:  
-  - Error rate > 5 error/menit → Telegram/Email  
-  - P95 latency > 5 detik → peringatan performa  
-  - Crash loop — multiple fatal dalam 1 menit  
-- [ ] **6.3** Log retention & backup — atur pruning Loki agar tidak penuh disk
+- [x] **6.1** Grafana dashboard — provisioned dashboard `jepangku-logging-dashboard.json`:  
+  - ✅ 🔥 Error rate per module — bar chart by `module`  
+  - ✅ ⏱ Request duration P50/P95/P99 — time series with thresholds (2s warn, 5s critical)  
+  - ✅ 📊 HTTP status distribution — stacked bar 2xx / 4xx / 5xx  
+  - ✅ 🐌 Top 10 slowest endpoints — `topk(10, quantile_over_time(P95))`  
+  - ✅ 📈 Error trend per jam — time series by module  
+  - ✅ Variable filter: `container` + `module`  
+  - ✅ Deploy annotation, Loki Explore link  
+- [x] **6.2** Alert rules — `loki/rules/fake/jepangku-alerts.yaml`:  
+  - ✅ 🔴 `JepangkuNews_HighErrorRate` — >5 error/menit selama 2 menit  
+  - ✅ 🟡 `JepangkuNews_HighLatencyP95` — P95 >5 detik selama 5 menit  
+  - ✅ 🔴 `JepangkuNews_CrashLoop` — >3 error/fatal dalam 1 menit  
+  - ✅ 🟡 `JepangkuNews_ErrorRateWarning` — >10 error dalam 5 menit  
+  - ✅ 🟡 `JepangkuNews_High5xxRate` — 5xx rate >10%  
+  - ✅ 🟡 `JepangkuNews_CoreApiDegraded` — Core API call failures  
+  - ✅ 🔴 `JepangkuInfra_DiskSpace` — Lokasi kehabisan disk  
+- [x] **6.3** Log retention & backup:  
+  - ✅ `loki-config.yml` — retention 168h, compactor enabled (sejak Phase 0)  
+  - ✅ `loki/rules/` — mount ke container untuk alert rules  
+  - ✅ `scripts/maintain-logs.sh` — backup + prune + status script  
+  - ✅ Backup otomatis hapus >30 hari  
+  - ✅ Dokumentasi di `README.md` (dashboard, alert, maintenance)
 
 ---
 

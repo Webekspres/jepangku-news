@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // ── Source maps for production stack traces (Phase 5.3) ──────────
+  productionBrowserSourceMaps: true,
+
   typescript: {
     ignoreBuildErrors: false,
   },

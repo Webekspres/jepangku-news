@@ -9,7 +9,9 @@
 import "dotenv/config";
 import { createPrismaClient } from "../prisma/create-client.js";
 import { isLegacyPortalUserId } from "../lib/auth/clerk-id";
+import { logger } from "../lib/logger";
 
+const log = logger.child({ module: 'scripts.purge-legacy-users' });
 const prisma = createPrismaClient();
 
 const args = new Set(process.argv.slice(2));
@@ -41,34 +43,39 @@ async function main() {
   });
 
   if (legacy.length === 0) {
-    console.log("No legacy portal users to purge.");
+    log.info('purge.legacy-users.dry_run', { eligibleCount: 0 });
     return;
   }
 
-  console.log(
-    `${dryRun ? "[DRY RUN] " : ""}Found ${legacy.length} legacy user(s):`,
-  );
-  for (const u of legacy) {
-    console.log(
-      `  - ${u.id} | ${u.email} | @${u.username} | articles=${u._count.articles} comments=${u._count.comments} points=${u._count.pointTransactions}`,
-    );
-  }
+  log.info('purge.legacy-users.preview', {
+    dryRun,
+    keepSeed,
+    eligibleCount: legacy.length,
+    users: legacy.map((u) => ({
+      id: u.id,
+      email: u.email,
+      username: u.username,
+      role: u.role,
+      articleCount: u._count.articles,
+      commentCount: u._count.comments,
+      pointCount: u._count.pointTransactions,
+    })),
+  });
 
   if (dryRun) {
-    console.log("\nRe-run with --delete to remove (CASCADE deletes related rows).");
-    console.log("Use --keep-seed to retain seed_* dev authors.");
     return;
   }
 
   const ids = legacy.map((u) => u.id);
   const result = await prisma.user.deleteMany({ where: { id: { in: ids } } });
-  console.log(`\nDeleted ${result.count} legacy user(s).`);
-  console.log("Remaining users must sign in via Clerk (/sign-in).");
+  log.info('purge.legacy-users.completed', { deletedCount: result.count });
 }
 
 main()
   .catch((error) => {
-    console.error(error);
+    log.error('purge.legacy-users.failed', {
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   })
   .finally(async () => {
