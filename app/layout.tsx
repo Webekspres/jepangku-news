@@ -13,6 +13,7 @@ import './globals.css';
 
 const SITE_OG_IMAGE_URL = new URL(
   '/assets/images/og-image/og-image.webp',
+
   getSiteUrl(),
 ).toString();
 
