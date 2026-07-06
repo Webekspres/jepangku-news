@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
-import { prismaUniqueViolation } from '../helpers/prisma';
 
 const mockCreateMany = mock(() => Promise.resolve({ count: 1 }));
 const mockAggregate = mock(() => Promise.resolve({ _sum: { points: 10 } }));

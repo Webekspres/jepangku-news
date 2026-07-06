@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
 

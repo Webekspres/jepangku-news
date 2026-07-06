@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { createContributorApplication } from '@/lib/contributor-applications';

@@ -77,7 +77,7 @@ function mulberry32(seed) {
 }
 
 function buildComments() {
-  const rng = mulberry32(4242);
+  const _rng = mulberry32(4242);
   const out = [];
   let keyCounter = 0;
 

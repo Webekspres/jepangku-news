@@ -230,7 +230,7 @@ describe("API — comments", () => {
         action: "unhide",
       });
       expect(unhide.status).toBe(200);
-      const admin = clientFor(ctx, "ADMIN");
+      const _admin = clientFor(ctx, "ADMIN");
       const shown = (await parseApiResponse(unhide)) as { status: string };
       expect(shown.status).toBe("VISIBLE");
     });

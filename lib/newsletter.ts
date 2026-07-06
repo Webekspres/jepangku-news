@@ -2,10 +2,7 @@ import { randomBytes } from 'node:crypto';
 import type { NewsletterSubscription } from '@prisma/client';
 import { db } from '@/lib/db';
 import { queueNewsletterConfirmEmail } from '@/lib/newsletter/email';
-import {
-  isValidNewsletterEmail,
-  normalizeNewsletterEmail,
-} from '@/lib/newsletter/validation';
+import { normalizeNewsletterEmail } from '@/lib/newsletter/validation';
 
 export { isValidNewsletterEmail, normalizeNewsletterEmail } from '@/lib/newsletter/validation';
 

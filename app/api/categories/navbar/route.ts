@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { apiError, apiSuccess } from '@/lib/api-response';
+
+import { apiSuccess } from '@/lib/api-response';
 import { getNavbarCategories } from '@/lib/categories/navbar';
 import { seedDatabase } from '@/lib/seed';
 

@@ -72,7 +72,7 @@ export async function deleteFromR2(fileName: string): Promise<void> {
   await s3Client.send(command);
 }
 
-export async function getSignedUrlR2(fileName: string, expiresIn = 3600): Promise<string> {
+export async function getSignedUrlR2(fileName: string, _expiresIn = 3600): Promise<string> {
   if (!s3Client) {
     return `/api/files/mock/${fileName}`;
   }

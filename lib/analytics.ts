@@ -26,7 +26,7 @@ export function periodLabel(period: AnalyticsPeriod): string {
   return map[period];
 }
 
-function viewedAtFilter(period: AnalyticsPeriod) {
+function _viewedAtFilter(period: AnalyticsPeriod) {
   const since = periodStartDate(period);
   return since ? { gte: since } : undefined;
 }

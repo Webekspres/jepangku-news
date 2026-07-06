@@ -4,7 +4,7 @@ export const NAV_LINKS = [
   { path: "/explore", label: "Jelajahi" },
   { path: "/quizzes", label: "Kuis" },
   { path: "/polls", label: "Polling" },
-  { path: "/leaderboard", label: "Peringkat" },
+  { path: "/leaderboard", label: "Leaderboard" },
 ] as const;
 
 /** Kategori navbar — selaras soft launch (docs/soft-launch-content.md) */
