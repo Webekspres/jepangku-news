@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { recordStatusReview, setLastEditor } from '@/lib/article-audit';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getCurrentAdmin(request);
@@ -28,6 +29,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     note: 'Disetujui dan dipublikasikan',
   });
   await setLastEditor(id, admin.id);
+
+  logger.info('article.status_changed', {
+    articleId: id,
+    slug: article.slug,
+    title: article.title?.substring(0, 100),
+    previousStatus,
+    newStatus: 'PUBLISHED',
+    reviewerId: admin.id,
+    action: 'approve',
+  });
 
   return apiSuccess({ message: 'Article approved and published' });
 }

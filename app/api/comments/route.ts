@@ -7,6 +7,7 @@ import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/monitoring';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 import {
   buildPublicThread,
   COMMENT_POINTS,
@@ -25,7 +26,7 @@ const USER_SELECT = {
 } as const;
 
 // GET /api/comments?targetType=ARTICLE&targetId=<id>
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const targetType = searchParams.get('targetType');
   const targetId = searchParams.get('targetId');
@@ -53,10 +54,10 @@ export async function GET(request: NextRequest) {
   const total = comments.filter((c) => c.status === 'VISIBLE' && c.deletedAt === null).length;
 
   return apiSuccess({ comments: thread, total, contentAuthorId });
-}
+});
 
 // POST /api/comments  { targetType, targetId, content, parentId? }
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Tidak terautentikasi' , { status: 401 });
@@ -191,4 +192,6 @@ export async function POST(request: NextRequest) {
     await captureException(e, { route: 'comments-post' });
     return apiError('Gagal membuat komentar' , { status: 500 });
   }
-}
+});
+
+export { GET, POST };

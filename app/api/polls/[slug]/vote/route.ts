@@ -4,6 +4,7 @@ import { captureException } from '@/lib/monitoring';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints, type AwardPointsResult } from '@/lib/points';
 import { auditPollVote } from '@/lib/audit-routes';
@@ -24,6 +25,7 @@ export async function POST(
     });
 
     if (blockedResponse) {
+      logger.warn('poll.vote.rate_limited', { userId: user.id, slug: (await params).slug });
       return blockedResponse;
     }
 
@@ -61,6 +63,7 @@ export async function POST(
         `Voted in poll: ${poll.title}`,
       );
       if (retry.awarded) {
+        logger.info('poll.vote.retry_award', { userId: user.id, pollId: poll.id, slug, pointsAwarded: poll.pointsReward });
         await db.pollVote.updateMany({
           where: { pollId: poll.id, userId: user.id },
           data: { isPointAwarded: true },
@@ -72,6 +75,7 @@ export async function POST(
         });
       }
     }
+    logger.warn('poll.vote.duplicate', { userId: user.id, pollId: poll.id, slug, votedQuestionCount: existingVotes.length });
     return apiError('You have already voted on all questions' , { status: 400 });
   }
 
@@ -123,6 +127,15 @@ export async function POST(
   }
 
   auditPollVote(user, poll, toProcess.length);
+
+  logger.info('poll.vote.completed', {
+    userId: user.id,
+    pollId: poll.id,
+    slug,
+    questionCount: toProcess.length,
+    pointsAwarded: pointsGranted,
+    wasFirstVote,
+  });
 
   return apiSuccess({
     message: 'Vote recorded',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import {
   buildAdminArticlesWhere,
   buildAdminArticlesOrderBy,
@@ -44,6 +45,12 @@ export async function GET(request: NextRequest) {
     publishedAt: a.publishedAt?.toISOString() ?? '',
     createdAt: a.createdAt.toISOString(),
   }));
+
+  logger.info('admin.articles.exported', {
+    adminId: admin.id,
+    format,
+    recordCount: rows.length,
+  });
 
   if (format === 'csv') {
     const headers = [

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
@@ -19,7 +20,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     identifier: user.id,
     message: 'Terlalu banyak bookmark. Coba lagi sebentar.',
   });
-  if (blocked) return blocked;
+  if (blocked) {
+    logger.warn('bookmark.rate_limited', { userId: user.id, articleId: (await params).articleId });
+    return blocked;
+  }
 
   const { articleId } = await params;
 
@@ -29,7 +33,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const existing = await db.bookmark.findFirst({
     where: { userId: user.id, articleId, deletedAt: null },
   });
-  if (existing) return apiSuccess({ message: 'Already bookmarked' });
+  if (existing) {
+    logger.info('bookmark.already_exists', { userId: user.id, articleId });
+    return apiSuccess({ message: 'Already bookmarked' });
+  }
 
   const old = await db.bookmark.findFirst({ where: { userId: user.id, articleId } });
 
@@ -49,6 +56,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   );
 
   auditBookmark(user, 'create', article);
+
+  logger.info('bookmark.created', {
+    userId: user.id,
+    articleId,
+    articleTitle: article.title,
+    pointsAwarded: award.awarded,
+    isRestore: Boolean(old),
+  });
 
   return apiSuccess({
     message: 'Bookmarked',
@@ -79,7 +94,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     where: { id: articleId },
     select: { id: true, title: true },
   });
-  if (article) auditBookmark(user, 'delete', article);
+  if (article) {
+    auditBookmark(user, 'delete', article);
+    logger.info('bookmark.removed', { userId: user.id, articleId, articleTitle: article.title });
+  }
 
   return apiSuccess({ message: 'Bookmark removed' });
 }

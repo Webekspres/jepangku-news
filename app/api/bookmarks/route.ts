@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser(request);
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
       },
     },
   });
+
+  logger.info('bookmark.list', { userId: user.id, count: bookmarks.length });
 
   return apiSuccess(bookmarks.map((b: typeof bookmarks[number]) => b.article).filter(Boolean));
 }

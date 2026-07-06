@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
@@ -13,15 +14,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
 
+  const { slug } = await params;
+
   const blocked = await enforceRateLimit(request, 'quiz-attempt', {
     max: 5,
     windowMs: 60_000,
     identifier: user.id,
     message: 'Terlalu banyak percobaan kuis. Coba lagi sebentar.',
   });
-  if (blocked) return blocked;
-
-  const { slug } = await params;
+  if (blocked) {
+    logger.warn('quiz.attempt.rate_limited', { userId: user.id, slug });
+    return blocked;
+  }
 
   const quiz = await db.quiz.findUnique({
     where: { slug },
@@ -33,6 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     where: { quizId: quiz.id, userId: user.id },
   });
   if (existingAttempt) {
+    logger.warn('quiz.attempt.duplicate', { userId: user.id, slug, existingAttemptId: existingAttempt.id });
     return apiError('You have already attempted this quiz' , { status: 400 });
   }
 
@@ -110,6 +115,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     correct: correctAnswers,
     total: totalQuestions,
     points: pointsGranted,
+  });
+
+  logger.info('quiz.attempt.completed', {
+    userId: user.id,
+    quizId: quiz.id,
+    slug,
+    attemptId: attempt.id,
+    score: Math.round(score),
+    correctAnswers,
+    totalQuestions,
+    pointsAwarded: pointsGranted,
   });
 
   return apiSuccess({

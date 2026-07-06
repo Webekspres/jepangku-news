@@ -1,8 +1,10 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess } from '@/lib/api-response';
 import { db } from "@/lib/db";
+import { withRequestLogging } from '@/lib/logging/request-logger';
+import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   const category = searchParams.get("category") || "";
@@ -15,6 +17,7 @@ export async function GET(request: NextRequest) {
   const skip = (page - 1) * limit;
 
   try {
+    const start = Date.now();
     const where: any = {
       status: "PUBLISHED",
       visibility: "public",
@@ -86,6 +89,21 @@ export async function GET(request: NextRequest) {
       db.article.count({ where }),
     ]);
 
+    logger.info('article.list', {
+      total,
+      page,
+      limit,
+      sort,
+      filters: {
+        category: category || undefined,
+        tag: tag || undefined,
+        search: search ? search.substring(0, 50) : undefined,
+      },
+      hasMore: skip + articles.length < total,
+      resultCount: articles.length,
+      durationMs: Date.now() - start,
+    });
+
     return apiSuccess({
       articles,
       total,
@@ -102,4 +120,6 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
-}
+});
+
+export { GET };
