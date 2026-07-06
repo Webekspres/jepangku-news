@@ -10,3 +10,9 @@ docs
 *.md
 Dockerfile
 .dockerignore
+# Logging config (bukan data — data adalah Docker volume runtime)
+logging/docker-compose.logging.yml
+logging/promtail
+logging/loki/loki-config.yml
+logging/grafana
+logging/README.md

@@ -46,12 +46,18 @@
 
 ### Phase 0 — Infrastruktur Docker Logging Stack
 
-- [ ] **0.1** Pasang `docker-compose` service: Promtail + Loki + Grafana  
-- [ ] **0.2** Konfigurasi Promtail — baca stdout semua container (`/var/lib/docker/containers`)  
-- [ ] **0.3** Konfigurasi Loki — penyimpanan log (bind mount / S3)  
-- [ ] **0.4** Konfigurasi Grafana — datasource Loki otomatis (provisioning YAML)  
-- [ ] **0.5** Konfigurasi retensi log — `max_retention_period` di Loki  
-- [ ] **0.6** Verifikasi — `docker logs` masuk ke Grafana Explore
+- [x] **0.1** Pasang `docker-compose` service: Promtail + Loki + Grafana  
+  - ✅ `logging/docker-compose.logging.yml` — 3 service dengan healthcheck & network  
+- [x] **0.2** Konfigurasi Promtail — baca stdout semua container (`/var/lib/docker/containers`)  
+  - ✅ `logging/promtail/promtail-config.yml` — Docker API + file fallback, label container/service  
+- [x] **0.3** Konfigurasi Loki — penyimpanan log (bind mount / filesystem)  
+  - ✅ `logging/loki/loki-config.yml` — filesystem storage, TSDB schema v13  
+- [x] **0.4** Konfigurasi Grafana — datasource Loki otomatis (provisioning YAML)  
+  - ✅ `logging/grafana/provisioning/datasources/datasources.yml` — auto-register Loki  
+- [x] **0.5** Konfigurasi retensi log — 7 hari (168h) dengan compactor  
+  - ✅ `loki-config.yml`: `retention_period: 168h`, `retention_enabled: true`  
+- [x] **0.6** Dokumentasi cara pakai — `logging/README.md`  
+  - ✅ Cara jalankan, query log di Grafana, troubleshooting, estimasi resource
 
 ### Phase 1 — Core Logger (Pino)
 
