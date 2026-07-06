@@ -36,11 +36,11 @@ export default function LeaderboardSidebar() {
   const { user, loading: _authLoading } = useAuth();
   const isAuthenticated = isAuthUser(user);
 
-  const [_setTrendingArticles] = useState<Article[]>([]);
-  const [_setLoadingArticles] = useState(true);
+  const [, setTrendingArticles] = useState<any[]>([]);
+  const [, setLoadingArticles] = useState(true);
 
-  const [_setTopQuizzes] = useState<Quiz[]>([]);
-  const [_setLoadingQuizzes] = useState(true);
+  const [, setTopQuizzes] = useState<Quiz[]>([]);
+  const [, setLoadingQuizzes] = useState(true);
 
   const [topPolls, setTopPolls] = useState<Poll[]>([]);
   const [loadingPolls, setLoadingPolls] = useState(true);

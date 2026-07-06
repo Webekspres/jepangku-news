@@ -15,7 +15,7 @@ import {
 export interface ImageUploadFieldProps {
   label?: string;
   value: string;
-  _uploadKey: string;
+  uploadKey?: string;
   onUrlChange: (url: string) => void;
   placeholder?: string;
   testId?: string;
@@ -35,7 +35,7 @@ export interface ImageUploadFieldProps {
 export default function ImageUploadField({
   label,
   value,
-  _uploadKey,
+  uploadKey: _uploadKey,
   onUrlChange,
   placeholder = "URL gambar atau upload...",
   testId,
