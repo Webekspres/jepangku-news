@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const score = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
   const basePoints = quiz.pointsReward;
   const correctPoints = quiz.correctAnswerPoints * correctAnswers;
-  const totalPoints = basePoints + correctPoints;
+  const _totalPoints = basePoints + correctPoints;
 
   let lastAward = await awardPoints(
     user.id,

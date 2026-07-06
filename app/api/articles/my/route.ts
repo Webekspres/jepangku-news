@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { Prisma, ArticleStatus } from '@prisma/client';
 import { getCurrentUser } from '@/lib/auth';

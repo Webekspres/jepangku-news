@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AssetImage from "@/components/AssetImage";
-import { LOGO_VARIANTS, getLogoPath, type LogoVariant } from "@/lib/logo-utils";
+import { getLogoPath, type LogoVariant } from "@/lib/logo-utils";
 import { trackLogoError } from "@/lib/logo-analytics";
 
 type LogoImageProps = {

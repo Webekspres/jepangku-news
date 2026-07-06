@@ -30,7 +30,7 @@ export function resolveUserPortalSubmitStatus(
   return 'DRAFT';
 }
 
-export function submitSuccessMessage(status: ArticleStatus, isAdmin: boolean): string {
+export function submitSuccessMessage(status: ArticleStatus, _isAdmin: boolean): string {
   if (status === 'DRAFT') return 'Draft berhasil disimpan';
   if (status === 'PUBLISHED') return 'Artikel berhasil dipublikasikan';
   return 'Artikel berhasil dikirim untuk direview';

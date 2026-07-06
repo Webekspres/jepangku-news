@@ -1,7 +1,4 @@
-import { NextResponse } from "next/server";
-import { apiError, apiSuccess } from '@/lib/api-response';
 import { fetchHomeFeed } from "@/lib/home/queries/feed";
-import type { HomeFeedResponse } from "@/lib/home/types";
 
 export async function GET(): Promise<NextResponse> {
   const data = await fetchHomeFeed();

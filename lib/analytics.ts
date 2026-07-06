@@ -26,11 +26,6 @@ export function periodLabel(period: AnalyticsPeriod): string {
   return map[period];
 }
 
-function viewedAtFilter(period: AnalyticsPeriod) {
-  const since = periodStartDate(period);
-  return since ? { gte: since } : undefined;
-}
-
 /** Views per hari untuk satu artikel. */
 export async function getArticleViewSeries(articleId: string, period: AnalyticsPeriod) {
   const since = periodStartDate(period);

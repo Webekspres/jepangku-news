@@ -17,18 +17,15 @@ import NavbarCategoryBar from "@/components/navbar/NavbarCategoryBar";
 import NavbarSidebar from "@/components/navbar/NavbarSidebar";
 import UserAvatar from "@/components/media/UserAvatar";
 import { NAV_LINKS } from "@/components/navbar/nav-config";
-import { getContributorCta, canCreateArticles } from "@/lib/contributor";
+import { canCreateArticles } from "@/lib/contributor";
 import type { SocialLink } from "@/lib/site-config";
 import {
-  Menu,
-  Search,
   User,
   LogOut,
   FileText,
   Bookmark,
   Award,
   LayoutDashboard,
-  PenSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,7 +70,6 @@ export default function Navbar({ socialLinks }: { socialLinks: SocialLink[] }) {
   const avatarUrl = authUser?.avatarUrl ?? clerkUser?.imageUrl ?? null;
   const totalPoints = displayPoints;
   const isAdmin = authUser?.role === "ADMIN";
-  const contributorCta = getContributorCta(authUser);
 
   const updateLayerThreeVisible = (visible: boolean) => {
     if (layerThreeVisibleRef.current !== visible) {

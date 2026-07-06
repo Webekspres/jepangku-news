@@ -215,7 +215,7 @@ export default function ReactionBrowsePage() {
     async <T extends ReactionBrowseResponse["items"][number]>(
       targetType: "ARTICLE" | "QUIZ" | "POLL",
       pageNum: number,
-      reset: boolean,
+      _reset: boolean,
     ): Promise<{ items: T[]; total: number; page: number }> => {
       const search = new URLSearchParams({
         type: reactionSlug.toUpperCase(),

@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
-import { safeImageSrc } from "@/lib/safe-url";
 import { useRouter, useParams } from "next/navigation";
 import {
   commitStagedUrl,
   deleteMediaFile,
-  stageFile,
 } from "@/lib/upload-media";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,71 +54,6 @@ interface QuizForm {
   show_result_immediately: boolean;
 }
 
-/* ─── Image upload helper ────────────────────────────── */
-// Files are staged locally (no upload) until the quiz is saved, so swapping
-// images repeatedly never leaves orphans in the R2 bucket.
-function useImageUpload() {
-  const [uploading] = useState<Record<string, boolean>>({});
-  const upload = useCallback(
-    async (file: File, _key: string, onSuccess: (url: string) => void) => {
-      onSuccess(stageFile(file, "content"));
-    },
-    [],
-  );
-  return { upload, uploading };
-}
-
-/* ─── ImageUploadField ───────────────────────────────── */
-interface ImageUploadFieldProps {
-  label: string;
-  value: string;
-  uploadKey: string;
-  uploading: Record<string, boolean>;
-  onUrlChange: (url: string) => void;
-  onUpload: (file: File, key: string, cb: (url: string) => void) => void;
-  testId?: string;
-}
-
-function ImageUploadField({
-  label, value, uploadKey, uploading, onUrlChange, onUpload, testId,
-}: ImageUploadFieldProps) {
-  const isUploading = uploading[uploadKey];
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex gap-2 items-start">
-        <Input type="text" className="flex-1" value={value}
-          onChange={(e) => onUrlChange(e.target.value)}
-          placeholder="URL gambar atau upload..." data-testid={testId} />
-        <Button type="button" variant="outline" asChild disabled={isUploading}
-          className="cursor-pointer hover:bg-foreground hover:text-white shrink-0">
-          <label>
-            <Upload size={14} strokeWidth={1.5} />
-            {isUploading ? "Mengunggah..." : "Unggah"}
-            <input type="file" accept="image/*" className="hidden" disabled={isUploading}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onUpload(file, uploadKey, onUrlChange);
-                e.target.value = "";
-              }} />
-          </label>
-        </Button>
-        {value && (
-          <Button type="button" variant="ghost" size="icon"
-            onClick={() => onUrlChange("")} className="text-jepang-red shrink-0">
-            <X size={14} />
-          </Button>
-        )}
-      </div>
-      {value && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={safeImageSrc(value)} alt="Preview"
-          className="mt-1 max-h-32 object-cover border border-jepang-border" />
-      )}
-    </div>
-  );
-}
-
 /* ─── Defaults ───────────────────────────────────────── */
 const DEFAULT_OPTION = (): QuizOption => ({
   option_text: "", image_url: "", is_correct: false,
@@ -135,8 +69,6 @@ export default function AdminEditQuizPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { upload, uploading } = useImageUpload();
-
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
   // Image URLs that exist in R2 at load time; any dropped on save is deleted.
@@ -375,9 +307,9 @@ export default function AdminEditQuizPage() {
           </div>
 
           <ImageUploadField label="Thumbnail" value={form.thumbnail_url}
-            uploadKey="thumbnail" uploading={uploading}
+            uploadKey="thumbnail"
             onUrlChange={(url) => setForm((f) => ({ ...f, thumbnail_url: url }))}
-            onUpload={upload} testId="quiz-thumbnail-input" />
+            testId="quiz-thumbnail-input" />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
@@ -476,9 +408,9 @@ export default function AdminEditQuizPage() {
                 </div>
 
                 <ImageUploadField label="Gambar Pertanyaan (opsional)"
-                  value={q.image_url} uploadKey={`question-${qIdx}`} uploading={uploading}
+                  value={q.image_url} uploadKey={`question-${qIdx}`}
                   onUrlChange={(url) => updateQuestion(qIdx, "image_url", url)}
-                  onUpload={upload} testId={`question-image-${qIdx}`} />
+                  testId={`question-image-${qIdx}`} />
 
                 <div className="space-y-3">
                   <Label>
@@ -518,9 +450,8 @@ export default function AdminEditQuizPage() {
                       <div className="pl-6">
                         <ImageUploadField label="Gambar Opsi (opsional)"
                           value={o.image_url} uploadKey={`option-${qIdx}-${oIdx}`}
-                          uploading={uploading}
                           onUrlChange={(url) => updateOption(qIdx, oIdx, "image_url", url)}
-                          onUpload={upload} testId={`option-image-${qIdx}-${oIdx}`} />
+                          testId={`option-image-${qIdx}-${oIdx}`} />
                       </div>
                     </div>
                   ))}

@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { isValidAdSlotPosition, normalizeAdPosition } from "@/lib/ads/constants";
 import { fetchHomeAd } from "@/lib/home/queries/ads";

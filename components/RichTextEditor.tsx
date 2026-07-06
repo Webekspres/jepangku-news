@@ -40,6 +40,12 @@ interface RichTextEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   className?: string;
+  /**
+   * Max-height CSS value for the editor container.
+   * Default: "calc(100vh - 300px)"
+   * Set to "none" to disable max-height.
+   */
+  maxHeight?: string;
 }
 
 interface ToolbarButtonProps {
@@ -98,6 +104,7 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Tulis konten artikel...",
   className,
+  maxHeight = "calc(100vh - 300px)",
 }: RichTextEditorProps) {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [imageDialogInitial, setImageDialogInitial] = useState<
@@ -269,9 +276,16 @@ export default function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className={cn("border border-jepang-border bg-white", className)}>
+    <div
+      className={cn(
+        "border border-jepang-border bg-white flex flex-col",
+        maxHeight !== "none" && "overflow-hidden",
+        className,
+      )}
+      style={maxHeight !== "none" ? { maxHeight } : undefined}
+    >
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 p-2 bg-jepang-off-white border-b border-jepang-border">
+      <div className="shrink-0 flex flex-wrap items-center gap-0.5 p-2 bg-jepang-off-white border-b border-jepang-border">
         {/* Headings */}
         <ToolbarButton
           onClick={() =>
@@ -452,7 +466,9 @@ export default function RichTextEditor({
       </div>
 
       {/* Editor area */}
-      <EditorContent editor={editor} />
+      <div className="overflow-y-auto flex-1 min-h-[320px]">
+        <EditorContent editor={editor} />
+      </div>
 
       <ArticleImageInsertDialog
         open={imageDialogOpen}
@@ -470,7 +486,7 @@ export default function RichTextEditor({
       />
 
       {/* Shortcut hint bar */}
-      <div className="border-t border-jepang-border bg-jepang-off-white px-3 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
+      <div className="shrink-0 border-t border-jepang-border bg-jepang-off-white px-3 py-1.5 flex flex-wrap gap-x-4 gap-y-1">
         {[
           [`${mod}+B`, "Tebal"],
           [`${mod}+I`, "Miring"],

@@ -1,9 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { parseApiResponse } from '@/lib/fetch-api';
 import {
-  fetchPublishedArticle,
-  fetchPublishedArticleId,
-  fetchPublishedArticleSlug,
 } from "../helpers/fixtures";
 import {
   clientFor,
@@ -29,9 +26,7 @@ describe("API — articles", () => {
   beforeAll(async () => {
     ctx = await setupIntegration();
     if (!ctx.serverUp) return;
-    const guest = clientFor(ctx);
-    publishedSlug = await fetchPublishedArticleSlug(guest);
-    publishedId = await fetchPublishedArticleId(guest);
+    const _guest = clientFor(ctx);
   });
 
   describe("public listing", () => {

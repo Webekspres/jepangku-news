@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-import { apiError, apiSuccess } from '@/lib/api-response';
 import { getPublicSocialLinks } from "@/lib/social-links";
 
 export async function GET() {

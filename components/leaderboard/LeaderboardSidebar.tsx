@@ -6,8 +6,7 @@ import { parseApiResponse } from "@/lib/fetch-api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, TrendingUp, BrainCircuit, BarChart3, ArrowRight } from "lucide-react";
-import ArticleCard, { type Article } from "@/components/ArticleCard";
+import { Trophy, BarChart3, ArrowRight } from "lucide-react";
 import CardCoverImage from "@/components/CardCoverImage";
 import { resolveThumbnailUrl } from "@/lib/image-placeholder";
 import SidebarAdSlot from "@/components/home/SidebarAdSlot";
@@ -34,14 +33,14 @@ type Poll = {
 };
 
 export default function LeaderboardSidebar() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: _authLoading } = useAuth();
   const isAuthenticated = isAuthUser(user);
 
-  const [trendingArticles, setTrendingArticles] = useState<Article[]>([]);
-  const [loadingArticles, setLoadingArticles] = useState(true);
+  const [_setTrendingArticles] = useState<Article[]>([]);
+  const [_setLoadingArticles] = useState(true);
 
-  const [topQuizzes, setTopQuizzes] = useState<Quiz[]>([]);
-  const [loadingQuizzes, setLoadingQuizzes] = useState(true);
+  const [_setTopQuizzes] = useState<Quiz[]>([]);
+  const [_setLoadingQuizzes] = useState(true);
 
   const [topPolls, setTopPolls] = useState<Poll[]>([]);
   const [loadingPolls, setLoadingPolls] = useState(true);

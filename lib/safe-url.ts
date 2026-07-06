@@ -20,6 +20,7 @@ export function safeImageSrc(value: string | null | undefined): string {
   if (!SAFE_URL_RE.test(trimmed)) return "";
 
   if (trimmed.startsWith("/")) return trimmed;
+  if (trimmed.startsWith("blob:")) return trimmed;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return "";
 }

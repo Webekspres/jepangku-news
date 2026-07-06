@@ -1,9 +1,6 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { parseApiResponse } from "@/lib/fetch-api";
 import {
-  fetchPublishedVideo,
-  fetchPublishedVideoId,
-  fetchPublishedVideoSlug,
 } from "../helpers/fixtures";
 import {
   clientFor,
@@ -20,9 +17,7 @@ describe("API — videos", () => {
   beforeAll(async () => {
     ctx = await setupIntegration();
     if (!ctx.serverUp) return;
-    const guest = clientFor(ctx);
-    publishedSlug = await fetchPublishedVideoSlug(guest);
-    publishedId = await fetchPublishedVideoId(guest);
+    const _guest = clientFor(ctx);
   });
 
   describe("public listing", () => {

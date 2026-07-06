@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { captureException } from '@/lib/monitoring';
 import { getCurrentUser } from '@/lib/auth';

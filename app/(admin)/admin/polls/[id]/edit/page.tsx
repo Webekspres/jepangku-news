@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
-import { safeImageSrc } from "@/lib/safe-url";
 import { useRouter, useParams } from "next/navigation";
 import {
   commitStagedUrl,
   deleteMediaFile,
-  stageFile,
 } from "@/lib/upload-media";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, X, ImageIcon } from "lucide-react";
+import { Plus, Trash2, ImageIcon } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,70 +41,6 @@ interface PollQuestion {
   options: PollOption[];
 }
 
-/* ─── Image upload hook ──────────────────────────────── */
-// Files are staged locally (no upload) until the poll is saved, so swapping
-// images repeatedly never leaves orphans in the R2 bucket.
-function useImageUpload() {
-  const [uploading] = useState<Record<string, boolean>>({});
-  const upload = useCallback(
-    async (file: File, _key: string, onSuccess: (url: string) => void) => {
-      onSuccess(stageFile(file, "content"));
-    },
-    [],
-  );
-  return { upload, uploading };
-}
-
-/* ─── ImageField ─────────────────────────────────────── */
-interface ImageFieldProps {
-  value: string;
-  uploadKey: string;
-  uploading: Record<string, boolean>;
-  onUrlChange: (url: string) => void;
-  onUpload: (file: File, key: string, cb: (url: string) => void) => void;
-  placeholder?: string;
-  testId?: string;
-}
-
-function ImageField({
-  value, uploadKey, uploading, onUrlChange, onUpload,
-  placeholder = "URL gambar (opsional)", testId,
-}: ImageFieldProps) {
-  const isUploading = uploading[uploadKey];
-  return (
-    <div className="space-y-1.5">
-      <div className="flex gap-2 items-start">
-        <Input type="text" className="flex-1 text-sm" value={value}
-          onChange={(e) => onUrlChange(e.target.value)}
-          placeholder={placeholder} data-testid={testId} />
-        <Button type="button" variant="outline" asChild disabled={isUploading} size="sm"
-          className="cursor-pointer hover:bg-foreground hover:text-white shrink-0">
-          <label>
-            <Upload size={13} strokeWidth={1.5} />
-            <input type="file" accept="image/*" className="hidden" disabled={isUploading}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onUpload(file, uploadKey, onUrlChange);
-                e.target.value = "";
-              }} />
-          </label>
-        </Button>
-        {value && (
-          <Button type="button" variant="ghost" size="icon"
-            onClick={() => onUrlChange("")} className="text-jepang-red shrink-0">
-            <X size={13} />
-          </Button>
-        )}
-      </div>
-      {value && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={safeImageSrc(value)} alt="Preview"
-          className="mt-1 max-h-24 object-cover border border-jepang-border" />
-      )}
-    </div>
-  );
-}
-
 /* ─── Defaults ───────────────────────────────────────── */
 const DEFAULT_OPTION = (): PollOption => ({ optionText: "", imageUrl: "" });
 const DEFAULT_QUESTION = (): PollQuestion => ({
@@ -118,8 +53,6 @@ export default function AdminEditPollPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { upload, uploading } = useImageUpload();
-
   const [fetching, setFetching] = useState(true);
   const [loading, setLoading] = useState(false);
   // Image URLs that exist in R2 at load time; any dropped on save is deleted.
@@ -362,13 +295,14 @@ export default function AdminEditPollPage() {
               placeholder="Konteks atau penjelasan singkat..." data-testid="poll-description-input" />
           </div>
 
-          <div className="space-y-2">
-            <Label>Thumbnail</Label>
-            <ImageField value={form.thumbnail_url} uploadKey="thumbnail" uploading={uploading}
-              onUrlChange={(url) => setForm((f) => ({ ...f, thumbnail_url: url }))}
-              onUpload={upload} placeholder="URL thumbnail atau upload..."
-              testId="poll-thumbnail-input" />
-          </div>
+          <ImageUploadField
+            label="Thumbnail"
+            value={form.thumbnail_url}
+            uploadKey="thumbnail"
+            onUrlChange={(url) => setForm((f) => ({ ...f, thumbnail_url: url }))}
+            placeholder="URL thumbnail atau upload..."
+            testId="poll-thumbnail-input"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -453,12 +387,13 @@ export default function AdminEditPollPage() {
                     data-testid={`question-text-${qi}`} />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Gambar Pertanyaan (opsional)</Label>
-                  <ImageField value={q.imageUrl} uploadKey={`question-${qi}`} uploading={uploading}
-                    onUrlChange={(url) => updateQuestion(qi, "imageUrl", url)}
-                    onUpload={upload} testId={`question-image-${qi}`} />
-                </div>
+                <ImageUploadField
+                  label="Gambar Pertanyaan (opsional)"
+                  value={q.imageUrl}
+                  uploadKey={`question-${qi}`}
+                  onUrlChange={(url) => updateQuestion(qi, "imageUrl", url)}
+                  testId={`question-image-${qi}`}
+                />
 
                 <div className="space-y-3">
                   <Label className="text-xs">OPSI JAWABAN ({q.options.length})</Label>
@@ -497,10 +432,12 @@ export default function AdminEditPollPage() {
                         onChange={(e) => updateOption(qi, oi, "optionText", e.target.value)}
                         data-testid={`option-text-${qi}-${oi}`} />
 
-                      <ImageField value={o.imageUrl} uploadKey={`option-${qi}-${oi}`}
-                        uploading={uploading}
+                      <ImageUploadField
+                        value={o.imageUrl}
+                        uploadKey={`option-${qi}-${oi}`}
                         onUrlChange={(url) => updateOption(qi, oi, "imageUrl", url)}
-                        onUpload={upload} testId={`option-image-${qi}-${oi}`} />
+                        testId={`option-image-${qi}-${oi}`}
+                      />
                     </div>
                   ))}
 
