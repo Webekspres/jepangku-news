@@ -5,11 +5,12 @@ import {
   approveContributorApplication,
   rejectContributorApplication,
 } from '@/lib/contributor-applications';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(
+const POST = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required' , { status: 403 });
@@ -49,4 +50,6 @@ export async function POST(
     console.error('Contributor review failed:', error);
     return apiError('Gagal memproses permohonan' , { status: 500 });
   }
-}
+});
+
+export { POST };

@@ -14,9 +14,10 @@ import {
   reactionTargetExists,
   summarizeReactions,
 } from '@/lib/reactions';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 // GET /api/reactions?targetType=ARTICLE&targetId=<id>
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const targetType = searchParams.get('targetType');
   const targetId = searchParams.get('targetId');
@@ -29,11 +30,11 @@ export async function GET(request: NextRequest) {
   const summary = await summarizeReactions(targetType, targetId, user?.id ?? null);
 
   return apiSuccess(summary);
-}
+});
 
 // POST /api/reactions  { targetType, targetId, type }
 // Toggle/switch: tipe sama -> batal; tipe beda -> ganti; belum ada -> buat.
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Tidak terautentikasi' , { status: 401 });
@@ -97,4 +98,6 @@ export async function POST(request: NextRequest) {
     await captureException(e, { route: 'reactions-post' });
     return apiError('Gagal menyimpan reaksi' , { status: 500 });
   }
-}
+});
+
+export { GET, POST };

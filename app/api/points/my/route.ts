@@ -5,8 +5,9 @@ import {
   getUserPointBalance,
   getUserPointTransactions,
 } from '@/lib/points';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
 
@@ -27,4 +28,6 @@ export async function GET(request: NextRequest) {
       occurredAt: tx.occurredAt.toISOString(),
     })),
   });
-}
+});
+
+export { GET };

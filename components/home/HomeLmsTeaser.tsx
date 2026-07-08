@@ -180,7 +180,7 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
             data-testid="lms-nihongo-logo-link"
           >
             <img
-              src="/assets/images/logo/logo-nihongo.svg"
+              src="/assets/images/logo/logo-nihongo.webp"
               width={400}
               height={98}
               className="w-72 h-auto opacity-90 transition-opacity hover:opacity-100"

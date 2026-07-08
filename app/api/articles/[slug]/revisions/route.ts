@@ -3,11 +3,12 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { revisionListSelect } from '@/lib/article-audit';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
-) {
+) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
 
@@ -43,4 +44,6 @@ export async function GET(
     lastEditedBy: article.lastEditedBy,
     revisions,
   });
-}
+});
+
+export { GET };

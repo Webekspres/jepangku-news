@@ -13,6 +13,7 @@ import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { auditArticleDraftUpdate } from '@/lib/audit-routes';
 import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 /**
  * PATCH /api/articles/drafts/[id]
@@ -25,10 +26,10 @@ import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
  * - Contributor: DRAFT | PENDING_REVIEW
  * - Admin author: DRAFT | PUBLISHED
  */
-export async function PATCH(
+const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
@@ -126,4 +127,6 @@ export async function PATCH(
     console.error('Draft autosave error:', e);
     return apiError(message , { status: 500 });
   }
-}
+});
+
+export { PATCH };

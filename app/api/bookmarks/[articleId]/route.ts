@@ -8,8 +8,9 @@ import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
 import { auditBookmark } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
+const POST = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) => {
   try {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
@@ -74,9 +75,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     await captureException(e, { route: 'bookmark-create' });
     return apiError('Failed to bookmark' , { status: 500 });
   }
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ articleId: string }> }) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
 
@@ -100,4 +101,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
 
   return apiSuccess({ message: 'Bookmark removed' });
-}
+});
+
+export { POST, DELETE };

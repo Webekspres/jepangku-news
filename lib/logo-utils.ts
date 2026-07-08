@@ -6,7 +6,7 @@ export const LOGO_VARIANTS = {
   "02-dark": "/assets/images/logo/logo-02-dark.svg",
   "03": "/assets/images/logo/logo-03.svg",
   "04": "/assets/images/logo/logo-04.svg",
-  "nihongo": "/assets/images/logo/logo-nihongo.svg",
+  "nihongo": "/assets/images/logo/logo-nihongo.webp",
 } as const;
 
 export type LogoVariant = keyof typeof LOGO_VARIANTS;

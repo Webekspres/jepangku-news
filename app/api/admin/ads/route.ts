@@ -6,8 +6,9 @@ import { revalidateAdSlots } from "@/lib/ads/revalidate";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required" , { status: 403 });
 
@@ -23,9 +24,9 @@ export async function GET(request: NextRequest) {
   });
 
   return apiSuccess(ads);
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required" , { status: 403 });
 
@@ -76,4 +77,6 @@ export async function POST(request: NextRequest) {
   });
 
   return apiSuccess({ message: "Ad created", id: ad.id }, { status: 201 });
-}
+});
+
+export { GET, POST };

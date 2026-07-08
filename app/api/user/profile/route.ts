@@ -6,8 +6,9 @@ import { sanitizeMediaUrl, sanitizePlainField } from '@/lib/sanitizer';
 import { captureException } from '@/lib/monitoring';
 import { auditUserProfileUpdate } from '@/lib/audit-routes';
 import { getUsernameCooldownDays, hasValidUsernameChars, hasValidUsernameLength } from '@/lib/username';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated' , { status: 401 });
@@ -33,9 +34,9 @@ export async function GET(request: NextRequest) {
     usernameChangedAt: (fullUser as any)?.usernameChangedAt?.toISOString() ?? null,
     usernameCooldownDaysLeft: cooldownDays,
   });
-}
+});
 
-export async function PATCH(request: NextRequest) {
+const PATCH = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated' , { status: 401 });
@@ -174,4 +175,6 @@ export async function PATCH(request: NextRequest) {
     await captureException(e, { route: 'user-profile-patch' });
     return apiError('Failed to update profile' , { status: 500 });
   }
-}
+});
+
+export { GET, PATCH };

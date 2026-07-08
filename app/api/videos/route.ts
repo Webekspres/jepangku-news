@@ -5,8 +5,9 @@ import {
   publishedVideoWhere,
   serializePublicVideo,
 } from "@/lib/video/serialize";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || "12"), 1), 48);
   const page = Math.max(Number(searchParams.get("page") || "1"), 1);
@@ -33,4 +34,6 @@ export async function GET(request: NextRequest) {
     limit,
     videos: videos.map(serializePublicVideo),
   });
-}
+});
+
+export { GET };

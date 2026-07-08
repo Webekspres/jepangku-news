@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = await params;
 
   const quiz = await db.quiz.findUnique({
@@ -44,4 +45,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     userAttempt,
     userHasCompleted: Boolean(userAttempt),
   });
-}
+});
+
+export { GET };

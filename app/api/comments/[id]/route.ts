@@ -5,12 +5,13 @@ import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { normalizeCommentContent } from '@/lib/comments';
 import { auditCommentDelete, auditCommentUpdate } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 // PATCH /api/comments/[id]  { content }  — edit komentar milik sendiri
-export async function PATCH(
+const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Tidak terautentikasi' , { status: 401 });
@@ -57,13 +58,13 @@ export async function PATCH(
     content: updated.content,
     isEdited: true,
   });
-}
+});
 
 // DELETE /api/comments/[id]  — soft delete (pemilik atau admin)
-export async function DELETE(
+const DELETE = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Tidak terautentikasi' , { status: 401 });
@@ -92,4 +93,6 @@ export async function DELETE(
   auditCommentDelete(user, id, isAdmin && !isOwner);
 
   return apiSuccess({ message: 'Komentar dihapus' });
-}
+});
+
+export { PATCH, DELETE };

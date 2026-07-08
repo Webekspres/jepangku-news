@@ -4,8 +4,9 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -15,9 +16,9 @@ export async function GET(request: NextRequest) {
   });
 
   return apiSuccess(tags.map((t: typeof tags[number]) => ({ ...t, usageCount: t._count.articles })));
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -34,4 +35,6 @@ export async function POST(request: NextRequest) {
   auditAdminEntity(admin, 'tag', 'create', { type: 'tag', id: tag.id, label: tag.name, href: '/admin/tags' });
 
   return apiSuccess(tag, { status: 201 });
-}
+});
+
+export { GET, POST };

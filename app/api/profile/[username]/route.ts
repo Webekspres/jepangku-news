@@ -9,12 +9,13 @@ import {
   isPublicContributor,
   serializePublicAuthor,
 } from '@/lib/public-profile';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 // GET /api/profile/[username]?page=1&limit=12
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> },
-) {
+) => {
   const { username } = await params;
   const { searchParams } = new URL(request.url);
   const page = Math.max(parseInt(searchParams.get('page') || '1', 10) || 1, 1);
@@ -59,4 +60,6 @@ export async function GET(
     await captureException(e, { route: 'profile-get', username });
     return apiError('Gagal memuat profil' , { status: 500 });
   }
-}
+});
+
+export { GET };

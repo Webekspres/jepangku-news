@@ -8,11 +8,12 @@ import {
   sanitizePlainField,
   sanitizeQuestionBundle,
 } from '@/lib/sanitizer';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type Params = { params: Promise<{ id: string }> };
 
 /* ── GET /api/admin/quizzes/[id] ── */
-export async function GET(request: NextRequest, { params }: Params) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -33,10 +34,10 @@ export async function GET(request: NextRequest, { params }: Params) {
   if (!quiz) return apiError('Quiz not found' , { status: 404 });
 
   return apiSuccess(quiz);
-}
+});
 
 /* ── PATCH /api/admin/quizzes/[id] ── */
-export async function PATCH(request: NextRequest, { params }: Params) {
+const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -210,10 +211,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   });
 
   return apiSuccess({ message: 'Quiz updated' });
-}
+});
 
 /* ── DELETE /api/admin/quizzes/[id] ── */
-export async function DELETE(request: NextRequest, { params }: Params) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -231,4 +232,6 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   await db.quiz.delete({ where: { id } });
 
   return apiSuccess({ message: 'Quiz deleted' });
-}
+});
+
+export { GET, PATCH, DELETE };

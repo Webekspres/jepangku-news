@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 // GET /api/tags/popular?limit=20
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10) || 20, 1), 50);
 
@@ -34,4 +35,6 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.articleCount - a.articleCount);
 
   return apiSuccess(result);
-}
+});
+
+export { GET };

@@ -7,8 +7,9 @@ import {
   normalizeNewsletterEmail,
   subscribeToNewsletter,
 } from '@/lib/newsletter';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const limited = await enforceRateLimit(request, 'newsletter:subscribe', {
     max: 5,
     windowMs: 60_000,
@@ -34,4 +35,6 @@ export async function POST(request: NextRequest) {
     ok: true,
     message: 'Terima kasih! Periksa inbox Anda untuk konfirmasi langganan.',
   });
-}
+});
+
+export { POST };

@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 /**
  * GET /api/articles/preview/[id]
@@ -11,10 +12,10 @@ import { db } from '@/lib/db';
  * Accessible only by the article owner or an admin.
  * Works for any article status (DRAFT, PENDING_REVIEW, REJECTED, etc.).
  */
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
@@ -47,4 +48,6 @@ export async function GET(
     ...article,
     tags: article.tags.map((at) => at.tag),
   });
-}
+});
+
+export { GET };

@@ -9,8 +9,9 @@ import {
   parseSocialLinkUpdates,
   saveSocialLinkUpdates,
 } from "@/lib/social-links";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError("Admin access required" , { status: 403 });
@@ -18,9 +19,9 @@ export async function GET(request: NextRequest) {
 
   const links = await getAdminSocialLinks();
   return apiSuccess({ links });
-}
+});
 
-export async function PUT(request: NextRequest) {
+const PUT = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError("Admin access required" , { status: 403 });
@@ -44,4 +45,6 @@ export async function PUT(request: NextRequest) {
 
   const links = await getAdminSocialLinks();
   return apiSuccess({ links });
-}
+});
+
+export { GET, PUT };

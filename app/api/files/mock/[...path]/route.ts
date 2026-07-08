@@ -3,6 +3,7 @@ import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import { R2_OBJECT_CACHE_CONTROL } from '@/lib/media/constants';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 const LOCAL_UPLOAD_ROOT = path.join(process.cwd(), '.uploads');
 
@@ -22,10 +23,10 @@ function resolveLocalFile(key: string): string | null {
   return absolute;
 }
 
-export async function GET(
+const GET = withRequestLogging(async (
   _request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
-) {
+) => {
   const { path: segments } = await params;
   const key = segments.join('/');
   const filePath = resolveLocalFile(key);
@@ -46,4 +47,6 @@ export async function GET(
   } catch {
     return apiError('Not found', { status: 404, code: 'NOT_FOUND' });
   }
-}
+});
+
+export { GET };

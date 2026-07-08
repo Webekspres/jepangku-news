@@ -3,11 +3,12 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { reviewListSelect, revisionListSelect } from '@/lib/article-audit';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required' , { status: 403 });
@@ -51,4 +52,6 @@ export async function GET(
     reviews,
     revisions,
   });
-}
+});
+
+export { GET };

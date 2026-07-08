@@ -3,8 +3,9 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { captureException } from '@/lib/monitoring';
 import { markAllNotificationsRead } from '@/lib/notifications/queries';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -17,4 +18,6 @@ export async function POST(request: NextRequest) {
     await captureException(e, { route: 'notifications-read-all' });
     return apiError('Gagal menandai semua notifikasi' , { status: 500 });
   }
-}
+});
+
+export { POST };

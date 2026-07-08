@@ -7,8 +7,9 @@ import {
   subscribeToCategory,
   unsubscribeFromCategory,
 } from '@/lib/category-subscriptions';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Login diperlukan' , { status: 401 });
@@ -16,9 +17,9 @@ export async function GET(request: NextRequest) {
 
   const subscriptions = await listUserCategorySubscriptions(user.id);
   return apiSuccess({ subscriptions });
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Login diperlukan' , { status: 401 });
@@ -40,9 +41,9 @@ export async function POST(request: NextRequest) {
   }
 
   return apiSuccess({ ok: true, categoryId });
-}
+});
 
-export async function DELETE(request: NextRequest) {
+const DELETE = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Login diperlukan' , { status: 401 });
@@ -60,4 +61,6 @@ export async function DELETE(request: NextRequest) {
 
   await unsubscribeFromCategory(user.id, categoryId);
   return apiSuccess({ ok: true });
-}
+});
+
+export { GET, POST, DELETE };

@@ -15,8 +15,9 @@ import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { auditArticleCreate } from '@/lib/audit-routes';
 import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 import { logger } from '@/lib/logger';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
@@ -157,4 +158,6 @@ export async function POST(request: NextRequest) {
     await captureException(e, { route: 'articles-create', userId: user.id });
     return apiError(e.message , { status: 500 });
   }
-}
+});
+
+export { POST };

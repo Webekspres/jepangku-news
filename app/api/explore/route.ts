@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { apiSuccess } from "@/lib/api-response";
 import { fetchExploreContent } from "@/lib/explore/queries";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(): Promise<NextResponse> {
+const GET = withRequestLogging(async () => {
   const data = await fetchExploreContent();
 
   return apiSuccess(data, {
@@ -10,4 +10,6 @@ export async function GET(): Promise<NextResponse> {
       "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
     },
   });
-}
+});
+
+export { GET };

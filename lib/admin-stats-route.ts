@@ -1,11 +1,12 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 export function createAdminStatsRoute<T extends Record<string, number>>(
   getStats: () => Promise<T>,
 ) {
-  return async function GET(request: NextRequest) {
+  return withRequestLogging(async (request: NextRequest) => {
     const admin = await getCurrentAdmin(request);
     if (!admin) {
       return apiError('Admin access required', {
@@ -15,5 +16,5 @@ export function createAdminStatsRoute<T extends Record<string, number>>(
     }
     const stats = await getStats();
     return apiSuccess(stats, { message: 'Stats retrieved successfully.' });
-  };
+  });
 }

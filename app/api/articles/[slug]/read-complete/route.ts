@@ -7,13 +7,14 @@ import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
 import { auditArticleReadComplete } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 const READ_POINTS = 2;
 
-export async function POST(
+const POST = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
-) {
+) => {
   try {
   const user = await getCurrentUser(request);
   if (!user) {
@@ -64,4 +65,6 @@ export async function POST(
     await captureException(e, { route: 'read-complete' });
     return apiError('Failed to record read' , { status: 500 });
   }
-}
+});
+
+export { POST };

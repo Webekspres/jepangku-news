@@ -8,6 +8,7 @@ import {
   buildAdminArticlesOrderBy,
   adminArticleInclude,
 } from '@/lib/admin-articles-query';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 function escapeCsv(value: string | number | null | undefined): string {
   const s = value == null ? '' : String(value);
@@ -17,7 +18,7 @@ function escapeCsv(value: string | number | null | undefined): string {
   return s;
 }
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required', { status: 403, code: 'FORBIDDEN' });
@@ -80,4 +81,6 @@ export async function GET(request: NextRequest) {
   }
 
   return apiSuccess(rows, { message: 'Articles exported successfully.' });
-}
+});
+
+export { GET };

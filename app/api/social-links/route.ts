@@ -1,8 +1,9 @@
 
 import { apiSuccess } from '@/lib/api-response';
 import { getPublicSocialLinks } from "@/lib/social-links";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET() {
+const GET = withRequestLogging(async () => {
   const links = await getPublicSocialLinks();
   return apiSuccess(
     { links },
@@ -12,4 +13,6 @@ export async function GET() {
       },
     },
   );
-}
+});
+
+export { GET };

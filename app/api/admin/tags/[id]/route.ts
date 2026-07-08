@@ -4,11 +4,12 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 import { createAdminSlug } from '@/lib/slug';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function PATCH(
+const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -45,9 +46,9 @@ export async function PATCH(
   });
 
   return apiSuccess(updated);
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -65,4 +66,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   await db.tag.delete({ where: { id } });
   return apiSuccess({ message: 'Tag deleted' });
-}
+});
+
+export { PATCH, DELETE };

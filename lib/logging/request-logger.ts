@@ -167,20 +167,23 @@ export function withRequestLogging(
     request: NextRequest,
     context: { params: Promise<Record<string, string>> },
   ): Promise<Response> => {
-    const reqId = generateReqId();
+    // Reuse correlation ID from proxy middleware when available
+    const reqId = request.headers.get('x-request-id') ?? generateReqId();
     const start = Date.now();
     const url = new URL(request.url);
     const path = url.pathname + (url.search || '');
 
     try {
-      // Catat awal request
-      logRequestStart({
-        reqId,
-        method: request.method,
-        path,
-        ip: getClientIp(request),
-        userAgent: getUserAgent(request),
-      });
+      // proxy.ts already logs request.start — skip duplicate when reqId forwarded
+      if (!request.headers.get('x-request-id')) {
+        logRequestStart({
+          reqId,
+          method: request.method,
+          path,
+          ip: getClientIp(request),
+          userAgent: getUserAgent(request),
+        });
+      }
 
       // Jalankan handler
       const response = await handler(request, context);

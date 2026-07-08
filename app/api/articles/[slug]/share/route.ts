@@ -7,11 +7,12 @@ import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
 import { auditArticleShare } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(
+const POST = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
-) {
+) => {
   try {
   const user = await getCurrentUser(request);
   if (!user) {
@@ -94,13 +95,13 @@ export async function POST(
     await captureException(e, { route: 'article-share' });
     return apiError('Failed to track share' , { status: 500 });
   }
-}
+});
 
 // GET endpoint to check if user already shared this article
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
-) {
+) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiSuccess({ hasShared: false });
@@ -121,4 +122,6 @@ export async function GET(
     hasShared: !!share,
     shareData: share || null,
   });
-}
+});
+
+export { POST, GET };

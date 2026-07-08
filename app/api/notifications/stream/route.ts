@@ -4,6 +4,7 @@ import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/monitoring';
 import { getUnreadNotificationCount } from '@/lib/notifications/queries';
 import { getNotificationSignalVersion } from '@/lib/notifications/realtime';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 const POLL_MS = 3_000;
 const HEARTBEAT_EVERY = 10;
@@ -13,7 +14,7 @@ function sseChunk(data: Record<string, unknown>): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return new Response('Not authenticated', { status: 401 });
@@ -86,4 +87,6 @@ export async function GET(request: NextRequest) {
       'X-Accel-Buffering': 'no',
     },
   });
-}
+});
+
+export { GET };

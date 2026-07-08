@@ -5,8 +5,9 @@ import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor
 import { db } from '@/lib/db';
 import { auditArticleDelete } from '@/lib/audit-routes';
 import { logger } from '@/lib/logger';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ slug: string }> }) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
@@ -46,4 +47,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   });
 
   return apiSuccess({ message: 'Article deleted' });
-}
+});
+
+export { DELETE };

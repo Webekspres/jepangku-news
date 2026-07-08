@@ -6,8 +6,9 @@ import {
   dismissNotificationSession,
   getNotificationSession,
 } from '@/lib/notifications/queries';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -20,9 +21,9 @@ export async function GET(request: NextRequest) {
     await captureException(e, { route: 'notifications-session' });
     return apiError('Gagal memuat sesi notifikasi' , { status: 500 });
   }
-}
+});
 
-export async function PATCH(request: NextRequest) {
+const PATCH = withRequestLogging(async (request: NextRequest) => {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -50,4 +51,6 @@ export async function PATCH(request: NextRequest) {
     await captureException(e, { route: 'notifications-session-patch' });
     return apiError('Gagal memperbarui sesi notifikasi' , { status: 500 });
   }
-}
+});
+
+export { GET, PATCH };

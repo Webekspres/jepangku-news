@@ -8,8 +8,9 @@ import { awardPoints } from '@/lib/points';
 import { enforceRateLimit } from '@/lib/rate-limit';
 import { captureException } from '@/lib/monitoring';
 import { auditQuizAttempt } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+const POST = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ slug: string }> }) => {
   try {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
@@ -140,4 +141,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     await captureException(e, { route: 'quiz-attempt' });
     return apiError('Failed to submit quiz' , { status: 500 });
   }
-}
+});
+
+export { POST };

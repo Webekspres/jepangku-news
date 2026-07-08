@@ -4,11 +4,12 @@ import { db } from '@/lib/db';
 import { captureException } from '@/lib/monitoring';
 import { isInfoPageSlug } from '@/lib/info-pages';
 import { sanitizeHtmlContent, sanitizePlainField } from '@/lib/sanitizer';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(
+const GET = withRequestLogging(async (
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
-) {
+) => {
   const { slug } = await params;
 
   if (!isInfoPageSlug(slug)) {
@@ -49,4 +50,6 @@ export async function GET(
     await captureException(e, { route: 'pages-get', slug });
     return apiError(message , { status: 500 });
   }
-}
+});
+
+export { GET };

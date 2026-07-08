@@ -3,8 +3,9 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { getNewsletterSubscriptionByToken, unsubscribeNewsletterForUser } from '@/lib/newsletter';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Login diperlukan' , { status: 401 });
@@ -38,9 +39,9 @@ export async function GET(request: NextRequest) {
       unsubscribedAt: subscription.unsubscribedAt?.toISOString() ?? null,
     },
   });
-}
+});
 
-export async function DELETE(request: NextRequest) {
+const DELETE = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Login diperlukan' , { status: 401 });
@@ -63,4 +64,6 @@ export async function DELETE(request: NextRequest) {
   logger.info('newsletter.unsubscribed', { userId: user.id, email: user.email });
 
   return apiSuccess({ ok: true, message: 'Anda telah berhenti berlangganan newsletter.' });
-}
+});
+
+export { GET, DELETE };

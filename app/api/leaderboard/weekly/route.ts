@@ -2,9 +2,10 @@ import { NextRequest } from 'next/server';
 import { apiSuccess } from '@/lib/api-response';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import { parseLeaderboardPeriod } from '@/lib/leaderboard/period';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 /** Back-compat: `/weekly` accepts `?period=monthly|all-time` or defaults to weekly. */
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const period = parseLeaderboardPeriod(
     request.nextUrl.searchParams.get('period') ?? 'weekly',
   );
@@ -25,4 +26,6 @@ export async function GET(request: NextRequest) {
       },
     },
   );
-}
+});
+
+export { GET };

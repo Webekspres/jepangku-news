@@ -8,11 +8,12 @@ import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { adminArticleInclude } from '@/lib/admin-articles-query';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -39,17 +40,17 @@ export async function GET(
     ...article,
     tags: article.tags.map((at) => at.tag),
   });
-}
+});
 
 /**
  * PATCH /api/admin/articles/[id]
  *
  * Partial update for any article. Requires changeNote when admin edits content.
  */
-export async function PATCH(
+const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -132,4 +133,6 @@ export async function PATCH(
     const status = message.includes('wajib') ? 400 : 500;
     return apiError(message, { status });
   }
-}
+});
+
+export { GET, PATCH };

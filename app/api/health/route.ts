@@ -1,8 +1,9 @@
 
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { db } from '@/lib/db';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET() {
+const GET = withRequestLogging(async () => {
   const timestamp = new Date().toISOString();
 
   try {
@@ -15,4 +16,6 @@ export async function GET() {
       meta: { status: 'degraded', db: 'error', timestamp },
     });
   }
-}
+});
+
+export { GET };

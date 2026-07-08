@@ -4,11 +4,12 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { isValidTargetType } from '@/lib/comments';
 import type { CommentStatus, CommentTargetType, Prisma } from '@prisma/client';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 const PAGE_SIZE = 20;
 
 // GET /api/admin/comments?status=&targetType=&q=&page=
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -104,4 +105,6 @@ export async function GET(request: NextRequest) {
     pageSize: PAGE_SIZE,
     totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
   });
-}
+});
+
+export { GET };

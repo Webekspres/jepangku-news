@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { exportNewsletterSubscriptions } from '@/lib/newsletter';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 function escapeCsv(value: string | number | boolean | null | undefined): string {
   const s = value == null ? '' : String(value);
@@ -11,7 +12,7 @@ function escapeCsv(value: string | number | boolean | null | undefined): string 
   return s;
 }
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required', { status: 403, code: 'FORBIDDEN' });
@@ -56,4 +57,6 @@ export async function GET(request: NextRequest) {
       'Content-Disposition': 'attachment; filename="newsletter-subscribers.csv"',
     },
   });
-}
+});
+
+export { GET };

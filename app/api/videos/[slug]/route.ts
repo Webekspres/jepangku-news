@@ -5,10 +5,11 @@ import {
   publishedVideoWhere,
   serializePublicVideo,
 } from "@/lib/video/serialize";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type Params = { params: Promise<{ slug: string }> };
 
-export async function GET(_request: NextRequest, { params }: Params) {
+const GET = withRequestLogging(async (_request: NextRequest, { params }: Params) => {
   const { slug } = await params;
 
   const video = await db.video.findFirst({
@@ -25,4 +26,6 @@ export async function GET(_request: NextRequest, { params }: Params) {
   });
 
   return apiSuccess(serializePublicVideo(updated));
-}
+});
+
+export { GET };

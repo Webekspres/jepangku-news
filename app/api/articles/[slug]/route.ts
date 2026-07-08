@@ -4,8 +4,9 @@ import { db } from '@/lib/db';
 import { captureException } from '@/lib/monitoring';
 import { sanitizeHtmlContent, sanitizePlainField } from '@/lib/sanitizer';
 import { recordArticleView } from '@/lib/record-article-view';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = await params;
 
   try {
@@ -75,4 +76,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     await captureException(e, { route: 'articles-get', slug });
     return apiError(e.message , { status: 500 });
   }
-}
+});
+
+export { GET };

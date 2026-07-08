@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { logger } from '@/lib/logger';
 import { isValidAdSlotPosition, normalizeAdPosition } from "@/lib/ads/constants";
 import { fetchHomeAd } from "@/lib/home/queries/ads";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
-): Promise<NextResponse> {
+) => {
   const start = Date.now();
   const { searchParams } = new URL(request.url);
   const rawSlot = searchParams.get("slot") || "center";
@@ -25,4 +26,6 @@ export async function GET(
   // tampil. Performa tetap terjaga oleh unstable_cache di server yang
   // di-revalidate setiap kali admin menyimpan.
   return apiSuccess(data, { headers: { 'Cache-Control': 'no-store' } });
-}
+});
+
+export { GET };

@@ -2,7 +2,7 @@
 
 > **Diperbarui:** Juli 2026  
 > **Status aplikasi:** ✅ **Sepenuhnya diimplementasi** — portal production-ready.  
-> **Sedang dikerjakan:** **[§ Logging System](#-logging-system--belum)** — infrastruktur monitoring terpusat (Pino + Loki + Grafana).  
+> **Logging system:** ✅ **[§ Logging System](#-logging-system--selesai)** — Pino + Loki + Grafana (E2E verified via Docker WSL).  
 > **Sisa rencana:** hanya **[§ Rencana Lanjutan](#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)** (ekosistem lintas-app; bukan blokir rilis).  
 > **Legenda:** `[ ]` belum · `[x]` selesai (verified) · `[~]` operasional / tim editorial  
 > **Rincian teknis:** [`backlog-plan.md`](./backlog-plan.md) · [`ecosystem-integration.md`](./ecosystem-integration.md) · [`development-roadmap.md`](./development-roadmap.md)  
@@ -13,7 +13,7 @@
 ## Daftar isi
 
 1. [Ringkasan](#ringkasan)
-2. [🪵 Logging System](#-logging-system--belum)
+2. [🪵 Logging System](#-logging-system--selesai)
 3. [Rencana lanjutan](#rencana-lanjutan--bisa-nanti-ekosistem-fase-de)
 4. [Checklist testing — kerjakan](#checklist-testing--kerjakan)
 5. [Perbaikan](#perbaikan)
@@ -28,7 +28,7 @@
 | Aspek | Status |
 | :--- | :--- |
 | Fitur fungsional | 160 fitur · ~197 kondisi — semua diimplementasi |
-| Logging system | **[§ Logging System](#-logging-system--belum)** — direncanakan (6 fase, ~50+ titik) |
+| Logging system | ✅ **[§ Logging System](#-logging-system--selesai)** — selesai (6 fase, 133 route + proxy) |
 | Test otomatis | `bun run test` = unit (~156) + integration API inti (~146) |
 | QA browser/UI | Manual — [`testing-inventory.md`](./testing-inventory.md) |
 | Non-functional | Lighthouse Mobile **42** / Desktop **89** · `verify:non-functional` 47/47 |
@@ -37,11 +37,11 @@
 
 ---
 
-## 🪵 Logging System — *(belum)*
+## 🪵 Logging System — *(selesai)*
 
-> **Status:** `[x]` Phase 0–2 selesai · `[x]` §3.1–3.15 selesai ✅  
+> **Status:** `[x]` Phase 0–6 selesai ✅ · E2E verified via Docker Engine WSL (`scripts/verify-logging-e2e.sh`)  
 > **Stack:** Pino (core logger) → stdout → Promtail → Loki → Grafana (dashboard).  
-> **Estimasi:** ~50+ titik pemasangan log di seluruh aplikasi, terbagi dalam 6 fase.  
+> **Coverage:** 133 API route files + `proxy.ts` request.start + `withRequestLogging` request.complete.  
 > **Prinsip:** JSON terstruktur sesuai standar industri, redact PII, child logger per modul, async non-blocking.
 
 ### Phase 0 — Infrastruktur Docker Logging Stack
@@ -72,8 +72,10 @@
   - Child logger: `logger.child({ module: "..." })`  
 - [x] **1.3** Update `lib/log-drain.ts` — sudah kompatibel, tidak perlu perubahan  
 - [x] **1.4** Setup `LOG_LEVEL` env — `LOG_LEVEL=info` di `.env.example`  
-- [ ] **1.5** Verifikasi — log muncul dengan format JSON/stdout di terminal & Grafana  
-  _(bergantung pada docker compose logging stack jalan)_
+- [x] **1.5** Verifikasi — log muncul dengan format JSON/stdout di terminal & Grafana  
+  - ✅ Pino JSON di production: `{"level":30,"msg":"e2e.verify",...}`  
+  - ✅ Loki query `{service="jepangku-news"}` via `scripts/verify-logging-e2e.sh` (Docker WSL)  
+  - ✅ Grafana health OK di `http://localhost:3002` (datasource UID `loki` fixed)
 
 ### Phase 2 — Request Logging Middleware
 
@@ -85,9 +87,12 @@
   - `reqId` (correlation ID — trace dari request ke response)  
   - `userAgent`, `ip` (anonymized)  
 - [x] **2.2** Integrasi ke route handler API — wrapper function atau middleware pattern  
-  - ✅ `proxy.ts` — semua API request via Pino (`logRequestStart`)  
-  - ✅ `withRequestLogging` wrapper — dipasang di `/api/articles`, `/api/comments`, `/api/auth/me`  
-- [ ] **2.3** Verifikasi — tiap request muncul di Grafana dengan duration & status
+  - ✅ `proxy.ts` — semua API request via Pino (`logRequestStart`) + forward `x-request-id`  
+  - ✅ `withRequestLogging` — dipasang di **133/133** route API (+ `createAdminStatsRoute` factory)  
+  - ✅ Codemod: `scripts/wrap-api-logging.ts` (idempotent)
+- [x] **2.3** Verifikasi — tiap request muncul di Grafana dengan duration & status  
+  - ✅ `request.complete` log field: `status`, `durationMs`, `reqId`, `userId`  
+  - ✅ Loki/Grafana pipeline verified E2E (Docker WSL)
 
 ### Phase 3 — API Route Logging
 

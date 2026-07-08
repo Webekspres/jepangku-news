@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 import { processEmailOutbox } from '@/lib/email/queue';
 import { verifyQstashRequest } from '@/lib/email/qstash';
 import { captureException } from '@/lib/monitoring';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 async function isAuthorized(request: NextRequest, rawBody: string): Promise<boolean> {
   const signature =
@@ -24,7 +25,7 @@ async function isAuthorized(request: NextRequest, rawBody: string): Promise<bool
   return process.env.NODE_ENV === 'development';
 }
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const rawBody = await request.text();
 
   const authorized = await isAuthorized(request, rawBody);
@@ -55,4 +56,6 @@ export async function POST(request: NextRequest) {
     await captureException(e, { route: 'internal-email-process' });
     return apiError('Email processing failed' , { status: 500 });
   }
-}
+});
+
+export { POST };
