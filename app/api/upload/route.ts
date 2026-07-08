@@ -15,8 +15,9 @@ import {
 } from '@/lib/image-moderation';
 import { optimizeImageBuffer, parseUploadPurpose } from '@/lib/image-optimize';
 import { enforceRateLimit } from '@/lib/rate-limit';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated' , { status: 401 });
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
     return apiError(message, { status });
   }
-}
+});
 
 /**
  * DELETE /api/upload
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
  * (key prefixed with their user id) or an admin may delete it; non-R2 / external
  * URLs are treated as a no-op so callers can fire-and-forget safely.
  */
-export async function DELETE(request: NextRequest) {
+const DELETE = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated', { status: 401 });
@@ -165,4 +166,6 @@ export async function DELETE(request: NextRequest) {
     const message = e instanceof Error ? e.message : 'Delete failed';
     return apiError(message, { status: 500 });
   }
-}
+});
+
+export { POST, DELETE };

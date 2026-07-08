@@ -4,10 +4,11 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { recordStatusReview, setLastEditor } from '@/lib/article-audit';
 import { auditArticleDelete } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 const ALLOWED_ACTIONS = ['approve', 'reject', 'archive', 'delete'] as const;
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -129,4 +130,6 @@ export async function POST(request: NextRequest) {
   } catch (e: any) {
     return apiError(e.message , { status: 500 });
   }
-}
+});
+
+export { POST };

@@ -21,7 +21,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ContributorGate from "@/components/ContributorGate";
 import PreviewArticleBreadcrumb from "@/components/articles/PreviewArticleBreadcrumb";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { isAdminPreviewContext } from "@/lib/preview-article-nav";
+import {
+  REVIEW_CONFIRM_TITLE,
+  REVIEW_CONFIRM_DESCRIPTION,
+  REVIEW_CONFIRM_LABEL,
+} from "@/lib/article-workflow";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -135,6 +141,7 @@ export default function PreviewArticlePage() {
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { confirm, confirmProps } = useConfirm();
 
   useEffect(() => {
     if (user === false) {
@@ -156,26 +163,34 @@ export default function PreviewArticlePage() {
       .finally(() => setLoading(false));
   }, [id, user, router, fromAdmin]);
 
-  const handleSubmitForReview = async () => {
+  const handleSubmitForReview = () => {
     if (!article) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/articles/${article.slug}/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "PENDING_REVIEW" }),
-      });
-      if (!res.ok) {
-        const e = await parseApiResponse(res);
-        throw new Error(e.error || "Gagal mengirim artikel");
-      }
-      toast.success("Artikel berhasil dikirim untuk review");
-      router.push("/my-articles");
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Gagal mengirim");
-    } finally {
-      setSubmitting(false);
-    }
+    confirm({
+      title: REVIEW_CONFIRM_TITLE,
+      description: REVIEW_CONFIRM_DESCRIPTION,
+      confirmLabel: REVIEW_CONFIRM_LABEL,
+      variant: "warning",
+      onConfirm: async () => {
+        setSubmitting(true);
+        try {
+          const res = await fetch(`/api/articles/${article.slug}/update`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "PENDING_REVIEW" }),
+          });
+          if (!res.ok) {
+            const e = await parseApiResponse(res);
+            throw new Error(e.error || "Gagal mengirim artikel");
+          }
+          toast.success("Artikel berhasil dikirim untuk review");
+          router.push("/my-articles");
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal mengirim");
+        } finally {
+          setSubmitting(false);
+        }
+      },
+    });
   };
 
   // Auth loading
@@ -202,6 +217,9 @@ export default function PreviewArticlePage() {
   return (
     <ContributorGate>
     <div className="bg-white min-h-screen" data-testid="preview-article-page">
+      {/* Konfirmasi kirim untuk review */}
+      <ConfirmModal {...confirmProps} />
+
       {/* Sticky preview banner */}
       <PreviewBanner
         status={article.status}

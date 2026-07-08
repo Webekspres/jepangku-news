@@ -15,6 +15,7 @@
  * Warn/error: juga dikirim ke log drain (webhook eksternal)
  */
 
+import os from 'os';
 import pino from 'pino';
 import { forwardLogDrain } from './log-drain';
 
@@ -23,8 +24,24 @@ import { forwardLogDrain } from './log-drain';
 const level = process.env.LOG_LEVEL || 'info';
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Identitas service: dipakai Promtail untuk membuat label `service` di Loki
+// (dashboard Grafana memfilter berdasarkan label ini). Bisa dioverride via env
+// bila image yang sama dipakai untuk service lain.
+const serviceName = process.env.LOG_SERVICE_NAME || 'jepangku-news';
+
 const pinoLogger = pino({
   level,
+
+  // Base bindings ikut di setiap baris log stdout (JSON) → Promtail → Loki.
+  base: { service: serviceName, pid: process.pid, hostname: os.hostname() },
+
+  // Emit level sebagai string ("info"/"warn"/"error"), bukan angka Pino
+  // (30/40/50). Dashboard & alert Grafana memfilter `level="error"`.
+  formatters: {
+    level(label) {
+      return { level: label };
+    },
+  },
 
   redact: {
     paths: [

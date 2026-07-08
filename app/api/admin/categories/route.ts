@@ -6,8 +6,9 @@ import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
 import { MAX_NAVBAR_CATEGORIES } from '@/lib/categories/constants';
 import { countNavbarCategories } from '@/lib/categories/navbar';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -19,9 +20,9 @@ export async function GET(request: NextRequest) {
   return apiSuccess(
     categories.map((c) => ({ ...c, articleCount: c._count.articles })),
   );
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -60,4 +61,6 @@ export async function POST(request: NextRequest) {
   auditAdminEntity(admin, 'category', 'create', { type: 'category', id: category.id, label: category.name, href: '/admin/categories' });
 
   return apiSuccess(category, { status: 201 });
-}
+});
+
+export { GET, POST };

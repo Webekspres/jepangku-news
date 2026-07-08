@@ -10,6 +10,7 @@ import {
   youtubeThumbnailUrl,
 } from "@/lib/video/platform";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 async function clearOtherFeatured(exceptId?: string) {
   await db.video.updateMany({
@@ -21,7 +22,7 @@ async function clearOtherFeatured(exceptId?: string) {
   });
 }
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required", { status: 403 });
 
@@ -38,9 +39,9 @@ export async function GET(request: NextRequest) {
   });
 
   return apiSuccess(videos, { headers: { "Cache-Control": "no-store" } });
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required", { status: 403 });
 
@@ -125,4 +126,6 @@ export async function POST(request: NextRequest) {
   revalidateHomeTv();
 
   return apiSuccess({ message: "Video created", id: video.id }, { status: 201 });
-}
+});
+
+export { GET, POST };

@@ -4,10 +4,11 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { renderEmailFromConfig } from '@/lib/email/render-from-config';
 import { getEmailTemplateDefinition } from '@/lib/email/template-definitions';
 import { parseEmailTemplateIdParam } from '@/lib/email/template-config';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type RouteParams = { params: Promise<{ templateId: string }> };
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+const POST = withRequestLogging(async (request: NextRequest, { params }: RouteParams) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -35,4 +36,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   });
 
   return apiSuccess(rendered);
-}
+});
+
+export { POST };

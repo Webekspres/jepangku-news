@@ -15,8 +15,9 @@ import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { logger } from '@/lib/logger';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+const PUT = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ slug: string }> }) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
@@ -132,4 +133,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const status = message.includes('wajib') ? 400 : 500;
     return apiSuccess({ error: message }, { status });
   }
-}
+});
+
+export { PUT };

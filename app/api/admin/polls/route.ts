@@ -9,8 +9,9 @@ import {
   sanitizePlainField,
   sanitizeQuestionBundle,
 } from '@/lib/sanitizer';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -43,9 +44,9 @@ export async function GET(request: NextRequest) {
   });
 
   return apiSuccess(polls);
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -123,4 +124,6 @@ export async function POST(request: NextRequest) {
   auditAdminEntity(admin, 'poll', 'create', { type: 'poll', id: poll.id, label: poll.title, href: `/admin/polls/${poll.id}/edit` });
 
   return apiSuccess({ message: 'Poll created', id: poll.id }, { status: 201 });
-}
+});
+
+export { GET, POST };

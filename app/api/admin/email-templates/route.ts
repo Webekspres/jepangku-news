@@ -5,8 +5,9 @@ import {
   getStaticEmailTemplateList,
   listEmailTemplateConfigs,
 } from '@/lib/email/template-config';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -16,4 +17,6 @@ export async function GET(request: NextRequest) {
   } catch {
     return apiSuccess({ templates: getStaticEmailTemplateList() });
   }
-}
+});
+
+export { GET };

@@ -5,8 +5,9 @@ import {
   parseBrowseTargetType,
   parseReactionTypeParam,
 } from "@/lib/reactions/browse";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const reactionType = parseReactionTypeParam(searchParams.get("type"));
   const targetType = parseBrowseTargetType(searchParams.get("targetType"));
@@ -31,4 +32,6 @@ export async function GET(request: NextRequest) {
   return apiSuccess(data, { headers: {
       "Cache-Control": "s-maxage=60, stale-while-revalidate=120",
     } });
-}
+});
+
+export { GET };

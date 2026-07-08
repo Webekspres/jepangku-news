@@ -9,10 +9,11 @@ import {
   resetEmailTemplateConfig,
   upsertEmailTemplateConfig,
 } from '@/lib/email/template-config';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type RouteParams = { params: Promise<{ templateId: string }> };
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: RouteParams) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -30,9 +31,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     category: definition.category,
     variables: definition.variables,
   });
-}
+});
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+const PUT = withRequestLogging(async (request: NextRequest, { params }: RouteParams) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -65,9 +66,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   });
 
   return apiSuccess(saved);
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: RouteParams) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -85,4 +86,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   });
 
   return apiSuccess(reset);
-}
+});
+
+export { GET, PUT, DELETE };

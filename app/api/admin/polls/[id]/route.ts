@@ -8,11 +8,12 @@ import {
   sanitizePlainField,
   sanitizeQuestionBundle,
 } from '@/lib/sanitizer';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type Params = { params: Promise<{ id: string }> };
 
 /* ── GET /api/admin/polls/[id] ── */
-export async function GET(request: NextRequest, { params }: Params) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -33,10 +34,10 @@ export async function GET(request: NextRequest, { params }: Params) {
   if (!poll) return apiError('Poll not found' , { status: 404 });
 
   return apiSuccess(poll);
-}
+});
 
 /* ── PATCH /api/admin/polls/[id] ── */
-export async function PATCH(request: NextRequest, { params }: Params) {
+const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -207,14 +208,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   });
 
   return apiSuccess({ message: 'Poll updated' });
-}
+});
 
 /* ── PATCH /api/admin/polls/[id]/close  (via ?action=close) ──
    We handle close in the same PATCH with status=CLOSED, but also
    expose a dedicated endpoint pattern via query param for clarity. */
 
 /* ── DELETE /api/admin/polls/[id] ── */
-export async function DELETE(request: NextRequest, { params }: Params) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -232,4 +233,6 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   await db.poll.delete({ where: { id } });
 
   return apiSuccess({ message: 'Poll deleted' });
-}
+});
+
+export { GET, PATCH, DELETE };

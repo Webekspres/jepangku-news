@@ -6,10 +6,11 @@ import { revalidateAdSlots } from "@/lib/ads/revalidate";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import { db } from "@/lib/db";
 import { sanitizeMediaUrl, sanitizePlainField } from "@/lib/sanitizer";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function GET(request: NextRequest, { params }: Params) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required" , { status: 403 });
 
@@ -18,9 +19,9 @@ export async function GET(request: NextRequest, { params }: Params) {
   if (!ad) return apiError("Ad not found" , { status: 404 });
 
   return apiSuccess(ad);
-}
+});
 
-export async function PATCH(request: NextRequest, { params }: Params) {
+const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required" , { status: 403 });
 
@@ -91,9 +92,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   });
 
   return apiSuccess({ message: "Ad updated" });
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: Params) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required" , { status: 403 });
 
@@ -112,4 +113,6 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   revalidateAdSlots(ad.position);
 
   return apiSuccess({ message: "Ad deleted" });
-}
+});
+
+export { GET, PATCH, DELETE };

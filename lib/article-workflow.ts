@@ -30,6 +30,13 @@ export function resolveUserPortalSubmitStatus(
   return 'DRAFT';
 }
 
+/** Copy konfirmasi sebelum artikel dikirim untuk direview (dipakai lintas komponen). */
+export const REVIEW_CONFIRM_TITLE =
+  'Apakah Anda yakin artikel ini siap untuk direview?';
+export const REVIEW_CONFIRM_DESCRIPTION =
+  'Artikel yang sedang dalam proses review tidak dapat diedit.';
+export const REVIEW_CONFIRM_LABEL = 'Ya, Kirim untuk Review';
+
 export function submitSuccessMessage(status: ArticleStatus, _isAdmin: boolean): string {
   if (status === 'DRAFT') return 'Draft berhasil disimpan';
   if (status === 'PUBLISHED') return 'Artikel berhasil dipublikasikan';

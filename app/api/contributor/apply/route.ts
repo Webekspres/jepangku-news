@@ -4,8 +4,9 @@ import { getCurrentUser } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { createContributorApplication } from '@/lib/contributor-applications';
 import { canCreateArticles } from '@/lib/contributor';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated' , { status: 401 });
@@ -55,4 +56,6 @@ export async function POST(request: NextRequest) {
     logger.error('contributor.apply.failed', { userId: user.id, errorMessage: error instanceof Error ? error.message : String(error) });
     return apiError('Gagal mengirim permohonan' , { status: 500 });
   }
-}
+});
+
+export { POST };

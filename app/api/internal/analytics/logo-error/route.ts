@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   try {
     const errorEvent = await request.json();
     
@@ -21,4 +22,6 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ success: false }, { status: 500 });
   }
-}
+});
+
+export { POST };

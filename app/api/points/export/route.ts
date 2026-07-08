@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { getUserPointTransactions } from '@/lib/points';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 function escapeCsv(value: string | number | null | undefined): string {
   const s = value == null ? '' : String(value);
@@ -11,7 +12,7 @@ function escapeCsv(value: string | number | null | undefined): string {
   return s;
 }
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated', { status: 401, code: 'UNAUTHORIZED' });
@@ -50,4 +51,6 @@ export async function GET(request: NextRequest) {
       'Content-Disposition': 'attachment; filename="riwayat-poin.csv"',
     },
   });
-}
+});
+
+export { GET };

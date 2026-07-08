@@ -6,11 +6,12 @@ import { auditAdminEntity } from '@/lib/audit-routes';
 import { createAdminSlug } from '@/lib/slug';
 import { MAX_NAVBAR_CATEGORIES } from '@/lib/categories/constants';
 import { countNavbarCategories } from '@/lib/categories/navbar';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function PATCH(
+const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -57,12 +58,12 @@ export async function PATCH(
   auditAdminEntity(admin, 'category', 'update', { type: 'category', id: updated.id, label: updated.name, href: '/admin/categories' });
 
   return apiSuccess(updated);
-}
+});
 
-export async function DELETE(
+const DELETE = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -84,4 +85,6 @@ export async function DELETE(
 
   await db.category.delete({ where: { id } });
   return apiSuccess({ message: 'Kategori berhasil dihapus' });
-}
+});
+
+export { PATCH, DELETE };

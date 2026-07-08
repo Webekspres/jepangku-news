@@ -3,11 +3,12 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { captureException } from '@/lib/monitoring';
 import { markNotificationRead } from '@/lib/notifications/queries';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function PATCH(
+const PATCH = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
-) {
+) => {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -25,4 +26,6 @@ export async function PATCH(
     await captureException(e, { route: 'notifications-mark-read' });
     return apiError('Gagal menandai notifikasi' , { status: 500 });
   }
-}
+});
+
+export { PATCH };

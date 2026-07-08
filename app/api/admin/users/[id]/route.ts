@@ -4,8 +4,9 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
 import { getUserPointBalance, getUserPointTransactions } from '@/lib/points';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -51,9 +52,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     })),
     stats: { bookmarkCount, quizAttempts, pollVotes, articleCount: articles.length },
   });
-}
+});
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const PUT = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -79,4 +80,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   return apiSuccess({ message: 'User updated' });
-}
+});
+
+export { GET, PUT };

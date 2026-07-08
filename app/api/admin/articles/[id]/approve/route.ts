@@ -4,8 +4,9 @@ import { getCurrentAdmin } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { recordStatusReview, setLastEditor } from '@/lib/article-audit';
 import { logger } from '@/lib/logger';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const POST = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -41,4 +42,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
 
   return apiSuccess({ message: 'Article approved and published' });
-}
+});
+
+export { POST };

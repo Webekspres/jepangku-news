@@ -9,6 +9,7 @@ import {
   youtubeThumbnailUrl,
 } from "@/lib/video/platform";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -19,7 +20,7 @@ async function clearOtherFeatured(exceptId: string) {
   });
 }
 
-export async function GET(request: NextRequest, { params }: Params) {
+const GET = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required", { status: 403 });
 
@@ -28,9 +29,9 @@ export async function GET(request: NextRequest, { params }: Params) {
   if (!video) return apiError("Video not found", { status: 404 });
 
   return apiSuccess(video);
-}
+});
 
-export async function PATCH(request: NextRequest, { params }: Params) {
+const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required", { status: 403 });
 
@@ -143,9 +144,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   const updated = await db.video.findUnique({ where: { id } });
   return apiSuccess({ message: "Video updated", video: updated });
-}
+});
 
-export async function DELETE(request: NextRequest, { params }: Params) {
+const DELETE = withRequestLogging(async (request: NextRequest, { params }: Params) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError("Admin access required", { status: 403 });
 
@@ -172,4 +173,6 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   revalidateHomeTv();
 
   return apiSuccess({ message: "Video deleted" });
-}
+});
+
+export { GET, PATCH, DELETE };

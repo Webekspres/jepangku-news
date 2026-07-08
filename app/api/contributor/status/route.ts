@@ -3,10 +3,11 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { getLatestContributorApplication } from '@/lib/contributor-applications';
 import { canCreateArticles } from '@/lib/contributor';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated' , { status: 401 });
@@ -26,4 +27,6 @@ export async function GET(request: NextRequest) {
     application,
     contributorApplicationStatus: user.contributorApplicationStatus ?? application?.status ?? null,
   });
-}
+});
+
+export { GET };

@@ -30,7 +30,12 @@ function logApiRequest(request: NextRequest) {
         userAgent: request.headers.get('user-agent') ?? undefined,
     });
 
-    const response = NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-request-id', reqId);
+
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
     response.headers.set('x-request-id', reqId);
     return response;
 }

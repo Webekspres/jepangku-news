@@ -3,8 +3,9 @@ import { apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { fetchLeaderboard } from '@/lib/leaderboard/queries';
 import { parseLeaderboardPeriod } from '@/lib/leaderboard/period';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const period = parseLeaderboardPeriod(
     request.nextUrl.searchParams.get('period'),
   );
@@ -19,4 +20,6 @@ export async function GET(request: NextRequest) {
         ? 'private, no-cache'
         : 's-maxage=60, stale-while-revalidate=120',
     } });
-}
+});
+
+export { GET };

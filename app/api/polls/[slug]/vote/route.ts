@@ -8,11 +8,12 @@ import { logger } from '@/lib/logger';
 import { gamificationFieldsFromAward } from '@/lib/gamification-response';
 import { awardPoints, type AwardPointsResult } from '@/lib/points';
 import { auditPollVote } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function POST(
+const POST = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
-) {
+) => {
   try {
     const user = await getCurrentUser(request);
     if (!user) return apiError('Not authenticated' , { status: 401 });
@@ -147,4 +148,6 @@ export async function POST(
     const message = e instanceof Error ? e.message : 'Vote failed';
     return apiError(message , { status: 500 });
   }
-}
+});
+
+export { POST };

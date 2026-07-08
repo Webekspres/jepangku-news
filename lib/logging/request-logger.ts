@@ -149,14 +149,18 @@ export async function logRequestComplete(
  *     return apiSuccess({ data });
  *   });
  */
-/** Type helper untuk route handler — NextRequest atau Request */
-type RouteHandler = (
+/**
+ * Type helper untuk route handler — NextRequest atau Request.
+ * Generic terhadap tipe params agar route dinamis (`[id]`) maupun catch-all
+ * (`[...path]` → `{ path: string[] }`) tetap kompatibel dengan tipe Next.js.
+ */
+type RouteHandler<TParams = Record<string, string>> = (
   request: NextRequest,
-  context: { params: Promise<Record<string, string>> },
+  context: { params: Promise<TParams> },
 ) => Promise<Response>;
 
-export function withRequestLogging(
-  handler: RouteHandler,
+export function withRequestLogging<TParams = Record<string, string>>(
+  handler: RouteHandler<TParams>,
   options?: { module?: string },
 ) {
   const log = options?.module
@@ -165,22 +169,25 @@ export function withRequestLogging(
 
   return async (
     request: NextRequest,
-    context: { params: Promise<Record<string, string>> },
+    context: { params: Promise<TParams> },
   ): Promise<Response> => {
-    const reqId = generateReqId();
+    // Reuse correlation ID from proxy middleware when available
+    const reqId = request.headers.get('x-request-id') ?? generateReqId();
     const start = Date.now();
     const url = new URL(request.url);
     const path = url.pathname + (url.search || '');
 
     try {
-      // Catat awal request
-      logRequestStart({
-        reqId,
-        method: request.method,
-        path,
-        ip: getClientIp(request),
-        userAgent: getUserAgent(request),
-      });
+      // proxy.ts already logs request.start — skip duplicate when reqId forwarded
+      if (!request.headers.get('x-request-id')) {
+        logRequestStart({
+          reqId,
+          method: request.method,
+          path,
+          ip: getClientIp(request),
+          userAgent: getUserAgent(request),
+        });
+      }
 
       // Jalankan handler
       const response = await handler(request, context);

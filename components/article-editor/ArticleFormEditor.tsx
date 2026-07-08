@@ -38,7 +38,7 @@ import ContributorGate from "@/components/ContributorGate";
 import RichTextEditor from "@/components/RichTextEditor";
 import { AutosaveIndicator } from "@/components/ui/autosave-indicator";
 import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
-import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
   newDraftClientId,
   useAutosave,
@@ -52,6 +52,9 @@ import {
   submitSuccessMessage,
   userPortalCreateSubtitle,
   userPortalEditSubtitle,
+  REVIEW_CONFIRM_TITLE,
+  REVIEW_CONFIRM_DESCRIPTION,
+  REVIEW_CONFIRM_LABEL,
 } from "@/lib/article-workflow";
 import {
   buildDraftPayload,
@@ -155,6 +158,7 @@ export function ArticleFormEditor({
   const { user } = useAuth();
   const router = useRouter();
   const isAdmin = isAuthUser(user) && isAdminAuthor(user);
+  const { confirm, confirmProps } = useConfirm();
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     [],
@@ -376,6 +380,20 @@ export function ArticleFormEditor({
     }
   };
 
+  const handleSubmitForReview = () => {
+    if (!form.title.trim() || !form.content.trim()) {
+      toast.error("Judul dan konten wajib diisi");
+      return;
+    }
+    confirm({
+      title: REVIEW_CONFIRM_TITLE,
+      description: REVIEW_CONFIRM_DESCRIPTION,
+      confirmLabel: REVIEW_CONFIRM_LABEL,
+      variant: "warning",
+      onConfirm: () => handleSubmit("PENDING_REVIEW"),
+    });
+  };
+
   // ---------------------------------------------------------------------------
   // Derived state untuk header
   // ---------------------------------------------------------------------------
@@ -409,6 +427,9 @@ export function ArticleFormEditor({
   return (
     <ContributorGate>
       <UnsavedChangesGuard enabled={cover.dirty && !loading} />
+
+      {/* Konfirmasi kirim untuk review */}
+      <ConfirmModal {...confirmProps} />
 
       {/* Restore draft lokal — hanya mode create */}
       {mode === "create" && (
@@ -598,7 +619,7 @@ export function ArticleFormEditor({
                   </Button>
                 ) : (
                   <Button
-                    onClick={() => handleSubmit("PENDING_REVIEW")}
+                    onClick={handleSubmitForReview}
                     disabled={loading}
                     data-testid="submit-review-btn"
                   >

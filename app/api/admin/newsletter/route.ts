@@ -6,8 +6,9 @@ import {
   deleteNewsletterSubscription,
   listNewsletterSubscriptions,
 } from '@/lib/newsletter';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required' , { status: 403 });
@@ -23,9 +24,9 @@ export async function GET(request: NextRequest) {
 
   const data = await listNewsletterSubscriptions({ page, pageSize, status, search });
   return apiSuccess(data);
-}
+});
 
-export async function DELETE(request: NextRequest) {
+const DELETE = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required' , { status: 403 });
@@ -50,4 +51,6 @@ export async function DELETE(request: NextRequest) {
   });
 
   return apiSuccess({ ok: true });
-}
+});
+
+export { GET, DELETE };

@@ -6,8 +6,9 @@ import {
   listNotificationsForUser,
   parseNotificationListQuery,
 } from '@/lib/notifications/queries';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -32,4 +33,6 @@ export async function GET(request: NextRequest) {
     await captureException(e, { route: 'notifications-list' });
     return apiError('Gagal memuat notifikasi' , { status: 500 });
   }
-}
+});
+
+export { GET };

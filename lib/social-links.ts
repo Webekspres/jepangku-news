@@ -68,14 +68,26 @@ function getDefaultPublicSocialLinks(): SocialLink[] {
   }));
 }
 
+// Kode error tingkat koneksi (Prisma P100x + driver pg/Node net) yang berarti
+// database tidak terjangkau — misal saat prerender build tanpa DB berjalan.
+const DB_UNREACHABLE_CODES = new Set([
+  "P1001", // Can't reach database server
+  "P1002", // Database server timeout
+  "P1017", // Server has closed the connection
+  "ECONNREFUSED",
+  "ETIMEDOUT",
+  "ENOTFOUND",
+  "ECONNRESET",
+]);
+
 function isDatabaseUnreachableError(error: unknown): boolean {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    return error.code === "P1001" || error.code === "P1002";
-  }
   if (error instanceof Prisma.PrismaClientInitializationError) {
     return true;
   }
-  return false;
+  // Cek code baik dari PrismaClientKnownRequestError maupun error driver pg
+  // yang dibungkus (mis. { code: "ECONNREFUSED" }).
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === "string" && DB_UNREACHABLE_CODES.has(code);
 }
 
 async function fetchPublicSocialLinks(): Promise<SocialLink[]> {

@@ -5,10 +5,11 @@ import {
   getQuizLeaderboard,
   parseQuizLeaderboardPeriod,
 } from '@/lib/quiz/leaderboard';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 type RouteContext = { params: Promise<{ slug: string }> };
 
-export async function GET(request: NextRequest, context: RouteContext) {
+const GET = withRequestLogging(async (request: NextRequest, context: RouteContext) => {
   const { slug } = await context.params;
   const quiz = await db.quiz.findFirst({
     where: { slug, status: 'ACTIVE' },
@@ -30,4 +31,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     period,
     entries,
   });
-}
+});
+
+export { GET };

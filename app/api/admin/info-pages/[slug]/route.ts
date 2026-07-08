@@ -6,11 +6,12 @@ import { db } from '@/lib/db';
 import { captureException } from '@/lib/monitoring';
 import { isInfoPageSlug } from '@/lib/info-pages';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(
+const GET = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -27,12 +28,12 @@ export async function GET(
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
   });
-}
+});
 
-export async function PUT(
+const PUT = withRequestLogging(async (
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
-) {
+) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -97,4 +98,6 @@ export async function PUT(
     await captureException(e, { route: 'admin-info-pages-update', slug });
     return apiError(message , { status: 500 });
   }
-}
+});
+
+export { GET, PUT };

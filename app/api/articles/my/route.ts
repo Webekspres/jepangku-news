@@ -4,8 +4,9 @@ import { Prisma, ArticleStatus } from '@prisma/client';
 import { getCurrentUser } from '@/lib/auth';
 import { canCreateArticles, CONTRIBUTOR_REQUIRED_ERROR } from '@/lib/contributor';
 import { db } from '@/lib/db';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) return apiError('Not authenticated' , { status: 401 });
   if (!canCreateArticles(user)) {
@@ -73,4 +74,6 @@ export async function GET(request: NextRequest) {
     totalPages,
     hasMore: page < totalPages,
   });
-}
+});
+
+export { GET };

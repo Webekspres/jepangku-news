@@ -3,8 +3,9 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { auditAdminEntity } from '@/lib/audit-routes';
 import { db } from '@/lib/db';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+const PUT = withRequestLogging(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -21,4 +22,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }, undefined, { isHot: article.isHot });
 
   return apiSuccess({ message: 'Updated', isHot: article.isHot });
-}
+});
+
+export { PUT };

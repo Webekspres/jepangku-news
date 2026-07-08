@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { listContributorApplicationsForAdmin } from '@/lib/contributor-applications';
 import type { ContributorApplicationStatus } from '@prisma/client';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
 const VALID_STATUSES = new Set<ContributorApplicationStatus>([
   'PENDING',
@@ -10,7 +11,7 @@ const VALID_STATUSES = new Set<ContributorApplicationStatus>([
   'REJECTED',
 ]);
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required' , { status: 403 });
@@ -27,4 +28,6 @@ export async function GET(request: NextRequest) {
 
   const result = await listContributorApplicationsForAdmin({ status, page });
   return apiSuccess(result);
-}
+});
+
+export { GET };

@@ -13,8 +13,9 @@ import {
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { recordStatusReview } from '@/lib/article-audit';
 import { auditArticleCreate } from '@/lib/audit-routes';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -60,9 +61,9 @@ export async function GET(request: NextRequest) {
     totalPages,
     hasMore: page < totalPages,
   });
-}
+});
 
-export async function POST(request: NextRequest) {
+const POST = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) return apiError('Admin access required' , { status: 403 });
 
@@ -187,4 +188,6 @@ export async function POST(request: NextRequest) {
     await captureException(e, { route: 'admin-articles-create' });
     return apiError(e.message || 'Failed to create article' , { status: 500 });
   }
-}
+});
+
+export { GET, POST };

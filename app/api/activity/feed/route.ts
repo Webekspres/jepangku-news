@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { getUserActivityFeed } from '@/lib/activity/feed';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const user = await getCurrentUser(request);
   if (!user) {
     return apiError('Not authenticated' , { status: 401 });
@@ -16,4 +17,6 @@ export async function GET(request: NextRequest) {
 
   const items = await getUserActivityFeed(user.id, limit);
   return apiSuccess({ items });
-}
+});
+
+export { GET };

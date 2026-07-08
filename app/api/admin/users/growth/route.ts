@@ -3,8 +3,9 @@ import { apiError, apiSuccess } from '@/lib/api-response';
 import { getCurrentAdmin } from '@/lib/auth';
 import { getUserGrowthSeries } from '@/lib/admin-monitoring';
 import { parseAnalyticsPeriod } from '@/lib/analytics';
+import { withRequestLogging } from '@/lib/logging/request-logger';
 
-export async function GET(request: NextRequest) {
+const GET = withRequestLogging(async (request: NextRequest) => {
   const admin = await getCurrentAdmin(request);
   if (!admin) {
     return apiError('Admin access required' , { status: 403 });
@@ -16,4 +17,6 @@ export async function GET(request: NextRequest) {
 
   const data = await getUserGrowthSeries({ period, granularity });
   return apiSuccess(data);
-}
+});
+
+export { GET };
