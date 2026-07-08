@@ -19,7 +19,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
-import { isAdminAuthor } from "@/lib/article-workflow";
+import {
+  isAdminAuthor,
+  REVIEW_CONFIRM_TITLE,
+  REVIEW_CONFIRM_DESCRIPTION,
+  REVIEW_CONFIRM_LABEL,
+} from "@/lib/article-workflow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ArticleCardSkeleton from "@/components/skeletons/ArticleCardSkeleton";
@@ -111,22 +116,30 @@ export default function MyArticlesPage() {
     });
   };
 
-  const handleSubmitForReview = async (article: any) => {
-    try {
-      const res = await fetch(`/api/articles/${article.slug}/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "PENDING_REVIEW" }),
-      });
-      if (!res.ok) {
-        const e = await parseApiResponse(res);
-        throw new Error(e.error || "Gagal mengirim");
-      }
-      toast.success("Artikel dikirim untuk review");
-      await loadArticles(page, filter);
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Gagal mengirim");
-    }
+  const handleSubmitForReview = (article: any) => {
+    confirm({
+      title: REVIEW_CONFIRM_TITLE,
+      description: REVIEW_CONFIRM_DESCRIPTION,
+      confirmLabel: REVIEW_CONFIRM_LABEL,
+      variant: "warning",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/articles/${article.slug}/update`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "PENDING_REVIEW" }),
+          });
+          if (!res.ok) {
+            const e = await parseApiResponse(res);
+            throw new Error(e.error || "Gagal mengirim");
+          }
+          toast.success("Artikel dikirim untuk review");
+          await loadArticles(page, filter);
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal mengirim");
+        }
+      },
+    });
   };
 
   const handlePublish = async (article: any) => {
