@@ -39,6 +39,8 @@ Untuk integrasi Core, mulai dari **[ecosystem-integration.md](./ecosystem-integr
 
 | Dokumen | Isi |
 | :--- | :--- |
+| [runbooks/checking-errors-grafana.md](./runbooks/checking-errors-grafana.md) | **Cek error production** — Grafana, LogQL, skenario umum |
+| [runbooks/core-service-down.md](./runbooks/core-service-down.md) | Core API down — graceful degrade portal |
 | [cloudflare-r2-setup.md](./cloudflare-r2-setup.md) | Setup media R2 |
 | [soft-launch-content.md](./soft-launch-content.md) | Checklist konten soft launch |
 
