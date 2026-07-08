@@ -149,14 +149,18 @@ export async function logRequestComplete(
  *     return apiSuccess({ data });
  *   });
  */
-/** Type helper untuk route handler — NextRequest atau Request */
-type RouteHandler = (
+/**
+ * Type helper untuk route handler — NextRequest atau Request.
+ * Generic terhadap tipe params agar route dinamis (`[id]`) maupun catch-all
+ * (`[...path]` → `{ path: string[] }`) tetap kompatibel dengan tipe Next.js.
+ */
+type RouteHandler<TParams = Record<string, string>> = (
   request: NextRequest,
-  context: { params: Promise<Record<string, string>> },
+  context: { params: Promise<TParams> },
 ) => Promise<Response>;
 
-export function withRequestLogging(
-  handler: RouteHandler,
+export function withRequestLogging<TParams = Record<string, string>>(
+  handler: RouteHandler<TParams>,
   options?: { module?: string },
 ) {
   const log = options?.module
@@ -165,7 +169,7 @@ export function withRequestLogging(
 
   return async (
     request: NextRequest,
-    context: { params: Promise<Record<string, string>> },
+    context: { params: Promise<TParams> },
   ): Promise<Response> => {
     // Reuse correlation ID from proxy middleware when available
     const reqId = request.headers.get('x-request-id') ?? generateReqId();
