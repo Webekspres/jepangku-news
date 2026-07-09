@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import AdBannerCropModal from "@/components/admin/ads/AdBannerCropModal";
 import { getAdSlotDimensions } from "@/lib/ads/dimensions";
 import {
+  getArticleImageUploadHint,
+  validateArticleImageFileFull,
+} from "@/lib/article-form-helpers";
+import {
   deleteMediaFile,
   discardStagedUrl,
   getReplacedUrl,
@@ -34,13 +38,13 @@ export default function AdBannerUploadField({
 
   const { width, height } = getAdSlotDimensions(position);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Format harus JPG, PNG, atau WebP");
+    const validationError = await validateArticleImageFileFull(file, "banner");
+    if (validationError) {
+      toast.error(validationError);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -106,7 +110,8 @@ export default function AdBannerUploadField({
         <div>
           <label className="block text-sm font-semibold">Gambar banner *</label>
           <p className="text-xs text-jepang-muted mt-0.5">
-            Crop ke {width}×{height}px sesuai slot
+            {getArticleImageUploadHint("banner")} Crop ke {width}×{height}px
+            sesuai slot.
           </p>
         </div>
         <div className="flex items-center gap-2">
