@@ -3,14 +3,14 @@
  * target_index = urutan artikel milik user (bukan admin) yang published/pending.
  */
 
-const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
+const { CLERK_TEST_SAMPLE_USER_EMAIL, DUMMY_USER_EMAILS } = require("./clerk-test-emails.js");
 
 const EDITORS = [
   CLERK_TEST_SAMPLE_USER_EMAIL,
-  "siti.rahayu@gmail.com",
-  "andi.wijaya@gmail.com",
-  "dewi.kusuma@gmail.com",
-  "rizky.pratama@gmail.com",
+  DUMMY_USER_EMAILS.sitirahayu,
+  DUMMY_USER_EMAILS.andiwijaya,
+  DUMMY_USER_EMAILS.dewikusuma,
+  DUMMY_USER_EMAILS.rizkypratama,
 ];
 
 const CHANGE_NOTES = [

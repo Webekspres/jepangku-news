@@ -4,17 +4,17 @@
  */
 
 const { IMAGES } = require("./images.js");
-const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
+const { CLERK_TEST_SAMPLE_USER_EMAIL, DUMMY_USER_EMAILS } = require("./clerk-test-emails.js");
 
 const AUTHORS = [
   { email: CLERK_TEST_SAMPLE_USER_EMAIL, displayName: "Budi" },
-  { email: "siti.rahayu@gmail.com", displayName: "Siti" },
-  { email: "andi.wijaya@gmail.com", displayName: "Andi" },
-  { email: "dewi.kusuma@gmail.com", displayName: "Dewi" },
-  { email: "rizky.pratama@gmail.com", displayName: "Rizky" },
-  { email: "maya.indah@gmail.com", displayName: "Maya" },
-  { email: "fajar.nugroho@gmail.com", displayName: "Fajar" },
-  { email: "lina.hartati@gmail.com", displayName: "Lina" },
+  { email: DUMMY_USER_EMAILS.sitirahayu, displayName: "Siti" },
+  { email: DUMMY_USER_EMAILS.andiwijaya, displayName: "Andi" },
+  { email: DUMMY_USER_EMAILS.dewikusuma, displayName: "Dewi" },
+  { email: DUMMY_USER_EMAILS.rizkypratama, displayName: "Rizky" },
+  { email: DUMMY_USER_EMAILS.mayaindah, displayName: "Maya" },
+  { email: DUMMY_USER_EMAILS.fajarnugroho, displayName: "Fajar" },
+  { email: DUMMY_USER_EMAILS.linahartati, displayName: "Lina" },
 ];
 
 const CATEGORY_COVER_KEY = {

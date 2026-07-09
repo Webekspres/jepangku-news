@@ -1,0 +1,10 @@
+BEGIN;
+UPDATE users SET email = 'linahartati+clerk_test@jepangku.com' WHERE email = 'lina.hartati@gmail.com';
+UPDATE users SET email = 'fajarnugroho+clerk_test@jepangku.com' WHERE email = 'fajar.nugroho@gmail.com';
+UPDATE users SET email = 'mayaindah+clerk_test@jepangku.com' WHERE email = 'maya.indah@gmail.com';
+UPDATE users SET email = 'rizkypratama+clerk_test@jepangku.com' WHERE email = 'rizky.pratama@gmail.com';
+UPDATE users SET email = 'dewikusuma+clerk_test@jepangku.com' WHERE email = 'dewi.kusuma@gmail.com';
+UPDATE users SET email = 'andiwijaya+clerk_test@jepangku.com' WHERE email = 'andi.wijaya@gmail.com';
+UPDATE users SET email = 'sitirahayu+clerk_test@jepangku.com' WHERE email = 'siti.rahayu@gmail.com';
+UPDATE users SET email = 'budisantoso+clerk_test@jepangku.com' WHERE email = 'budi.santoso@gmail.com';
+COMMIT;
