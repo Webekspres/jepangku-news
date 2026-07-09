@@ -14,6 +14,7 @@ import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
 import { assignArticleSchedule, parseScheduledPublishAt } from '@/lib/articles/schedule';
+import { getArticleScheduleErrorResponse } from '@/lib/articles/schedule-errors';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { logger } from '@/lib/logger';
 import { withRequestLogging } from '@/lib/logging/request-logger';
@@ -128,11 +129,16 @@ const PUT = withRequestLogging(async (request: NextRequest, { params }: { params
     });
 
     if (updateData.status === 'SCHEDULED' && updateData.scheduledPublishAt) {
-      await assignArticleSchedule({
-        articleId: article.id,
-        scheduledAt: updateData.scheduledPublishAt as Date,
-        previousMessageId: article.qstashMessageId,
-      });
+      try {
+        await assignArticleSchedule({
+          articleId: article.id,
+          scheduledAt: updateData.scheduledPublishAt as Date,
+          previousMessageId: article.qstashMessageId,
+        });
+      } catch (error) {
+        const { message, status } = getArticleScheduleErrorResponse(error);
+        return apiError(message, { status });
+      }
     }
 
     const changedFields = Object.keys(updateData).filter(k => k !== 'slug');

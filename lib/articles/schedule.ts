@@ -1,5 +1,8 @@
 import { db } from '@/lib/db';
-import { shouldPublishEmailViaQstash } from '@/lib/email/config';
+import {
+  isQstashConfigured,
+  shouldPublishEmailViaQstash,
+} from '@/lib/email/config';
 import { getQstashClient } from '@/lib/email/qstash';
 import { logger } from '@/lib/logger';
 import { getSiteUrl } from '@/lib/site-url';
@@ -13,6 +16,51 @@ export {
 } from '@/lib/articles/schedule-validation';
 
 const log = logger.child({ module: 'article.schedule' });
+
+/** Thrown when a scheduled publish job cannot be enqueued (production must never fallback-publish). */
+export class ArticleScheduleEnqueueError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    this.name = 'ArticleScheduleEnqueueError';
+    if (options?.cause !== undefined) {
+      this.cause = options.cause;
+    }
+  }
+}
+
+export function isArticleScheduleConfigured(): boolean {
+  return (
+    isQstashConfigured() &&
+    Boolean(process.env.NEXT_PUBLIC_APP_URL?.trim()) &&
+    Boolean(process.env.EMAIL_QUEUE_SECRET?.trim())
+  );
+}
+
+function assertProductionScheduleReady(): void {
+  if (process.env.NODE_ENV !== 'production') return;
+
+  if (!isQstashConfigured()) {
+    throw new ArticleScheduleEnqueueError(
+      'Penjadwalan artikel membutuhkan QSTASH_TOKEN di production.',
+    );
+  }
+
+  if (!process.env.NEXT_PUBLIC_APP_URL?.trim()) {
+    throw new ArticleScheduleEnqueueError(
+      'Penjadwalan artikel membutuhkan NEXT_PUBLIC_APP_URL di production.',
+    );
+  }
+
+  if (!process.env.EMAIL_QUEUE_SECRET?.trim()) {
+    throw new ArticleScheduleEnqueueError(
+      'Penjadwalan artikel membutuhkan EMAIL_QUEUE_SECRET di production.',
+    );
+  }
+}
+
+function shouldUseDevImmediateFallback(): boolean {
+  return process.env.NODE_ENV === 'development' && !shouldPublishEmailViaQstash();
+}
 
 function getPublishProcessUrl(): string {
   return `${getSiteUrl()}/api/internal/articles/publish`;
@@ -47,6 +95,8 @@ export async function scheduleArticlePublishJob(params: {
   articleId: string;
   scheduledAt: Date;
 }): Promise<string | null> {
+  assertProductionScheduleReady();
+
   const processUrl = getPublishProcessUrl();
   const client = getQstashClient();
   const notBefore = Math.floor(params.scheduledAt.getTime() / 1000);
@@ -58,7 +108,7 @@ export async function scheduleArticlePublishJob(params: {
         url: processUrl,
         body: { articleId: params.articleId },
         notBefore,
-        deduplicationId: `article-scheduled-publish:${params.articleId}`,
+        deduplicationId: `article-scheduled-publish-${params.articleId}`,
         ...(headers ? { headers } : {}),
       });
 
@@ -71,32 +121,43 @@ export async function scheduleArticlePublishJob(params: {
 
       return result.messageId;
     } catch (error) {
-      log.warn('article.schedule.qstash_failed', {
+      log.error('article.schedule.qstash_failed', {
         articleId: params.articleId,
+        processUrl,
         errorMessage: error instanceof Error ? error.message : 'unknown',
       });
+      throw new ArticleScheduleEnqueueError(
+        'Gagal menjadwalkan publikasi artikel. Periksa QSTASH_TOKEN, NEXT_PUBLIC_APP_URL, dan EMAIL_QUEUE_SECRET.',
+        { cause: error },
+      );
     }
   }
 
-  log.warn('article.schedule.fallback_immediate', {
-    articleId: params.articleId,
-    reason: 'QSTASH_UNAVAILABLE',
-  });
-
-  // Dev / test fallback: process immediately when QStash is unavailable.
-  void executeArticlePublish({
-    articleId: params.articleId,
-    reviewerId: 'system',
-    note: 'Dipublikasikan otomatis (fallback tanpa QStash)',
-    source: 'fallback_immediate',
-  }).catch((error) => {
-    log.warn('article.schedule.fallback_failed', {
+  if (shouldUseDevImmediateFallback()) {
+    log.warn('article.schedule.fallback_immediate', {
       articleId: params.articleId,
-      errorMessage: error instanceof Error ? error.message : 'unknown',
+      reason: 'DEV_WITHOUT_QSTASH',
     });
-  });
 
-  return null;
+    // Dev-only: QStash cannot reach localhost unless QSTASH_PUBLISH_IN_DEV=true.
+    void executeArticlePublish({
+      articleId: params.articleId,
+      reviewerId: 'system',
+      note: 'Dipublikasikan otomatis (fallback dev tanpa QStash)',
+      source: 'fallback_immediate',
+    }).catch((error) => {
+      log.warn('article.schedule.fallback_failed', {
+        articleId: params.articleId,
+        errorMessage: error instanceof Error ? error.message : 'unknown',
+      });
+    });
+
+    return null;
+  }
+
+  throw new ArticleScheduleEnqueueError(
+    'Layanan penjadwalan artikel tidak tersedia. Konfigurasi QStash belum lengkap.',
+  );
 }
 
 export async function assignArticleSchedule(params: {

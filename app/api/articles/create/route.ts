@@ -15,6 +15,7 @@ import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { auditArticleCreate } from '@/lib/audit-routes';
 import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
 import { assignArticleSchedule, parseScheduledPublishAt } from '@/lib/articles/schedule';
+import { getArticleScheduleErrorResponse } from '@/lib/articles/schedule-errors';
 import { logger } from '@/lib/logger';
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -132,11 +133,25 @@ const POST = withRequestLogging(async (request: NextRequest) => {
         });
 
     if (resolvedStatus === 'SCHEDULED' && scheduledAt) {
-      await assignArticleSchedule({
-        articleId: article.id,
-        scheduledAt,
-        previousMessageId: existing?.qstashMessageId,
-      });
+      try {
+        await assignArticleSchedule({
+          articleId: article.id,
+          scheduledAt,
+          previousMessageId: existing?.qstashMessageId,
+        });
+      } catch (error) {
+        await db.article.update({
+          where: { id: article.id },
+          data: {
+            status: existing?.status ?? 'DRAFT',
+            scheduledPublishAt: null,
+            qstashMessageId: null,
+            publishedAt: existing?.publishedAt ?? null,
+          },
+        });
+        const { message, status } = getArticleScheduleErrorResponse(error);
+        return apiError(message, { status });
+      }
     }
 
     if (tags.length > 0) {
