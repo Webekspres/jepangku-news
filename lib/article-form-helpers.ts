@@ -3,6 +3,7 @@ import type { ArticleFormSnapshot } from '@/hooks/useAutosave';
 export type ArticleImagePurpose = 'avatar' | 'cover' | 'content' | 'banner';
 
 /** Maks. ukuran file gambar untuk semua upload (cover, konten, avatar, banner). */
+
 export const ARTICLE_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
 export const ARTICLE_IMAGE_MAX_LABEL = '5 MB';
