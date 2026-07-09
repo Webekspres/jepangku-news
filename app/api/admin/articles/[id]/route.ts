@@ -12,6 +12,7 @@ import {
   clearArticleSchedule,
   parseScheduledPublishAt,
 } from '@/lib/articles/schedule';
+import { getArticleScheduleErrorResponse } from '@/lib/articles/schedule-errors';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -124,11 +125,16 @@ const PATCH = withRequestLogging(async (
       if (!parsed.ok) {
         return apiError(parsed.error, { status: 400 });
       }
-      await assignArticleSchedule({
-        articleId: id,
-        scheduledAt: parsed.date,
-        previousMessageId: article.qstashMessageId,
-      });
+      try {
+        await assignArticleSchedule({
+          articleId: id,
+          scheduledAt: parsed.date,
+          previousMessageId: article.qstashMessageId,
+        });
+      } catch (error) {
+        const { message, status } = getArticleScheduleErrorResponse(error);
+        return apiError(message, { status });
+      }
     } else if (nextStatus === 'SCHEDULED' && article.status !== 'SCHEDULED') {
       return apiError('scheduledPublishAt wajib diisi untuk artikel terjadwal', { status: 400 });
     }

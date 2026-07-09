@@ -2,18 +2,9 @@
  * Generator reaksi untuk artikel, poll, quiz, dan komentar (thumb up/down).
  */
 
-const { CLERK_TEST_SAMPLE_USER_EMAIL } = require("./clerk-test-emails.js");
+const { CLERK_TEST_SAMPLE_USER_EMAIL, DUMMY_USER_EMAIL_LIST } = require("./clerk-test-emails.js");
 
-const AUTHORS = [
-  CLERK_TEST_SAMPLE_USER_EMAIL,
-  "siti.rahayu@gmail.com",
-  "andi.wijaya@gmail.com",
-  "dewi.kusuma@gmail.com",
-  "rizky.pratama@gmail.com",
-  "maya.indah@gmail.com",
-  "fajar.nugroho@gmail.com",
-  "lina.hartati@gmail.com",
-];
+const AUTHORS = [CLERK_TEST_SAMPLE_USER_EMAIL, ...DUMMY_USER_EMAIL_LIST.filter((e) => e !== CLERK_TEST_SAMPLE_USER_EMAIL)];
 
 const ARTICLE_REACTIONS = [
   "LOVE",

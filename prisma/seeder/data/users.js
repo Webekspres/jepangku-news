@@ -1,8 +1,10 @@
+const { DUMMY_USER_EMAILS } = require("./clerk-test-emails.js");
+
 /** `targetXp` dipakai script Core `seed-dev-data` untuk leaderboard dev. */
 const SAMPLE_USERS = [
   {
     id: "seed_budisantoso",
-    email: "budi.santoso@gmail.com",
+    email: DUMMY_USER_EMAILS.budisantoso,
     username: "budisantoso",
     name: "Budi Santoso",
     displayName: "Budi ✨",
@@ -11,7 +13,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_sitirahayu",
-    email: "siti.rahayu@gmail.com",
+    email: DUMMY_USER_EMAILS.sitirahayu,
     username: "sitirahayu",
     name: "Siti Rahayu",
     displayName: "Siti Rahayu",
@@ -20,7 +22,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_andiwijaya",
-    email: "andi.wijaya@gmail.com",
+    email: DUMMY_USER_EMAILS.andiwijaya,
     username: "andiwijaya",
     name: "Andi Wijaya",
     displayName: "Andi W.",
@@ -29,7 +31,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_dewikusuma",
-    email: "dewi.kusuma@gmail.com",
+    email: DUMMY_USER_EMAILS.dewikusuma,
     username: "dewikusuma",
     name: "Dewi Kusuma",
     displayName: "Dewi 🌸",
@@ -38,7 +40,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_rizkypratama",
-    email: "rizky.pratama@gmail.com",
+    email: DUMMY_USER_EMAILS.rizkypratama,
     username: "rizkypratama",
     name: "Rizky Pratama",
     displayName: "Rizky",
@@ -47,7 +49,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_mayaindah",
-    email: "maya.indah@gmail.com",
+    email: DUMMY_USER_EMAILS.mayaindah,
     username: "mayaindah",
     name: "Maya Indah",
     displayName: "Maya Indah",
@@ -56,7 +58,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_fajarnugroho",
-    email: "fajar.nugroho@gmail.com",
+    email: DUMMY_USER_EMAILS.fajarnugroho,
     username: "fajarnugroho",
     name: "Fajar Nugroho",
     displayName: "Fajar ⚡",
@@ -65,7 +67,7 @@ const SAMPLE_USERS = [
   },
   {
     id: "seed_linahartati",
-    email: "lina.hartati@gmail.com",
+    email: DUMMY_USER_EMAILS.linahartati,
     username: "linahartati",
     name: "Lina Hartati",
     displayName: "Lina",

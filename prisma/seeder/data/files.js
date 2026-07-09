@@ -5,6 +5,7 @@
 const {
   CLERK_TEST_ADMIN_EMAIL,
   CLERK_TEST_SAMPLE_USER_EMAIL,
+  DUMMY_USER_EMAILS,
 } = require("./clerk-test-emails.js");
 
 const FILES_DATA = [
@@ -16,35 +17,35 @@ const FILES_DATA = [
     size: 48210,
   },
   {
-    user_email: "siti.rahayu@gmail.com",
+    user_email: DUMMY_USER_EMAILS.sitirahayu,
     storage_path: "jepangku/uploads/seed/siti-cover.jpg",
     original_filename: "kyoto-trip-cover.jpg",
     content_type: "image/jpeg",
     size: 312004,
   },
   {
-    user_email: "andi.wijaya@gmail.com",
+    user_email: DUMMY_USER_EMAILS.andiwijaya,
     storage_path: "jepangku/uploads/seed/andi-figure.png",
     original_filename: "figure-collection.png",
     content_type: "image/png",
     size: 890120,
   },
   {
-    user_email: "dewi.kusuma@gmail.com",
+    user_email: DUMMY_USER_EMAILS.dewikusuma,
     storage_path: "jepangku/uploads/seed/dewi-kanji.png",
     original_filename: "kanji-cheatsheet.png",
     content_type: "image/png",
     size: 156800,
   },
   {
-    user_email: "maya.indah@gmail.com",
+    user_email: DUMMY_USER_EMAILS.mayaindah,
     storage_path: "jepangku/uploads/seed/maya-ramen.jpg",
     original_filename: "ramen-review.jpg",
     content_type: "image/jpeg",
     size: 245600,
   },
   {
-    user_email: "fajar.nugroho@gmail.com",
+    user_email: DUMMY_USER_EMAILS.fajarnugroho,
     storage_path: "jepangku/uploads/seed/fajar-cosplay.webp",
     original_filename: "cosplay-preview.webp",
     content_type: "image/webp",
@@ -59,7 +60,7 @@ const FILES_DATA = [
     is_deleted: false,
   },
   {
-    user_email: "rizky.pratama@gmail.com",
+    user_email: DUMMY_USER_EMAILS.rizkypratama,
     storage_path: "jepangku/uploads/seed/rizky-old-draft.gif",
     original_filename: "draft-animation.gif",
     content_type: "image/gif",

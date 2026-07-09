@@ -8,6 +8,7 @@ import {
   assignArticleSchedule,
   parseScheduledPublishAt,
 } from '@/lib/articles/schedule';
+import { getArticleScheduleErrorResponse } from '@/lib/articles/schedule-errors';
 import { logger } from '@/lib/logger';
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -56,11 +57,20 @@ const POST = withRequestLogging(async (request: NextRequest, { params }: { param
       },
     });
 
-    await assignArticleSchedule({
-      articleId: id,
-      scheduledAt: parsed.date,
-      previousMessageId: article.qstashMessageId,
-    });
+    try {
+      await assignArticleSchedule({
+        articleId: id,
+        scheduledAt: parsed.date,
+        previousMessageId: article.qstashMessageId,
+      });
+    } catch (error) {
+      await db.article.update({
+        where: { id },
+        data: { status: previousStatus },
+      });
+      const { message, status } = getArticleScheduleErrorResponse(error);
+      return apiError(message, { status });
+    }
 
     await recordStatusReview({
       articleId: id,
