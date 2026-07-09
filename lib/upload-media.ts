@@ -1,6 +1,15 @@
 import { parseApiResponse } from '@/lib/fetch-api';
+import { validateArticleImageFile } from '@/lib/article-form-helpers';
 import { parseUploadApiResponse } from '@/lib/upload-errors';
+
 export type UploadPurpose = 'avatar' | 'cover' | 'content' | 'banner';
+
+function assertUploadableImageFile(file: File): void {
+  const validationError = validateArticleImageFile(file);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+}
 
 export type UploadMediaResult = {
   url: string;
@@ -11,6 +20,8 @@ export async function uploadMediaFile(
   file: File,
   purpose: UploadPurpose = 'content',
 ): Promise<UploadMediaResult> {
+  assertUploadableImageFile(file);
+
   const fd = new FormData();
   fd.append('file', file);
   fd.append('purpose', purpose);
@@ -69,6 +80,8 @@ export function stageFile(
   purpose: UploadPurpose = 'content',
   replacedUrl?: string,
 ): string {
+  assertUploadableImageFile(file);
+
   const blobUrl = URL.createObjectURL(file);
   stagedRegistry.set(blobUrl, { file, purpose, replacedUrl });
   return blobUrl;

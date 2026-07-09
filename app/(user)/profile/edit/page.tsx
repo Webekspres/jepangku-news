@@ -25,6 +25,10 @@ import { preloadMediaImage } from "@/lib/media/client-cache";
 import { useStagedImage } from "@/hooks/useStagedImage";
 import UserAvatar from "@/components/media/UserAvatar";
 import { AVATAR_OUTPUT_SIZE } from "@/lib/avatar-crop";
+import {
+  getArticleImageUploadHint,
+  validateArticleImageFileFull,
+} from "@/lib/article-form-helpers";
 import { shouldApplyProfileSnapshot } from "@/lib/profile-form-state";
 
 interface ProfileForm {
@@ -101,25 +105,28 @@ export default function EditProfilePage() {
       });
   }, [user, hasUserEditedForm, form]);
 
-  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Format harus JPG, PNG, GIF, atau WebP");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    const validationError = await validateArticleImageFileFull(file, "avatar");
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     const objectUrl = URL.createObjectURL(file);
     setCropImageSrc(objectUrl);
     setCropOpen(true);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const stageCroppedAvatar = async (file: File) => {
-    avatar.selectFile(file);
+    const error = await avatar.selectFile(file);
+    if (error) {
+      toast.error(error);
+      return;
+    }
     toast.success('Foto siap. Klik "Simpan Perubahan" untuk menerapkan.');
   };
 
@@ -270,10 +277,15 @@ export default function EditProfilePage() {
                 {/* Upload controls */}
                 <div className="flex-1">
                   <p className="text-sm text-jepang-muted mb-3">
-                    Unggah foto JPG, PNG, atau WebP. Akan di-crop persegi{" "}
+                    {getArticleImageUploadHint("avatar")} Akan di-crop persegi{" "}
                     {AVATAR_OUTPUT_SIZE}×{AVATAR_OUTPUT_SIZE}px. Foto baru diunggah
                     saat kamu menyimpan perubahan.
                   </p>
+                  {avatar.validationError ? (
+                    <p className="text-sm text-jepang-red mb-3" role="alert">
+                      {avatar.validationError}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
