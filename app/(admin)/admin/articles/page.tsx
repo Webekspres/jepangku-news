@@ -777,7 +777,9 @@ export default function AdminArticlesPage() {
                               articleId={article.id}
                               layout="inline"
                               disabled={actionLoading === article.id}
-                              onComplete={() => Promise.all([loadArticles(), loadStats()])}
+                              onComplete={async () => {
+                                await Promise.all([loadArticles(), loadStats()]);
+                              }}
                             />
                             <Button
                               size="sm"
