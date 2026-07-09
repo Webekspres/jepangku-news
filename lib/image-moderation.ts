@@ -1,5 +1,9 @@
 import { logger } from './logger';
 import { parseApiResponse } from '@/lib/fetch-api';
+import {
+  ARTICLE_IMAGE_MAX_BYTES,
+  ARTICLE_IMAGE_MAX_LABEL,
+} from '@/lib/article-form-helpers';
 
 /** Client-facing upload validation or moderation failure (maps to HTTP 400). */
 export class UploadClientError extends Error {
@@ -11,7 +15,7 @@ export class UploadClientError extends Error {
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MIN_IMAGE_BYTES = 100;
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_BYTES = ARTICLE_IMAGE_MAX_BYTES;
 
 function detectImageType(buffer: Buffer) {
   if (buffer.length >= 4) {
@@ -53,24 +57,28 @@ function detectImageType(buffer: Buffer) {
 
 export function validateImageBuffer(buffer: Buffer, contentType: string) {
   if (buffer.length < MIN_IMAGE_BYTES) {
-    throw new UploadClientError('Image file is too small.');
+    throw new UploadClientError('File gambar terlalu kecil atau rusak.');
   }
   if (buffer.length > MAX_IMAGE_BYTES) {
-    throw new UploadClientError('Image file exceeds maximum size (10MB).');
+    throw new UploadClientError(
+      `Ukuran file terlalu besar. Maksimal ${ARTICLE_IMAGE_MAX_LABEL}.`,
+    );
   }
 
   const detected = detectImageType(buffer);
   if (!detected) {
-    throw new UploadClientError('Uploaded file is not a valid image.');
+    throw new UploadClientError('File bukan gambar yang valid.');
   }
 
   if (!allowedMimeTypes.includes(contentType)) {
-    throw new UploadClientError('Invalid image MIME type.');
+    throw new UploadClientError('Format file tidak didukung.');
   }
 
   const normalizedContentType = contentType === 'image/jpg' ? 'image/jpeg' : contentType;
   if (detected.mime !== normalizedContentType) {
-    throw new UploadClientError('Image MIME type does not match file contents.');
+    throw new UploadClientError(
+      'Ekstensi file tidak sesuai isi gambar. Simpan ulang sebagai JPG, PNG, GIF, atau WebP.',
+    );
   }
 
   return detected;
@@ -106,7 +114,7 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
   });
 
   if (!response.ok) {
-    throw new UploadClientError('Image moderation service rejected the request.');
+    throw new UploadClientError('Layanan moderasi gambar sedang bermasalah.');
   }
 
   const result = (await parseApiResponse(response)) as {
@@ -115,7 +123,7 @@ export async function moderateImage(buffer: Buffer, contentType: string) {
   };
   if (result?.decision === 'reject' || result?.moderation === 'unsafe') {
     logger.warn('image_moderation.rejected', { contentType, decision: result.decision || result.moderation });
-    throw new UploadClientError('Uploaded image was rejected by moderation.');
+    throw new UploadClientError('Gambar ditolak oleh sistem moderasi.');
   }
 
   logger.info('image_moderation.passed', { contentType, decision: result.decision || result.moderation });

@@ -235,9 +235,10 @@ describe("ArticleFormEditor — submit status routing", () => {
     expect(statuses).not.toContain("PUBLISHED");
   });
 
-  it("admin submit → PUBLISHED allowed", () => {
+  it("admin submit → PUBLISHED and SCHEDULED allowed", () => {
     const statuses = getUserPortalSubmitStatuses(true);
     expect(statuses).toContain("PUBLISHED");
+    expect(statuses).toContain("SCHEDULED");
     expect(statuses).not.toContain("PENDING_REVIEW");
   });
 
@@ -281,16 +282,16 @@ describe("ArticleFormEditor — success messages", () => {
 // ---------------------------------------------------------------------------
 
 describe("ArticleFormEditor — header copy", () => {
-  it("create mode: admin sees 'langsung dipublikasikan'", () => {
-    expect(userPortalCreateSubtitle(true)).toContain("langsung dipublikasikan");
+  it("create mode: admin sees schedule/publish copy", () => {
+    expect(userPortalCreateSubtitle(true)).toContain("jadwalkan");
   });
 
   it("create mode: contributor sees 'direview admin'", () => {
     expect(userPortalCreateSubtitle(false)).toContain("direview admin");
   });
 
-  it("edit mode: admin sees 'Publikasikan langsung'", () => {
-    expect(userPortalEditSubtitle(true)).toContain("Publikasikan langsung");
+  it("edit mode: admin sees schedule/publish copy", () => {
+    expect(userPortalEditSubtitle(true)).toContain("jadwalkan");
   });
 
   it("edit mode: contributor sees 'direview ulang'", () => {

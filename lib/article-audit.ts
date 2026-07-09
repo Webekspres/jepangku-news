@@ -25,6 +25,7 @@ function articleStatusAction(
   if (newStatus === 'PUBLISHED' && previousStatus === 'PENDING_REVIEW') {
     return 'approve';
   }
+  if (newStatus === 'SCHEDULED') return 'schedule';
   if (newStatus === 'REJECTED') return 'reject';
   if (newStatus === 'ARCHIVED') return 'archive';
   return 'status_change';

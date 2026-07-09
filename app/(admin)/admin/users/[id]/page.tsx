@@ -13,6 +13,7 @@ import {
   SkeletonBox,
   SkeletonAvatar,
 } from "@/components/skeletons/PrimitiveSkeletons";
+import ArticleTableTimingCell from "@/components/admin/ArticleTableTimingCell";
 
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
@@ -205,10 +206,9 @@ export default function AdminUserDetailPage() {
                   >
                     <div>
                       <p className="font-semibold text-sm">{a.title}</p>
-                      <p className="text-xs text-jepang-muted font-mono uppercase">
-                        {a.status === "PUBLISHED" ? "TERBIT" : a.status} •{" "}
-                        {new Date(a.createdAt).toLocaleDateString("id-ID")}
-                      </p>
+                      <div className="mt-1">
+                        <ArticleTableTimingCell article={a} />
+                      </div>
                     </div>
                     {a.status === "PUBLISHED" && (
                       <Link

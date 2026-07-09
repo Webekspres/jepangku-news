@@ -12,6 +12,7 @@ import {
 } from '@/lib/admin-articles-query';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { recordStatusReview } from '@/lib/article-audit';
+import { assignArticleSchedule, parseScheduledPublishAt } from '@/lib/articles/schedule';
 import { auditArticleCreate } from '@/lib/audit-routes';
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -78,6 +79,7 @@ const POST = withRequestLogging(async (request: NextRequest) => {
       categoryId,
       tags = [],
       status = 'DRAFT',
+      scheduledPublishAt: scheduledPublishAtInput,
     } = body;
 
     const safeTitle = sanitizeText(String(title || ''));
@@ -88,8 +90,18 @@ const POST = withRequestLogging(async (request: NextRequest) => {
       return apiError('Title and content are required' , { status: 400 });
     }
 
-    const validStatuses = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'ARCHIVED'];
+    const wantsSchedule = status === 'SCHEDULED';
+    const validStatuses = ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'SCHEDULED', 'ARCHIVED'];
     const articleStatus = validStatuses.includes(status) ? status : 'DRAFT';
+
+    let scheduledAt: Date | null = null;
+    if (wantsSchedule) {
+      const parsed = parseScheduledPublishAt(scheduledPublishAtInput);
+      if (!parsed.ok) {
+        return apiError(parsed.error, { status: 400 });
+      }
+      scheduledAt = parsed.date;
+    }
 
     const resolvedCategoryId = await resolveCategoryId(categoryId);
     const slug = createSlug(safeTitle);
@@ -104,7 +116,13 @@ const POST = withRequestLogging(async (request: NextRequest) => {
     const existing = providedId
       ? await db.article.findUnique({
           where: { id: providedId },
-          select: { id: true, authorId: true, status: true, publishedAt: true },
+          select: {
+            id: true,
+            authorId: true,
+            status: true,
+            publishedAt: true,
+            qstashMessageId: true,
+          },
         })
       : null;
 
@@ -113,13 +131,14 @@ const POST = withRequestLogging(async (request: NextRequest) => {
     }
 
     const created = !existing;
+    const resolvedStatus = wantsSchedule ? 'SCHEDULED' : articleStatus;
     const sharedData = {
       categoryId: resolvedCategoryId,
       title: safeTitle,
       excerpt: safeExcerpt,
       content: safeContent,
       coverImageUrl: coverImageUrl || null,
-      status: articleStatus as any,
+      status: resolvedStatus as any,
     };
 
     const article = providedId
@@ -130,7 +149,9 @@ const POST = withRequestLogging(async (request: NextRequest) => {
             authorId: admin.id,
             slug,
             visibility: 'public',
-            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            publishedAt: resolvedStatus === 'PUBLISHED' ? now : null,
+            scheduledPublishAt: wantsSchedule ? scheduledAt : null,
+            qstashMessageId: wantsSchedule ? null : undefined,
             ...sharedData,
           },
           update: {
@@ -138,9 +159,11 @@ const POST = withRequestLogging(async (request: NextRequest) => {
             // Keep the published slug stable; otherwise refresh it.
             ...(existing?.status === 'PUBLISHED' ? {} : { slug }),
             publishedAt:
-              articleStatus === 'PUBLISHED'
+              resolvedStatus === 'PUBLISHED'
                 ? (existing?.publishedAt ?? now)
                 : null,
+            scheduledPublishAt: wantsSchedule ? scheduledAt : null,
+            ...(wantsSchedule ? { qstashMessageId: null } : {}),
           },
           include: adminArticleInclude,
         })
@@ -149,7 +172,9 @@ const POST = withRequestLogging(async (request: NextRequest) => {
             authorId: admin.id,
             slug,
             visibility: 'public',
-            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            publishedAt: resolvedStatus === 'PUBLISHED' ? now : null,
+            scheduledPublishAt: wantsSchedule ? scheduledAt : null,
+            qstashMessageId: wantsSchedule ? null : undefined,
             ...sharedData,
           },
           include: adminArticleInclude,
@@ -164,7 +189,22 @@ const POST = withRequestLogging(async (request: NextRequest) => {
       include: adminArticleInclude,
     });
 
-    if (articleStatus === 'PUBLISHED' && existing?.status !== 'PUBLISHED') {
+    if (wantsSchedule && scheduledAt) {
+      await assignArticleSchedule({
+        articleId: article.id,
+        scheduledAt,
+        previousMessageId: existing?.qstashMessageId,
+      });
+      if (existing?.status !== 'SCHEDULED') {
+        await recordStatusReview({
+          articleId: article.id,
+          reviewerId: admin.id,
+          previousStatus: existing?.status ?? 'DRAFT',
+          newStatus: 'SCHEDULED',
+          note: 'Dijadwalkan tayang oleh admin',
+        });
+      }
+    } else if (resolvedStatus === 'PUBLISHED' && existing?.status !== 'PUBLISHED') {
       await recordStatusReview({
         articleId: article.id,
         reviewerId: admin.id,

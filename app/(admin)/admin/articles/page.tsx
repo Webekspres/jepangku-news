@@ -13,7 +13,6 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Check,
   FileText,
   Eye,
   BarChart3,
@@ -41,6 +40,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import ArticleTableTimingCell from "@/components/admin/ArticleTableTimingCell";
+import ArticleApproveScheduleControls from "@/components/admin/ArticleApproveScheduleControls";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import {
@@ -65,6 +66,7 @@ const STATUS_BADGE: Record<
 > = {
   DRAFT: "muted",
   PENDING_REVIEW: "warning",
+  SCHEDULED: "black",
   PUBLISHED: "success",
   REJECTED: "red",
   ARCHIVED: "muted",
@@ -73,6 +75,7 @@ const STATUS_BADGE: Record<
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draf",
   PENDING_REVIEW: "Menunggu Review",
+  SCHEDULED: "Terjadwal",
   PUBLISHED: "Dipublikasikan",
   REJECTED: "Ditolak",
   ARCHIVED: "Diarsipkan",
@@ -232,8 +235,18 @@ export default function AdminArticlesPage() {
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
     try {
-      const data = await fetch("/api/admin/articles/stats").then((r) => parseApiResponse(r));
+      const res = await fetch("/api/admin/articles/stats");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          (body as { message?: string } | null)?.message ||
+            `Gagal memuat statistik (${res.status})`,
+        );
+      }
+      const data = await parseApiResponse(res);
       setStats(data);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal memuat statistik artikel");
     } finally {
       setStatsLoading(false);
     }
@@ -241,21 +254,33 @@ export default function AdminArticlesPage() {
 
   const loadArticles = useCallback(async () => {
     setLoading(true);
-    const data = await fetch(`/api/admin/articles${queryString}`).then((r) =>
-      parseApiResponse(r),
-    );
-    const list = Array.isArray(data?.articles)
-      ? data.articles
-      : Array.isArray(data)
-        ? data
-        : [];
-    setArticles(list);
-    setPage(Number(data?.page || page));
-    setTotalPages(Number(data?.totalPages || 1));
-    setTotalItems(Number(data?.total || list.length));
-    setSelected(new Set());
-    setLoading(false);
-  }, [queryString]);
+    try {
+      const res = await fetch(`/api/admin/articles${queryString}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          (body as { message?: string } | null)?.message ||
+            `Gagal memuat artikel (${res.status})`,
+        );
+      }
+      const data = await parseApiResponse(res);
+      const list = Array.isArray(data?.articles)
+        ? data.articles
+        : Array.isArray(data)
+          ? data
+          : [];
+      setArticles(list);
+      setPage(Number(data?.page || page));
+      setTotalPages(Number(data?.totalPages || 1));
+      setTotalItems(Number(data?.total || list.length));
+      setSelected(new Set());
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal memuat daftar artikel");
+      setArticles([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [queryString, page]);
 
   useEffect(() => {
     loadArticles();
@@ -357,11 +382,13 @@ export default function AdminArticlesPage() {
           : action === "archive"
             ? "Arsipkan artikel?"
             : action === "approve"
-              ? "Setujui artikel?"
+              ? "Publikasikan artikel?"
               : "Tolak artikel?",
       description:
         options?.confirmMessage ||
-        `${ids.length} artikel akan diproses.`,
+        (action === "approve"
+          ? "Artikel terpilih akan langsung tayang di situs."
+          : `${ids.length} artikel akan diproses.`),
       confirmLabel: action === "delete" ? "Hapus" : "Lanjutkan",
       variant: action === "delete" ? "danger" : "warning",
       onConfirm: async () => {
@@ -414,33 +441,6 @@ export default function AdminArticlesPage() {
           await Promise.all([loadArticles(), loadStats()]);
         } catch (e: unknown) {
           toast.error(e instanceof Error ? e.message : "Gagal mengarsipkan artikel");
-        } finally {
-          setActionLoading(null);
-        }
-      },
-    });
-  };
-
-  const handleApprove = (articleId: string) => {
-    confirm({
-      title: "Setujui artikel?",
-      description: "Artikel akan dipublikasikan dan tampil di situs.",
-      confirmLabel: "Setujui",
-      variant: "info",
-      onConfirm: async () => {
-        setActionLoading(articleId);
-        try {
-          const res = await fetch(`/api/admin/articles/${articleId}/approve`, {
-            method: "POST",
-          });
-          if (!res.ok) {
-            const data = await parseApiResponse(res);
-            throw new Error(data.error || "Gagal menyetujui artikel");
-          }
-          toast.success("Artikel disetujui dan dipublikasikan");
-          await Promise.all([loadArticles(), loadStats()]);
-        } catch (e: unknown) {
-          toast.error(e instanceof Error ? e.message : "Gagal menyetujui artikel");
         } finally {
           setActionLoading(null);
         }
@@ -523,6 +523,7 @@ export default function AdminArticlesPage() {
   const statusFilters = [
     { value: "", label: "Semua" },
     { value: "PENDING_REVIEW", label: "Review" },
+    { value: "SCHEDULED", label: "Terjadwal" },
     { value: "PUBLISHED", label: "Dipublikasikan" },
     { value: "REJECTED", label: "Ditolak" },
     { value: "ARCHIVED", label: "Arsip" },
@@ -655,7 +656,7 @@ export default function AdminArticlesPage() {
               disabled={bulkLoading}
               data-testid="bulk-approve"
             >
-              <CheckSquare size={14} className="mr-1" /> Setujui
+              <CheckSquare size={14} className="mr-1" /> Publikasikan
             </Button>
             <Button
               size="sm"
@@ -712,10 +713,8 @@ export default function AdminArticlesPage() {
                   />
                 </TableHead>
                 <TableHead>JUDUL</TableHead>
-                <TableHead className="hidden md:table-cell">PENULIS</TableHead>
-                <TableHead className="hidden sm:table-cell">KATEGORI</TableHead>
                 <TableHead>STATUS</TableHead>
-                <TableHead className="hidden sm:table-cell">DILIHAT</TableHead>
+                <TableHead className="hidden sm:table-cell">TAYANG</TableHead>
                 <TableHead className="text-right">AKSI</TableHead>
               </TableRow>
             </TableHeader>
@@ -724,14 +723,14 @@ export default function AdminArticlesPage() {
               {loading && articles.length === 0 ? (
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((r) => (
                   <TableRow key={r}>
-                    <TableCell colSpan={7}>
+                    <TableCell colSpan={5}>
                       <SkeletonBox height="1rem" width="100%" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : articles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-jepang-muted py-12">
+                  <TableCell colSpan={5} className="text-center text-jepang-muted py-12">
                     Tidak ada artikel ditemukan
                   </TableCell>
                 </TableRow>
@@ -749,41 +748,37 @@ export default function AdminArticlesPage() {
                         aria-label={`Pilih ${article.title}`}
                       />
                     </TableCell>
-                    <TableCell className="font-semibold max-w-xs truncate">
+                    <TableCell className="max-w-sm">
                       <Link
                         href={`/admin/articles/${article.id}`}
-                        className="hover:text-jepang-red hover:underline"
+                        className="font-semibold line-clamp-2 hover:text-jepang-red hover:underline"
                         data-testid={`view-article-${article.id}`}
                       >
                         {article.title}
                       </Link>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-jepang-muted">
-                      {article.author?.name || "-"}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell text-jepang-muted">
-                      {article.category?.name || "-"}
+                      <p className="mt-0.5 truncate text-[11px] font-mono text-jepang-muted">
+                        {article.author?.name || "—"}
+                        {article.category?.name ? ` · ${article.category.name}` : ""}
+                      </p>
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_BADGE[article.status] || "muted"}>
                         {STATUS_LABEL[article.status] || article.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell font-mono">
-                      {article.viewCount || 0}
+                    <TableCell className="hidden sm:table-cell">
+                      <ArticleTableTimingCell article={article} />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-wrap justify-end gap-1">
                         {article.status === "PENDING_REVIEW" && (
                           <>
-                            <Button
-                              size="sm"
+                            <ArticleApproveScheduleControls
+                              articleId={article.id}
+                              layout="inline"
                               disabled={actionLoading === article.id}
-                              onClick={() => handleApprove(article.id)}
-                              data-testid={`approve-article-${article.id}`}
-                            >
-                              <Check size={14} className="mr-1" /> Setujui
-                            </Button>
+                              onComplete={() => Promise.all([loadArticles(), loadStats()])}
+                            />
                             <Button
                               size="sm"
                               variant="outline"

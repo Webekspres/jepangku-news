@@ -20,6 +20,7 @@ const STATUS_BADGE: Record<
 > = {
   DRAFT: "muted",
   PENDING_REVIEW: "warning",
+  SCHEDULED: "black",
   PUBLISHED: "success",
   REJECTED: "red",
   ARCHIVED: "muted",
@@ -28,6 +29,7 @@ const STATUS_BADGE: Record<
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draf",
   PENDING_REVIEW: "Menunggu Review",
+  SCHEDULED: "Terjadwal",
   PUBLISHED: "Dipublikasikan",
   REJECTED: "Ditolak",
   ARCHIVED: "Diarsipkan",

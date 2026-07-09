@@ -34,10 +34,14 @@ import {
 import { X } from "lucide-react";
 import type { ReviewEntry, RevisionEntry } from "@/components/ui/article-activity-modal";
 import { cn } from "@/lib/utils";
+import SchedulePublishInput from "@/components/admin/SchedulePublishInput";
+import { getScheduleInputError } from "@/lib/articles/schedule-input";
+import { formatScheduledPublishAtWib } from "@/lib/articles/format-published-date";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draf",
   PENDING_REVIEW: "Menunggu Review",
+  SCHEDULED: "Terjadwal",
   PUBLISHED: "Dipublikasikan",
   REJECTED: "Ditolak",
   ARCHIVED: "Diarsipkan",
@@ -54,7 +58,14 @@ type ArticleEditAsideProps = {
   onChangeNoteChange: (value: string) => void;
   onSaveChanges: () => void;
   onApprove: () => void;
+  onScheduleApprove: () => void;
+  scheduleInput: string;
+  onScheduleInputChange: (value: string) => void;
+  scheduledPublishAt?: string | null;
   onPublish: () => void;
+  onPublishNow: () => void;
+  onReschedule: () => void;
+  onCancelSchedule: () => void;
   onArchive: () => void;
   onRepublish: () => void;
   rejectNote: string;
@@ -88,7 +99,14 @@ export default function ArticleEditAside({
   onChangeNoteChange,
   onSaveChanges,
   onApprove,
+  onScheduleApprove,
+  scheduleInput,
+  onScheduleInputChange,
+  scheduledPublishAt,
   onPublish,
+  onPublishNow,
+  onReschedule,
+  onCancelSchedule,
   onArchive,
   onRepublish,
   rejectNote,
@@ -107,6 +125,8 @@ export default function ArticleEditAside({
   const [selectedReview, setSelectedReview] = useState<ReviewEntry | null>(null);
 
   const changeNoteRequired = status !== "DRAFT";
+
+  const scheduleError = getScheduleInputError(scheduleInput);
 
   const loadActivity = useCallback(async () => {
     setHistoryLoading(true);
@@ -201,15 +221,90 @@ export default function ArticleEditAside({
             </Button>
 
             {status === "PENDING_REVIEW" && (
-              <Button
-                onClick={onApprove}
-                disabled={loading}
-                className="w-full justify-center bg-green-600 hover:bg-green-700 text-white"
-                data-testid="admin-approve"
-              >
-                <Check size={14} strokeWidth={1.5} className="mr-1" />
-                Setujui & Publikasikan
-              </Button>
+              <>
+                <div className="space-y-2 rounded border border-jepang-border bg-jepang-off-white p-3">
+                  <p className="text-[11px] leading-snug text-jepang-muted">
+                    Setujui untuk tayang. Notifikasi dikirim saat artikel benar-benar
+                    live.
+                  </p>
+                  <SchedulePublishInput
+                    id="schedule-publish-at"
+                    value={scheduleInput}
+                    onChange={onScheduleInputChange}
+                    disabled={loading}
+                    inputClassName="w-full"
+                    testId="admin-schedule-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onScheduleApprove}
+                    disabled={loading || !!scheduleError}
+                    className="w-full justify-center"
+                    data-testid="admin-schedule-approve"
+                  >
+                    <Clock size={14} strokeWidth={1.5} className="mr-1" />
+                    Jadwalkan Tayang
+                  </Button>
+                </div>
+                <Button
+                  onClick={onApprove}
+                  disabled={loading}
+                  className="w-full justify-center bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="admin-approve"
+                >
+                  <Check size={14} strokeWidth={1.5} className="mr-1" />
+                  Publikasikan Sekarang
+                </Button>
+              </>
+            )}
+
+            {status === "SCHEDULED" && (
+              <div className="space-y-2 rounded border border-jepang-border bg-jepang-off-white p-3">
+                <p className="text-xs font-mono uppercase tracking-wider text-jepang-muted">
+                  {formatScheduledPublishAtWib(scheduledPublishAt)}
+                </p>
+                <SchedulePublishInput
+                  id="reschedule-publish-at"
+                  value={scheduleInput}
+                  onChange={onScheduleInputChange}
+                  disabled={loading}
+                  inputClassName="w-full"
+                  testId="admin-reschedule-input"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onReschedule}
+                  disabled={loading || !!scheduleError}
+                  className="w-full justify-center"
+                  data-testid="admin-reschedule"
+                >
+                  <Clock size={14} strokeWidth={1.5} className="mr-1" />
+                  Simpan Jadwal Baru
+                </Button>
+                <Button
+                  type="button"
+                  onClick={onPublishNow}
+                  disabled={loading}
+                  className="w-full justify-center"
+                  data-testid="admin-publish-now"
+                >
+                  <Globe size={14} strokeWidth={1.5} className="mr-1" />
+                  Publikasikan Sekarang
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancelSchedule}
+                  disabled={loading}
+                  className="w-full justify-center text-jepang-red border-jepang-red"
+                  data-testid="admin-cancel-schedule"
+                >
+                  <XCircle size={14} strokeWidth={1.5} className="mr-1" />
+                  Batalkan Jadwal
+                </Button>
+              </div>
             )}
 
             {status === "REJECTED" && (
@@ -224,7 +319,7 @@ export default function ArticleEditAside({
               </Button>
             )}
 
-            {status !== "ARCHIVED" && status !== "PENDING_REVIEW" && (
+            {status !== "ARCHIVED" && status !== "PENDING_REVIEW" && status !== "SCHEDULED" && (
               <Button
                 variant="outline"
                 onClick={onArchive}
@@ -257,6 +352,9 @@ export default function ArticleEditAside({
         <AdminCard title="Tolak Artikel" variant="list" testId="admin-reject-aside">
           <div className="space-y-3">
             <Label htmlFor="reject-note">Catatan Penolakan (wajib)</Label>
+            <p className="text-[11px] leading-snug text-jepang-muted">
+              Penulis akan melihat catatan ini dan dapat memperbaiki artikel.
+            </p>
             <Textarea
               id="reject-note"
               rows={4}
@@ -273,7 +371,7 @@ export default function ArticleEditAside({
               data-testid="admin-reject"
             >
               <XCircle size={14} strokeWidth={1.5} className="mr-1" />
-              Tolak Artikel
+              Tolak & Kirim Catatan ke Penulis
             </Button>
           </div>
         </AdminCard>

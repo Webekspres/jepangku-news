@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
 import { toast } from "sonner";
-import { Check, X, ChevronLeft, ChevronRight, CheckSquare, Users } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, CheckSquare, Users } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
@@ -13,7 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
 import { cn } from "@/lib/utils";
+import { getArticleTimingDisplay } from "@/lib/articles/format-published-date";
 import { Badge } from "@/components/ui/badge";
+import ArticleApproveScheduleControls from "@/components/admin/ArticleApproveScheduleControls";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 
 export default function AdminReviewArticles() {
@@ -67,21 +69,12 @@ export default function AdminReviewArticles() {
     setLoading(false);
   };
 
-  const handleApprove = async (articleId: string) => {
-    try {
-      await fetch(`/api/admin/articles/${articleId}/approve`, {
-        method: "POST",
-      });
-
-      toast.success("Artikel berhasil disetujui dan dipublikasikan");
-      setSelected(null);
-      await loadArticles(page);
-      fetch("/api/admin/articles/review/stats")
-        .then((r) => parseApiResponse(r))
-        .then(setStats);
-    } catch {
-      toast.error("Gagal menyetujui artikel");
-    }
+  const refreshAfterAction = async () => {
+    setSelected(null);
+    await loadArticles(page);
+    fetch("/api/admin/articles/review/stats")
+      .then((r) => parseApiResponse(r))
+      .then(setStats);
   };
 
   const handleReject = async (articleId: string) => {
@@ -97,13 +90,9 @@ export default function AdminReviewArticles() {
         body: JSON.stringify({ note: rejectNote }),
       });
 
-      toast.success("Artikel berhasil ditolak");
-      setSelected(null);
+      toast.success("Artikel ditolak — penulis dapat memperbaiki dan mengirim ulang");
       setRejectNote("");
-      await loadArticles(page);
-      fetch("/api/admin/articles/review/stats")
-        .then((r) => parseApiResponse(r))
-        .then(setStats);
+      await refreshAfterAction();
     } catch {
       toast.error("Gagal menolak artikel");
     }
@@ -174,6 +163,14 @@ export default function AdminReviewArticles() {
                       <p className="text-xs text-jepang-muted font-mono uppercase tracking-wider mt-1">
                         OLEH {article.author?.name}
                       </p>
+                      {(() => {
+                        const timing = getArticleTimingDisplay(article);
+                        return timing.kind !== "none" ? (
+                          <p className="mt-1 font-mono text-[11px] text-jepang-muted">
+                            {timing.label} · {timing.compact}
+                          </p>
+                        ) : null;
+                      })()}
                     </button>
                   ))}
                 </div>
@@ -236,6 +233,14 @@ export default function AdminReviewArticles() {
                         OLEH {selected.author.name} (@{selected.author.username})
                       </span>
                     )}
+                    {(() => {
+                      const timing = getArticleTimingDisplay(selected);
+                      return timing.kind !== "none" ? (
+                        <span className="text-xs text-jepang-muted font-mono">
+                          {timing.label} · {timing.compact}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
 
                   <h2 className="font-heading font-black text-3xl tracking-tighter mb-3">
@@ -264,18 +269,19 @@ export default function AdminReviewArticles() {
                     dangerouslySetInnerHTML={{ __html: selected.content }}
                   />
 
-                  <div className="flex flex-col gap-3">
-                    <Button
-                      onClick={() => handleApprove(selected.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                      data-testid="approve-btn"
-                    >
-                      <Check size={16} strokeWidth={2} /> Setujui & Publikasikan
-                    </Button>
+                  <div className="flex flex-col gap-4">
+                    <ArticleApproveScheduleControls
+                      articleId={selected.id}
+                      layout="panel"
+                      onComplete={refreshAfterAction}
+                    />
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 rounded border border-jepang-border p-3">
                       <Label>Catatan Penolakan (wajib)</Label>
-
+                      <p className="text-[11px] leading-snug text-jepang-muted">
+                        Penulis akan melihat catatan ini dan dapat memperbaiki artikel
+                        lalu mengirim ulang untuk review.
+                      </p>
                       <Textarea
                         rows={3}
                         value={rejectNote}
@@ -283,13 +289,13 @@ export default function AdminReviewArticles() {
                         placeholder="Jelaskan alasan artikel ini ditolak..."
                         data-testid="reject-note-input"
                       />
-
                       <Button
                         onClick={() => handleReject(selected.id)}
-                        className="w-full"
+                        variant="outline"
+                        className="w-full text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
                         data-testid="reject-btn"
                       >
-                        <X size={16} strokeWidth={2} /> Tolak Artikel
+                        <X size={16} strokeWidth={2} /> Tolak & Kirim Catatan ke Penulis
                       </Button>
                     </div>
                   </div>

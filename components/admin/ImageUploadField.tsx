@@ -6,10 +6,11 @@ import { safeImageSrc } from "@/lib/safe-url";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { stageFile } from "@/lib/upload-media";
+import { stageFile, type UploadPurpose } from "@/lib/upload-media";
 import {
-  ARTICLE_IMAGE_MAX_LABEL,
-  validateArticleImageFile,
+  getArticleImageUploadHint,
+  validateArticleImageFileFull,
+  ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
 
 export interface ImageUploadFieldProps {
@@ -21,6 +22,8 @@ export interface ImageUploadFieldProps {
   testId?: string;
   /** Hide the file-accept / max-size hint below the input */
   hideHint?: boolean;
+  /** Tujuan upload — menentukan petunjuk dimensi di UI */
+  purpose?: UploadPurpose;
 }
 
 /**
@@ -40,6 +43,7 @@ export default function ImageUploadField({
   placeholder = "URL gambar atau upload...",
   testId,
   hideHint,
+  purpose = "content",
 }: ImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -52,8 +56,8 @@ export default function ImageUploadField({
       // Reset input so re-picking the same file triggers onChange again.
       if (fileInputRef.current) fileInputRef.current.value = "";
 
-      // Client-side validation (format + size)
-      const validationError = validateArticleImageFile(file);
+      // Client-side validation (format, size, dimensions)
+      const validationError = await validateArticleImageFileFull(file, purpose);
       if (validationError) {
         setError(validationError);
         return;
@@ -62,7 +66,7 @@ export default function ImageUploadField({
       setError("");
       setUploading(true);
       try {
-        const blobUrl = stageFile(file, "content");
+        const blobUrl = stageFile(file, purpose);
         onUrlChange(blobUrl);
       } catch {
         setError("Gagal memproses gambar");
@@ -70,7 +74,7 @@ export default function ImageUploadField({
         setUploading(false);
       }
     },
-    [onUrlChange],
+    [onUrlChange, purpose],
   );
 
   return (
@@ -92,7 +96,7 @@ export default function ImageUploadField({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp"
+          accept={ARTICLE_IMAGE_ACCEPT}
           className="hidden"
           onChange={handleFilePick}
         />
@@ -123,7 +127,7 @@ export default function ImageUploadField({
 
       {!hideHint && (
         <p className="text-[11px] text-jepang-muted">
-          Format: JPG, PNG, GIF, WebP · Maks. {ARTICLE_IMAGE_MAX_LABEL}
+          {getArticleImageUploadHint(purpose)}
         </p>
       )}
 

@@ -7,6 +7,11 @@ import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { adminArticleInclude } from '@/lib/admin-articles-query';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
+import {
+  assignArticleSchedule,
+  clearArticleSchedule,
+  parseScheduledPublishAt,
+} from '@/lib/articles/schedule';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -65,7 +70,7 @@ const PATCH = withRequestLogging(async (
 
   try {
     const body = await request.json();
-    const { title, excerpt, content, coverImageUrl, categoryId, tags, status, changeNote } =
+    const { title, excerpt, content, coverImageUrl, categoryId, tags, status, changeNote, scheduledPublishAt } =
       body;
 
     const updateData: Record<string, unknown> = {};
@@ -94,13 +99,38 @@ const PATCH = withRequestLogging(async (
     }
 
     if (status !== undefined) {
-      const allowed = ['PENDING_REVIEW', 'PUBLISHED', 'REJECTED', 'ARCHIVED'];
+      const allowed = ['PENDING_REVIEW', 'PUBLISHED', 'SCHEDULED', 'REJECTED', 'ARCHIVED'];
       if (allowed.includes(status)) {
         updateData.status = status;
         if (status === 'PUBLISHED' && !article.publishedAt) {
           updateData.publishedAt = new Date();
         }
+        if (status !== 'SCHEDULED' && article.status === 'SCHEDULED') {
+          await clearArticleSchedule(id);
+        }
+        if (status === 'SCHEDULED') {
+          updateData.publishedAt = null;
+        }
       }
+    }
+
+    const nextStatus = (updateData.status as string | undefined) ?? article.status;
+
+    if (scheduledPublishAt !== undefined) {
+      if (nextStatus !== 'SCHEDULED' && article.status !== 'SCHEDULED') {
+        return apiError('scheduledPublishAt hanya untuk artikel terjadwal', { status: 400 });
+      }
+      const parsed = parseScheduledPublishAt(scheduledPublishAt);
+      if (!parsed.ok) {
+        return apiError(parsed.error, { status: 400 });
+      }
+      await assignArticleSchedule({
+        articleId: id,
+        scheduledAt: parsed.date,
+        previousMessageId: article.qstashMessageId,
+      });
+    } else if (nextStatus === 'SCHEDULED' && article.status !== 'SCHEDULED') {
+      return apiError('scheduledPublishAt wajib diisi untuk artikel terjadwal', { status: 400 });
     }
 
     const updated = await applyArticleUpdateWithAudit({

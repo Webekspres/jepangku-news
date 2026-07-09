@@ -3,6 +3,7 @@ import AuthorLink from "@/components/AuthorLink";
 import ArticleShareButtons from "@/components/ArticleShareButtons";
 import UserAvatar from "@/components/media/UserAvatar";
 import { Button } from "@/components/ui/button";
+import { formatPublishedDateWib } from "@/lib/articles/format-published-date";
 import type { ArticleDetailAuthor } from "@/lib/articles/detail-types";
 import type { gamificationPatchFromResponse } from "@/lib/gamification-response";
 
@@ -90,7 +91,7 @@ export default function ArticleDetailMetaBar({
         {isLoading ? (
           <span className="h-3 w-20 bg-jepang-red/10 animate-pulse inline-block" />
         ) : (
-          publishedAt && new Date(publishedAt).toLocaleDateString()
+          publishedAt && formatPublishedDateWib(publishedAt)
         )}
       </div>
 

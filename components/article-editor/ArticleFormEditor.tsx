@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { parseApiResponse } from "@/lib/fetch-api";
 import { toast } from "sonner";
-import { Eye, Globe, PenSquare, Save, Send, Upload } from "lucide-react";
+import { Eye, Globe, PenSquare, Save, Send, Upload, Clock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +59,15 @@ import {
 import {
   buildDraftPayload,
   normaliseTags,
+  getArticleImageUploadHint,
+  ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
+import {
+  defaultScheduleInputValue,
+  scheduleInputToIso,
+  getScheduleInputError,
+} from "@/lib/articles/schedule-input";
+import SchedulePublishInput from "@/components/admin/SchedulePublishInput";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -172,6 +180,7 @@ export function ArticleFormEditor({
     tags: "",
   });
   const [loading, setLoading] = useState(false);
+  const [scheduleInput, setScheduleInput] = useState(defaultScheduleInputValue);
 
   // Mode "create" — autosave state
   const [clientId] = useState<string>(newDraftClientId);
@@ -288,17 +297,22 @@ export function ArticleFormEditor({
   // File pick handler
   // ---------------------------------------------------------------------------
 
-  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) cover.selectFile(file);
     e.target.value = "";
+    if (!file) return;
+    const pickError = await cover.selectFile(file);
+    if (pickError) toast.error(pickError);
   };
 
   // ---------------------------------------------------------------------------
   // Submit
   // ---------------------------------------------------------------------------
 
-  const handleSubmit = async (status: string) => {
+  const handleSubmit = async (
+    status: string,
+    options?: { scheduledPublishAt?: string },
+  ) => {
     if (!form.title.trim() || !form.content.trim()) {
       toast.error("Judul dan konten wajib diisi");
       return;
@@ -327,6 +341,9 @@ export function ArticleFormEditor({
             categoryId: form.categoryId || null,
             tags: parsedTags,
             status,
+            ...(options?.scheduledPublishAt
+              ? { scheduledPublishAt: options.scheduledPublishAt }
+              : {}),
           }),
         });
 
@@ -357,6 +374,9 @@ export function ArticleFormEditor({
             categoryId: form.categoryId || null,
             tags: parsedTags,
             status,
+            ...(options?.scheduledPublishAt
+              ? { scheduledPublishAt: options.scheduledPublishAt }
+              : {}),
           }),
         });
 
@@ -368,13 +388,20 @@ export function ArticleFormEditor({
 
       toast.success(
         submitSuccessMessage(
-          status as "DRAFT" | "PUBLISHED" | "PENDING_REVIEW",
+          status as "DRAFT" | "PUBLISHED" | "PENDING_REVIEW" | "SCHEDULED",
           isAdmin,
         ),
       );
       router.push("/my-articles");
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Gagal menyimpan artikel");
+      const msg = e instanceof Error ? e.message : "Gagal menyimpan artikel";
+      const isUploadError =
+        /upload|gambar|file|ukuran|format|dimensi/i.test(msg);
+      toast.error(
+        isUploadError
+          ? `Gagal mengunggah gambar cover: ${msg}`
+          : msg,
+      );
     } finally {
       setLoading(false);
     }
@@ -391,6 +418,44 @@ export function ArticleFormEditor({
       confirmLabel: REVIEW_CONFIRM_LABEL,
       variant: "warning",
       onConfirm: () => handleSubmit("PENDING_REVIEW"),
+    });
+  };
+
+  const handlePublishNow = () => {
+    if (!form.title.trim() || !form.content.trim()) {
+      toast.error("Judul dan konten wajib diisi");
+      return;
+    }
+    confirm({
+      title: "Publikasikan artikel sekarang?",
+      description:
+        "Artikel akan langsung tayang di situs. Notifikasi dan newsletter dikirim saat artikel live.",
+      confirmLabel: "Publikasikan Sekarang",
+      variant: "info",
+      onConfirm: () => handleSubmit("PUBLISHED"),
+    });
+  };
+
+  const handleScheduleSubmit = () => {
+    if (!form.title.trim() || !form.content.trim()) {
+      toast.error("Judul dan konten wajib diisi");
+      return;
+    }
+    const scheduleError = getScheduleInputError(scheduleInput);
+    if (scheduleError) {
+      toast.error(scheduleError);
+      return;
+    }
+    confirm({
+      title: "Jadwalkan tayang artikel?",
+      description:
+        "Artikel akan tayang otomatis pada waktu yang dipilih (WIB). Notifikasi dikirim saat artikel benar-benar live.",
+      confirmLabel: "Jadwalkan Tayang",
+      variant: "info",
+      onConfirm: () =>
+        handleSubmit("SCHEDULED", {
+          scheduledPublishAt: scheduleInputToIso(scheduleInput),
+        }),
     });
   };
 
@@ -439,7 +504,7 @@ export function ArticleFormEditor({
             if (!open) declineRestore();
           }}
           title="Pulihkan draf lokal?"
-          description="Ada draf yang tersimpan otomatis di perangkat ini dan belum tentu tersimpan ke server. Pulihkan untuk melanjutkan, atau mulai dari awal."
+          description="Ada draf yang tersimpan otomatis di perangkat ini dan belum tentu tersimpan ke server. Pulihkan untuk melanjutkan, atau mulai dari awal. Perhatikan: gambar cover yang belum disimpan ke server tidak ikut terpulihkan."
           confirmLabel="Pulihkan Draf"
           cancelLabel="Mulai Baru"
           variant="info"
@@ -547,7 +612,7 @@ export function ArticleFormEditor({
                     {cover.busy ? "Memproses..." : "Pilih Gambar"}
                     <input
                       type="file"
-                      accept="image/*"
+                      accept={ARTICLE_IMAGE_ACCEPT}
                       className="hidden"
                       onChange={handleFilePick}
                       disabled={cover.busy}
@@ -557,8 +622,19 @@ export function ArticleFormEditor({
                 </Button>
               </div>
               <p className="text-xs text-jepang-muted">
-                Gambar baru diunggah ke penyimpanan saat artikel disimpan.
+                {getArticleImageUploadHint("cover")}
               </p>
+              <p className="text-xs text-jepang-muted">
+                Gambar cover diunggah ke server saat Anda menekan Simpan Draft
+                {isAdmin
+                  ? ", Publikasikan Sekarang, atau Jadwalkan Tayang."
+                  : " atau Kirim untuk Review."}
+              </p>
+              {cover.validationError ? (
+                <p className="text-sm text-jepang-red" role="alert">
+                  {cover.validationError}
+                </p>
+              ) : null}
               {cover.hasImage && (
                 <div className="mt-3 space-y-2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -609,14 +685,33 @@ export function ArticleFormEditor({
                   {loading ? "Menyimpan..." : "Simpan Draft"}
                 </Button>
                 {isAdmin ? (
-                  <Button
-                    onClick={() => handleSubmit("PUBLISHED")}
-                    disabled={loading}
-                    data-testid="publish-article-btn"
-                  >
-                    <Globe size={14} strokeWidth={1.5} className="mr-1" />
-                    {loading ? "Mempublikasikan..." : "Publikasikan"}
-                  </Button>
+                  <>
+                    <Button
+                      onClick={handlePublishNow}
+                      disabled={loading}
+                      data-testid="publish-article-btn"
+                    >
+                      <Globe size={14} strokeWidth={1.5} className="mr-1" />
+                      {loading ? "Mempublikasikan..." : "Publikasikan Sekarang"}
+                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                      <SchedulePublishInput
+                        value={scheduleInput}
+                        onChange={setScheduleInput}
+                        disabled={loading}
+                        testId="admin-submit-schedule-input"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleScheduleSubmit}
+                        disabled={loading || !!getScheduleInputError(scheduleInput)}
+                        data-testid="schedule-article-btn"
+                      >
+                        <Clock size={14} strokeWidth={1.5} className="mr-1" />
+                        {loading ? "Menyimpan..." : "Jadwalkan Tayang"}
+                      </Button>
+                    </div>
+                  </>
                 ) : (
                   <Button
                     onClick={handleSubmitForReview}

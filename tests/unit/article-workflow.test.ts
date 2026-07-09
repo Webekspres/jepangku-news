@@ -38,6 +38,7 @@ describe('canEditOnUserPortal', () => {
   test('PENDING_REVIEW and PUBLISHED are not editable on user portal', () => {
     expect(canEditOnUserPortal('PENDING_REVIEW')).toBe(false);
     expect(canEditOnUserPortal('PUBLISHED')).toBe(false);
+    expect(canEditOnUserPortal('SCHEDULED')).toBe(false);
   });
 });
 
@@ -56,11 +57,13 @@ describe('workflow transitions DRAFT → PENDING → PUBLISHED/REJECTED', () => 
     expect(getUserPortalSubmitStatuses(false)).not.toContain('PUBLISHED');
   });
 
-  test('admin can submit DRAFT or PUBLISHED (skip review queue)', () => {
+  test('admin can submit DRAFT, PUBLISHED, or SCHEDULED (skip review queue)', () => {
     const allowed = getUserPortalSubmitStatuses(true);
-    expect(allowed).toEqual(['DRAFT', 'PUBLISHED']);
+    expect(allowed).toEqual(['DRAFT', 'PUBLISHED', 'SCHEDULED']);
     expect(resolveUserPortalSubmitStatus('PUBLISHED', true)).toBe('PUBLISHED');
+    expect(resolveUserPortalSubmitStatus('SCHEDULED', true)).toBe('SCHEDULED');
     expect(submitSuccessMessage('PUBLISHED', true)).toBe('Artikel berhasil dipublikasikan');
+    expect(submitSuccessMessage('SCHEDULED', true)).toBe('Artikel berhasil dijadwalkan tayang');
   });
 
   test('invalid submit status falls back to DRAFT', () => {
@@ -82,12 +85,12 @@ describe('workflow transitions DRAFT → PENDING → PUBLISHED/REJECTED', () => 
 
 describe('portal subtitles', () => {
   test('admin vs contributor create copy', () => {
-    expect(userPortalCreateSubtitle(true)).toContain('langsung dipublikasikan');
+    expect(userPortalCreateSubtitle(true)).toContain('jadwalkan');
     expect(userPortalCreateSubtitle(false)).toContain('direview admin');
   });
 
   test('admin vs contributor edit copy', () => {
-    expect(userPortalEditSubtitle(true)).toContain('Publikasikan langsung');
+    expect(userPortalEditSubtitle(true)).toContain('jadwalkan');
     expect(userPortalEditSubtitle(false)).toContain('direview ulang');
   });
 });

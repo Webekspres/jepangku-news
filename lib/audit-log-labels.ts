@@ -48,6 +48,7 @@ export const AUDIT_CATEGORY_BADGE: Record<string, string> = {
 const ARTICLE_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
   PENDING_REVIEW: 'Menunggu Review',
+  SCHEDULED: 'Terjadwal',
   PUBLISHED: 'Dipublikasikan',
   REJECTED: 'Ditolak',
   ARCHIVED: 'Diarsipkan',

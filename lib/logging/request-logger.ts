@@ -15,6 +15,7 @@
  */
 
 import { logger } from '@/lib/logger';
+import { apiError } from '@/lib/api-response';
 import { getCurrentUser } from '@/lib/auth';
 import { type NextRequest } from 'next/server';
 
@@ -228,7 +229,11 @@ export function withRequestLogging<TParams = Record<string, string>>(
         stack: error instanceof Error ? error.stack : undefined,
       });
 
-      throw error; // Re-throw biar Next.js error boundary menanganinya
+      const message =
+        error instanceof Error ? error.message : 'Internal server error';
+      const response = apiError(message, { status: 500 });
+      response.headers.set('x-request-id', reqId);
+      return response;
     }
   };
 }

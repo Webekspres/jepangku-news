@@ -16,7 +16,7 @@ export function canEditOnUserPortal(status: string): boolean {
 
 /** Status yang boleh dipilih saat submit dari portal user. */
 export function getUserPortalSubmitStatuses(isAdmin: boolean): ArticleStatus[] {
-  return isAdmin ? ['DRAFT', 'PUBLISHED'] : ['DRAFT', 'PENDING_REVIEW'];
+  return isAdmin ? ['DRAFT', 'PUBLISHED', 'SCHEDULED'] : ['DRAFT', 'PENDING_REVIEW'];
 }
 
 export function resolveUserPortalSubmitStatus(
@@ -34,23 +34,24 @@ export function resolveUserPortalSubmitStatus(
 export const REVIEW_CONFIRM_TITLE =
   'Apakah Anda yakin artikel ini siap untuk direview?';
 export const REVIEW_CONFIRM_DESCRIPTION =
-  'Artikel yang sedang dalam proses review tidak dapat diedit.';
+  'Artikel yang sedang dalam proses review tidak dapat diedit. Pastikan semua gambar memenuhi ketentuan (maks. 5 MB, format JPG/PNG/GIF/WebP) sebelum mengirim.';
 export const REVIEW_CONFIRM_LABEL = 'Ya, Kirim untuk Review';
 
 export function submitSuccessMessage(status: ArticleStatus, _isAdmin: boolean): string {
   if (status === 'DRAFT') return 'Draft berhasil disimpan';
   if (status === 'PUBLISHED') return 'Artikel berhasil dipublikasikan';
+  if (status === 'SCHEDULED') return 'Artikel berhasil dijadwalkan tayang';
   return 'Artikel berhasil dikirim untuk direview';
 }
 
 export function userPortalCreateSubtitle(isAdmin: boolean): string {
   return isAdmin
-    ? 'Konten redaksi dapat langsung dipublikasikan tanpa antrian review.'
+    ? 'Sebagai admin, Anda dapat mempublikasikan langsung atau menjadwalkan tayang tanpa antrian review.'
     : 'Bagikan cerita atau berita Jepang. Artikel akan direview admin sebelum tayang.';
 }
 
 export function userPortalEditSubtitle(isAdmin: boolean): string {
   return isAdmin
-    ? 'Edit draft Anda. Publikasikan langsung atau simpan sebagai draft.'
+    ? 'Edit draft Anda. Publikasikan sekarang atau jadwalkan waktu tayang (WIB).'
     : 'Artikel akan direview ulang oleh admin setelah disubmit.';
 }

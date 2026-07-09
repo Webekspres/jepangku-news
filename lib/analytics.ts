@@ -324,6 +324,7 @@ export async function getPollAnalytics(pollId: string) {
 const ARTICLE_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
   PENDING_REVIEW: 'Review',
+  SCHEDULED: 'Terjadwal',
   PUBLISHED: 'Publik',
   REJECTED: 'Ditolak',
   ARCHIVED: 'Arsip',
