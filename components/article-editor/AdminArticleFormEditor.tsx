@@ -38,13 +38,23 @@ import {
 import {
   buildDraftPayload,
   normaliseTags,
+  getArticleImageUploadHint,
+  ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
+import {
+  defaultScheduleInputValue,
+  isoToScheduleInput,
+  scheduleInputToIso,
+  getScheduleInputError,
+} from "@/lib/articles/schedule-input";
+import SchedulePublishInput from "@/components/admin/SchedulePublishInput";
 
 export type AdminArticleFormMode = "create" | "edit";
 
 export interface AdminArticleInitialData {
   slug?: string;
   status?: string;
+  scheduledPublishAt?: string | null;
   title?: string;
   excerpt?: string;
   content?: string;
@@ -209,7 +219,7 @@ function ArticleFormFields({
               {cover.busy ? "Memproses..." : "Pilih Gambar"}
               <input
                 type="file"
-                accept="image/*"
+                accept={ARTICLE_IMAGE_ACCEPT}
                 className="hidden"
                 onChange={onFilePick}
                 disabled={cover.busy}
@@ -218,11 +228,21 @@ function ArticleFormFields({
           </Button>
         </div>
         {showCoverHint && (
-          <p className="text-xs text-jepang-muted">
-            Gambar baru diunggah ke penyimpanan saat artikel disimpan atau
-            autosave ke server.
-          </p>
+          <>
+            <p className="text-xs text-jepang-muted">
+              {getArticleImageUploadHint("cover")}
+            </p>
+            <p className="text-xs text-jepang-muted">
+              Gambar cover diunggah ke server saat artikel disimpan atau
+              autosave ke server.
+            </p>
+          </>
         )}
+        {cover.validationError ? (
+          <p className="text-sm text-jepang-red" role="alert">
+            {cover.validationError}
+          </p>
+        ) : null}
         {cover.hasImage && (
           <div className="mt-3 space-y-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -287,6 +307,8 @@ export function AdminArticleFormEditor({
   const [rejectNote, setRejectNote] = useState("");
   const [changeNote, setChangeNote] = useState("");
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [scheduledPublishAt, setScheduledPublishAt] = useState<string | null>(null);
+  const [scheduleInput, setScheduleInput] = useState(defaultScheduleInputValue);
 
   const [clientId] = useState(newDraftClientId);
   const clientIdRef = useRef(clientId);
@@ -329,6 +351,8 @@ export function AdminArticleFormEditor({
       initialised.current = true;
       setArticleSlug(initialDataProp.slug || "");
       setStatus(initialDataProp.status || "DRAFT");
+      setScheduledPublishAt(initialDataProp.scheduledPublishAt ?? null);
+      setScheduleInput(isoToScheduleInput(initialDataProp.scheduledPublishAt));
       setForm({
         title: initialDataProp.title || "",
         excerpt: initialDataProp.excerpt || "",
@@ -353,6 +377,8 @@ export function AdminArticleFormEditor({
         initialised.current = true;
         setArticleSlug(article.slug || "");
         setStatus(article.status || "DRAFT");
+        setScheduledPublishAt(article.scheduledPublishAt ?? null);
+        setScheduleInput(isoToScheduleInput(article.scheduledPublishAt));
         setForm({
           title: article.title || "",
           excerpt: article.excerpt || "",
@@ -408,13 +434,15 @@ export function AdminArticleFormEditor({
     setRestoreRecord(null);
   };
 
-  const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) cover.selectFile(file);
     e.target.value = "";
+    if (!file) return;
+    const pickError = await cover.selectFile(file);
+    if (pickError) toast.error(pickError);
   };
 
-  const saveArticle = async (targetStatus: string) => {
+  const saveArticle = async (targetStatus: string, options?: { scheduledAt?: string }) => {
     if (!form.title.trim() || !form.content.trim()) {
       toast.error("Judul dan konten wajib diisi");
       return;
@@ -422,6 +450,13 @@ export function AdminArticleFormEditor({
     if (mode === "edit" && status !== "DRAFT" && !changeNote.trim()) {
       toast.error("Catatan perubahan wajib diisi");
       return;
+    }
+    if (targetStatus === "SCHEDULED") {
+      const scheduleError = getScheduleInputError(scheduleInput);
+      if (scheduleError) {
+        toast.error(scheduleError);
+        return;
+      }
     }
 
     setLoading(true);
@@ -445,6 +480,9 @@ export function AdminArticleFormEditor({
             categoryId: form.categoryId || null,
             tags: parsedTags,
             status: targetStatus,
+            ...(targetStatus === "SCHEDULED"
+              ? { scheduledPublishAt: options?.scheduledAt ?? scheduleInputToIso(scheduleInput) }
+              : {}),
           }),
         });
         if (!res.ok) {
@@ -459,7 +497,9 @@ export function AdminArticleFormEditor({
         toast.success(
           targetStatus === "PUBLISHED"
             ? "Artikel dipublikasikan"
-            : "Draft berhasil disimpan",
+            : targetStatus === "SCHEDULED"
+              ? "Artikel dijadwalkan tayang"
+              : "Draft berhasil disimpan",
         );
         router.push("/admin/articles");
         return;
@@ -477,6 +517,9 @@ export function AdminArticleFormEditor({
           tags: parsedTags,
           status: targetStatus,
           changeNote: changeNote.trim(),
+          ...(targetStatus === "SCHEDULED" || status === "SCHEDULED"
+            ? { scheduledPublishAt: options?.scheduledAt ?? scheduleInputToIso(scheduleInput) }
+            : {}),
         }),
       });
       if (!res.ok) {
@@ -485,6 +528,10 @@ export function AdminArticleFormEditor({
       }
       const updated = await parseApiResponse(res);
       setStatus(updated.status || targetStatus);
+      setScheduledPublishAt(updated.scheduledPublishAt ?? null);
+      if (updated.scheduledPublishAt) {
+        setScheduleInput(isoToScheduleInput(updated.scheduledPublishAt));
+      }
       setArticleSlug(updated.slug || articleSlug);
       toast.success("Artikel diperbarui");
       setChangeNote("");
@@ -493,18 +540,47 @@ export function AdminArticleFormEditor({
         router.push("/admin/articles");
       }
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Gagal menyimpan artikel");
+      const msg = e instanceof Error ? e.message : "Gagal menyimpan artikel";
+      const isUploadError =
+        /upload|gambar|file|ukuran|format|dimensi/i.test(msg);
+      toast.error(
+        isUploadError ? `Gagal mengunggah gambar cover: ${msg}` : msg,
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const patchArticleContent = async () => {
+    const coverImageUrl = (await cover.commit()) || null;
+    const patchRes = await fetch(`/api/admin/articles/${articleId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: form.title,
+        excerpt: form.excerpt,
+        content: form.content,
+        coverImageUrl,
+        categoryId: form.categoryId || null,
+        tags: form.tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        changeNote: changeNote.trim(),
+      }),
+    });
+    if (!patchRes.ok) {
+      const e = await parseApiResponse(patchRes);
+      throw new Error(e.message || e.error || "Gagal menyimpan artikel");
+    }
+  };
+
   const handleApprove = () => {
     confirm({
-      title: "Setujui artikel?",
+      title: "Publikasikan artikel sekarang?",
       description:
-        "Perubahan konten akan disimpan, lalu artikel dipublikasikan.",
-      confirmLabel: "Setujui",
+        "Perubahan konten akan disimpan, lalu artikel langsung tayang di situs.",
+      confirmLabel: "Publikasikan Sekarang",
       variant: "info",
       onConfirm: async () => {
         if (!form.title.trim() || !form.content.trim()) {
@@ -517,40 +593,128 @@ export function AdminArticleFormEditor({
         }
         setLoading(true);
         try {
-          const coverImageUrl = (await cover.commit()) || null;
-          const patchRes = await fetch(`/api/admin/articles/${articleId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: form.title,
-              excerpt: form.excerpt,
-              content: form.content,
-              coverImageUrl,
-              categoryId: form.categoryId || null,
-              tags: form.tags
-                .split(",")
-                .map((t) => t.trim())
-                .filter(Boolean),
-              changeNote: changeNote.trim(),
-            }),
-          });
-          if (!patchRes.ok) {
-            const e = await parseApiResponse(patchRes);
-            throw new Error(e.message || "Gagal menyimpan artikel");
-          }
+          await patchArticleContent();
           const res = await fetch(`/api/admin/articles/${articleId}/approve`, {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode: "immediate" }),
           });
           if (!res.ok) {
             const e = await parseApiResponse(res);
             throw new Error(e.error || "Gagal menyetujui artikel");
           }
-          toast.success("Artikel disetujui dan dipublikasikan");
+          toast.success("Artikel dipublikasikan sekarang");
           router.push("/admin/articles");
         } catch (e: unknown) {
           toast.error(
             e instanceof Error ? e.message : "Gagal menyetujui artikel",
           );
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleScheduleApprove = () => {
+    const scheduleError = getScheduleInputError(scheduleInput);
+    if (scheduleError) {
+      toast.error(scheduleError);
+      return;
+    }
+    confirm({
+      title: "Jadwalkan artikel?",
+      description:
+        "Perubahan konten akan disimpan, lalu artikel dijadwalkan tayang pada waktu yang dipilih (WIB).",
+      confirmLabel: "Jadwalkan",
+      variant: "info",
+      onConfirm: async () => {
+        if (!form.title.trim() || !form.content.trim()) {
+          toast.error("Judul dan konten wajib diisi");
+          return;
+        }
+        if (!changeNote.trim()) {
+          toast.error("Catatan perubahan wajib diisi sebelum menjadwalkan");
+          return;
+        }
+        setLoading(true);
+        try {
+          await patchArticleContent();
+          const res = await fetch(`/api/admin/articles/${articleId}/approve`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              mode: "schedule",
+              scheduledPublishAt: scheduleInputToIso(scheduleInput),
+            }),
+          });
+          if (!res.ok) {
+            const e = await parseApiResponse(res);
+            throw new Error(e.error || "Gagal menjadwalkan artikel");
+          }
+          toast.success("Artikel disetujui dan dijadwalkan");
+          router.push("/admin/articles");
+        } catch (e: unknown) {
+          toast.error(
+            e instanceof Error ? e.message : "Gagal menjadwalkan artikel",
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handlePublishNow = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/articles/${articleId}/publish-now`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const e = await parseApiResponse(res);
+        throw new Error(e.error || "Gagal mempublikasikan artikel");
+      }
+      toast.success("Artikel dipublikasikan");
+      router.push("/admin/articles");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Gagal mempublikasikan artikel");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (status !== "SCHEDULED") return;
+    if (!changeNote.trim()) {
+      toast.error("Catatan perubahan wajib diisi");
+      return;
+    }
+    await saveArticle("SCHEDULED", {
+      scheduledAt: scheduleInputToIso(scheduleInput),
+    });
+  };
+
+  const handleCancelSchedule = () => {
+    confirm({
+      title: "Batalkan jadwal tayang?",
+      description: "Artikel akan kembali ke status draf dan tidak akan tayang otomatis.",
+      confirmLabel: "Batalkan Jadwal",
+      variant: "danger",
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(`/api/admin/articles/${articleId}/cancel-schedule`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            const e = await parseApiResponse(res);
+            throw new Error(e.error || "Gagal membatalkan jadwal");
+          }
+          toast.success("Jadwal tayang dibatalkan");
+          router.push("/admin/articles");
+        } catch (e: unknown) {
+          toast.error(e instanceof Error ? e.message : "Gagal membatalkan jadwal");
         } finally {
           setLoading(false);
         }
@@ -600,7 +764,7 @@ export function AdminArticleFormEditor({
       title={pageTitle}
       subtitle={
         mode === "create"
-          ? "Konten redaksi dapat langsung dipublikasikan tanpa antrian review."
+          ? "Publikasikan langsung atau jadwalkan tayang artikel redaksi (WIB)."
           : undefined
       }
     >
@@ -640,7 +804,14 @@ export function AdminArticleFormEditor({
               onChangeNoteChange={setChangeNote}
               onSaveChanges={() => saveArticle(status)}
               onApprove={handleApprove}
+              onScheduleApprove={handleScheduleApprove}
+              scheduleInput={scheduleInput}
+              onScheduleInputChange={setScheduleInput}
+              scheduledPublishAt={scheduledPublishAt}
               onPublish={() => saveArticle("PUBLISHED")}
+              onPublishNow={handlePublishNow}
+              onReschedule={handleReschedule}
+              onCancelSchedule={handleCancelSchedule}
               onArchive={() => saveArticle("ARCHIVED")}
               onRepublish={() => saveArticle("PUBLISHED")}
               rejectNote={rejectNote}
@@ -680,8 +851,24 @@ export function AdminArticleFormEditor({
                 data-testid="admin-publish"
               >
                 <Globe size={14} strokeWidth={1.5} className="mr-1" />
-                {loading ? "Menyimpan..." : "Publikasikan"}
+                {loading ? "Menyimpan..." : "Publikasikan Sekarang"}
               </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                <SchedulePublishInput
+                  value={scheduleInput}
+                  onChange={setScheduleInput}
+                  disabled={loading}
+                  testId="admin-create-schedule-input"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => saveArticle("SCHEDULED")}
+                  disabled={loading || !!getScheduleInputError(scheduleInput)}
+                  data-testid="admin-schedule-create"
+                >
+                  {loading ? "Menyimpan..." : "Jadwalkan Tayang"}
+                </Button>
+              </div>
               {draftId && (
                 <Button
                   variant="outline"

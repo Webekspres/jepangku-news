@@ -26,7 +26,7 @@ describe('validateImageBuffer — §19.1 MIME/size validation', () => {
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
     ]);
     expect(() => validateImageBuffer(tiny, 'image/png')).toThrow(UploadClientError);
-    expect(() => validateImageBuffer(tiny, 'image/png')).toThrow(/too small/i);
+    expect(() => validateImageBuffer(tiny, 'image/png')).toThrow(/terlalu kecil/i);
   });
 
   test('rejects MIME spoofing (PNG bytes, JPEG content-type)', () => {
@@ -34,14 +34,14 @@ describe('validateImageBuffer — §19.1 MIME/size validation', () => {
       UploadClientError,
     );
     expect(() => validateImageBuffer(minimalTestPng(), 'image/jpeg')).toThrow(
-      /does not match/i,
+      /tidak sesuai/i,
     );
   });
 
   test('rejects non-image bytes', () => {
     const text = Buffer.alloc(120, 0x41);
     expect(() => validateImageBuffer(text, 'image/png')).toThrow(UploadClientError);
-    expect(() => validateImageBuffer(text, 'image/png')).toThrow(/not a valid image/i);
+    expect(() => validateImageBuffer(text, 'image/png')).toThrow(/bukan gambar/i);
   });
 
   test('rejects disallowed MIME type', () => {
@@ -91,7 +91,7 @@ describe('moderateImage — §19.3 image moderation', () => {
       UploadClientError,
     );
     await expect(moderateImage(minimalTestPng(), 'image/png')).rejects.toThrow(
-      /rejected by moderation/i,
+      /moderasi/i,
     );
   });
 

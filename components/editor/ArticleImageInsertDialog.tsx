@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { deleteMediaFile, uploadMediaFile } from "@/lib/upload-media";
 import {
-  ARTICLE_IMAGE_MAX_LABEL,
-  validateArticleImageFile,
+  getArticleImageUploadHint,
+  validateArticleImageFileFull,
+  ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +68,7 @@ export default function ArticleImageInsertDialog({
     if (!file) return;
     if (fileInputRef.current) fileInputRef.current.value = "";
 
-    const validationError = validateArticleImageFile(file);
+    const validationError = await validateArticleImageFileFull(file, "content");
     if (validationError) {
       setError(validationError);
       return;
@@ -127,7 +128,7 @@ export default function ArticleImageInsertDialog({
                 Sisipkan Gambar
               </DialogTitle>
               <p className="text-xs text-jepang-muted mt-0.5">
-                Maks. {ARTICLE_IMAGE_MAX_LABEL}
+                {getArticleImageUploadHint("content")}
               </p>
             </div>
             <DialogClose asChild>
@@ -149,7 +150,7 @@ export default function ArticleImageInsertDialog({
                   ref={fileInputRef}
                   id="article-image-file"
                   type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  accept={ARTICLE_IMAGE_ACCEPT}
                   className="hidden"
                   onChange={handleFilePick}
                 />

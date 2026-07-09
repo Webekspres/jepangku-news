@@ -15,6 +15,7 @@ enum Role {
 enum ArticleStatus {
   DRAFT
   PENDING_REVIEW
+  SCHEDULED
   PUBLISHED
   REJECTED
   ARCHIVED
@@ -268,8 +269,10 @@ model Article {
   visibility       String          @default("public")
   isFeatured       Boolean         @default(false) @map("is_featured")
   isHot            Boolean         @default(false) @map("is_hot")
-  publishedAt      DateTime?       @map("published_at")
-  viewCount        Int             @default(0) @map("view_count")
+  publishedAt          DateTime?       @map("published_at")
+  scheduledPublishAt   DateTime?       @map("scheduled_publish_at")
+  qstashMessageId      String?         @map("qstash_message_id")
+  viewCount            Int             @default(0) @map("view_count")
   weeklyViewCount  Int             @default(0) @map("weekly_view_count")
   bookmarkCount    Int             @default(0) @map("bookmark_count")
   shareCount       Int             @default(0) @map("share_count")
@@ -288,6 +291,7 @@ model Article {
   shares           ArticleShare[]
   views            ArticleView[]
 
+  @@index([status, scheduledPublishAt])
   @@map("articles")
 }
 

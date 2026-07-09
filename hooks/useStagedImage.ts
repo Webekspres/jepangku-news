@@ -10,6 +10,7 @@ import {
   stageFile,
   type UploadPurpose,
 } from "@/lib/upload-media";
+import { validateArticleImageFileFull } from "@/lib/article-form-helpers";
 
 type UseStagedImageOptions = {
   /** Committed (already-saved) URL, kept in form state. */
@@ -27,8 +28,10 @@ export type UseStagedImage = {
   busy: boolean;
   /** True when a file is picked locally but not yet uploaded/saved. */
   dirty: boolean;
-  /** Stage a freshly selected/cropped file locally (no upload yet). */
-  selectFile: (file: File) => void;
+  /** Pesan validasi terakhir (format/ukuran/dimensi). */
+  validationError: string | null;
+  /** Stage a file locally. Returns error message on failure, null on success. */
+  selectFile: (file: File) => Promise<string | null>;
   /** Remove the image entirely — deletes the saved R2 object immediately. */
   remove: () => Promise<void>;
   /** Upload any staged file and return the final URL (also syncs form state). */
@@ -49,12 +52,18 @@ export function useStagedImage({
 }: UseStagedImageOptions): UseStagedImage {
   const [staged, setStaged] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const selectFile = useCallback(
-    (file: File) => {
+    async (file: File): Promise<string | null> => {
+      const error = await validateArticleImageFileFull(file, purpose);
+      if (error) {
+        setValidationError(error);
+        return error;
+      }
+
+      setValidationError(null);
       setStaged((prev) => {
-        // Preserve the original committed URL across repeated re-picks so it is
-        // still cleaned up once we finally commit.
         const replaced = prev
           ? isStagedUrl(prev)
             ? getReplacedUrl(prev)
@@ -63,6 +72,7 @@ export function useStagedImage({
         if (prev) discardStagedUrl(prev);
         return stageFile(file, purpose, replaced);
       });
+      return null;
     },
     [purpose, value],
   );
@@ -86,6 +96,7 @@ export function useStagedImage({
         setBusy(false);
       }
     }
+    setValidationError(null);
     if (value) onValueChange("");
   }, [value, onValueChange]);
 
@@ -95,6 +106,7 @@ export function useStagedImage({
     try {
       const realUrl = await commitStagedUrl(staged);
       setStaged(null);
+      setValidationError(null);
       onValueChange(realUrl);
       return realUrl;
     } finally {
@@ -107,6 +119,7 @@ export function useStagedImage({
       if (prev) discardStagedUrl(prev);
       return null;
     });
+    setValidationError(null);
     onValueChange(url ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -118,6 +131,7 @@ export function useStagedImage({
     hasImage: Boolean(staged || value),
     busy,
     dirty: Boolean(staged),
+    validationError,
     selectFile,
     remove,
     commit,

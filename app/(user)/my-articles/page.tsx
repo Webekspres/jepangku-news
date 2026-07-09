@@ -34,6 +34,7 @@ import {
   useArticleActivity,
 } from "@/components/ui/article-activity-modal";
 import ContributorGate from "@/components/ContributorGate";
+import ArticleTableTimingCell from "@/components/admin/ArticleTableTimingCell";
 
 const STATUS_BADGE: Record<
   string,
@@ -41,6 +42,7 @@ const STATUS_BADGE: Record<
 > = {
   DRAFT: "muted",
   PENDING_REVIEW: "warning",
+  SCHEDULED: "black",
   PUBLISHED: "success",
   REJECTED: "red",
   ARCHIVED: "muted",
@@ -49,6 +51,7 @@ const STATUS_BADGE: Record<
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: "Draf",
   PENDING_REVIEW: "Menunggu",
+  SCHEDULED: "Terjadwal",
   PUBLISHED: "Dipublikasikan",
   REJECTED: "Ditolak",
   ARCHIVED: "Diarsipkan",
@@ -188,7 +191,7 @@ export default function MyArticlesPage() {
 
       <div className="px-4 mx-auto max-w-7xl py-8">
         <div className="flex flex-wrap gap-2 mb-6">
-          {["all", "DRAFT", "PENDING_REVIEW", "PUBLISHED", "REJECTED"].map(
+          {["all", "DRAFT", "PENDING_REVIEW", "SCHEDULED", "PUBLISHED", "REJECTED"].map(
             (s) => (
               <Button
                 key={s}
@@ -239,6 +242,9 @@ export default function MyArticlesPage() {
                         {article.excerpt}
                       </p>
                     )}
+                    <div className="mt-1.5">
+                      <ArticleTableTimingCell article={article} />
+                    </div>
                     {/* Inline rejection preview */}
                     {article.status === "REJECTED" &&
                       article.reviews?.[0]?.note && (

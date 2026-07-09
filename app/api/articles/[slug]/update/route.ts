@@ -13,6 +13,7 @@ import { db } from '@/lib/db';
 import { createSlug } from '@/lib/slug';
 import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { applyArticleUpdateWithAudit } from '@/lib/article-audit';
+import { assignArticleSchedule, parseScheduledPublishAt } from '@/lib/articles/schedule';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { logger } from '@/lib/logger';
 import { withRequestLogging } from '@/lib/logging/request-logger';
@@ -53,7 +54,7 @@ const PUT = withRequestLogging(async (request: NextRequest, { params }: { params
 
   try {
     const body = await request.json();
-    const { title, excerpt, content, coverImageUrl, categoryId, tags, status, changeNote } =
+    const { title, excerpt, content, coverImageUrl, categoryId, tags, status, changeNote, scheduledPublishAt } =
       body;
 
     const updateData: Record<string, unknown> = {};
@@ -92,6 +93,18 @@ const PUT = withRequestLogging(async (request: NextRequest, { params }: { params
         if (nextStatus === 'PUBLISHED' && !article.publishedAt) {
           updateData.publishedAt = new Date();
         }
+        if (nextStatus === 'SCHEDULED') {
+          if (!isAdmin) {
+            return apiError('Only admin can schedule articles', { status: 403 });
+          }
+          const parsed = parseScheduledPublishAt(scheduledPublishAt);
+          if (!parsed.ok) {
+            return apiError(parsed.error, { status: 400 });
+          }
+          updateData.scheduledPublishAt = parsed.date;
+          updateData.publishedAt = null;
+          updateData.qstashMessageId = null;
+        }
       }
     }
 
@@ -113,6 +126,14 @@ const PUT = withRequestLogging(async (request: NextRequest, { params }: { params
       tags: Array.isArray(tags) ? tags : undefined,
       syncTags: syncArticleTags,
     });
+
+    if (updateData.status === 'SCHEDULED' && updateData.scheduledPublishAt) {
+      await assignArticleSchedule({
+        articleId: article.id,
+        scheduledAt: updateData.scheduledPublishAt as Date,
+        previousMessageId: article.qstashMessageId,
+      });
+    }
 
     const changedFields = Object.keys(updateData).filter(k => k !== 'slug');
     logger.info('article.updated', {

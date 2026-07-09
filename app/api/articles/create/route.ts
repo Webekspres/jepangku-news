@@ -14,6 +14,7 @@ import { syncArticleTags, resolveCategoryId } from '@/lib/article-tags';
 import { sanitizeHtmlContent, sanitizeText } from '@/lib/sanitizer';
 import { auditArticleCreate } from '@/lib/audit-routes';
 import { dispatchNotificationEventSafe } from '@/lib/notifications/dispatch';
+import { assignArticleSchedule, parseScheduledPublishAt } from '@/lib/articles/schedule';
 import { logger } from '@/lib/logger';
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -37,7 +38,7 @@ const POST = withRequestLogging(async (request: NextRequest) => {
 
   try {
     const body = await request.json();
-    const { id, title, excerpt, content, coverImageUrl, categoryId, tags = [], status = 'DRAFT' } = body;
+    const { id, title, excerpt, content, coverImageUrl, categoryId, tags = [], status = 'DRAFT', scheduledPublishAt } = body;
 
     const safeTitle = sanitizeText(String(title || ''));
     const safeExcerpt = excerpt ? sanitizeText(String(excerpt)) : null;
@@ -55,6 +56,18 @@ const POST = withRequestLogging(async (request: NextRequest) => {
       return apiError('Invalid article status' , { status: 400 });
     }
 
+    let scheduledAt: Date | null = null;
+    if (articleStatus === 'SCHEDULED') {
+      if (!isAdmin) {
+        return apiError('Only admin can schedule articles', { status: 403 });
+      }
+      const parsed = parseScheduledPublishAt(scheduledPublishAt);
+      if (!parsed.ok) {
+        return apiError(parsed.error, { status: 400 });
+      }
+      scheduledAt = parsed.date;
+    }
+
     const slug = createSlug(safeTitle);
 
     const resolvedCategoryId = await resolveCategoryId(categoryId);
@@ -66,7 +79,7 @@ const POST = withRequestLogging(async (request: NextRequest) => {
     const existing = providedId
       ? await db.article.findUnique({
           where: { id: providedId },
-          select: { id: true, authorId: true, status: true, publishedAt: true },
+          select: { id: true, authorId: true, status: true, publishedAt: true, qstashMessageId: true },
         })
       : null;
 
@@ -76,13 +89,16 @@ const POST = withRequestLogging(async (request: NextRequest) => {
 
     const created = !existing;
     const now = new Date();
+    const resolvedStatus = articleStatus;
     const sharedData = {
       categoryId: resolvedCategoryId,
       title: safeTitle,
       excerpt: safeExcerpt,
       content: safeContent,
       coverImageUrl: coverImageUrl || null,
-      status: articleStatus as any,
+      status: resolvedStatus as any,
+      scheduledPublishAt: resolvedStatus === 'SCHEDULED' ? scheduledAt : null,
+      ...(resolvedStatus === 'SCHEDULED' ? { qstashMessageId: null } : {}),
     };
 
     const article = providedId
@@ -93,14 +109,14 @@ const POST = withRequestLogging(async (request: NextRequest) => {
             authorId: user.id,
             slug,
             visibility: 'public',
-            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            publishedAt: resolvedStatus === 'PUBLISHED' ? now : null,
             ...sharedData,
           },
           update: {
             ...sharedData,
             ...(existing?.status === 'PUBLISHED' ? {} : { slug }),
             publishedAt:
-              articleStatus === 'PUBLISHED'
+              resolvedStatus === 'PUBLISHED'
                 ? (existing?.publishedAt ?? now)
                 : null,
           },
@@ -110,10 +126,18 @@ const POST = withRequestLogging(async (request: NextRequest) => {
             authorId: user.id,
             slug,
             visibility: 'public',
-            publishedAt: articleStatus === 'PUBLISHED' ? now : null,
+            publishedAt: resolvedStatus === 'PUBLISHED' ? now : null,
             ...sharedData,
           },
         });
+
+    if (resolvedStatus === 'SCHEDULED' && scheduledAt) {
+      await assignArticleSchedule({
+        articleId: article.id,
+        scheduledAt,
+        previousMessageId: existing?.qstashMessageId,
+      });
+    }
 
     if (tags.length > 0) {
       await syncArticleTags(article.id, tags);

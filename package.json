@@ -7,6 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "dev:test": "bun scripts/with-test-env.ts next dev --turbopack",
+    "predev:test": "bun --env-file=.env.test prisma generate && bun --env-file=.env.test prisma migrate deploy",
     "lint": "eslint",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "prisma db seed",
