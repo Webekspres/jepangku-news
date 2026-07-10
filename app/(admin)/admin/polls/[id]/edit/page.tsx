@@ -300,7 +300,6 @@ export default function AdminEditPollPage() {
             value={form.thumbnail_url}
             uploadKey="thumbnail"
             onUrlChange={(url) => setForm((f) => ({ ...f, thumbnail_url: url }))}
-            placeholder="URL thumbnail atau upload..."
             testId="poll-thumbnail-input"
           />
 

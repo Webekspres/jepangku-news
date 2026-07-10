@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { safeImageSrc } from "@/lib/safe-url";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { stageFile, type UploadPurpose } from "@/lib/upload-media";
 import {
@@ -12,38 +11,50 @@ import {
   validateArticleImageFileFull,
   ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
+import { cn } from "@/lib/utils";
 
 export interface ImageUploadFieldProps {
   label?: string;
   value: string;
   uploadKey?: string;
   onUrlChange: (url: string) => void;
-  placeholder?: string;
   testId?: string;
   /** Hide the file-accept / max-size hint below the input */
   hideHint?: boolean;
   /** Tujuan upload — menentukan petunjuk dimensi di UI */
   purpose?: UploadPurpose;
+  /** Compact layout for nested fields (e.g. quiz options) */
+  compact?: boolean;
+}
+
+function displayUrlLabel(url: string): string {
+  if (url.startsWith("blob:")) {
+    return "File dipilih — akan diunggah saat disimpan";
+  }
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.split("/").filter(Boolean).pop();
+    return path || parsed.hostname;
+  } catch {
+    return url.length > 48 ? `${url.slice(0, 45)}…` : url;
+  }
 }
 
 /**
  * Shared image upload field with client-side validation.
  *
- * - Validates file type (JPG/PNG/GIF/WebP) and size (max 5 MB)
- *   **before** staging — so the user gets instant feedback.
- * - Stages the file locally (no network call) until the parent form
- *   is saved via `commitStagedUrl`.
- * - Shows a preview thumbnail after a file is selected.
+ * Upload-only: users pick a file; existing URLs are shown read-only.
+ * Stages locally until the parent form saves via `commitStagedUrl`.
  */
 export default function ImageUploadField({
   label,
   value,
   uploadKey: _uploadKey,
   onUrlChange,
-  placeholder = "URL gambar atau upload...",
   testId,
   hideHint,
   purpose = "content",
+  compact = false,
 }: ImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -53,10 +64,8 @@ export default function ImageUploadField({
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      // Reset input so re-picking the same file triggers onChange again.
       if (fileInputRef.current) fileInputRef.current.value = "";
 
-      // Client-side validation (format, size, dimensions)
       const validationError = await validateArticleImageFileFull(file, purpose);
       if (validationError) {
         setError(validationError);
@@ -77,22 +86,17 @@ export default function ImageUploadField({
     [onUrlChange, purpose],
   );
 
-  return (
-    <div className="space-y-2">
-      {label && <Label>{label}</Label>}
+  const previewSrc = safeImageSrc(value);
 
-      <div className="flex gap-2 items-start">
-        <Input
-          type="text"
-          className="flex-1"
-          value={value}
-          onChange={(e) => {
-            setError("");
-            onUrlChange(e.target.value);
-          }}
-          placeholder={placeholder}
-          data-testid={testId}
-        />
+  return (
+    <div className={cn("space-y-2", compact && "space-y-1.5")}>
+      {label && (
+        <Label className={cn(compact && "text-xs font-normal text-jepang-muted")}>
+          {label}
+        </Label>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
         <input
           ref={fileInputRef}
           type="file"
@@ -103,27 +107,41 @@ export default function ImageUploadField({
         <Button
           type="button"
           variant="outline"
+          size={compact ? "sm" : "default"}
           disabled={uploading}
           className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
           onClick={() => fileInputRef.current?.click()}
+          data-testid={testId}
         >
-          <Upload size={14} strokeWidth={1.5} />
+          <Upload size={14} strokeWidth={1.5} className={compact ? "" : "mr-1.5"} />
+          {uploading ? "Memproses..." : value ? "Ganti Gambar" : "Pilih Gambar"}
         </Button>
         {value && (
           <Button
             type="button"
             variant="ghost"
-            size="icon"
+            size={compact ? "icon" : "icon"}
             onClick={() => {
               setError("");
               onUrlChange("");
             }}
             className="text-jepang-red shrink-0"
+            aria-label="Hapus gambar"
           >
             <X size={14} />
           </Button>
         )}
       </div>
+
+      {value && !value.startsWith("blob:") && (
+        <p
+          className="text-[11px] text-jepang-muted break-all"
+          title={value}
+          data-testid={testId ? `${testId}-url` : undefined}
+        >
+          File saat ini: {displayUrlLabel(value)}
+        </p>
+      )}
 
       {!hideHint && (
         <p className="text-[11px] text-jepang-muted">
@@ -137,12 +155,15 @@ export default function ImageUploadField({
         </p>
       )}
 
-      {safeImageSrc(value) && (
+      {previewSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={safeImageSrc(value)}
+          src={previewSrc}
           alt="Preview"
-          className="mt-1 max-h-32 object-cover border border-jepang-border"
+          className={cn(
+            "object-cover border border-jepang-border",
+            compact ? "mt-0.5 max-h-16 max-w-[8rem]" : "mt-1 max-h-32",
+          )}
         />
       )}
     </div>
