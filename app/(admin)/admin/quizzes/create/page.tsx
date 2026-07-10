@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { commitStagedUrl } from "@/lib/upload-media";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import AdminFloatingFormActions from "@/components/admin/AdminFloatingFormActions";
 
 /* ─── Types ─────────────────────────────────────────── */
 interface QuizOption {
@@ -224,9 +225,9 @@ export default function AdminCreateQuiz() {
       title="Buat Kuis"
       subtitle="Buat kuis baru dengan pertanyaan dan pilihan jawaban."
     >
-      <div className="space-y-8">
+      <div className="mx-auto max-w-3xl space-y-8">
         {/* ── Quiz Info ── */}
-        <section className="space-y-5">
+        <section className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
             INFO KUIS
           </p>
@@ -239,7 +240,6 @@ export default function AdminCreateQuiz() {
             <Input
               id="quiz-title"
               type="text"
-              className="font-heading font-bold text-xl"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Judul kuis..."
@@ -392,7 +392,7 @@ export default function AdminCreateQuiz() {
               className="bg-jepang-off-white border border-jepang-border"
               data-testid={`question-form-${qIdx}`}
             >
-              <CardContent className="p-5 space-y-4">
+              <CardContent className="p-4 space-y-3">
                 {/* Question header */}
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
@@ -412,13 +412,12 @@ export default function AdminCreateQuiz() {
                   )}
                 </div>
 
-                {/* Question text */}
                 <div className="space-y-2">
                   <Label>
                     Pertanyaan <span className="text-jepang-red">*</span>
                   </Label>
-                  <Textarea
-                    rows={2}
+                  <Input
+                    type="text"
                     placeholder="Tulis pertanyaan..."
                     value={q.question_text}
                     onChange={(e) =>
@@ -428,17 +427,17 @@ export default function AdminCreateQuiz() {
                   />
                 </div>
 
-                {/* Question image */}
                 <ImageUploadField
                   label="Gambar Pertanyaan (opsional)"
                   value={q.image_url}
                   uploadKey={`question-${qIdx}`}
                   onUrlChange={(url) => updateQuestion(qIdx, "image_url", url)}
                   testId={`question-image-${qIdx}`}
+                  compact
+                  hideHint
                 />
 
-                {/* Options */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label>
                     Pilihan Jawaban{" "}
                     <span className="text-jepang-muted text-xs font-normal">
@@ -450,7 +449,7 @@ export default function AdminCreateQuiz() {
                     <div
                       key={oIdx}
                       className={cn(
-                        "border border-jepang-border bg-white p-3 space-y-2",
+                        "border border-jepang-border bg-white p-2.5 space-y-2",
                         o.is_correct && "border-jepang-red bg-red-50",
                       )}
                       data-testid={`option-card-${qIdx}-${oIdx}`}
@@ -464,7 +463,7 @@ export default function AdminCreateQuiz() {
                           onChange={() =>
                             updateOption(qIdx, oIdx, "is_correct", true)
                           }
-                          className="w-4 h-4 accent-jepang-red shrink-0"
+                          className="w-4 h-4 accent-jepang-red shrink-0 cursor-pointer"
                           title="Tandai sebagai jawaban benar"
                           data-testid={`correct-${qIdx}-${oIdx}`}
                         />
@@ -472,7 +471,7 @@ export default function AdminCreateQuiz() {
                         {/* Option text */}
                         <Input
                           type="text"
-                          className="flex-1 bg-transparent"
+                          className="h-9 flex-1 bg-transparent text-sm"
                           placeholder={`Opsi ${String.fromCharCode(65 + oIdx)}`}
                           value={o.option_text}
                           onChange={(e) =>
@@ -511,6 +510,8 @@ export default function AdminCreateQuiz() {
                             updateOption(qIdx, oIdx, "image_url", url)
                           }
                           testId={`option-image-${qIdx}-${oIdx}`}
+                          compact
+                          hideHint
                         />
                       </div>
                     </div>
@@ -533,28 +534,16 @@ export default function AdminCreateQuiz() {
             </Card>
           ))}
         </section>
-
-        {/* ── Submit ── */}
-        <div className="pt-6 border-t border-jepang-border flex gap-3">
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
-            data-testid="create-quiz-submit"
-          >
-            {loading ? "Membuat..." : "Buat Kuis"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/admin")}
-            disabled={loading}
-            className="hover:bg-foreground hover:text-white"
-          >
-            Batal
-          </Button>
-        </div>
       </div>
+
+      <AdminFloatingFormActions
+        onSave={handleSubmit}
+        onCancel={() => router.push("/admin")}
+        saveLabel="Buat Kuis"
+        loadingLabel="Membuat..."
+        loading={loading}
+        saveTestId="create-quiz-submit"
+      />
     </AdminPageLayout>
   );
 }

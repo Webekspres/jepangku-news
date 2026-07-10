@@ -8,6 +8,7 @@ import {
   deleteMediaFile,
 } from "@/lib/upload-media";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import AdminFloatingFormActions from "@/components/admin/AdminFloatingFormActions";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
@@ -283,9 +284,9 @@ export default function AdminEditQuizPage() {
       title="Edit Kuis"
       subtitle="Perbarui informasi, pertanyaan, dan pilihan jawaban kuis."
     >
-      <div className="space-y-8">
+      <div className="mx-auto max-w-3xl space-y-8">
         {/* ── Info Kuis ── */}
-        <section className="space-y-5">
+        <section className="space-y-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
             INFO KUIS
           </p>
@@ -294,7 +295,7 @@ export default function AdminEditQuizPage() {
             <Label htmlFor="quiz-title">
               Judul Kuis <span className="text-jepang-red">*</span>
             </Label>
-            <Input id="quiz-title" type="text" className="font-heading font-bold text-xl"
+            <Input id="quiz-title" type="text"
               value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Judul kuis..." data-testid="quiz-title-input" />
           </div>
@@ -384,7 +385,7 @@ export default function AdminEditQuizPage() {
           {questions.map((q, qIdx) => (
             <Card key={qIdx} className="bg-jepang-off-white border border-jepang-border"
               data-testid={`question-form-${qIdx}`}>
-              <CardContent className="p-5 space-y-4">
+              <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-jepang-red">
                     PERTANYAAN {qIdx + 1}
@@ -401,7 +402,7 @@ export default function AdminEditQuizPage() {
 
                 <div className="space-y-2">
                   <Label>Pertanyaan <span className="text-jepang-red">*</span></Label>
-                  <Textarea rows={2} placeholder="Tulis pertanyaan..."
+                  <Input type="text" placeholder="Tulis pertanyaan..."
                     value={q.question_text}
                     onChange={(e) => updateQuestion(qIdx, "question_text", e.target.value)}
                     data-testid={`question-text-${qIdx}`} />
@@ -410,9 +411,10 @@ export default function AdminEditQuizPage() {
                 <ImageUploadField label="Gambar Pertanyaan (opsional)"
                   value={q.image_url} uploadKey={`question-${qIdx}`}
                   onUrlChange={(url) => updateQuestion(qIdx, "image_url", url)}
-                  testId={`question-image-${qIdx}`} />
+                  testId={`question-image-${qIdx}`}
+                  compact hideHint />
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <Label>
                     Pilihan Jawaban{" "}
                     <span className="text-jepang-muted text-xs font-normal">
@@ -423,17 +425,17 @@ export default function AdminEditQuizPage() {
                   {q.options.map((o, oIdx) => (
                     <div key={oIdx}
                       className={cn(
-                        "border border-jepang-border bg-white p-3 space-y-2",
+                        "border border-jepang-border bg-white p-2.5 space-y-2",
                         o.is_correct && "border-jepang-red bg-red-50",
                       )}
                       data-testid={`option-card-${qIdx}-${oIdx}`}>
                       <div className="flex items-center gap-2">
                         <input type="radio" name={`correct-${qIdx}`} checked={o.is_correct}
                           onChange={() => updateOption(qIdx, oIdx, "is_correct", true)}
-                          className="w-4 h-4 accent-jepang-red shrink-0"
+                          className="w-4 h-4 accent-jepang-red shrink-0 cursor-pointer"
                           title="Tandai sebagai jawaban benar"
                           data-testid={`correct-${qIdx}-${oIdx}`} />
-                        <Input type="text" className="flex-1 bg-transparent"
+                        <Input type="text" className="h-9 flex-1 bg-transparent text-sm"
                           placeholder={`Opsi ${String.fromCharCode(65 + oIdx)}`}
                           value={o.option_text}
                           onChange={(e) => updateOption(qIdx, oIdx, "option_text", e.target.value)}
@@ -451,7 +453,8 @@ export default function AdminEditQuizPage() {
                         <ImageUploadField label="Gambar Opsi (opsional)"
                           value={o.image_url} uploadKey={`option-${qIdx}-${oIdx}`}
                           onUrlChange={(url) => updateOption(qIdx, oIdx, "image_url", url)}
-                          testId={`option-image-${qIdx}-${oIdx}`} />
+                          testId={`option-image-${qIdx}-${oIdx}`}
+                          compact hideHint />
                       </div>
                     </div>
                   ))}
@@ -468,19 +471,16 @@ export default function AdminEditQuizPage() {
             </Card>
           ))}
         </section>
-
-        {/* ── Submit ── */}
-        <div className="pt-6 border-t border-jepang-border flex gap-3">
-          <Button type="button" onClick={handleSubmit} disabled={loading}
-            data-testid="edit-quiz-submit">
-            {loading ? "Menyimpan..." : "Simpan Perubahan"}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.push("/admin/quizzes")}
-            disabled={loading} className="hover:bg-foreground hover:text-white">
-            Batal
-          </Button>
-        </div>
       </div>
+
+      <AdminFloatingFormActions
+        onSave={handleSubmit}
+        onCancel={() => router.push("/admin/quizzes")}
+        saveLabel="Simpan Perubahan"
+        loadingLabel="Menyimpan..."
+        loading={loading}
+        saveTestId="edit-quiz-submit"
+      />
     </AdminPageLayout>
   );
 }
