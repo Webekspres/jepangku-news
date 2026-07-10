@@ -22,7 +22,6 @@ const DATA_DIR = path.join(__dirname, "data");
 const MANIFEST_PATH = path.join(__dirname, "image-url-manifest.json");
 
 const DRY_RUN = process.argv.includes("--dry-run");
-const PURPOSE = "cover";
 
 const PRESET = { maxWidth: 1600, maxHeight: 1200, quality: 85 };
 
@@ -226,6 +225,7 @@ async function main() {
     totalReplacements += n;
     console.log(`Patched ${path.basename(f)}: ${n} URL pattern(s)`);
   }
+  console.log(`Total URL replacements: ${totalReplacements}`);
 
   // Reload seed data after patch for entity manifest
   const refreshed = loadSeedData();

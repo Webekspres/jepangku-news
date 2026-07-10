@@ -3,7 +3,7 @@
  * Target: 30–50 artikel dengan distribusi per kategori sesuai checklist.
  */
 
-const { IMAGES, articleCoverForKey, ARTICLE_COVER_POOL } = require("./images.js");
+const { ARTICLE_COVER_POOL } = require("./images.js");
 const { createUniquePicker } = require("./image-picker.js");
 const articlePicker = createUniquePicker();
 const { CLERK_TEST_SAMPLE_USER_EMAIL, DUMMY_USER_EMAILS } = require("./clerk-test-emails.js");
@@ -18,18 +18,6 @@ const AUTHORS = [
   { email: DUMMY_USER_EMAILS.fajarnugroho, displayName: "Fajar" },
   { email: DUMMY_USER_EMAILS.linahartati, displayName: "Lina" },
 ];
-
-const CATEGORY_COVER_KEY = {
-  news: "technology",
-  travel: "travel",
-  culture: "culture",
-  entertainment: "anime",
-  lifestyle: "lifestyle",
-  "work-in-japan": "education",
-  "study-in-japan": "education",
-  "review-produk": "food",
-  event: "event",
-};
 
 const CATEGORY_IMAGE_POOLS = {
   news: ["technology", "work", "camera", "automotive", "gaming", "nomad", "elderly", "konbini"],
