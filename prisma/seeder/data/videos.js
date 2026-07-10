@@ -75,7 +75,7 @@ const VIDEOS_DATA = [
   },
   {
     slug: "etika-onsen-jepang",
-    title: "Budaya Onsen: Etika yang Perlu Diketahui",
+    title: "Etika Budaya Onsen yang Perlu Diketahui",
     description:
       "Panduan singkat tata krama di pemandian air panas Jepang agar pengalamanmu nyaman dan sopan.",
     content: videoContent(
@@ -101,7 +101,7 @@ const VIDEOS_DATA = [
   },
   {
     slug: "anime-manga-tokyo-guide",
-    title: "Anime & Manga: Spot Terbaik di Tokyo",
+    title: "Spot Anime dan Manga Terbaik di Tokyo",
     description:
       "Dari Akihabara hingga Nakano Broadway — rekomendasi untuk penggemar anime dan manga.",
     content: videoContent(
@@ -181,7 +181,7 @@ const VIDEOS_DATA = [
   },
   {
     slug: "draft-video-halal-jepang",
-    title: "[Draf] Kuliner Halal di Jepang",
+    title: "Draf Kuliner Halal di Jepang",
     description: "Episode mendatang tentang restoran halal dan tips makan aman di Jepang.",
     content: videoContent(
       "Episode ini masih dalam tahap produksi. Kami sedang mengumpulkan rekomendasi restoran halal di Tokyo, Osaka, dan Kyoto.",
@@ -280,7 +280,7 @@ const VIDEOS_DATA = [
   },
   {
     slug: "musim-sakura-hanami",
-    title: "Hanami: Menikmati Musim Sakura di Jepang",
+    title: "Menikmati Hanami dan Musim Sakura di Jepang",
     description:
       "Spot hanami populer, tips piknik, dan tradisi menikmati bunga sakura.",
     content: videoContent(

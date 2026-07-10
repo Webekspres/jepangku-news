@@ -4,7 +4,7 @@ const ADS_DATA = [
   {
     key: "center-partner",
     position: "center",
-    title: "Partner — Jepangku LMS JLPT",
+    title: "Belajar JLPT dengan Jepangku LMS",
     imageUrl: IMAGES.articleCovers.travel[0],
     linkUrl: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=homepage-banner",
     altText: "Belajar bahasa Jepang dengan Jepangku LMS",
@@ -14,7 +14,7 @@ const ADS_DATA = [
   {
     key: "center-partner-2",
     position: "center",
-    title: "Partner — Homepage Tengah #2",
+    title: "Kursus Bahasa Jepang Online untuk Pemula",
     imageUrl: IMAGES.articleCovers.culture[0],
     linkUrl: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=homepage-banner-2",
     altText: "Promo kedua partner Jepangku",
@@ -24,7 +24,7 @@ const ADS_DATA = [
   {
     key: "sidebar-partner",
     position: "sidebar",
-    title: "Partner — Sidebar #1",
+    title: "Promo Kursus Jepangku di Sidebar",
     imageUrl: IMAGES.articleCovers.lifestyle[0],
     linkUrl: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=sidebar",
     altText: "Promo partner di sidebar",
@@ -34,7 +34,7 @@ const ADS_DATA = [
   {
     key: "sidebar-partner-2",
     position: "sidebar",
-    title: "Partner — Sidebar #2",
+    title: "Tingkatkan Nihongo Lewat Jepangku LMS",
     imageUrl: IMAGES.articleCovers.culture[0],
     linkUrl: "https://dev.kursus.jepangku.com/kursus?utm_source=jepangku.com&utm_medium=sidebar-2",
     altText: "Promo kedua partner di sidebar",

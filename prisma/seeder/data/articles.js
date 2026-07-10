@@ -3,7 +3,9 @@
  * Target: 30–50 artikel dengan distribusi per kategori sesuai checklist.
  */
 
-const { IMAGES } = require("./images.js");
+const { IMAGES, articleCoverForKey, ARTICLE_COVER_POOL } = require("./images.js");
+const { createUniquePicker } = require("./image-picker.js");
+const articlePicker = createUniquePicker();
 const { CLERK_TEST_SAMPLE_USER_EMAIL, DUMMY_USER_EMAILS } = require("./clerk-test-emails.js");
 
 const AUTHORS = [
@@ -29,10 +31,25 @@ const CATEGORY_COVER_KEY = {
   event: "event",
 };
 
-function coverFor(categorySlug, index) {
-  const key = CATEGORY_COVER_KEY[categorySlug] || "culture";
-  const pool = IMAGES.articleCovers[key] || IMAGES.articleFallback;
-  return pool[index % pool.length];
+const CATEGORY_IMAGE_POOLS = {
+  news: ["technology", "work", "camera", "automotive", "gaming", "nomad", "elderly", "konbini"],
+  travel: ["travel", "culture"],
+  culture: ["culture", "event", "travel"],
+  entertainment: ["anime", "manga", "music", "film", "fun"],
+  lifestyle: ["lifestyle", "culture", "food"],
+  "work-in-japan": ["education", "work", "culture"],
+  "study-in-japan": ["education", "culture"],
+  "review-produk": ["food", "skincare", "gaming", "souvenirs", "konbini"],
+  event: ["event", "travel", "culture"],
+};
+
+function coverFor(categorySlug, index, coverKey) {
+  if (coverKey) {
+    const poolKey = ARTICLE_COVER_POOL[coverKey];
+    if (poolKey) return articlePicker.take([poolKey], 1200);
+  }
+  const pools = CATEGORY_IMAGE_POOLS[categorySlug] || ["culture", "travel"];
+  return articlePicker.take(pools, 1200);
 }
 
 function article(def, index) {
@@ -43,7 +60,8 @@ function article(def, index) {
     tags: def.tags,
     excerpt: def.excerpt,
     content: def.content,
-    cover_image_url: def.cover_image_url ?? coverFor(def.category_slug, index),
+    cover_image_url:
+      def.cover_image_url ?? coverFor(def.category_slug, index, def.cover_key),
     is_featured: def.is_featured ?? false,
     is_hot: def.is_hot ?? false,
     status: def.status ?? "PUBLISHED",
@@ -55,6 +73,7 @@ const ARTICLE_DEFS = [
   // ── News (8) ──────────────────────────────────────────────────────────
   {
     category_slug: "news",
+    cover_key: "minimum_wage",
     title: "Jepang Resmi Naikkan Upah Minimum Nasional Mulai Oktober 2026",
     excerpt:
       "Pemerintah Jepang mengumumkan kenaikan upah minimum nasional 3,5% yang berlaku 1 Oktober 2026, dengan Tokyo mencatatkan angka tertinggi ¥1.150 per jam.",
@@ -81,6 +100,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "sony_camera",
     title: "Sony Perkenalkan Kamera Mirrorless Generasi Terbaru di Tokyo",
     excerpt:
       "Sony meluncurkan lini kamera full-frame terbaru dengan fokus autofokus AI dan performa low-light yang ditingkatkan di acara peluncuran Tokyo.",
@@ -98,6 +118,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "toyota_ev",
     title: "Toyota Umumkan Strategi Kendaraan Listrik untuk Pasar Asia",
     excerpt:
       "Toyota mempercepat roadmap EV dengan target 15 model listrik baru di Asia Tenggara dan pasar emerging hingga 2030.",
@@ -114,6 +135,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "nintendo_switch",
     title: "Nintendo Switch 2 Dijadwalkan Rilis Global Q1 2027",
     excerpt:
       "Nintendo mengonfirmasi Switch 2 akan rilis global kuartal pertama 2027 dengan layar OLED 8 inci dan backward compatibility penuh.",
@@ -131,6 +153,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "visa_nomad",
     title: "Jepang Terapkan Kebijakan Visa Digital Nomad untuk Pelancong Remote Work",
     excerpt:
       "Visa digital nomad Jepang resmi berlaku 2026, memungkinkan pekerja remote asing tinggal hingga 6 bulan dengan syarat pendapatan minimum.",
@@ -147,6 +170,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "demographics",
     title: "Tren Demografi: Jepang Catat Rekor Populasi Lansia Tertinggi",
     excerpt:
       "29,3% populasi Jepang berusia 65+ per Maret 2026, mendorong kebijakan reformasi sosial dan peluang di sektor perawatan.",
@@ -163,6 +187,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "ai_startup",
     title: "Startup AI Jepang Raih Pendanaan Series B US$120 Juta",
     excerpt:
       "Preferred Networks dan SoftBank Vision Fund co-lead pendanaan startup AI Tokyo yang fokus pada otomatisasi manufaktur.",
@@ -179,6 +204,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "news",
+    cover_key: "konbini_trend",
     title: "Fenomena Konbini Gourmet Masuk Daftar Tren Kuliner Global 2026",
     excerpt:
       "Produk ready-to-eat dari Lawson dan 7-Eleven Jepang masuk daftar tren kuliner global menurut laporan gastronomi internasional.",
@@ -474,6 +500,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "entertainment",
+    cover_key: "jpop_fest",
     title: "J-Pop Summer Fest 2026: Line-up Konser Terbaru",
     excerpt:
       "Fuji Rock, Summer Sonic, dan Rock in Japan 2026 — line-up awal dan tips tiket untuk penggemar J-Pop Indonesia.",
@@ -492,6 +519,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "entertainment",
+    cover_key: "film_review",
     title: 'Review Film "Perfect Days" — Potret Kehidupan Sederhana di Tokyo',
     excerpt:
       "Wim Wenders menggarap portrait toilet cleaner Tokyo yang memenangkan Cannes — review tanpa spoiler.",
@@ -552,6 +580,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "entertainment",
+    cover_key: "spotify_wrapped",
     title: "Spotify Wrapped Jepang 2025: Artis Lokal yang Meledak",
     excerpt:
       "YOASOBI, Ado, dan Creepy Nuts dominasi Spotify Japan Wrapped 2025 — tren dan rekomendasi playlist.",
@@ -592,6 +621,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "entertainment",
+    cover_key: "idol_debut",
     title: "Idol Group Baru dari AKB48 Sister: Debut dan Proyeksi",
     excerpt:
       "NGT48 meluncurkan sub-unit baru dengan konsep regional Hokuriku — profil member dan strategi marketing.",
@@ -904,6 +934,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "review-produk",
+    cover_key: "skincare_review",
     title: "Review Skincare Jepang: Hada Labo Gokujyun untuk Kulit Tropis",
     excerpt:
       "Hada Labo Gokujyun lotion & milk — apakah cocok untuk kulit Indonesia? Review honest setelah 3 bulan pemakaian.",
@@ -925,6 +956,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "review-produk",
+    cover_key: "switch_controller",
     title: "Review Nintendo Switch 2 Pro Controller: Worth It?",
     excerpt:
       "Hands-on preview controller Switch 2 — ergonomi, battery life, HD rumble, dan perbandingan dengan Pro Controller gen 1.",
@@ -946,6 +978,7 @@ const ARTICLE_DEFS = [
   },
   {
     category_slug: "review-produk",
+    cover_key: "omiyage",
     title: "Ole-oleh Jepang Terbaik 2026: Dari Snack hingga Craft",
     excerpt:
       "Curated list oleh-oleh Jepang terbaik 2026 — snack, beauty, craft, dan budget guide untuk wisatawan Indonesia.",

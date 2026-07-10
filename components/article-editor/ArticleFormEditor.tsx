@@ -20,8 +20,9 @@ import { useRouter } from "next/navigation";
 import { useAuth, isAuthUser } from "@/contexts/AuthContext";
 import { parseApiResponse } from "@/lib/fetch-api";
 import { toast } from "sonner";
-import { Eye, Globe, PenSquare, Save, Send, Upload, Clock } from "lucide-react";
+import { Eye, Globe, PenSquare, Save, Send, Clock } from "lucide-react";
 import Link from "next/link";
+import ArticleCoverUploadField from "@/components/article-editor/ArticleCoverUploadField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,8 +60,6 @@ import {
 import {
   buildDraftPayload,
   normaliseTags,
-  getArticleImageUploadHint,
-  ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
 import {
   defaultScheduleInputValue,
@@ -587,77 +586,23 @@ export function ArticleFormEditor({
               </div>
             </div>
 
-            {/* Cover Image */}
-            <div className="space-y-2">
-              <Label>Gambar Cover</Label>
-              <div className="flex gap-3 items-start">
-                <Input
-                  type="text"
-                  className="flex-1"
-                  value={form.coverImageUrl}
-                  onChange={(e) =>
-                    setForm({ ...form, coverImageUrl: e.target.value })
-                  }
-                  placeholder="URL gambar atau unggah..."
-                  data-testid="article-cover-input"
-                />
-                <Button
-                  variant="outline"
-                  asChild
-                  disabled={cover.busy}
-                  className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
-                >
-                  <label>
-                    <Upload size={14} strokeWidth={1.5} />
-                    {cover.busy ? "Memproses..." : "Pilih Gambar"}
-                    <input
-                      type="file"
-                      accept={ARTICLE_IMAGE_ACCEPT}
-                      className="hidden"
-                      onChange={handleFilePick}
-                      disabled={cover.busy}
-                      data-testid="article-cover-upload"
-                    />
-                  </label>
-                </Button>
-              </div>
-              <p className="text-xs text-jepang-muted">
-                {getArticleImageUploadHint("cover")}
-              </p>
+            <ArticleCoverUploadField
+              cover={cover}
+              committedUrl={form.coverImageUrl}
+              onFilePick={handleFilePick}
+              loading={loading}
+              uploadTestId="article-cover-upload"
+              removeTestId="article-cover-remove"
+              previewTestId="cover-preview"
+              urlTestId="article-cover-url"
+            >
               <p className="text-xs text-jepang-muted">
                 Gambar cover diunggah ke server saat Anda menekan Simpan Draft
                 {isAdmin
                   ? ", Publikasikan Sekarang, atau Jadwalkan Tayang."
                   : " atau Kirim untuk Review."}
               </p>
-              {cover.validationError ? (
-                <p className="text-sm text-jepang-red" role="alert">
-                  {cover.validationError}
-                </p>
-              ) : null}
-              {cover.hasImage && (
-                <div className="mt-3 space-y-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={cover.previewUrl}
-                    alt="Preview cover artikel"
-                    className="max-h-48 object-cover border border-jepang-border"
-                    data-testid="cover-preview"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={cover.busy || loading}
-                    onClick={() => void cover.remove()}
-                    className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
-                    data-testid="article-cover-remove"
-                  >
-                    Hapus Gambar
-                  </Button>
-                </div>
-              )}
-            </div>
+            </ArticleCoverUploadField>
 
             {/* Content */}
             <div className="space-y-2">

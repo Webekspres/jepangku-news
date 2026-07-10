@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { parseApiResponse } from "@/lib/fetch-api";
 import { toast } from "sonner";
-import { Eye, Globe, Save, Upload } from "lucide-react";
+import { Eye, Globe, Save } from "lucide-react";
 import AdminPageLayout from "@/components/admin/AdminPageLayout";
 import ArticleEditAside from "@/components/admin/ArticleEditAside";
+import ArticleCoverUploadField from "@/components/article-editor/ArticleCoverUploadField";
 import { ConfirmModal, useConfirm } from "@/components/ui/confirm-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,8 +39,6 @@ import {
 import {
   buildDraftPayload,
   normaliseTags,
-  getArticleImageUploadHint,
-  ARTICLE_IMAGE_ACCEPT,
 } from "@/lib/article-form-helpers";
 import {
   defaultScheduleInputValue,
@@ -195,76 +194,21 @@ function ArticleFormFields({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Gambar Cover</Label>
-        <div className="flex gap-3 items-start">
-          <Input
-            type="text"
-            className="flex-1"
-            value={form.coverImageUrl}
-            onChange={(e) =>
-              setForm({ ...form, coverImageUrl: e.target.value })
-            }
-            placeholder="URL gambar atau unggah..."
-            data-testid="admin-article-cover"
-          />
-          <Button
-            variant="outline"
-            asChild
-            disabled={cover.busy}
-            className="cursor-pointer hover:bg-foreground hover:text-white shrink-0"
-          >
-            <label>
-              <Upload size={14} strokeWidth={1.5} />
-              {cover.busy ? "Memproses..." : "Pilih Gambar"}
-              <input
-                type="file"
-                accept={ARTICLE_IMAGE_ACCEPT}
-                className="hidden"
-                onChange={onFilePick}
-                disabled={cover.busy}
-              />
-            </label>
-          </Button>
-        </div>
+      <ArticleCoverUploadField
+        cover={cover}
+        committedUrl={form.coverImageUrl}
+        onFilePick={onFilePick}
+        loading={loading}
+        uploadTestId="admin-article-cover"
+        removeTestId="admin-article-cover-remove"
+      >
         {showCoverHint && (
-          <>
-            <p className="text-xs text-jepang-muted">
-              {getArticleImageUploadHint("cover")}
-            </p>
-            <p className="text-xs text-jepang-muted">
-              Gambar cover diunggah ke server saat artikel disimpan atau
-              autosave ke server.
-            </p>
-          </>
-        )}
-        {cover.validationError ? (
-          <p className="text-sm text-jepang-red" role="alert">
-            {cover.validationError}
+          <p className="text-xs text-jepang-muted">
+            Gambar cover diunggah ke server saat artikel disimpan atau
+            autosave ke server.
           </p>
-        ) : null}
-        {cover.hasImage && (
-          <div className="mt-3 space-y-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={cover.previewUrl}
-              alt="Preview cover"
-              className="max-h-48 object-cover border border-jepang-border"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={cover.busy || loading}
-              onClick={() => void cover.remove()}
-              className="text-jepang-red border-jepang-red hover:bg-jepang-red hover:text-white"
-              data-testid="admin-article-cover-remove"
-            >
-              Hapus Gambar
-            </Button>
-          </div>
         )}
-      </div>
+      </ArticleCoverUploadField>
 
       <div className="space-y-2">
         <Label>
