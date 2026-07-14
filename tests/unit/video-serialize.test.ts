@@ -116,8 +116,8 @@ describe("serializePublicVideo — TikTok", () => {
   });
 });
 
-describe("serializePublicVideo — Instagram (link-out)", () => {
-  test("platform INSTAGRAM, embedUrl null", () => {
+describe("serializePublicVideo — Instagram (embed)", () => {
+  test("platform INSTAGRAM dengan embed URL", () => {
     const result = serializePublicVideo(
       baseVideo({
         videoUrl: "https://www.instagram.com/reel/CxxxxYYYYY/",
@@ -127,7 +127,9 @@ describe("serializePublicVideo — Instagram (link-out)", () => {
       }),
     );
     expect(result.platform).toBe("INSTAGRAM");
-    expect(result.embedUrl).toBeNull();
+    expect(result.embedUrl).toBe(
+      "https://www.instagram.com/reel/CxxxxYYYYY/embed/",
+    );
   });
 });
 
@@ -204,11 +206,18 @@ describe("parseVideoUrl", () => {
     expect(r?.embedUrl).toBeNull();
   });
 
-  test("Instagram reel — link-out only", () => {
+  test("Instagram reel — embed iframe", () => {
     const r = parseVideoUrl("https://www.instagram.com/reel/CxxxxxYYYY/");
     expect(r?.platform).toBe("INSTAGRAM");
-    expect(r?.supportsEmbed).toBe(false);
-    expect(r?.embedUrl).toBeNull();
+    expect(r?.supportsEmbed).toBe(true);
+    expect(r?.embedUrl).toBe("https://www.instagram.com/reel/CxxxxxYYYY/embed/");
+    expect(r?.platformId).toBe("CxxxxxYYYY");
+  });
+
+  test("Instagram post — embed iframe", () => {
+    const r = parseVideoUrl("https://www.instagram.com/p/AbCdEfGhIjK/");
+    expect(r?.platform).toBe("INSTAGRAM");
+    expect(r?.embedUrl).toBe("https://www.instagram.com/p/AbCdEfGhIjK/embed/");
   });
 
   test("URL tidak dikenal — platform OTHER", () => {

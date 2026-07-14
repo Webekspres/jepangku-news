@@ -16,14 +16,12 @@ const TODAY_ARTICLE_LIMIT = 6;
 type HomeTodaySectionProps = {
   articles: HomeArticle[];
   trending: HomeArticle[];
-  todaySource: "today" | "fallback";
   loading: boolean;
 };
 
 export default function HomeTodaySection({
   articles,
   trending,
-  todaySource,
   loading,
 }: HomeTodaySectionProps) {
   const {
@@ -32,22 +30,23 @@ export default function HomeTodaySection({
     error: sidebarAdError,
   } = useAdSlot("sidebar", { immediate: true });
 
-  const displayArticles = articles.slice(0, TODAY_ARTICLE_LIMIT);
+  const displayArticles = [...articles]
+    .sort((a, b) => {
+      const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return bTime - aTime;
+    })
+    .slice(0, TODAY_ARTICLE_LIMIT);
 
   return (
     <section className="py-10 md:py-12 bg-jepang-off-white border-t border-jepang-border">
       <div className="px-4 mx-auto max-w-7xl">
         <div className="flex items-end justify-between gap-4 mb-6 md:mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
-            <p className="small-caps text-jepang-red mb-1">今日 / HARI INI</p>
+            <p className="small-caps text-jepang-red mb-1">今日 / Hari ini</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient">
-              Artikel Hari Ini
+              Artikel Terbaru
             </h2>
-            {!loading && todaySource === "fallback" ? (
-              <p className="mt-2 text-sm text-jepang-muted">
-                Belum cukup artikel hari ini — menampilkan yang terbaru.
-              </p>
-            ) : null}
           </div>
           <Link
             href="/articles"

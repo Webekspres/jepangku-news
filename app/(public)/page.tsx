@@ -76,7 +76,6 @@ export default function HomePage() {
   const featuredArticles = feed?.featuredArticles ?? [];
   const trending = feed?.trending ?? [];
   const todayArticles = feed?.todayArticles ?? [];
-  const todaySource = feed?.todaySource ?? "today";
   const featuredFallback = feed?.featuredFallback ?? null;
 
   return (
@@ -91,6 +90,10 @@ export default function HomePage() {
         />
       </LazySectionShell>
 
+      <LazySectionShell sectionId="ads" sentinelRef={adsSentinelRef}>
+        <AdBannerSlot data={ads} loading={adsLoading} error={adsError} />
+      </LazySectionShell>
+
       <LazySectionShell sectionId="hero">
         <HomeHero />
       </LazySectionShell>
@@ -99,8 +102,7 @@ export default function HomePage() {
         <HomeTodaySection
           articles={todayArticles}
           trending={trending}
-          todaySource={todaySource}
-          loading={feedLoading}
+          loading={feedLoading} 
         />
       </LazySectionShell>
 
@@ -119,9 +121,6 @@ export default function HomePage() {
         <JepangkuTvSection data={tv} loading={tvLoading} error={tvError} />
       </LazySectionShell>
 
-      <LazySectionShell sectionId="ads" sentinelRef={adsSentinelRef}>
-        <AdBannerSlot data={ads} loading={adsLoading} error={adsError} />
-      </LazySectionShell>
 
       <LazySectionShell sectionId="lms" sentinelRef={lmsSentinelRef}>
         <HomeLmsTeaser data={lms} loading={lmsLoading} error={lmsError} />

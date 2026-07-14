@@ -26,7 +26,8 @@ const IFRAME_ALLOW: Record<VideoPlatform, string> = {
     "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
   FACEBOOK: "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share",
   TIKTOK: "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture",
-  INSTAGRAM: "",
+  INSTAGRAM:
+    "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen",
   OTHER: "",
 };
 
@@ -50,8 +51,9 @@ function PlatformBadge({ platform }: { platform: VideoPlatform }) {
 }
 
 /**
- * Embed inline YouTube / Facebook / TikTok.
+ * Embed inline YouTube / Facebook / TikTok / Instagram.
  * Lazy: tampilkan thumbnail + tombol play dulu; iframe dimuat setelah user klik.
+ * Platform tanpa embedUrl → kartu link-out (Other / URL pendek TikTok).
  */
 export default function LazyVideoEmbed({
   platform,
@@ -116,8 +118,8 @@ export default function LazyVideoEmbed({
           className="absolute inset-0 h-full w-full border-0"
           // TikTok embed butuh sandbox lebih permisif
           sandbox={
-            platform === "TIKTOK"
-              ? "allow-scripts allow-same-origin allow-popups allow-presentation"
+            platform === "TIKTOK" || platform === "INSTAGRAM"
+              ? "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
               : undefined
           }
         />

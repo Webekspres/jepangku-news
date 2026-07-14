@@ -7,7 +7,7 @@ export type AdSlotDimensions = {
 };
 
 export const AD_SLOT_DIMENSIONS: Record<AdSlotPosition, AdSlotDimensions> = {
-  center: { width: 1200, height: 280, label: 'Tengah (Homepage)' },
+  center: { width: 1200, height: 280, label: 'Tengah' },
   sidebar: { width: 400, height: 360, label: 'Sidebar' },
 };
 

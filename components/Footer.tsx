@@ -41,7 +41,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
                 draggable={false}
               />
               <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm">
-                JepangKu - Jepang versi kamu! 
+                JepangKu - Jepang Versi Kamu! 
               </p>
               <p className="text-sm text-white/80 leading-relaxed mb-4 max-w-sm text-center md:text-start">
                 Portal media interaktif bertema Jepang untuk pembaca Indonesia, menghadirkan berita terbaru, artikel menarik, dan berbagai informasi seputar budaya, hiburan, lifestyle, hingga edukasi bahasa Jepang.

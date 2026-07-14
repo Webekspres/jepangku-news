@@ -12,7 +12,7 @@ const GET = withRequestLogging(async () => {
 
   return apiSuccess(data, {
     headers: {
-      'Cache-Control': 's-maxage=60, stale-while-revalidate=120',
+      'Cache-Control': 's-maxage=30, stale-while-revalidate=60',
     },
   });
 });

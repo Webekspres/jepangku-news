@@ -14,7 +14,7 @@ export type PublicVideo = {
   content: string;
   /** Platform video: YOUTUBE | FACEBOOK | TIKTOK | INSTAGRAM | OTHER */
   platform: VideoPlatform;
-  /** URL embed langsung (iframe). Null untuk Instagram / Other — gunakan videoUrl. */
+  /** URL embed langsung (iframe). Null untuk Other / URL pendek TikTok. */
   embedUrl: string | null;
   /** URL asli video — digunakan untuk link-out jika embedUrl null */
   videoUrl: string;

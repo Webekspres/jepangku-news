@@ -17,14 +17,6 @@ type HomeLmsTeaserProps = {
 
 const HIGHLIGHT_ICONS = [GraduationCap, BarChart3, Award] as const;
 
-const LEVEL_BADGE: Record<LmsTeaserCourse["level"], string> = {
-  N5: "bg-emerald-600 text-white",
-  N4: "bg-blue-600 text-white",
-  N3: "bg-amber-600 text-white",
-  N2: "bg-violet-600 text-white",
-  N1: "bg-jepang-red text-white",
-};
-
 const LEVEL_GRADIENT: Record<LmsTeaserCourse["level"], string> = {
   N5: "from-emerald-600 to-emerald-800",
   N4: "from-blue-600 to-blue-900",
@@ -103,14 +95,6 @@ function CourseCard({ course }: { course: LmsTeaserCourse }) {
             {course.level}
           </span>
         </MotionHoverScale>
-        <span
-          className={cn(
-            "absolute left-3 top-3 rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-            LEVEL_BADGE[course.level],
-          )}
-        >
-          {course.level}
-        </span>
         <span className="absolute right-3 top-3 rounded bg-black/40 px-2 py-0.5 text-[10px] font-mono text-white">
           {course.badge}
         </span>
@@ -179,13 +163,13 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
             className="shrink-0 self-start md:self-end"
             data-testid="lms-nihongo-logo-link"
           >
-            <img
+            <AssetImage
               src="/assets/images/logo/logo-nihongo.webp"
+              alt="Jepangku Nihongo LMS"
               width={400}
               height={98}
               className="w-72 h-auto opacity-90 transition-opacity hover:opacity-100"
-              alt="Jepangku Nihongo LMS"
-              draggable={false}
+              unoptimized={true}
             />
           </Link>
         </div>

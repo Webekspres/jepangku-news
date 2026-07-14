@@ -1,5 +1,5 @@
 export const AD_SLOT_POSITIONS = [
-  { value: "center", label: "Tengah — Homepage (antara TV & LMS)" },
+  { value: "center", label: "Tengah — homepage & artikel" },
   { value: "sidebar", label: "Sidebar — semua halaman" },
 ] as const;
 

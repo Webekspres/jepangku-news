@@ -4,4 +4,6 @@ import { revalidatePath } from "next/cache";
 export function revalidateHomeTv(): void {
   revalidatePath("/");
   revalidatePath("/tv");
+  revalidatePath("/api/home/tv");
+  revalidatePath("/explore");
 }

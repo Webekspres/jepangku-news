@@ -6,8 +6,13 @@ import AuthorLink from "@/components/AuthorLink";
 import CardCoverImage from "@/components/CardCoverImage";
 import ReactionIcon from "@/components/reactions/ReactionIcon";
 import { MotionHoverScale } from "@/components/ui/motion";
-import { resolveCardImageUrl } from "@/lib/image-placeholder";
-import { Eye } from "lucide-react";
+import { formatArticleDate } from "@/lib/home/format-article-date";
+import {
+  resolveCardImageUrl,
+  resolveThumbnailUrl,
+} from "@/lib/image-placeholder";
+import { cn } from "@/lib/utils";
+import { Clock, Eye, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -18,6 +23,9 @@ export interface Article {
   excerpt?: string | null;
   coverImageUrl?: string | null;
   cover_image_url?: string | null;
+  thumbnailUrl?: string | null;
+  thumbnail_url?: string | null;
+  publishedAt?: Date | string | null;
   viewCount?: number;
   view_count?: number;
   isHot?: boolean;
@@ -30,28 +38,91 @@ export interface Article {
 
 interface ArticleCardProps {
   article: Article;
-  variant?: "default" | "featured" | "compact" | "grid";
+  /** featured = hero beranda; editorial = kolom kategori (compact + radius) */
+  variant?: "default" | "featured" | "editorial" | "compact" | "grid";
+  /**
+   * @deprecated Gunakan variant="editorial".
+   * Dipertahankan: variant="featured" + featuredSize="editorial"
+   */
+  featuredSize?: "hero" | "editorial";
   priority?: boolean;
   /** Label reaksi dominan (homepage reaksi komunitas) */
   reactionBadge?: { iconSrc: string; label: string };
+  className?: string;
+  /** Override data-testid pada link featured */
+  testId?: string;
 }
 
 export default function ArticleCard({
   article,
   variant = "default",
+  featuredSize = "hero",
   priority = false,
   reactionBadge,
+  className,
+  testId,
 }: ArticleCardProps) {
   const coverUrl = resolveCardImageUrl(
     article.coverImageUrl || article.cover_image_url,
   );
   const viewCount = article.viewCount ?? article.view_count ?? 0;
   const isHot = article.isHot ?? article.is_hot ?? false;
+  const isEditorial =
+    variant === "editorial" ||
+    (variant === "featured" && featuredSize === "editorial");
+
+  if (isEditorial) {
+    return (
+      <Link
+        href={`/articles/${article.slug}`}
+        className={cn(
+          "group relative block aspect-video w-full overflow-hidden rounded-xl",
+          className,
+        )}
+        data-testid={testId ?? `article-featured-${article.slug}`}
+      >
+        <MotionHoverScale className="absolute inset-0">
+          <CardCoverImage
+            src={resolveThumbnailUrl(article)}
+            alt={article.title}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={priority}
+          />
+        </MotionHoverScale>
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/45 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-3.5 md:p-4 text-white">
+          {article.category ? (
+            <span className="inline-block mb-1.5 rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+              {article.category.name}
+            </span>
+          ) : null}
+          <h4 className="font-heading font-black text-base md:text-xl tracking-tight line-clamp-2 group-hover:text-jepang-yellow transition-colors">
+            {article.title}
+          </h4>
+          <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-zinc-300 font-mono uppercase tracking-wider">
+            {article.author ? (
+              <span className="inline-flex items-center gap-1">
+                <User size={11} strokeWidth={1.5} />
+                {article.author.name}
+              </span>
+            ) : null}
+            <span className="inline-flex items-center gap-1">
+              <Clock size={11} strokeWidth={1.5} />
+              {formatArticleDate(article.publishedAt)}
+            </span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   if (variant === "featured") {
     return (
       <div
-        className="group block relative h-115 md:h-140 overflow-hidden"
+        className={cn(
+          "group block relative h-115 md:h-140 overflow-hidden",
+          className,
+        )}
       >
         <div className="absolute inset-0 opacity-70 transition-opacity duration-300 group-hover:opacity-90">
           <CardCoverImage
@@ -76,7 +147,7 @@ export default function ArticleCard({
             <Link
               href={`/articles/${article.slug}`}
               className="after:absolute after:inset-0 after:z-10"
-              data-testid={`article-featured-${article.slug}`}
+              data-testid={testId ?? `article-featured-${article.slug}`}
             >
               {article.title}
             </Link>
