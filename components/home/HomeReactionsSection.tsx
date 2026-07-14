@@ -38,6 +38,7 @@ function toArticleCardProps(article: HomeReactedArticle) {
     title: article.title,
     excerpt: article.excerpt,
     coverImageUrl: article.coverImageUrl,
+    viewCount: article.viewCount,
     author: article.author,
     category: article.category,
   };
@@ -68,9 +69,6 @@ export default function HomeReactionsSection({
     );
   }
 
-  const periodLabel =
-    data.period === "week" ? "7 hari terakhir" : "sepanjang waktu";
-
   return (
     <section className="py-12 bg-jepang-off-white" data-testid="home-reactions-section">
       <div className="px-4 mx-auto max-w-7xl">
@@ -82,7 +80,7 @@ export default function HomeReactionsSection({
               <span className="section-title-gradient">Reaksi Komunitas</span>
             </h2>
             <p className="mt-2 text-sm text-jepang-muted">
-              Artikel paling direaksi komunitas — {periodLabel}.
+              Artikel popular yang paling direaksi komunitas.
             </p>
           </div>
           <Link
@@ -98,8 +96,7 @@ export default function HomeReactionsSection({
           data-testid="home-reactions-emoji-bar"
         >
           <p className="text-[10px] font-mono uppercase tracking-wider text-jepang-muted mb-4">
-            Reaksi komunitas {periodLabel}
-            {data.globalTotal > 0 ? ` · ${data.globalTotal.toLocaleString("id-ID")} total` : ""}
+            Total reaksi per emoji (semua waktu)
           </p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-9">
             {data.emojiStats.map((stat) => (

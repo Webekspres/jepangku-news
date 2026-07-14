@@ -134,8 +134,11 @@ function ArticleListContent() {
     <div className="bg-white min-h-screen" data-testid="article-list-page">
       <SectionHeader
         label="記事 / Artikel"
-        title="Baca berita terbaru seputar Jepang"
-        subtitle="Dapatkan informasi terkini tentang anime, manga, budaya Jepang, dan banyak lagi!"
+        title={
+          activeCategory?.name
+            ? activeCategory.name
+            : "Baca berita terbaru seputar Jepang"
+        }
       />
 
       <div className="mx-auto max-w-7xl px-4 pb-8 pt-4">

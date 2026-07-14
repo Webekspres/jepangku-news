@@ -8,7 +8,7 @@
  *  - YouTube   → iframe embed (autoplay setelah klik)
  *  - Facebook  → Facebook Video Player iframe (fb.watch / facebook.com/watch)
  *  - TikTok    → iframe embed (tiktok.com/embed)
- *  - Instagram → link-out (Instagram tidak izinkan iframe embed tanpa SDK)
+ *  - Instagram → iframe embed (/p|/reel|/tv/{code}/embed) untuk konten publik
  *  - Other     → link-out ke URL asli
  */
 
@@ -155,11 +155,33 @@ export function tiktokEmbedUrl(videoId: string): string {
 
 // ─── Instagram ────────────────────────────────────────────────────────────────
 
-// Instagram tidak mendukung iframe embed tanpa SDK, jadi kita link-out.
-const IG_URL_RE = /instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/;
+// Contoh URL yang didukung:
+//   https://www.instagram.com/p/CODE/
+//   https://www.instagram.com/reel/CODE/
+//   https://www.instagram.com/tv/CODE/
+const IG_URL_RE = /instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/i;
 
 export function isInstagramVideoUrl(url: string): boolean {
   return IG_URL_RE.test(url);
+}
+
+export function extractInstagramShortcode(url: string): {
+  kind: "p" | "reel" | "tv";
+  code: string;
+} | null {
+  const match = url.match(IG_URL_RE);
+  if (!match?.[1] || !match[2]) return null;
+  return {
+    kind: match[1].toLowerCase() as "p" | "reel" | "tv",
+    code: match[2],
+  };
+}
+
+/** Embed publik Instagram (hanya konten yang mengizinkan embed). */
+export function instagramEmbedUrl(url: string): string | null {
+  const parsed = extractInstagramShortcode(url);
+  if (!parsed) return null;
+  return `https://www.instagram.com/${parsed.kind}/${parsed.code}/embed/`;
 }
 
 // ─── Master parser ─────────────────────────────────────────────────────────────
@@ -214,14 +236,16 @@ export function parseVideoUrl(rawUrl: string): ParsedVideo | null {
     };
   }
 
-  // Instagram — link-out only
+  // Instagram — iframe /embed untuk post/reel/tv publik
   if (/instagram\.com/i.test(url)) {
+    const ig = extractInstagramShortcode(url);
+    const embedUrl = instagramEmbedUrl(url);
     return {
       platform: "INSTAGRAM",
-      platformId: null,
-      embedUrl: null,
+      platformId: ig?.code ?? null,
+      embedUrl,
       originalUrl: url,
-      supportsEmbed: false,
+      supportsEmbed: Boolean(embedUrl),
     };
   }
 

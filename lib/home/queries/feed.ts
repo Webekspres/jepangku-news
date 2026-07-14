@@ -3,16 +3,12 @@ import {
   homeArticleInclude,
   publishedArticleWhere,
 } from "@/lib/home/article-include";
-import { getJakartaDayBounds } from "@/lib/home/jakarta-day";
 import type { HomeFeedResponse } from "@/lib/home/types";
 
-const TODAY_MIN_COUNT = 3;
-const TODAY_TAKE = 12;
+const LATEST_TAKE = 12;
 
 export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
-  const { start, end } = getJakartaDayBounds();
-
-  const [featuredArticles, trending, todayRaw, latestArticles] =
+  const [featuredArticles, trending, latestArticles, latestNonFeatured] =
     await Promise.all([
       db.article.findMany({
         where: { ...publishedArticleWhere, isFeatured: true },
@@ -26,12 +22,9 @@ export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
         include: homeArticleInclude,
       }),
       db.article.findMany({
-        where: {
-          ...publishedArticleWhere,
-          publishedAt: { gte: start, lte: end },
-        },
+        where: publishedArticleWhere,
         orderBy: { publishedAt: "desc" },
-        take: TODAY_TAKE,
+        take: LATEST_TAKE,
         include: homeArticleInclude,
       }),
       db.article.findMany({
@@ -40,25 +33,17 @@ export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
           NOT: { isFeatured: true },
         },
         orderBy: { publishedAt: "desc" },
-        take: TODAY_TAKE,
+        take: 1,
         include: homeArticleInclude,
       }),
     ]);
 
-  let todayArticles = todayRaw;
-  let todaySource: HomeFeedResponse["todaySource"] = "today";
-
-  if (todayArticles.length < TODAY_MIN_COUNT) {
-    todayArticles = latestArticles.slice(0, TODAY_TAKE);
-    todaySource = "fallback";
-  }
-
   return {
     featuredArticles,
     trending,
-    todayArticles,
-    todaySource,
-    featuredFallback: latestArticles[0] ?? null,
+    todayArticles: latestArticles,
+    todaySource: "fallback",
+    featuredFallback: latestNonFeatured[0] ?? null,
   };
 }
 

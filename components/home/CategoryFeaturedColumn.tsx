@@ -1,10 +1,10 @@
 import Link from "next/link";
+import ArticleCard from "@/components/ArticleCard";
 import CardCoverImage from "@/components/CardCoverImage";
-import { MotionHoverScale } from "@/components/ui/motion";
 import { formatArticleDate } from "@/lib/home/format-article-date";
 import { resolveThumbnailUrl } from "@/lib/image-placeholder";
 import type { EditorialFeaturedColumn } from "@/lib/home/types";
-import { Clock, User } from "lucide-react";
+import { Clock } from "lucide-react";
 
 type CategoryFeaturedColumnProps = {
   column: EditorialFeaturedColumn;
@@ -37,45 +37,15 @@ export default function CategoryFeaturedColumn({
       </div>
 
       {featured ? (
-        <Link
-          href={`/articles/${featured.slug}`}
-          className="group relative block overflow-hidden rounded-lg aspect-16/10 mb-4"
-          data-testid={`editorial-featured-main-${slug}`}
-        >
-          <MotionHoverScale className="absolute inset-0">
-            <CardCoverImage
-              src={resolveThumbnailUrl(featured)}
-              alt={featured.title}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority={imagePriority}
-            />
-          </MotionHoverScale>
-          <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 text-white">
-            {featured.category ? (
-              <span className="inline-block mb-2 rounded-sm bg-white/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-                {featured.category.name}
-              </span>
-            ) : null}
-            <h4 className="font-heading font-black text-lg md:text-2xl tracking-tight line-clamp-2 group-hover:text-jepang-red transition-colors">
-              {featured.title}
-            </h4>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-zinc-300 font-mono uppercase tracking-wider">
-              {featured.author ? (
-                <span className="inline-flex items-center gap-1">
-                  <User size={12} strokeWidth={1.5} />
-                  {featured.author.name}
-                </span>
-              ) : null}
-              <span className="inline-flex items-center gap-1">
-                <Clock size={12} strokeWidth={1.5} />
-                {formatArticleDate(featured.publishedAt)}
-              </span>
-            </div>
-          </div>
-        </Link>
+        <ArticleCard
+          article={featured}
+          variant="editorial"
+          priority={imagePriority}
+          className="mb-4"
+          testId={`editorial-featured-main-${slug}`}
+        />
       ) : (
-        <div className="rounded-lg border border-dashed border-jepang-border bg-jepang-off-white aspect-16/10 mb-4 flex items-center justify-center text-sm text-jepang-muted">
+        <div className="mb-4 flex aspect-video w-full items-center justify-center rounded-xl border border-dashed border-jepang-border bg-jepang-off-white text-sm text-jepang-muted">
           Belum ada artikel
         </div>
       )}

@@ -8,43 +8,66 @@ import type { HomeReactionsResponse } from "@/lib/home/types";
 import { ARTICLE_REACTION_TYPES } from "@/lib/reactions";
 import { CONTENT_REACTIONS, getReactionDisplay } from "@/lib/reactions-display";
 
-const ROLLING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const TOP_REACTED_LIMIT = 8;
 
-type ArticleAgg = {
-  total: number;
-  counts: Record<string, number>;
-};
+/** Total reaksi per tipe + ranking artikel (all-time, artikel published saja). */
+async function loadPublishedArticleReactions() {
+  const rows = await db.reaction.groupBy({
+    by: ["targetId", "type"],
+    where: {
+      targetType: "ARTICLE",
+      type: { in: [...ARTICLE_REACTION_TYPES] },
+    },
+    _count: { _all: true },
+  });
 
-function emptyContentCounts(): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const type of ARTICLE_REACTION_TYPES) counts[type] = 0;
-  return counts;
-}
+  if (rows.length === 0) {
+    return {
+      globalCounts: emptyCounts(),
+      ranked: [] as { id: string; total: number; counts: Record<string, number> }[],
+    };
+  }
 
-function aggregateRows(
-  rows: { targetId: string; type: ReactionType; _count: { type: number } }[],
-) {
-  const globalCounts = emptyContentCounts();
-  const byArticle = new Map<string, ArticleAgg>();
+  const candidateIds = [...new Set(rows.map((row) => row.targetId))];
+  const published = await db.article.findMany({
+    where: { id: { in: candidateIds }, ...publishedArticleWhere },
+    select: { id: true },
+  });
+  const publishedIds = new Set(published.map((article) => article.id));
+
+  const globalCounts = emptyCounts();
+  const byArticle = new Map<
+    string,
+    { total: number; counts: Record<string, number> }
+  >();
 
   for (const row of rows) {
-    globalCounts[row.type] = (globalCounts[row.type] ?? 0) + row._count.type;
+    if (!publishedIds.has(row.targetId)) continue;
+
+    const count = row._count._all;
+    globalCounts[row.type] = (globalCounts[row.type] ?? 0) + count;
 
     const entry = byArticle.get(row.targetId) ?? {
       total: 0,
-      counts: emptyContentCounts(),
+      counts: emptyCounts(),
     };
-    entry.counts[row.type] = row._count.type;
-    entry.total += row._count.type;
+    entry.counts[row.type] = count;
+    entry.total += count;
     byArticle.set(row.targetId, entry);
   }
 
   const ranked = [...byArticle.entries()]
-    .sort((a, b) => b[1].total - a[1].total)
+    .map(([id, agg]) => ({ id, ...agg }))
+    .sort((a, b) => b.total - a.total)
     .slice(0, TOP_REACTED_LIMIT);
 
   return { globalCounts, ranked };
+}
+
+function emptyCounts(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const type of ARTICLE_REACTION_TYPES) counts[type] = 0;
+  return counts;
 }
 
 function dominantReaction(counts: Record<string, number>): ReactionType {
@@ -60,59 +83,35 @@ function dominantReaction(counts: Record<string, number>): ReactionType {
   return best;
 }
 
-async function loadReactionAggregate(since: Date | null) {
-  const rows = await db.reaction.groupBy({
-    by: ["targetId", "type"],
-    where: {
-      targetType: "ARTICLE",
-      type: { in: [...ARTICLE_REACTION_TYPES] },
-      ...(since ? { createdAt: { gte: since } } : {}),
-    },
-    _count: { type: true },
-  });
-
-  return aggregateRows(rows);
-}
-
 export async function fetchHomeReactions(): Promise<HomeReactionsResponse> {
-  const since = new Date(Date.now() - ROLLING_WINDOW_MS);
+  const { globalCounts, ranked } = await loadPublishedArticleReactions();
 
-  let period: HomeReactionsResponse["period"] = "week";
-  let { globalCounts, ranked } = await loadReactionAggregate(since);
-
-  if (ranked.length === 0) {
-    period = "all-time";
-    ({ globalCounts, ranked } = await loadReactionAggregate(null));
-  }
-
-  const articleIds = ranked.map(([id]) => id);
+  const articleIds = ranked.map((item) => item.id);
   const articles =
     articleIds.length === 0
       ? []
       : await db.article.findMany({
-          where: {
-            id: { in: articleIds },
-            ...publishedArticleWhere,
-          },
+          where: { id: { in: articleIds }, ...publishedArticleWhere },
           include: homeArticleInclude,
         });
 
-  const articleMap = new Map(articles.map((a) => [a.id, a]));
+  const articleMap = new Map(articles.map((article) => [article.id, article]));
 
-  const reactedArticles = ranked
-    .map(([id, agg]) => {
-      const article = articleMap.get(id);
-      if (!article) return null;
+  const reactedArticles = ranked.flatMap((agg) => {
+    const article = articleMap.get(agg.id);
+    if (!article) return [];
 
-      const dominant = dominantReaction(agg.counts);
-      const display = getReactionDisplay(dominant);
+    const dominant = dominantReaction(agg.counts);
+    const display = getReactionDisplay(dominant);
 
-      return {
+    return [
+      {
         id: article.id,
         slug: article.slug,
         title: article.title,
         excerpt: article.excerpt,
         coverImageUrl: article.coverImageUrl,
+        viewCount: article.viewCount,
         category: article.category,
         author: article.author,
         reactionTotal: agg.total,
@@ -120,9 +119,9 @@ export async function fetchHomeReactions(): Promise<HomeReactionsResponse> {
         dominantIconSrc: display.iconSrc,
         dominantLabel: display.label,
         reactionCounts: agg.counts,
-      };
-    })
-    .filter((item): item is NonNullable<typeof item> => item !== null);
+      },
+    ];
+  });
 
   const emojiStats = CONTENT_REACTIONS.map((reaction) => ({
     type: reaction.key,
@@ -131,11 +130,9 @@ export async function fetchHomeReactions(): Promise<HomeReactionsResponse> {
     count: globalCounts[reaction.key] ?? 0,
   }));
 
-  const globalTotal = emojiStats.reduce((sum, item) => sum + item.count, 0);
-
   return {
-    period,
-    globalTotal,
+    period: "all-time",
+    globalTotal: emojiStats.reduce((sum, item) => sum + item.count, 0),
     emojiStats,
     articles: reactedArticles,
   };

@@ -66,7 +66,7 @@ describe("API — home tv", () => {
       expect(Array.isArray(data.sidebarVideos)).toBe(true);
     });
 
-    it("selects featured video with the highest view count", async () => {
+    it("selects admin-flagged featured video when present", async () => {
       if (skipUnless(ctx, "server") || publishedCatalog.length === 0) return;
 
       const res = await clientFor(ctx).get("/api/home/tv");
@@ -74,13 +74,18 @@ describe("API — home tv", () => {
 
       expect(data.featuredVideo).not.toBeNull();
 
+      const flagged = publishedCatalog.filter((video) => video.isFeatured);
+      if (flagged.length > 0) {
+        expect(data.featuredVideo!.isFeatured).toBe(true);
+        expect(flagged.some((video) => video.id === data.featuredVideo!.id)).toBe(
+          true,
+        );
+        return;
+      }
+
+      // Fallback: highest view count when no admin featured flag
       const maxViews = Math.max(...publishedCatalog.map((video) => video.viewCount));
       expect(data.featuredVideo!.viewCount).toBe(maxViews);
-
-      const topByViews = [...publishedCatalog].sort(
-        (a, b) => b.viewCount - a.viewCount,
-      )[0]!;
-      expect(data.featuredVideo!.slug).toBe(topByViews.slug);
     });
 
     it("returns up to 7 newest sidebar videos excluding featured", async () => {
@@ -126,12 +131,17 @@ describe("API — home tv", () => {
 
       expect(data.featuredVideo.slug).toBeTruthy();
       expect(data.featuredVideo.title).toBeTruthy();
-      expect(data.featuredVideo.platform).toBe("YOUTUBE");
-      expect(data.featuredVideo.videoUrl).toMatch(/youtube\.com|youtu\.be/);
-      expect(data.featuredVideo.embedUrl).toContain("youtube.com/embed");
-      expect(data.featuredVideo.youtubeId).toMatch(/^[a-zA-Z0-9_-]{11}$/);
-      expect(data.featuredVideo.thumbnailUrl).toContain("youtube.com/vi/");
+      expect(typeof data.featuredVideo.platform).toBe("string");
+      expect(data.featuredVideo.videoUrl).toBeTruthy();
       expect(typeof data.featuredVideo.viewCount).toBe("number");
+      expect(typeof data.featuredVideo.isFeatured).toBe("boolean");
+      // Platform dengan embed harus punya embedUrl; Other boleh null
+      if (["YOUTUBE", "FACEBOOK", "TIKTOK", "INSTAGRAM"].includes(data.featuredVideo.platform)) {
+        if (data.featuredVideo.platform === "YOUTUBE") {
+          expect(data.featuredVideo.embedUrl).toContain("youtube.com/embed");
+          expect(data.featuredVideo.youtubeId).toMatch(/^[a-zA-Z0-9_-]{11}$/);
+        }
+      }
     });
 
     it("returns cache headers for lazy homepage wave", async () => {

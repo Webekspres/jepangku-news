@@ -4,8 +4,9 @@ import type { LeaderboardPeriod } from "@/lib/leaderboard/period";
 export type HomeFeedResponse = {
   featuredArticles: HomeArticle[];
   trending: HomeArticle[];
+  /** Newest published articles by publishedAt (Artikel Terbaru) */
   todayArticles: HomeArticle[];
-  /** `fallback` when fewer than 3 articles published today (Asia/Jakarta) */
+  /** Kept for API compat — feed always serves absolute newest */
   todaySource: "today" | "fallback";
   /** Used when no featured articles exist */
   featuredFallback: HomeArticle | null;
@@ -75,7 +76,7 @@ export type PublicVideoSummary = {
   content?: string;
   /** Platform video: YOUTUBE | FACEBOOK | TIKTOK | INSTAGRAM | OTHER */
   platform: string;
-  /** URL embed iframe. Null untuk Instagram / Other — gunakan videoUrl untuk link-out. */
+  /** URL embed iframe. Null untuk platform yang hanya link-out (Other / TikTok short). */
   embedUrl: string | null;
   /** URL video asli */
   videoUrl: string;
@@ -148,6 +149,7 @@ export type HomeReactedArticle = {
   title: string;
   excerpt: string | null;
   coverImageUrl: string | null;
+  viewCount: number;
   category: { name: string; slug: string } | null;
   author: { name: string; username: string } | null;
   reactionTotal: number;
@@ -158,6 +160,7 @@ export type HomeReactedArticle = {
 };
 
 export type HomeReactionsResponse = {
+  /** Always all-time totals for published articles */
   period: "week" | "all-time";
   globalTotal: number;
   emojiStats: HomeReactionEmojiStat[];

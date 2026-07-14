@@ -21,7 +21,7 @@ function EditorialSkeleton() {
               <div className="h-7 w-36 bg-jepang-border rounded" />
               <div className="h-8 w-24 bg-jepang-red/20 rounded-full" />
             </div>
-            <div className="aspect-16/10 bg-jepang-border rounded-lg" />
+            <div className="aspect-video bg-jepang-border rounded-xl" />
             <div className="space-y-3">
               {[0, 1, 2].map((j) => (
                 <div key={j} className="flex gap-3">

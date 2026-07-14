@@ -10,6 +10,7 @@ import ArticleDetailHero from "@/components/articles/ArticleDetailHero";
 import ArticleDetailMetaBar from "@/components/articles/ArticleDetailMetaBar";
 import ArticleReadCompleteBanner from "@/components/articles/ArticleReadCompleteBanner";
 import ArticleRelatedSection from "@/components/articles/ArticleRelatedSection";
+import ArticleCenterAd from "@/components/articles/ArticleCenterAd";
 import ArticleSidebarAd from "@/components/articles/ArticleSidebarAd";
 import ArticleTagList from "@/components/articles/ArticleTagList";
 import { useArticleDetail } from "@/hooks/useArticleDetail";
@@ -84,6 +85,8 @@ export default function ArticleDetailClient({ slug }: ArticleDetailClientProps) 
               isLoading={isLoading}
               html={article?.content}
             />
+
+            {!isLoading && <ArticleCenterAd />}
 
             {readCompleted && user && <ArticleReadCompleteBanner />}
 

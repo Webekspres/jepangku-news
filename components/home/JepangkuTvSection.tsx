@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { MotionHoverScale } from "@/components/ui/motion";
 import { ArrowRight, Play, Tv } from "lucide-react";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
+import LazyVideoEmbed from "@/components/video/LazyVideoEmbed";
 import type { HomeTvResponse, PublicVideoSummary } from "@/lib/home/types";
 import { imageLoadingProps } from "@/lib/image-loading";
-import { cn } from "@/lib/utils";
+import type { VideoPlatform } from "@/lib/video/platform";
 
 type JepangkuTvSectionProps = {
   data: HomeTvResponse | null;
@@ -33,50 +33,6 @@ function TvSkeleton() {
         </div>
       </div>
     </LazySectionSkeleton>
-  );
-}
-
-function VideoThumbnailLink({
-  video,
-  sizes,
-  playIconSize = 28,
-  playButtonClassName = "h-16 w-16",
-  priority = false,
-}: {
-  video: PublicVideoSummary;
-  sizes: string;
-  playIconSize?: number;
-  playButtonClassName?: string;
-  priority?: boolean;
-}) {
-  return (
-    <Link
-      href={`/tv/${video.slug}`}
-      className="group relative block aspect-video w-full overflow-hidden bg-jepang-navy"
-      data-testid={`tv-thumbnail-${video.slug}`}
-    >
-      <MotionHoverScale className="absolute inset-0">
-        <Image
-          src={video.thumbnailUrl}
-          alt={video.title}
-          fill
-          sizes={sizes}
-          className="object-cover"
-          {...imageLoadingProps(priority)}
-        />
-      </MotionHoverScale>
-      <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
-      <span className="absolute inset-0 flex items-center justify-center">
-        <span
-          className={cn(
-            "flex items-center justify-center rounded-full bg-jepang-red text-white shadow-lg transition-transform group-hover:scale-110",
-            playButtonClassName,
-          )}
-        >
-          <Play size={playIconSize} fill="currentColor" className="ml-1" />
-        </span>
-      </span>
-    </Link>
   );
 }
 
@@ -166,6 +122,7 @@ export default function JepangkuTvSection({
   }
 
   const featuredVideo = data.featuredVideo!;
+  const featuredPlatform = (featuredVideo.platform ?? "YOUTUBE") as VideoPlatform;
 
   return (
     <section className="py-12 bg-jepang-off-white" data-testid="jepangku-tv-section">
@@ -190,10 +147,17 @@ export default function JepangkuTvSection({
         <div className="overflow-hidden rounded-lg border border-jepang-border bg-white shadow-jepang">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px]">
             <div className="min-w-0">
-              <VideoThumbnailLink
-                video={featuredVideo}
-                sizes="(max-width: 1024px) 100vw, 66vw"
-                priority={false}
+              <LazyVideoEmbed
+                platform={featuredPlatform}
+                embedUrl={featuredVideo.embedUrl}
+                videoUrl={
+                  featuredVideo.videoUrl ||
+                  (featuredVideo.youtubeId
+                    ? `https://www.youtube.com/watch?v=${featuredVideo.youtubeId}`
+                    : "#")
+                }
+                title={featuredVideo.title}
+                thumbnailUrl={featuredVideo.thumbnailUrl}
               />
               <div className="border-t border-jepang-border p-5 md:p-6">
                 <Link
