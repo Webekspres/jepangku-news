@@ -3,6 +3,8 @@ import type { LeaderboardPeriod } from "@/lib/leaderboard/period";
 
 export type HomeFeedResponse = {
   featuredArticles: HomeArticle[];
+  /** Articles manually marked as popular (isHot) from admin homepage settings */
+  popularArticles: HomeArticle[];
   trending: HomeArticle[];
   /** Newest published articles by publishedAt (Artikel Terbaru) */
   todayArticles: HomeArticle[];

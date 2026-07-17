@@ -8,11 +8,23 @@ import type { HomeFeedResponse } from "@/lib/home/types";
 const LATEST_TAKE = 12;
 
 export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
-  const [featuredArticles, trending, latestArticles, latestNonFeatured] =
+  const [
+    featuredArticles,
+    popularArticles,
+    trending,
+    latestArticles,
+    latestNonFeatured,
+  ] =
     await Promise.all([
       db.article.findMany({
         where: { ...publishedArticleWhere, isFeatured: true },
         orderBy: { publishedAt: "desc" },
+        include: homeArticleInclude,
+      }),
+      db.article.findMany({
+        where: { ...publishedArticleWhere, isHot: true },
+        orderBy: { publishedAt: "desc" },
+        take: 5,
         include: homeArticleInclude,
       }),
       db.article.findMany({
@@ -40,6 +52,7 @@ export async function fetchHomeFeed(): Promise<HomeFeedResponse> {
 
   return {
     featuredArticles,
+    popularArticles,
     trending,
     todayArticles: latestArticles,
     todaySource: "fallback",

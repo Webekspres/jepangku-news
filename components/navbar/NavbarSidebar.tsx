@@ -161,7 +161,7 @@ export default function NavbarSidebar({
 
             <section>
               <p className="section-label mb-2">Reaksi</p>
-              <NavbarReactionLinks variant="light" className="flex-wrap gap-1" />
+              <NavbarReactionLinks variant="sidebar" />
             </section>
 
             <section>

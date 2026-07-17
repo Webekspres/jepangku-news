@@ -7,6 +7,8 @@ type SectionHeaderProps = {
   subtitle?: string;
   icon?: ReactNode;
   bgImage?: string;
+  /** Override object-position / object-fit pada gambar latar */
+  bgImageClassName?: string;
   dark?: boolean;
   className?: string;
   /** Override gaya judul (mis. ukuran teks responsif) */
@@ -24,6 +26,7 @@ export default function SectionHeader({
   subtitle,
   icon,
   bgImage,
+  bgImageClassName,
   dark = false,
   className,
   titleClassName,
@@ -43,7 +46,11 @@ export default function SectionHeader({
     >
       {bgImage ? (
         <div className="absolute inset-0">
-          <img src={bgImage} alt="" className="h-full w-full object-cover" />
+          <img
+            src={bgImage}
+            alt=""
+            className={cn("h-full w-full object-cover object-left", bgImageClassName)}
+          />
           <div className="absolute inset-0 bg-black/40" />
         </div>
       ) : null}

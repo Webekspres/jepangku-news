@@ -53,13 +53,15 @@ export default function HomeHero() {
         </>
       }
       subtitle="Jepang Versi Kamu! Baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!"
+      bgImage="/assets/images/bg-hero.webp"
+      bgImageClassName="object-cover object-left scale-150 origin-left"
       dark
       titleClassName="md:text-6xl"
       labelClassName="!text-white/85"
-      className="relative border-b border-jepang-border overflow-visible py-10 md:py-14 bg-[linear-gradient(to_right,#ec1d24_0%,#ff4b2b_100%)]"
+      className="relative border-b border-jepang-border py-10 md:py-14"
     >
 
-      <div className="relative overflow-visible">
+      <div>
         <div className="relative z-10 flex flex-col gap-5 md:gap-6 lg:pr-64 xl:pr-80">
           <nav
             aria-label="Navigasi cepat ekosistem"
@@ -147,12 +149,12 @@ export default function HomeHero() {
           </div>
         </div>
 
-        <div className="pointer-events-none hidden lg:absolute lg:bottom-0 lg:right-0 lg:block lg:w-[18rem] xl:w-88 translate-y-10">
+        <div className="pointer-events-none absolute top-0 -right-4 hidden w-[580px] lg:block xl:-right-32 translate-y-30">
           <AssetImage
-            src="/assets/images/icons/multiple-icon.webp"
+            src="/assets/images/icons/anime-mascot.webp"
             alt="Mascot Jepangku"
-            width={320}
-            height={320}
+            width={520}
+            height={520}
             className="h-auto w-full object-contain object-top"
           />
         </div>

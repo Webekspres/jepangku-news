@@ -21,6 +21,10 @@ type TrendingArticlesPanelProps = {
   loading?: boolean;
   className?: string;
   testIdPrefix?: string;
+  title?: string;
+  ariaLabel?: string;
+  viewAllHref?: string;
+  emptyMessage?: string;
 };
 
 function getCoverUrl(article: TrendingArticleItem) {
@@ -36,6 +40,10 @@ export default function TrendingArticlesPanel({
   loading = false,
   className,
   testIdPrefix = "trending",
+  title = "トレンド / Sedang Tren",
+  ariaLabel = "Artikel sedang tren",
+  viewAllHref = "/trending",
+  emptyMessage = "Belum ada artikel tren",
 }: TrendingArticlesPanelProps) {
   return (
     <aside
@@ -43,7 +51,7 @@ export default function TrendingArticlesPanel({
         "flex flex-col rounded-lg border border-jepang-border bg-white p-5",
         className,
       )}
-      aria-label="Artikel sedang tren"
+      aria-label={ariaLabel}
       data-testid={`${testIdPrefix}-panel`}
     >
       <div className="mb-4 flex items-center justify-between gap-2 border-b border-jepang-border pb-3">
@@ -53,10 +61,10 @@ export default function TrendingArticlesPanel({
             strokeWidth={1.5}
             className="shrink-0 text-jepang-red"
           />
-          <h3 className="small-caps">トレンド / Sedang Tren</h3>
+          <h3 className="small-caps">{title}</h3>
         </div>
         <Link
-          href="/trending"
+          href={viewAllHref}
           className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wider transition-colors hover:text-jepang-red"
           data-testid={`${testIdPrefix}-view-all`}
         >
@@ -122,7 +130,7 @@ export default function TrendingArticlesPanel({
           className="py-8 text-center text-sm text-jepang-muted"
           data-testid={`${testIdPrefix}-empty`}
         >
-          Belum ada artikel tren
+          {emptyMessage}
         </p>
       )}
     </aside>
