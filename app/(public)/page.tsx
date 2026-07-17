@@ -74,6 +74,7 @@ export default function HomePage() {
   } = useLazySection<HomeEngagementResponse>("/api/home/engagement");
 
   const featuredArticles = feed?.featuredArticles ?? [];
+  const popularArticles = feed?.popularArticles ?? [];
   const trending = feed?.trending ?? [];
   const todayArticles = feed?.todayArticles ?? [];
   const featuredFallback = feed?.featuredFallback ?? null;
@@ -83,7 +84,7 @@ export default function HomePage() {
       <LazySectionShell sectionId="feed">
         <HomeFeedSection
           featuredArticles={featuredArticles}
-          trending={trending}
+          popularArticles={popularArticles}
           featuredFallback={featuredFallback}
           loading={feedLoading}
           error={feedError}

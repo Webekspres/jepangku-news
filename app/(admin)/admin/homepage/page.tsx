@@ -13,12 +13,12 @@ import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
 import { THIN_SCROLLBAR_CLASS } from "@/components/ui/thin-scrollbar";
 import { cn } from "@/lib/utils";
 
-type TabId = "articles" | "featured" | "hot";
+type TabId = "articles" | "featured" | "populer";
 
 const TABS: { id: TabId; label: string; icon: typeof List }[] = [
   { id: "articles", label: "Semua Artikel", icon: List },
   { id: "featured", label: "Pilihan Utama", icon: Star },
-  { id: "hot", label: "Hot", icon: Flame },
+  { id: "populer", label: "Populer", icon: Flame },
 ];
 
 export default function AdminHomepagePage() {
@@ -187,14 +187,14 @@ export default function AdminHomepagePage() {
   const tabArticles =
     activeTab === "featured"
       ? homepageData.featured ?? []
-      : activeTab === "hot"
+      : activeTab === "populer"
         ? homepageData.hot ?? []
         : filtered;
 
   const tabTitle =
     activeTab === "featured"
       ? `PILIHAN UTAMA (${homepageData.featured?.length || 0})`
-      : activeTab === "hot"
+      : activeTab === "populer"
         ? `HOT (${homepageData.hot?.length || 0})`
         : `${filtered.length} ARTIKEL YANG DIPUBLIKASIKAN`;
 
@@ -202,8 +202,8 @@ export default function AdminHomepagePage() {
     <AdminPageLayout
       testId="admin-homepage-page"
       label="PENGATURAN BERANDA"
-      title="Artikel Pilihan & Hot"
-      subtitle="Atur artikel yang tampil sebagai pilihan utama di hero dan artikel hot di beranda."
+      title="Artikel Pilihan & Populer"
+      subtitle="Atur artikel yang tampil sebagai pilihan utama di hero dan artikel populer di beranda."
     >
       <AdminStatCards
         loading={statsLoading}
@@ -218,11 +218,11 @@ export default function AdminHomepagePage() {
             testId: "stat-pilihan-utama",
           },
           {
-            label: "Artikel Hot",
+            label: "Artikel Populer",
             value: stats?.hot ?? homepageData.hot?.length ?? 0,
             icon: Flame,
             highlight: true,
-            onClick: () => setActiveTab("hot"),
+            onClick: () => setActiveTab("populer"),
             testId: "stat-artikel-hot",
           },
         ]}
@@ -233,7 +233,7 @@ export default function AdminHomepagePage() {
           const count =
             tab.id === "featured"
               ? homepageData.featured?.length || 0
-              : tab.id === "hot"
+              : tab.id === "populer"
                 ? homepageData.hot?.length || 0
                 : allArticles.length;
           return (
@@ -282,8 +282,8 @@ export default function AdminHomepagePage() {
           <p className="text-center text-jepang-muted text-sm p-6">
             {activeTab === "featured"
               ? "Belum ada artikel pilihan utama"
-              : activeTab === "hot"
-                ? "Belum ada artikel hot"
+              : activeTab === "populer"
+                ? "Belum ada artikel populer"
                 : "Tidak ada artikel ditemukan"}
           </p>
         ) : (

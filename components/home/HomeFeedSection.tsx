@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 type HomeFeedSectionProps = {
   featuredArticles: HomeArticle[];
-  trending: HomeArticle[];
+  popularArticles: HomeArticle[];
   featuredFallback: HomeArticle | null;
   loading: boolean;
   error: Error | null;
@@ -23,7 +23,7 @@ const DRAG_THRESHOLD_PX = 48;
 
 export default function HomeFeedSection({
   featuredArticles,
-  trending,
+  popularArticles,
   featuredFallback,
   loading,
   error,
@@ -111,7 +111,7 @@ export default function HomeFeedSection({
 
   return (
     <section
-      className="pt-10 pb-8 md:pt-12 md:pb-10 bg-white"
+      className="pt-10 pb-8 md:pt-12 md:pb-6 bg-white"
       aria-labelledby="home-feed-heading"
     >
       <div className="px-4 mx-auto max-w-7xl">
@@ -242,7 +242,15 @@ export default function HomeFeedSection({
               )}
             </div>
 
-            <TrendingArticlesPanel articles={trending.slice(0, 5)} className="lg:min-h-[460px]" />
+            <TrendingArticlesPanel
+              articles={popularArticles.slice(0, 5)}
+              className="lg:min-h-[460px]"
+              testIdPrefix="popular"
+              title="人気 / Berita Populer"
+              ariaLabel="Berita populer pilihan admin"
+              viewAllHref="/articles"
+              emptyMessage="Belum ada berita populer"
+            />
           </div>
         )}
       </div>
