@@ -30,6 +30,10 @@ permissions:
 
 jobs:
   test:
+    # Serialize Clerk-backed integration tests across concurrent pushes/PRs.
+    concurrency:
+      group: jepangku-news-clerk-integration-tests
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment: staging
     env:

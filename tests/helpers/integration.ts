@@ -37,10 +37,19 @@ export async function setupIntegration(): Promise<IntegrationContext> {
   }
 
   if (sharedContext.serverUp && isClerkAuthConfigured()) {
-    await ensureClerkTestAccountRoles();
-    const tokens = await preloadClerkTokens();
-    sharedContext.tokens = tokens;
-    sharedContext.authAvailable = Object.keys(tokens).length > 0;
+    // Avoid re-minting when this worker already has all role tokens.
+    const hasAllRoles =
+      Boolean(sharedContext.tokens.USER) &&
+      Boolean(sharedContext.tokens.CONTRIBUTOR) &&
+      Boolean(sharedContext.tokens.ADMIN);
+    if (!hasAllRoles) {
+      await ensureClerkTestAccountRoles();
+      const tokens = await preloadClerkTokens();
+      sharedContext.tokens = { ...sharedContext.tokens, ...tokens };
+      sharedContext.authAvailable = Object.keys(sharedContext.tokens).length > 0;
+    } else {
+      sharedContext.authAvailable = true;
+    }
     if (!sharedContext.authAvailable && !process.env.CI) {
       console.warn(
         "⚠️  Authenticated integration tests skipped — set CLERK_SECRET_KEY and seed test users",
