@@ -55,6 +55,7 @@ export default function SectionHeader({
             height={1080}
             priority
           />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
       ) : null}
 

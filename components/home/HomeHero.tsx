@@ -54,7 +54,7 @@ export default function HomeHero() {
       }
       subtitle="Jepang Versi Kamu! Baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!"
       bgImage="/assets/images/bg-hero.webp"
-      bgImageClassName="object-cover object-left"
+      bgImageClassName="object-cover object-left scale-150 origin-left"
       dark
       titleClassName="md:text-6xl"
       labelClassName="!text-white/85"
