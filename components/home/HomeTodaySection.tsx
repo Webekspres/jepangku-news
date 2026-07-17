@@ -100,9 +100,9 @@ export default function HomeTodaySection({
                 >
                   <PopularTags
                     limit={12}
-                    title="ホット / HOT TOPIC"
+                    title="ホット / Tag Populer"
                     variant="prominent"
-                    className="w-full"
+                    className="w-full text-xs"
                   />
                 </div>
 

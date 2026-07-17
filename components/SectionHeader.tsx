@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 type SectionHeaderProps = {
   label: string;
@@ -46,12 +47,14 @@ export default function SectionHeader({
     >
       {bgImage ? (
         <div className="absolute inset-0">
-          <img
+          <Image
             src={bgImage}
-            alt=""
+            alt="Background image"
             className={cn("h-full w-full object-cover object-left", bgImageClassName)}
+            width={1920}
+            height={1080}
+            priority
           />
-          <div className="absolute inset-0 bg-black/40" />
         </div>
       ) : null}
 
