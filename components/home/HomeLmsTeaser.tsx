@@ -123,8 +123,12 @@ function CourseCard({ course }: { course: LmsTeaserCourse }) {
 export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserProps) {
   if (error) {
     return (
-      <section className="py-12 bg-jepang-navy text-white">
-        <div className="px-4 mx-auto max-w-7xl text-center text-sm text-zinc-400">
+      <section className="relative overflow-hidden py-12 bg-jepang-navy text-white">
+        <div
+          className="absolute inset-0 bg-[url('/assets/images/bg-lms.webp')] bg-cover bg-center opacity-15"
+          aria-hidden="true"
+        />
+        <div className="relative z-10 px-4 mx-auto max-w-7xl text-center text-sm text-zinc-400">
           Gagal memuat kursus bahasa Jepang.
         </div>
       </section>
@@ -133,8 +137,12 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
 
   if (loading || !data) {
     return (
-      <section className="py-12 bg-jepang-navy text-white">
-        <div className="px-4 mx-auto max-w-7xl">
+      <section className="relative overflow-hidden py-12 bg-jepang-navy text-white">
+        <div
+          className="absolute inset-0 bg-[url('/assets/images/bg-lms.webp')] bg-cover bg-center opacity-15"
+          aria-hidden="true"
+        />
+        <div className="relative z-10 px-4 mx-auto max-w-7xl">
           <LmsSkeleton />
         </div>
       </section>
@@ -142,8 +150,12 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
   }
 
   return (
-    <section className="py-12 bg-jepang-navy text-white" data-testid="home-lms-teaser">
-      <div className="px-4 mx-auto max-w-7xl">
+    <section className="relative overflow-hidden py-12 bg-jepang-navy text-white" data-testid="home-lms-teaser">
+        <div
+          className="absolute inset-0 bg-[url('/assets/images/bg-lms.webp')] bg-cover bg-center opacity-15"
+          aria-hidden="true"
+        />
+      <div className="relative z-10 px-4 mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
@@ -218,8 +230,8 @@ export default function HomeLmsTeaser({ data, loading, error }: HomeLmsTeaserPro
               )}
             </div>
             <AssetImage
-              src="/assets/images/icons/mascot.webp"
-              alt="Maskot Jepangku"
+              src="/assets/images/icons/sensei-mascot.webp"
+              alt="Sensei Jepangku"
               width={320}
               height={320}
               className="hidden shrink-0 object-contain object-top lg:absolute lg:bottom-0 lg:right-0 lg:block lg:w-110 lg:translate-y-40"
