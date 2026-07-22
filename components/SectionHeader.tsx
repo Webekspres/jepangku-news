@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 type SectionHeaderProps = {
-  label: string;
+  label?: string;
   title: ReactNode;
   subtitle?: string;
   icon?: ReactNode;
@@ -16,6 +16,8 @@ type SectionHeaderProps = {
   titleClassName?: string;
   /** Override gaya label (mis. warna agar kontras dengan latar) */
   labelClassName?: string;
+  /** Override margin/spacing wrapper children */
+  childrenClassName?: string;
   /** Lebar penuh tanpa max-w-7xl (mis. halaman admin) */
   fullWidth?: boolean;
   children?: ReactNode;
@@ -32,6 +34,7 @@ export default function SectionHeader({
   className,
   titleClassName,
   labelClassName,
+  childrenClassName,
   fullWidth = false,
   children,
 }: SectionHeaderProps) {
@@ -70,15 +73,17 @@ export default function SectionHeader({
               <div className="shrink-0 text-jepang-red">{icon}</div>
             ) : null}
             <div>
-              <p
-                className={cn(
-                  "section-label mb-2",
-                  darkMode && !labelClassName && "text-jepang-orange",
-                  labelClassName,
-                )}
-              >
-                {label}
-              </p>
+              {label ? (
+                <p
+                  className={cn(
+                    "section-label mb-2",
+                    darkMode && !labelClassName && "text-jepang-orange",
+                    labelClassName,
+                  )}
+                >
+                  {label}
+                </p>
+              ) : null}
               <h1
                 className={cn(
                   "font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter mb-4 max-w-4xl",
@@ -101,7 +106,9 @@ export default function SectionHeader({
             </p>
           ) : null}
 
-          {children ? <div className="mt-4 w-full">{children}</div> : null}
+          {children ? (
+            <div className={cn("mt-4 w-full", childrenClassName)}>{children}</div>
+          ) : null}
         </div>
       </div>
     </section>

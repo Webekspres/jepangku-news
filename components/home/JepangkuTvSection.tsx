@@ -106,7 +106,6 @@ export default function JepangkuTvSection({
         <div className="px-4 mx-auto max-w-7xl">
           <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
             <div>
-              <p className="section-label mb-1">テレビ / JEPANGKU TV</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
                 <Tv size={32} strokeWidth={1.5} className="text-jepang-red" />
                 <span className="section-title-gradient">Jepangku TV</span>
@@ -129,7 +128,6 @@ export default function JepangkuTvSection({
       <div className="px-4 mx-auto max-w-7xl">
         <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
-            <p className="section-label mb-1">テレビ / JEPANGKU TV</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter flex items-center gap-3">
               <Tv size={32} strokeWidth={1.5} className="text-jepang-red" />
               <span className="section-title-gradient">Jepangku TV</span>
@@ -158,6 +156,7 @@ export default function JepangkuTvSection({
                 }
                 title={featuredVideo.title}
                 thumbnailUrl={featuredVideo.thumbnailUrl}
+                forceExternal={featuredPlatform !== "YOUTUBE"}
               />
               <div className="border-t border-jepang-border p-5 md:p-6">
                 <Link
