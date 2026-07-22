@@ -6,7 +6,7 @@ export type EditorialRowConfig = {
   type: "featured" | "list";
   /** Category slugs dalam urutan tampilan kiri → kanan */
   categorySlugs: string[];
-  /** List row: center the grid when fewer than 3 columns (e.g. News + Culture) */
+  /** List row: center the grid when fewer than 3 columns */
   centered?: boolean;
 };
 
@@ -25,8 +25,7 @@ export const EDITORIAL_LAYOUT_ROWS: EditorialRowConfig[] = [
   },
   {
     type: "list",
-    categorySlugs: ["news", "culture"],
-    centered: true,
+    categorySlugs: ["news", "culture", "nihongo"],
   },
 ];
 

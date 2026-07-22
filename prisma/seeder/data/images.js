@@ -88,6 +88,14 @@ const PHOTOS = {
     "photo-1524995997946-a1c2e315a42f",
     "photo-1456513080510-7bf3a84b82f8",
   ],
+  /** Belajar bahasa Jepang — buku, tulisan, studi */
+  nihongo: [
+    "photo-1456513080510-7bf3a84b82f8",
+    "photo-1513475382585-d06e58bcb0e0",
+    "photo-1524995997946-a1c2e315a42f",
+    "photo-1545569341-9eb8b30979d9",
+    "photo-1528164344705-47542687000d",
+  ],
   fun: [
     "photo-1511882150382-421056c89033",
     "photo-1550745165-9bc0b252726f",
@@ -193,6 +201,9 @@ const ARTICLE_COVER_POOL = {
   skincare_review: "skincare",
   switch_controller: "gaming",
   omiyage: "souvenirs",
+  hiragana_katakana: "nihongo",
+  wa_vs_ga: "nihongo",
+  frasa_liburan: "nihongo",
 };
 
 function poolUrls(keys, w = 1200) {
