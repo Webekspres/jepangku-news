@@ -93,6 +93,17 @@ export function youtubeThumbnailUrl(
   return `https://img.youtube.com/vi/${id}/${quality}.jpg`;
 }
 
+/** Thumbnail yang di-host YouTube (sering stale saat video diganti ke platform lain). */
+export function isYoutubeHostedThumbnail(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+    return host === "img.youtube.com" || host === "i.ytimg.com";
+  } catch {
+    return false;
+  }
+}
+
 // ─── Facebook ─────────────────────────────────────────────────────────────────
 
 // Contoh URL yang didukung:

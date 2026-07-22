@@ -4,10 +4,9 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { parseApiResponse } from '@/lib/fetch-api';
 import Link from "next/link";
-import Image from "next/image";
 import { MotionHoverScale } from "@/components/ui/motion";
-import { imageLoadingProps } from "@/lib/image-loading";
 import { Play, Tv } from "lucide-react";
+import CardCoverImage from "@/components/CardCoverImage";
 import SectionHeader from "@/components/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { SkeletonBox } from "@/components/skeletons/PrimitiveSkeletons";
@@ -29,13 +28,10 @@ function VideoCard({ video }: { video: PublicVideoSummary }) {
     >
       <div className="relative aspect-video overflow-hidden bg-jepang-off-white">
         <MotionHoverScale className="absolute inset-0">
-          <Image
+          <CardCoverImage
             src={video.thumbnailUrl}
             alt={video.title}
-            fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
-            {...imageLoadingProps(false)}
           />
         </MotionHoverScale>
         <span className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">

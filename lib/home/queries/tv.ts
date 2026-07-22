@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { ensureInstagramThumbnail } from "@/lib/video/fetch-external-thumbnail";
 import {
   publishedVideoWhere,
   serializePublicVideo,
@@ -15,7 +16,7 @@ export async function fetchHomeTv(): Promise<HomeTvResponse> {
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
   });
 
-  const featured =
+  const featuredRaw =
     flagged ??
     (await db.video.findFirst({
       where: publishedVideoWhere,
@@ -26,14 +27,19 @@ export async function fetchHomeTv(): Promise<HomeTvResponse> {
       ],
     }));
 
-  const sidebar = await db.video.findMany({
+  const sidebarRaw = await db.video.findMany({
     where: {
       ...publishedVideoWhere,
-      ...(featured ? { id: { not: featured.id } } : {}),
+      ...(featuredRaw ? { id: { not: featuredRaw.id } } : {}),
     },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
     take: 7,
   });
+
+  const [featured, ...sidebar] = await Promise.all([
+    featuredRaw ? ensureInstagramThumbnail(featuredRaw) : Promise.resolve(null),
+    ...sidebarRaw.map((video) => ensureInstagramThumbnail(video)),
+  ]);
 
   return {
     featuredVideo: featured ? serializePublicVideo(featured) : null,
