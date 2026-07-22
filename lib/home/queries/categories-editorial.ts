@@ -4,9 +4,17 @@ import {
   publishedArticleWhere,
   type HomeArticle,
 } from "@/lib/home/article-include";
-import { editorialViewMoreHref } from "@/lib/home/editorial-groups";
+import {
+  EDITORIAL_LAYOUT_ROWS,
+  editorialViewMoreHref,
+} from "@/lib/home/editorial-groups";
 import { seedDatabase } from "@/lib/seed";
-import type { HomeCategoriesEditorialResponse } from "@/lib/home/types";
+import type {
+  EditorialFeaturedColumn,
+  EditorialLayoutRow,
+  EditorialListColumn,
+  HomeCategoriesEditorialResponse,
+} from "@/lib/home/types";
 
 type ScoredArticle = {
   article: HomeArticle;
@@ -29,7 +37,7 @@ function articleEngagementScore(
   return viewCount + reactionCount + commentCount;
 }
 
-async function loadRankedCategories(): Promise<RankedCategory[]> {
+async function loadCategoriesBySlug(): Promise<Map<string, RankedCategory>> {
   const articles = await db.article.findMany({
     where: {
       ...publishedArticleWhere,
@@ -38,7 +46,7 @@ async function loadRankedCategories(): Promise<RankedCategory[]> {
     include: homeArticleInclude,
   });
 
-  if (articles.length === 0) return [];
+  if (articles.length === 0) return new Map();
 
   const articleIds = articles.map((article) => article.id);
 
@@ -78,7 +86,7 @@ async function loadRankedCategories(): Promise<RankedCategory[]> {
       commentMap.get(article.id) ?? 0,
     );
 
-    const entry = byCategory.get(article.categoryId) ?? {
+    const entry = byCategory.get(article.category.slug) ?? {
       id: article.categoryId,
       name: article.category.name,
       slug: article.category.slug,
@@ -88,39 +96,97 @@ async function loadRankedCategories(): Promise<RankedCategory[]> {
 
     entry.articles.push({ article, score });
     entry.score += score;
-    byCategory.set(article.categoryId, entry);
+    byCategory.set(article.category.slug, entry);
   }
 
-  return [...byCategory.values()]
-    .map((category) => ({
-      ...category,
-      articles: [...category.articles].sort((a, b) => b.score - a.score),
-    }))
-    .sort((a, b) => b.score - a.score);
+  for (const category of byCategory.values()) {
+    category.articles.sort((a, b) => b.score - a.score);
+  }
+
+  return byCategory;
+}
+
+function toFeaturedColumn(category: RankedCategory): EditorialFeaturedColumn {
+  const sorted = category.articles.map((item) => item.article);
+  return {
+    slug: category.slug,
+    title: category.name,
+    viewMoreHref: editorialViewMoreHref(category.slug),
+    featured: sorted[0] ?? null,
+    list: sorted.slice(1, 4),
+  };
+}
+
+function toListColumn(category: RankedCategory): EditorialListColumn {
+  return {
+    slug: category.slug,
+    title: category.name,
+    viewMoreHref: editorialViewMoreHref(category.slug),
+    articles: category.articles.slice(0, 5).map((item) => item.article),
+  };
+}
+
+function emptyFeaturedColumn(slug: string): EditorialFeaturedColumn {
+  return {
+    slug,
+    title: slug,
+    viewMoreHref: editorialViewMoreHref(slug),
+    featured: null,
+    list: [],
+  };
+}
+
+function emptyListColumn(slug: string): EditorialListColumn {
+  return {
+    slug,
+    title: slug,
+    viewMoreHref: editorialViewMoreHref(slug),
+    articles: [],
+  };
 }
 
 export async function fetchHomeCategoriesEditorial(): Promise<HomeCategoriesEditorialResponse> {
   await seedDatabase();
 
-  const ranked = await loadRankedCategories();
+  const bySlug = await loadCategoriesBySlug();
 
-  const featuredColumns = ranked.slice(0, 2).map((category) => {
-    const sorted = category.articles.map((item) => item.article);
+  // Nama kategori dari DB; fallback judul dari slug jika belum ada artikel
+  const categories = await db.category.findMany({
+    where: {
+      slug: {
+        in: EDITORIAL_LAYOUT_ROWS.flatMap((row) => row.categorySlugs),
+      },
+    },
+    select: { slug: true, name: true },
+  });
+  const nameBySlug = new Map(categories.map((c) => [c.slug, c.name]));
+
+  const rows: EditorialLayoutRow[] = EDITORIAL_LAYOUT_ROWS.map((row) => {
+    if (row.type === "featured") {
+      return {
+        type: "featured" as const,
+        columns: row.categorySlugs.map((slug) => {
+          const category = bySlug.get(slug);
+          if (category) return toFeaturedColumn(category);
+          const empty = emptyFeaturedColumn(slug);
+          empty.title = nameBySlug.get(slug) ?? slug;
+          return empty;
+        }),
+      };
+    }
+
     return {
-      slug: category.slug,
-      title: category.name,
-      viewMoreHref: editorialViewMoreHref(category.slug),
-      featured: sorted[0] ?? null,
-      list: sorted.slice(1, 4),
+      type: "list" as const,
+      centered: row.centered,
+      columns: row.categorySlugs.map((slug) => {
+        const category = bySlug.get(slug);
+        if (category) return toListColumn(category);
+        const empty = emptyListColumn(slug);
+        empty.title = nameBySlug.get(slug) ?? slug;
+        return empty;
+      }),
     };
   });
 
-  const listColumns = ranked.slice(2, 5).map((category) => ({
-    slug: category.slug,
-    title: category.name,
-    viewMoreHref: editorialViewMoreHref(category.slug),
-    articles: category.articles.slice(0, 5).map((item) => item.article),
-  }));
-
-  return { featuredColumns, listColumns };
+  return { rows };
 }

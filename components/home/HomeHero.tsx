@@ -1,161 +1,185 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { ArrowRight, LayoutDashboard, Search } from "lucide-react";
+import { ArrowRight, LayoutDashboard } from "lucide-react";
 import AssetImage from "@/components/AssetImage";
 import SectionHeader from "@/components/SectionHeader";
 import { Button } from "@/components/ui/button";
+import { MotionHoverScale } from "@/components/ui/motion";
 import {
   getAuthLoginPath,
-  getAuthRegisterPath,
   isAuthUser,
   useAuth,
 } from "@/contexts/AuthContext";
-import { buildLmsUrl } from "@/lib/lms/constants";
 
-const QUICK_LINKS = [
-  { label: "Berita", href: "/articles", external: false },
-  { label: "Jepangku TV", href: "/tv", external: false },
+const LP_HOME_URL = "https://lp.jepangku.com/";
+
+/** Jalur ekosistem dari https://lp.jepangku.com/ */
+const PATH_BUBBLES = [
   {
-    label: "Kursus",
-    href: buildLmsUrl("/kursus"),
-    external: true,
+    label: "Belajar",
+    href: "https://kursus.jepangku.com",
+    icon: "/assets/images/lp-paths/study.webp",
   },
-  { label: "Kuis", href: "/quizzes", external: false },
-  { label: "Poll", href: "/polls", external: false },
+  {
+    label: "Bekerja",
+    href: "https://work.jepangku.com",
+    icon: "/assets/images/lp-paths/work.webp",
+  },
+  {
+    label: "Bisnis",
+    href: "https://business.jepangku.com",
+    icon: "/assets/images/lp-paths/business.webp",
+  },
+  {
+    label: "Berkarya",
+    href: "https://kreator.jepangku.com",
+    icon: "/assets/images/lp-paths/creator.webp",
+  },
+  {
+    label: "Berita",
+    href: "https://jepangku.com",
+    icon: "/assets/images/lp-paths/news.webp",
+  },
+  {
+    label: "Konsultan",
+    href: "https://konsultan.jepangku.com",
+    icon: "/assets/images/lp-paths/live.webp",
+  },
+  {
+    label: "Wisata",
+    href: "https://travel.jepangku.com",
+    icon: "/assets/images/lp-paths/travel.webp",
+  },
+  {
+    label: "Event",
+    href: "https://event.jepangku.com",
+    icon: "/assets/images/lp-paths/entertainment.webp",
+  },
 ] as const;
 
 export default function HomeHero() {
-  const router = useRouter();
   const { user, isLoaded, isSignedIn, loading, clerkUser } = useAuth();
   const authUser = isAuthUser(user) ? user : null;
   const showAuthenticated = Boolean(
     authUser || (isSignedIn && !loading && clerkUser),
   );
 
-  const [heroSearch, setHeroSearch] = useState("");
-
-  const handleHeroSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!heroSearch.trim()) return;
-    router.push(`/search?q=${encodeURIComponent(heroSearch.trim())}`);
-  };
-
   return (
     <SectionHeader
-      label="日本のポータル / PORTAL JEPANG"
       title={
         <>
-          Berita, Budaya, Video &{" "}
-          <span className="text-jepang-yellow">Belajar Bahasa Jepang</span>
+          Pilih jalan menuju
+          <br />
+          <span className="text-jepang-yellow">Jepang Versi Kamu</span>
         </>
       }
-      subtitle="Jepang Versi Kamu! Baca berita, tonton video, belajar bahasa, ikut kuis & polling, raih poin!"
       bgImage="/assets/images/bg-hero.webp"
       bgImageClassName="object-cover object-left"
       dark
-      titleClassName="md:text-6xl"
-      labelClassName="!text-white/85"
-      className="relative border-b border-jepang-border py-10 md:py-14"
+      titleClassName="mb-0 max-w-2xl md:text-5xl lg:max-w-3xl lg:text-6xl"
+      childrenClassName="mt-2"
+      className="relative border-b border-jepang-border py-8 md:py-10"
     >
-
-      <div>
-        <div className="relative z-10 flex flex-col gap-5 md:gap-6 lg:pr-64 xl:pr-80">
+      <div className="relative">
+        <div className="relative z-10 flex min-w-0 flex-col gap-4 lg:max-w-[58%] xl:max-w-[55%]">
           <nav
-            aria-label="Navigasi cepat ekosistem"
-            className="flex flex-wrap gap-2"
+            aria-label="Pilih jalur Jepang Versi Kamu"
+            className="grid w-full grid-cols-4 gap-x-3 gap-y-3 py-1 sm:gap-x-5 sm:gap-y-4 md:gap-x-6"
           >
-            {QUICK_LINKS.map((link) => (
+            {PATH_BUBBLES.map((bubble) => (
               <Link
-                key={link.label}
-                href={link.href}
-                {...(link.external
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
-                className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:border-white hover:bg-white/25"
-                data-testid={`hero-quick-link-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                key={bubble.label}
+                href={bubble.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mx-auto flex w-full max-w-16 flex-col items-center gap-1 text-center sm:max-w-18 md:max-w-20"
+                data-testid={`hero-path-${bubble.label.toLowerCase()}`}
               >
-                {link.label}
+                <MotionHoverScale scale={1.06} className="w-full origin-center">
+                  <span className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-full p-1 shadow-[0_8px_20px_rgba(31,95,168,0.25),inset_0_0_14px_rgba(255,255,255,0.35)] transition-shadow duration-300 ease-out group-hover:shadow-[0_12px_28px_rgba(31,95,168,0.35),inset_0_0_18px_rgba(255,255,255,0.5)]">
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 rounded-full bg-linear-to-br from-white/60 via-white/40 to-white/25"
+                    />
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-[14%] rounded-full bg-[radial-gradient(circle,rgba(255,182,203,0.45)_0%,transparent_70%)]"
+                    />
+                    <AssetImage
+                      src={bubble.icon}
+                      alt={bubble.label}
+                      width={320}
+                      height={320}
+                      quality={95}
+                      sizes="(max-width: 640px) 112px, (max-width: 768px) 128px, 160px"
+                      className="relative z-10 size-full object-contain drop-shadow-sm"
+                    />
+                  </span>
+                </MotionHoverScale>
+                <span className="text-[10px] font-bold leading-tight tracking-wide text-white drop-shadow-sm sm:text-[11px] md:text-xs">
+                  {bubble.label}
+                </span>
               </Link>
             ))}
           </nav>
 
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
-            <form
-              onSubmit={handleHeroSearch}
-              className="flex min-w-0 w-full max-w-xl flex-1 overflow-hidden rounded-md shadow-jepang lg:flex-none"
-              data-testid="hero-search-form"
-            >
-              <input
-                type="text"
-                placeholder="Cari artikel, topik, atau budaya Jepang..."
-                value={heroSearch}
-                onChange={(e) => setHeroSearch(e.target.value)}
-                className="min-w-0 flex-1 border-0 bg-white px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-jepang-navy"
-                data-testid="hero-search-input"
-              />
-              <button
-                type="submit"
-                className="shrink-0 bg-jepang-navy px-5 py-3 text-white transition-colors hover:bg-[#2a2668]"
-                aria-label="Cari"
-                data-testid="hero-search-submit"
+          <div className="flex flex-row flex-wrap items-center gap-3">
+            {isLoaded && showAuthenticated ? (
+              <Button
+                asChild
+                className="bg-jepang-yellow text-jepang-navy hover:bg-jepang-yellow/90 hover:border-jepang-yellow/90"
+                data-testid="hero-dashboard-btn"
               >
-                <Search size={18} strokeWidth={1.5} />
-              </button>
-            </form>
-
-            <div className="flex shrink-0 flex-row flex-wrap items-center gap-3">
-              {isLoaded && showAuthenticated ? (
+                <Link href="/profile">
+                  <LayoutDashboard size={16} />
+                  Profil Saya
+                </Link>
+              </Button>
+            ) : isLoaded ? (
+              <>
                 <Button
                   asChild
-                  className="bg-jepang-yellow text-jepang-navy hover:bg-jepang-yellow/90 hover:border-jepang-yellow/90"
-                  data-testid="hero-dashboard-btn"
+                  className="border-white bg-white text-jepang-red hover:border-white/90 hover:bg-white/90"
+                  data-testid="hero-lp-cta-btn"
                 >
-                  <Link href="/profile">
-                    <LayoutDashboard size={16} />
-                    Profil Saya
+                  <a href={LP_HOME_URL} target="_blank" rel="noopener noreferrer">
+                    Cari Versi Kamu
+                    <ArrowRight size={16} />
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-white/30 bg-white/10 text-white hover:border-white/40 hover:bg-white/20 hover:text-white"
+                  data-testid="hero-login-btn"
+                >
+                  <Link href={getAuthLoginPath()}>
+                    Masuk
+                    <ArrowRight size={16} />
                   </Link>
                 </Button>
-              ) : isLoaded ? (
-                <>
-                  <Button
-                    asChild
-                    className="border-white bg-white text-jepang-red hover:border-white/90 hover:bg-white/90"
-                    data-testid="hero-register-btn"
-                  >
-                    <Link href={getAuthRegisterPath()}>
-                      Gabung Sekarang
-                      <ArrowRight size={16} />
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="border-white/30 bg-white/10 text-white hover:border-white/40 hover:bg-white/20 hover:text-white"
-                    data-testid="hero-login-btn"
-                  >
-                    <Link href={getAuthLoginPath()}>
-                      Masuk
-                      <ArrowRight size={16} />
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <div className="h-12 w-40 animate-pulse rounded-lg bg-white/10" />
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="h-12 w-40 animate-pulse rounded-lg bg-white/10" />
+            )}
           </div>
         </div>
 
-        <div className="pointer-events-none absolute top-0 -right-4 hidden w-[580px] lg:block xl:-right-32 translate-y-30">
+        {/* Absolute di kanan section: naik ke samping judul, kaki terpotong di bawah */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-4 -top-44 hidden w-[min(46vw,520px)] lg:block xl:-right-8 xl:w-[min(44vw,580px)]"
+        >
           <AssetImage
             src="/assets/images/icons/anime-mascot.webp"
-            alt="Mascot Jepangku"
-            width={520}
-            height={520}
-            className="h-auto w-full object-contain object-top"
+            alt=""
+            width={1024}
+            height={1536}
+            quality={92}
+            priority
+            sizes="(min-width: 1280px) 560px, (min-width: 1024px) 480px, 0px"
+            className="h-auto w-full translate-y-16 object-contain object-top drop-shadow-lg xl:translate-y-20"
           />
         </div>
       </div>

@@ -65,9 +65,19 @@ export type EditorialListColumn = {
   articles: HomeArticle[];
 };
 
+export type EditorialLayoutRow =
+  | {
+      type: "featured";
+      columns: EditorialFeaturedColumn[];
+    }
+  | {
+      type: "list";
+      columns: EditorialListColumn[];
+      centered?: boolean;
+    };
+
 export type HomeCategoriesEditorialResponse = {
-  featuredColumns: EditorialFeaturedColumn[];
-  listColumns: EditorialListColumn[];
+  rows: EditorialLayoutRow[];
 };
 
 export type PublicVideoSummary = {

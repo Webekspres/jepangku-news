@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Play, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { MotionHoverScale } from "@/components/ui/motion";
@@ -18,6 +17,11 @@ type LazyVideoEmbedProps = {
   title: string;
   thumbnailUrl: string;
   className?: string;
+  /**
+   * Jika true, jangan embed iframe — thumbnail saja, klik buka `videoUrl` di tab baru.
+   * Dipakai homepage TV untuk Instagram / Facebook / TikTok / Other.
+   */
+  forceExternal?: boolean;
 };
 
 /** Allow list iframe sandbox attributes per platform */
@@ -50,10 +54,63 @@ function PlatformBadge({ platform }: { platform: VideoPlatform }) {
   );
 }
 
+function ExternalThumbnail({
+  platform,
+  videoUrl,
+  title,
+  thumbnailUrl,
+  className,
+}: {
+  platform: VideoPlatform;
+  videoUrl: string;
+  title: string;
+  thumbnailUrl: string;
+  className: string;
+}) {
+  return (
+    <a
+      href={videoUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`group relative aspect-video w-full overflow-hidden bg-jepang-navy text-left ${className}`}
+      aria-label={`Tonton di ${PLATFORM_LABELS[platform]}: ${title}`}
+      data-testid={`video-external-thumb-${platform.toLowerCase()}`}
+    >
+      <MotionHoverScale className="absolute inset-0">
+        {thumbnailUrl ? (
+          <Image
+            src={thumbnailUrl}
+            alt={title}
+            fill
+            sizes="(max-width: 1024px) 100vw, 66vw"
+            className="object-cover"
+            {...imageLoadingProps(false)}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-jepang-navy" />
+        )}
+      </MotionHoverScale>
+      <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
+      <span className="absolute left-3 top-3">
+        <PlatformBadge platform={platform} />
+      </span>
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-jepang-red text-white shadow-lg transition-transform group-hover:scale-110">
+          <ExternalLink size={26} className="ml-0.5" />
+        </span>
+      </span>
+      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+        <ExternalLink size={12} />
+        Buka di {PLATFORM_LABELS[platform]}
+      </span>
+    </a>
+  );
+}
+
 /**
  * Embed inline YouTube / Facebook / TikTok / Instagram.
  * Lazy: tampilkan thumbnail + tombol play dulu; iframe dimuat setelah user klik.
- * Platform tanpa embedUrl → kartu link-out (Other / URL pendek TikTok).
+ * Platform tanpa embedUrl / forceExternal → thumbnail + buka URL asli di tab baru.
  */
 export default function LazyVideoEmbed({
   platform,
@@ -62,47 +119,23 @@ export default function LazyVideoEmbed({
   title,
   thumbnailUrl,
   className = "",
+  forceExternal = false,
 }: LazyVideoEmbedProps) {
   const [playing, setPlaying] = useState(false);
+  const useExternal = forceExternal || !embedUrl;
 
-  // ── Platform yang tidak mendukung embed → link-out card ──────────────────
-  if (!embedUrl) {
+  if (useExternal) {
     return (
-      <div
-        className={`relative aspect-video w-full overflow-hidden bg-jepang-navy ${className}`}
-        data-testid={`video-linkout-${platform.toLowerCase()}`}
-      >
-        {thumbnailUrl ? (
-          <Image
-            src={thumbnailUrl}
-            alt={title}
-            fill
-            sizes="(max-width: 1024px) 100vw, 66vw"
-            className="object-cover opacity-60"
-            {...imageLoadingProps(false)}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-jepang-navy" />
-        )}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-white">
-          <PlatformBadge platform={platform} />
-          <p className="text-center text-sm font-semibold text-white/90 line-clamp-2">{title}</p>
-          <Link
-            href={videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-jepang-navy shadow-lg transition-transform hover:scale-105"
-            data-testid={`video-external-link-${platform.toLowerCase()}`}
-          >
-            <ExternalLink size={16} />
-            Tonton di {PLATFORM_LABELS[platform]}
-          </Link>
-        </div>
-      </div>
+      <ExternalThumbnail
+        platform={platform}
+        videoUrl={videoUrl}
+        title={title}
+        thumbnailUrl={thumbnailUrl}
+        className={className}
+      />
     );
   }
 
-  // ── Platform dengan embed iframe ─────────────────────────────────────────
   if (playing) {
     return (
       <div
@@ -116,7 +149,6 @@ export default function LazyVideoEmbed({
           allowFullScreen
           loading="lazy"
           className="absolute inset-0 h-full w-full border-0"
-          // TikTok embed butuh sandbox lebih permisif
           sandbox={
             platform === "TIKTOK" || platform === "INSTAGRAM"
               ? "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
@@ -127,7 +159,6 @@ export default function LazyVideoEmbed({
     );
   }
 
-  // ── Thumbnail + tombol play (lazy) ────────────────────────────────────────
   return (
     <button
       type="button"
@@ -151,11 +182,9 @@ export default function LazyVideoEmbed({
         )}
       </MotionHoverScale>
       <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
-      {/* Badge platform di sudut kiri atas */}
       <span className="absolute left-3 top-3">
         <PlatformBadge platform={platform} />
       </span>
-      {/* Tombol play */}
       <span className="absolute inset-0 flex items-center justify-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-jepang-red text-white shadow-lg transition-transform group-hover:scale-110">
           <Play size={28} fill="currentColor" className="ml-1" />

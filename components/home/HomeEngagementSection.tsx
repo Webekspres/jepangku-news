@@ -155,7 +155,6 @@ export default function HomeEngagementSection({
         <div className="px-4 mx-auto max-w-7xl">
           <div className="flex items-end justify-between mb-8 pb-3 border-b-2 border-jepang-red">
             <div>
-              <p className="section-label mb-1">インタラクティブ / INTERAKTIF</p>
               <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient">
                 Polling, Kuis & Peringkat
               </h2>

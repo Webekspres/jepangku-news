@@ -43,7 +43,6 @@ export default function HomeTodaySection({
       <div className="px-4 mx-auto max-w-7xl">
         <div className="flex items-end justify-between gap-4 mb-6 md:mb-8 pb-3 border-b-2 border-jepang-red">
           <div>
-            <p className="small-caps text-jepang-red mb-1">今日 / Hari ini</p>
             <h2 className="font-heading font-black text-3xl md:text-4xl tracking-tighter section-title-gradient">
               Artikel Terbaru
             </h2>
