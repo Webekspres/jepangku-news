@@ -17,13 +17,19 @@ type CardCoverImageProps = {
   quality?: number;
 };
 
+/** Match exact host or subdomain — avoid substring false positives (CodeQL). */
+function hostMatchesDomain(host: string, domain: string): boolean {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
 function isSocialCdnUrl(url: string): boolean {
   try {
     const host = new URL(url, "http://localhost").hostname.toLowerCase();
     return (
-      host.includes("cdninstagram.com") ||
-      host.includes("fbcdn.net") ||
-      host.includes("tiktokcdn")
+      hostMatchesDomain(host, "cdninstagram.com") ||
+      hostMatchesDomain(host, "fbcdn.net") ||
+      // TikTok: *.tiktokcdn.com, *.tiktokcdn-us.com, dll.
+      /(^|\.)tiktokcdn([.-]|$)/.test(host)
     );
   } catch {
     return false;

@@ -14,16 +14,22 @@ const IG_FETCH_HEADERS = {
   "Accept-Language": "en-US,en;q=0.9",
 } as const;
 
+/** Single-pass entity decode — avoids chained &amp; → & re-unescape (CodeQL). */
 function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) =>
-      String.fromCharCode(Number.parseInt(hex, 16)),
-    )
-    .replace(/&#(\d+);/g, (_, dec: string) =>
-      String.fromCharCode(Number(dec)),
-    );
+  return value.replace(
+    /&(?:amp|quot|#x[0-9a-f]+|#\d+);/gi,
+    (entity) => {
+      const lower = entity.toLowerCase();
+      if (lower === "&amp;") return "&";
+      if (lower === "&quot;") return '"';
+      if (/^&#x/i.test(entity)) {
+        const code = Number.parseInt(entity.slice(3, -1), 16);
+        return Number.isFinite(code) ? String.fromCharCode(code) : entity;
+      }
+      const code = Number(entity.slice(2, -1));
+      return Number.isFinite(code) ? String.fromCharCode(code) : entity;
+    },
+  );
 }
 
 /** Ambil URL og:image bawaan Instagram (CDN), tanpa mirror/upload. */

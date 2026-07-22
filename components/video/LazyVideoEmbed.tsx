@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Play, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import CardCoverImage from "@/components/CardCoverImage";
@@ -18,7 +17,7 @@ type LazyVideoEmbedProps = {
   className?: string;
   /**
    * Jika true, jangan embed iframe — thumbnail saja, klik buka `videoUrl` di tab baru.
-   * Dipakai homepage TV untuk Instagram / Facebook / TikTok / Other.
+   * Non-YouTube selalu external (IG/FB/TikTok embed tidak andal).
    */
   forceExternal?: boolean;
 };
@@ -53,6 +52,27 @@ function PlatformBadge({ platform }: { platform: VideoPlatform }) {
   );
 }
 
+/** Wrapper relatif penuh — jangan bungkus Image fill dengan framer-motion (bisa bergeser/hilang). */
+function ThumbnailFrame({
+  thumbnailUrl,
+  title,
+}: {
+  thumbnailUrl: string;
+  title: string;
+}) {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 transition-transform duration-300 ease-out group-hover:scale-105">
+        <CardCoverImage
+          src={thumbnailUrl}
+          alt={title}
+          sizes="(max-width: 1024px) 100vw, 66vw"
+        />
+      </div>
+    </div>
+  );
+}
+
 function ExternalThumbnail({
   platform,
   videoUrl,
@@ -71,34 +91,21 @@ function ExternalThumbnail({
       href={videoUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group relative aspect-video w-full overflow-hidden bg-jepang-navy text-left ${className}`}
+      className={`group relative block aspect-video w-full overflow-hidden bg-jepang-navy text-left ${className}`}
       aria-label={`Tonton di ${PLATFORM_LABELS[platform]}: ${title}`}
       data-testid={`video-external-thumb-${platform.toLowerCase()}`}
     >
-      <MotionHoverScale className="absolute inset-0">
-        {thumbnailUrl ? (
-          <Image
-            src={thumbnailUrl}
-            alt={title}
-            fill
-            sizes="(max-width: 1024px) 100vw, 66vw"
-            className="object-cover"
-            {...imageLoadingProps(false)}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-jepang-navy" />
-        )}
-      </MotionHoverScale>
+      <ThumbnailFrame thumbnailUrl={thumbnailUrl} title={title} />
       <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
-      <span className="absolute left-3 top-3">
+      <span className="absolute left-3 top-3 z-10">
         <PlatformBadge platform={platform} />
       </span>
-      <span className="absolute inset-0 flex items-center justify-center">
+      <span className="absolute inset-0 z-10 flex items-center justify-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-jepang-red text-white shadow-lg transition-transform group-hover:scale-110">
           <ExternalLink size={26} className="ml-0.5" />
         </span>
       </span>
-      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+      <span className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
         <ExternalLink size={12} />
         Buka di {PLATFORM_LABELS[platform]}
       </span>
@@ -107,9 +114,8 @@ function ExternalThumbnail({
 }
 
 /**
- * Embed inline YouTube / Facebook / TikTok / Instagram.
- * Lazy: tampilkan thumbnail + tombol play dulu; iframe dimuat setelah user klik.
- * Platform tanpa embedUrl / forceExternal → thumbnail + buka URL asli di tab baru.
+ * YouTube: lazy thumbnail → iframe setelah klik.
+ * Non-YouTube (IG/FB/TikTok/Other): thumbnail + buka URL platform di tab baru.
  */
 export default function LazyVideoEmbed({
   platform,
@@ -121,7 +127,9 @@ export default function LazyVideoEmbed({
   forceExternal = false,
 }: LazyVideoEmbedProps) {
   const [playing, setPlaying] = useState(false);
-  const useExternal = forceExternal || !embedUrl;
+  // Non-YouTube: selalu buka platform di tab baru (jangan putar iframe di halaman).
+  const useExternal =
+    forceExternal || !embedUrl || platform !== "YOUTUBE";
 
   if (useExternal) {
     return (
@@ -149,11 +157,6 @@ export default function LazyVideoEmbed({
           allowFullScreen
           loading="lazy"
           className="absolute inset-0 h-full w-full border-0"
-          sandbox={
-            platform === "TIKTOK" || platform === "INSTAGRAM"
-              ? "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
-              : undefined
-          }
         />
       </div>
     );
@@ -169,10 +172,10 @@ export default function LazyVideoEmbed({
     >
       <ThumbnailFrame thumbnailUrl={thumbnailUrl} title={title} />
       <span className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
-      <span className="absolute left-3 top-3">
+      <span className="absolute left-3 top-3 z-10">
         <PlatformBadge platform={platform} />
       </span>
-      <span className="absolute inset-0 flex items-center justify-center">
+      <span className="absolute inset-0 z-10 flex items-center justify-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-full bg-jepang-red text-white shadow-lg transition-transform group-hover:scale-110">
           <Play size={28} fill="currentColor" className="ml-1" />
         </span>
