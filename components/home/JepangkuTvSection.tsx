@@ -151,6 +151,7 @@ export default function JepangkuTvSection({
                 }
                 title={featuredVideo.title}
                 thumbnailUrl={featuredVideo.thumbnailUrl}
+                forceExternal={featuredPlatform !== "YOUTUBE"}
               />
               <div className="border-t border-jepang-border p-5 md:p-6">
                 <Link
