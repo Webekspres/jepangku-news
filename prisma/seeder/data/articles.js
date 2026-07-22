@@ -29,6 +29,7 @@ const CATEGORY_IMAGE_POOLS = {
   "study-in-japan": ["education", "culture"],
   "review-produk": ["food", "skincare", "gaming", "souvenirs", "konbini"],
   event: ["event", "travel", "culture"],
+  nihongo: ["nihongo", "education", "culture"],
 };
 
 function coverFor(categorySlug, index, coverKey) {
@@ -1065,6 +1066,76 @@ const ARTICLE_DEFS = [
 </ul>
 <h2>Kesimpulan</h2>
 <p>Nebuta Matsuri = top 3 festival Jepang. Worth the trip to northern Japan in August.</p>`,
+  },
+
+  // ── Nihongo (3) ───────────────────────────────────────────────────────────
+  {
+    category_slug: "nihongo",
+    cover_key: "hiragana_katakana",
+    title: "Hiragana vs Katakana: Kapan Pakai yang Mana?",
+    excerpt:
+      "Panduan praktis membedakan hiragana dan katakana — fungsi, contoh kata, dan tips hafalan untuk pemula Nihongo.",
+    tags: ["kanji", "tokyo"],
+    is_featured: true,
+    content: `<p>Hiragana (ひらがな) dan katakana (カタカナ) adalah dua sistem tulisan silabis bahasa Jepang. Keduanya mewakili bunyi yang sama, tapi dipakai di konteks berbeda — memahami bedanya mempercepat kemampuan membaca sejak minggu pertama belajar.</p>
+<h2>Hiragana: tulang punggung kalimat</h2>
+<p>Hiragana dipakai untuk kata asli Jepang (yamato kotoba), partikel (は、が、を、に), dan akhiran kata kerja/kata sifat. Contoh: たべる (taberu), きれい (kirei), わたしは学生です.</p>
+<h2>Katakana: kata serapan & penekanan</h2>
+<p>Katakana untuk kata asing (gairaigo), nama luar negeri, onomatope, dan penekanan gaya. Contoh: コーヒー (kōhī), コンピュータ (konpyūta), アメリカ (Amerika).</p>
+<h2>Tips hafalan</h2>
+<ul>
+<li>Kuasai hiragana dulu (1–2 minggu), baru katakana</li>
+<li>Gunakan flashcard Anki / apps seperti Kana Quiz</li>
+<li>Latih menulis tangan — otot memori membantu retensi</li>
+<li>Baca manga anak (furigana) untuk exposure alami</li>
+</ul>
+<h2>Kesimpulan</h2>
+<p>Hiragana = struktur kalimat; katakana = kata pinjaman. Setelah keduanya lancar, belajar kanji jauh lebih mudah karena kamu sudah bisa baca furigana.</p>`,
+  },
+  {
+    category_slug: "nihongo",
+    cover_key: "wa_vs_ga",
+    title: "Partikel Wa vs Ga: Bedanya yang Sering Membingungkan Pemula",
+    excerpt:
+      "Penjelasan sederhana partikel は (wa) dan が (ga) — kapan jadi topik, kapan jadi subjek, plus contoh kalimat sehari-hari.",
+    tags: ["kanji", "tokyo"],
+    is_hot: true,
+    content: `<p>Partikel は (dibaca <em>wa</em>) dan が (<em>ga</em>) adalah dua penanda yang paling sering membuat pemula bingung. Keduanya bisa muncul setelah kata benda, tapi fungsi gramatikalnya berbeda.</p>
+<h2>は (wa) = penanda topik</h2>
+<p>は memperkenalkan atau menegaskan <strong>topik</strong> pembicaraan — “kalau soal X…”. Contoh: わたしはインドネシア人です (Saya orang Indonesia). Fokusnya pada informasi tentang topik tersebut.</p>
+<h2>が (ga) = penanda subjek / penekanan baru</h2>
+<p>が menandai <strong>subjek gramatikal</strong> atau sesuatu yang baru/ditekankan. Contoh: 雨が降っています (Sedang hujan). Atau menjawab pertanyaan: だれが来ましたか？ → 田中さんが来ました.</p>
+<h2>Perbandingan cepat</h2>
+<ul>
+<li>は: “speaking of X…” / informasi yang sudah dikenal</li>
+<li>が: “X is the one who…” / informasi baru atau spesifik</li>
+<li>Dalam satu kalimat bisa muncul keduanya: 象は鼻が長い (Gajah itu hidungnya panjang)</li>
+</ul>
+<h2>Kesimpulan</h2>
+<p>Jangan hafal terjemahan “adalah” untuk keduanya. Latih dengan contoh nyata: deskripsikan dirimu (は) dan jawab pertanyaan “siapa/apa” (が).</p>`,
+  },
+  {
+    category_slug: "nihongo",
+    cover_key: "frasa_liburan",
+    title: "7 Frasa Nihongo Wajib Hafal Sebelum Liburan ke Jepang",
+    excerpt:
+      "Frasa survival bahasa Jepang untuk bandara, konbini, restoran, dan transportasi — praktis meski baru level pemula.",
+    tags: ["tokyo", "ramen", "kanji"],
+    content: `<p>Tidak perlu fasih N3 untuk traveling di Jepang. Beberapa frasa pendek sudah cukup membuat interaksi di konbini, restoran, dan stasiun jauh lebih lancar — dan orang Jepang sangat menghargai usaha berbicara bahasa mereka.</p>
+<h2>Frasa wajib</h2>
+<ol>
+<li><strong>すみません (sumimasen)</strong> — “permisi / maaf / tolong”. Multifungsi di hampir semua situasi.</li>
+<li><strong>これください (kore kudasai)</strong> — “yang ini, tolong” sambil menunjuk barang.</li>
+<li><strong>いくらですか (ikura desu ka)</strong> — “berapa harganya?”</li>
+<li><strong>英語できますか (eigo dekimasu ka)</strong> — “bisa bahasa Inggris?”</li>
+<li><strong>トイレはどこですか (toire wa doko desu ka)</strong> — “toilet di mana?”</li>
+<li><strong>おいしいです (oishii desu)</strong> — “enak!” apresiasi ke staf restoran.</li>
+<li><strong>ありがとうございます (arigatō gozaimasu)</strong> — terima kasih formal.</li>
+</ol>
+<h2>Tips praktis</h2>
+<p>Gabungkan dengan gesture menunjuk. Simpan Google Translate offline + frasa di notes HP. Di restoran, foto menu dan tunjukkan ke staf jika stuck.</p>
+<h2>Kesimpulan</h2>
+<p>Tujuh frasa ini cover 80% interaksi wisatawan. Hafalkan pengucapan, bukan hanya tulisan romaji — orang lokal akan lebih mudah memahami.</p>`,
   },
 ];
 
