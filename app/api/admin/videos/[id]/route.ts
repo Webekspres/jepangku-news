@@ -5,9 +5,11 @@ import { db } from "@/lib/db";
 import { auditAdminEntity } from "@/lib/audit-routes";
 import { sanitizeMediaUrl, sanitizePlainField, sanitizeHtmlContent } from "@/lib/sanitizer";
 import {
+  isYoutubeHostedThumbnail,
   parseVideoUrl,
   youtubeThumbnailUrl,
 } from "@/lib/video/platform";
+import { ensureInstagramThumbnail } from "@/lib/video/fetch-external-thumbnail";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -90,8 +92,13 @@ const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params
     if (thumbnailUrl === undefined) {
       if (parsed.platform === "YOUTUBE" && parsed.platformId) {
         updateData.thumbnailUrl = youtubeThumbnailUrl(parsed.platformId);
+      } else if (
+        parsed.platform !== "YOUTUBE" &&
+        isYoutubeHostedThumbnail(existing.thumbnailUrl)
+      ) {
+        // Hapus thumbnail YouTube stale saat pindah ke IG/FB/TikTok/Other
+        updateData.thumbnailUrl = null;
       }
-      // Untuk platform lain, biarkan thumbnail yang sudah ada
     }
   }
 
@@ -100,7 +107,17 @@ const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params
     if (thumbnailUrl && !safe) {
       return apiError("URL thumbnail tidak valid (harus http/https)", { status: 400 });
     }
-    updateData.thumbnailUrl = safe ?? null;
+    const nextPlatform =
+      (updateData.platform as string | undefined) ?? existing.platform;
+    if (
+      nextPlatform !== "YOUTUBE" &&
+      safe &&
+      isYoutubeHostedThumbnail(safe)
+    ) {
+      updateData.thumbnailUrl = null;
+    } else {
+      updateData.thumbnailUrl = safe ?? null;
+    }
   }
 
   if (status !== undefined) {
@@ -133,6 +150,9 @@ const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params
 
   await db.video.update({ where: { id }, data: updateData });
 
+  const updated = await db.video.findUnique({ where: { id } });
+  const withThumb = updated ? await ensureInstagramThumbnail(updated) : null;
+
   auditAdminEntity(admin, "video", "update", {
     type: "video",
     id,
@@ -142,8 +162,7 @@ const PATCH = withRequestLogging(async (request: NextRequest, { params }: Params
 
   revalidateHomeTv();
 
-  const updated = await db.video.findUnique({ where: { id } });
-  return apiSuccess({ message: "Video updated", video: updated });
+  return apiSuccess({ message: "Video updated", video: withThumb ?? updated });
 });
 
 const DELETE = withRequestLogging(async (request: NextRequest, { params }: Params) => {

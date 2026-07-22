@@ -27,7 +27,6 @@ export default function AdminVideoEditPage() {
     description: "",
     content: "",
     videoUrl: "",
-    thumbnailUrl: "",
     status: "DRAFT",
     isFeatured: false,
   });
@@ -53,7 +52,6 @@ export default function AdminVideoEditPage() {
           description: video.description ?? "",
           content: video.content ?? "",
           videoUrl: resolvedVideoUrl,
-          thumbnailUrl: video.thumbnailUrl ?? "",
           status: video.status ?? "DRAFT",
           isFeatured: Boolean(video.isFeatured),
         });
@@ -151,23 +149,6 @@ export default function AdminVideoEditPage() {
             <p className="mt-1 text-xs text-jepang-muted">
               Platform yang didukung: YouTube, Facebook, TikTok, Instagram (link-out), atau URL
               video lainnya.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-1.5">
-              URL Thumbnail
-              {parsedPreview?.platform === "YOUTUBE"
-                ? " (opsional — otomatis dari YouTube jika kosong)"
-                : " (disarankan untuk platform non-YouTube)"}
-            </label>
-            <Input
-              value={form.thumbnailUrl}
-              onChange={(e) => setForm((f) => ({ ...f, thumbnailUrl: e.target.value }))}
-              placeholder="https://... (gambar preview, rasio 16:9, min 1280×720)"
-            />
-            <p className="mt-1 text-xs text-jepang-muted">
-              Ukuran yang direkomendasikan: 1280×720 px (rasio 16:9).
             </p>
           </div>
 

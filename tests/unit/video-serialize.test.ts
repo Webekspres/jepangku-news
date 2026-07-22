@@ -131,6 +131,19 @@ describe("serializePublicVideo — Instagram (embed)", () => {
       "https://www.instagram.com/reel/CxxxxYYYYY/embed/",
     );
   });
+
+  test("thumbnail YouTube stale diabaikan untuk Instagram", () => {
+    const result = serializePublicVideo(
+      baseVideo({
+        videoUrl: "https://www.instagram.com/reel/DZNCEiRBcnQ/",
+        youtubeId: null,
+        platform: "INSTAGRAM",
+        thumbnailUrl: "https://img.youtube.com/vi/1o6FCdKbhBg/maxresdefault.jpg",
+      }),
+    );
+    expect(result.platform).toBe("INSTAGRAM");
+    expect(result.thumbnailUrl).toBe("");
+  });
 });
 
 describe("serializePublicVideo — konten HTML", () => {

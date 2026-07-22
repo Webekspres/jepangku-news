@@ -9,6 +9,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Homepage auth-sensitive (CTA guest vs login) — jangan biarkan CDN
+        // menyimpan HTML lama dengan stale-while-revalidate panjang.
+        source: "/",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-store, max-age=0, must-revalidate",
+          },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },

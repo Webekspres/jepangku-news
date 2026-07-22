@@ -6,9 +6,11 @@ import { auditAdminEntity } from "@/lib/audit-routes";
 import { createSlug } from "@/lib/slug";
 import { sanitizeMediaUrl, sanitizePlainField, sanitizeHtmlContent } from "@/lib/sanitizer";
 import {
+  isYoutubeHostedThumbnail,
   parseVideoUrl,
   youtubeThumbnailUrl,
 } from "@/lib/video/platform";
+import { ensureInstagramThumbnail } from "@/lib/video/fetch-external-thumbnail";
 import { revalidateHomeTv } from "@/lib/video/revalidate";
 import { withRequestLogging } from '@/lib/logging/request-logger';
 
@@ -76,13 +78,18 @@ const POST = withRequestLogging(async (request: NextRequest) => {
   const featured = Boolean(isFeatured);
   const slug = createSlug(safeTitle);
 
-  // Thumbnail: manual upload > auto YouTube > kosong (platform lain perlu diisi manual)
+  // Thumbnail: manual > auto YouTube > kosong (platform lain wajib upload manual)
   const safeThumbnail = sanitizeMediaUrl(thumbnailUrl);
   const resolvedThumbnail =
-    safeThumbnail ??
-    (parsed.platform === "YOUTUBE" && parsed.platformId
-      ? youtubeThumbnailUrl(parsed.platformId)
-      : null);
+    safeThumbnail &&
+    !(
+      parsed.platform !== "YOUTUBE" &&
+      isYoutubeHostedThumbnail(safeThumbnail)
+    )
+      ? safeThumbnail
+      : parsed.platform === "YOUTUBE" && parsed.platformId
+        ? youtubeThumbnailUrl(parsed.platformId)
+        : null;
 
   if (!resolvedThumbnail && parsed.platform !== "YOUTUBE") {
     // Tidak wajib, tapi disarankan — biarkan null, komponen akan fallback ke placeholder
@@ -116,16 +123,18 @@ const POST = withRequestLogging(async (request: NextRequest) => {
     },
   });
 
+  const withThumb = await ensureInstagramThumbnail(video);
+
   auditAdminEntity(admin, "video", "create", {
     type: "video",
-    id: video.id,
-    label: video.title,
-    href: `/admin/videos/${video.id}/edit`,
+    id: withThumb.id,
+    label: withThumb.title,
+    href: `/admin/videos/${withThumb.id}/edit`,
   });
 
   revalidateHomeTv();
 
-  return apiSuccess({ message: "Video created", id: video.id }, { status: 201 });
+  return apiSuccess({ message: "Video created", id: withThumb.id }, { status: 201 });
 });
 
 export { GET, POST };

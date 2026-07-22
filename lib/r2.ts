@@ -79,7 +79,8 @@ export async function uploadToR2(
       durationMs: Date.now() - start,
       errorMessage: error instanceof Error ? error.message : 'unknown',
     });
-    throw error;
+    // Jangan biarkan thumbnail hilang — fallback lokal jika R2 Access Denied
+    return uploadToLocal(file, fileName);
   }
 }
 

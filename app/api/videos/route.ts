@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess } from '@/lib/api-response';
 import { db } from "@/lib/db";
+import { ensureInstagramThumbnail } from "@/lib/video/fetch-external-thumbnail";
 import {
   publishedVideoWhere,
   serializePublicVideo,
@@ -18,7 +19,7 @@ const GET = withRequestLogging(async (request: NextRequest) => {
       ? [{ viewCount: "desc" as const }, { publishedAt: "desc" as const }]
       : [{ publishedAt: "desc" as const }, { createdAt: "desc" as const }];
 
-  const [total, videos] = await Promise.all([
+  const [total, videosRaw] = await Promise.all([
     db.video.count({ where: publishedVideoWhere }),
     db.video.findMany({
       where: publishedVideoWhere,
@@ -27,6 +28,10 @@ const GET = withRequestLogging(async (request: NextRequest) => {
       skip: (page - 1) * limit,
     }),
   ]);
+
+  const videos = await Promise.all(
+    videosRaw.map((video) => ensureInstagramThumbnail(video)),
+  );
 
   return apiSuccess({
     total,

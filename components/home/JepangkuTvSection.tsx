@@ -1,14 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play, Tv } from "lucide-react";
+import CardCoverImage from "@/components/CardCoverImage";
 import LazySectionSkeleton from "@/components/home/LazySectionSkeleton";
 import LazyVideoEmbed from "@/components/video/LazyVideoEmbed";
 import type { HomeTvResponse, PublicVideoSummary } from "@/lib/home/types";
-import { imageLoadingProps } from "@/lib/image-loading";
 import type { VideoPlatform } from "@/lib/video/platform";
-
 type JepangkuTvSectionProps = {
   data: HomeTvResponse | null;
   loading: boolean;
@@ -44,13 +42,10 @@ function SidebarItem({ video }: { video: PublicVideoSummary }) {
       data-testid={`tv-sidebar-${video.slug}`}
     >
       <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-sm bg-black/30">
-        <Image
+        <CardCoverImage
           src={video.thumbnailUrl}
           alt={video.title}
-          fill
           sizes="96px"
-          className="object-cover"
-          {...imageLoadingProps(false)}
         />
         <span className="absolute inset-0 flex items-center justify-center bg-black/30">
           <Play size={14} fill="white" className="text-white" />

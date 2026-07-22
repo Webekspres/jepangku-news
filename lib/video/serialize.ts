@@ -1,6 +1,7 @@
 import type { Video } from "@prisma/client";
 import { sanitizeHtmlContent, sanitizePlainField } from "@/lib/sanitizer";
 import {
+  isYoutubeHostedThumbnail,
   parseVideoUrl,
   youtubeThumbnailUrl,
   type VideoPlatform,
@@ -69,9 +70,14 @@ function resolveVideoMeta(video: Video): {
   const youtubeId =
     parsed.platform === "YOUTUBE" ? parsed.platformId : null;
 
+  // Jangan pakai thumbnail YouTube untuk IG/FB/TikTok (data lama sering stale).
+  const storedThumb = video.thumbnailUrl ?? "";
   const thumbnailUrl =
-    video.thumbnailUrl ??
-    (youtubeId ? youtubeThumbnailUrl(youtubeId) : "");
+    parsed.platform === "YOUTUBE"
+      ? storedThumb || (youtubeId ? youtubeThumbnailUrl(youtubeId) : "")
+      : storedThumb && !isYoutubeHostedThumbnail(storedThumb)
+        ? storedThumb
+        : "";
 
   return {
     platform: parsed.platform,
